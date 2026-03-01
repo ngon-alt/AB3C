@@ -77,10 +77,15 @@ statusは必ず "ok", "warn", "ng" のいずれかにしてください。`;
       messages: [{ role: "user", content: prompt }],
     });
 
-    const text = message.content.map((b) => ("text" in b ? b.text : "")).join("");
-    const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
-    return NextResponse.json(result);
+const text = message.content.map((b) => ("text" in b ? b.text : "")).join("");
+const clean = text.replace(/```json|```/g, "").trim();
+try {
+  const result = JSON.parse(clean);
+  return NextResponse.json(result);
+} catch (parseError) {
+  console.error("JSON parse error:", parseError, "Raw text:", text);
+  return NextResponse.json({ error: "レスポンスの解析に失敗しました。: " + text.substring(0, 200) }, { status: 500 });
+}
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "分析中にエラーが発生しました。" }, { status: 500 });
