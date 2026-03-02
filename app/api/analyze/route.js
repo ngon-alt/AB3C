@@ -73,7 +73,7 @@ statusは必ず "ok", "warn", "ng" のいずれかにしてください。`;
   try {
     const message = await client.messages.create({
       model: "claude-opus-4-6",
-      max_tokens: 1600,
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });
 
