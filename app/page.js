@@ -97,9 +97,7 @@ export default function Home() {
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
         <div style={{ borderBottom: `2px solid ${C.ink}`, paddingBottom: 20, marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
           <div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(2.5rem, 8vw, 4.5rem)", fontWeight: 700, lineHeight: 1, letterSpacing: "-0.04em" }}>
-              <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.C }}>3</span><span style={{ color: C.C }}>C</span>
-            </div>
+            <img src="https://ab3c.jp/img/common/logo.svg" alt="AB3C" style={{ height: "clamp(40px, 8vw, 72px)", display: "block" }} />
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 5 }}>
               「選ばれる理由」を見つけるフレームワーク
             </div>
@@ -262,7 +260,13 @@ export default function Home() {
         ); })()}
 
         <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
-          AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8 }}>
+            <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
+            <span style={{ fontSize: 12, color: C.ink }}>一般社団法人デジタル経営革新協会</span>
+          </div>
+          <div>
+            AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI
+          </div>
         </footer>
       </div>
     </main>
