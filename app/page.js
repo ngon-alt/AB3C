@@ -159,6 +159,7 @@ export default function Home() {
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [shareUrl, setShareUrl] = useState("");
+  const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
 
   const shareResult = async (inputText, resultData) => {
@@ -188,11 +189,11 @@ export default function Home() {
     if (Notification.permission === "default") Notification.requestPermission();
   }, []);
 
-  const saveHistory = (inputText, resultData) => {
+  const saveHistory = (inputText, resultData, title) => {
     const entry = {
       id: Date.now(),
       date: new Date().toLocaleString("ja-JP"),
-      preview: inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""),
+      preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""),
       input: inputText,
       result: resultData,
     };
@@ -221,8 +222,9 @@ export default function Home() {
       const data = await res.json();
       if (data.error) { setError(data.error); return; }
       setResult(data);
+      setHistoryTitle(data?.strategy_message?.message || "");
       const savedText = tab === "url" ? url : input;
-      saveHistory(savedText, data);
+      saveHistory(savedText, data, data?.strategy_message?.message || "");
       notify(savedText);
     } catch {
       setError("通信エラーが発生しました。もう一度お試しください。");
@@ -389,6 +391,23 @@ export default function Home() {
                   style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
                   ← 新規分析
                 </button>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <input
+                  value={historyTitle}
+                  onChange={e => {
+                    setHistoryTitle(e.target.value);
+                    // Update the latest history entry title
+                    const newHistory = [...history];
+                    if (newHistory.length > 0 && !selectedHistory) {
+                      newHistory[0].preview = e.target.value;
+                      setHistory(newHistory);
+                      localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+                    }
+                  }}
+                  placeholder="履歴のタイトルを編集できます"
+                  style={{ width: "100%", background: "#fff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
+                />
               </div>
               {shareUrl && (
                 <div style={{ background: C.highlight, border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
