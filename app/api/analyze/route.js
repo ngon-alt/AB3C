@@ -3,11 +3,42 @@ import { NextResponse } from "next/server";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function POST(req) {
-  const { input } = await req.json();
+async function fetchWebsite(url) {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)" },
+      signal: AbortSignal.timeout(10000),
+    });
+    const html = await res.text();
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 3000);
+    return text;
+  } catch (e) {
+    throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
+  }
+}
 
-  if (!input || input.trim().length === 0) {
-    return NextResponse.json({ error: "事業概要を入力してください。" }, { status: 400 });
+export async function POST(req) {
+  const { input, url } = await req.json();
+
+  let analysisTarget = "";
+
+  if (url && url.trim()) {
+    try {
+      const siteText = await fetchWebsite(url.trim());
+      analysisTarget = `以下はウェブサイト（${url}）から取得したテキストです：\n\n${siteText}`;
+    } catch (e) {
+      return NextResponse.json({ error: e.message }, { status: 400 });
+    }
+  } else if (input && input.trim()) {
+    analysisTarget = input.trim();
+  } else {
+    return NextResponse.json({ error: "事業概要またはURLを入力してください。" }, { status: 400 });
   }
 
   const prompt = `あなたはAB3C分析の専門家です。
@@ -22,8 +53,8 @@ AB3C分析の正確な定義：
 
 戦略メッセージ = Benefit（何が得られるか）＋ Advantage（なぜ競合よりいいか）
 
-事業概要：
-${input}
+分析対象：
+${analysisTarget}
 
 以下のJSON形式のみで返してください：
 {
@@ -68,24 +99,19 @@ ${input}
   ]
 }
 
-statusは必ず "ok", "warn", "ng" のいずれかにしてください。`;
+statusは必ず "ok", "warn", "ng" のいずれかにしてください。JSONのみ返してください。`;
 
   try {
     const message = await client.messages.create({
-      model: "claude-opus-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     });
 
-const text = message.content.map((b) => ("text" in b ? b.text : "")).join("");
-const clean = text.replace(/```json|```/g, "").trim();
-try {
-  const result = JSON.parse(clean);
-  return NextResponse.json(result);
-} catch (parseError) {
-  console.error("JSON parse error:", parseError, "Raw text:", text);
-  return NextResponse.json({ error: "レスポンスの解析に失敗しました。: " + text.substring(0, 200) }, { status: 500 });
-}
+    const text = message.content.map((b) => ("text" in b ? b.text : "")).join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(clean);
+    return NextResponse.json(result);
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "分析中にエラーが発生しました。" }, { status: 500 });
