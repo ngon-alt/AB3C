@@ -195,6 +195,27 @@ export default function Home() {
                   <p style={{ fontSize: 14, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
                 </Card>
               </div>
+              {d.three_c.customer.market && (
+                <div style={{ marginBottom: 14 }}>
+                  <SubLabel color={C.C} text="市場規模" />
+                  <Card color={C.C} title="SAM · SOM · 成長率">
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                      <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.sam}</div>
+                      </div>
+                      <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.som}</div>
+                      </div>
+                      <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
+                        <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.6 }}>{d.three_c.customer.market.growth}</div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
               <div style={g2}>
                 <div>
                   <SubLabel color={C.C} text="Competitor（競合）" />
