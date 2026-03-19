@@ -158,6 +158,29 @@ export default function Home() {
   const [history, setHistory] = useState([]);
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [shareUrl, setShareUrl] = useState("");
+  const [sharing, setSharing] = useState(false);
+
+  const shareResult = async (inputText, resultData) => {
+    setSharing(true); setShareUrl("");
+    try {
+      const res = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: inputText, result: resultData }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        const url = `${window.location.origin}/share?id=${data.id}`;
+        setShareUrl(url);
+        navigator.clipboard.writeText(url).catch(() => {});
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("ab3c_history");
@@ -357,11 +380,22 @@ export default function Home() {
                     ✏️ このテキストを修正して再分析
                   </button>
                 )}
+                <button onClick={() => shareResult(currentInput || "", currentResult)}
+                  disabled={sharing}
+                  style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
+                  {sharing ? "作成中…" : "🔗 シェアURLを発行"}
+                </button>
                 <button onClick={reset}
                   style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
                   ← 新規分析
                 </button>
               </div>
+              {shareUrl && (
+                <div style={{ background: C.highlight, border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>✓ URLをコピーしました</div>
+                  <div style={{ fontSize: 13, color: C.ink, wordBreak: "break-all" }}>{shareUrl}</div>
+                </div>
+              )}
               <ResultView d={currentResult} />
             </div>
           )}
