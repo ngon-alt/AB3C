@@ -230,7 +230,7 @@ function TitleEditor({ title, onChange }) {
         <input autoFocus value={title} onChange={onChange} onBlur={() => setEditing(false)} onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
           style={{ flex: 1, background: "#fff", border: `1px solid ${C.A}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "4px 8px", outline: "none" }} />
       ) : (
-        : (
+
         <span style={{ flex: 1, fontSize: 13, color: C.ink, fontFamily: "'Noto Serif JP', serif" }}>{title || "（タイトルなし）"}</span>
       )}
       <button onClick={() => setEditing(!editing)} title="タイトルを編集"
