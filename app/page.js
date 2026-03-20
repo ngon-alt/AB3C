@@ -3,7 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 const C = {
-  A: "#2c4a8c", B: "#1a6b3a", C: "#8c6914", red: "#c0392b",
+  A: "#1a6fd4",  // 青
+  B: "#FF0000",  // 赤
+  C: "#1a1a14",  // 黒
+  red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
   ink: "#1a1a14", muted: "#8a8478", highlight: "#f0ebe0",
 };
