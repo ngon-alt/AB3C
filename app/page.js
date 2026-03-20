@@ -292,7 +292,7 @@ export default function Home() {
   const currentInput = selectedHistory ? selectedHistory.input : null;
 
   return (
-    <style>{`@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap');`}</style>
+
   <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
 {/* Header */}
 <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
