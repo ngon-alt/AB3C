@@ -295,7 +295,9 @@ export default function Home() {
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <div>
-            <img src="https://ab3c.jp/img/common/logo.svg" alt="AB3C" style={{ height: "clamp(32px, 6vw, 56px)", display: "block" }} />
+<div style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 700, lineHeight: 1, letterSpacing: "-0.04em" }}>
+  <span style={{ color: "#2c4a8c" }}>A</span><span style={{ color: "#c0392b" }}>B</span><span style={{ color: "#1a1a14" }}>3C</span>
+</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 4 }}>
               「選ばれる理由」を見つけるフレームワーク
             </div>
