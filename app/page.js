@@ -148,6 +148,33 @@ function ResultView({ d }) {
   );
 }
 
+function TitleEditor({ title, onChange }) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, background: "#f8f6f0", border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px" }}>
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>タイトル</span>
+      {editing ? (
+        <input
+          autoFocus
+          value={title}
+          onChange={onChange}
+          onBlur={() => setEditing(false)}
+          onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
+          style={{ flex: 1, background: "#fff", border: `1px solid ${C.A}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "4px 8px", outline: "none" }}
+        />
+      ) : (
+        <span style={{ flex: 1, fontSize: 13, color: C.ink, fontFamily: "'Noto Serif JP', serif" }}>{title || "（タイトルなし）"}</span>
+      )}
+      <button
+        onClick={() => setEditing(!editing)}
+        title="タイトルを編集"
+        style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 14, padding: "2px 4px", color: editing ? C.A : C.muted }}>
+        ✏️
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
   const [tab, setTab] = useState("text");
   const [input, setInput] = useState("");
@@ -392,23 +419,18 @@ export default function Home() {
                   ← 新規分析
                 </button>
               </div>
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  value={historyTitle}
-                  onChange={e => {
-                    setHistoryTitle(e.target.value);
-                    // Update the latest history entry title
-                    const newHistory = [...history];
-                    if (newHistory.length > 0 && !selectedHistory) {
-                      newHistory[0].preview = e.target.value;
-                      setHistory(newHistory);
-                      localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
-                    }
-                  }}
-                  placeholder="履歴のタイトルを編集できます"
-                  style={{ width: "100%", background: "#fff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
-                />
-              </div>
+              <TitleEditor
+                title={historyTitle}
+                onChange={e => {
+                  setHistoryTitle(e.target.value);
+                  const newHistory = [...history];
+                  if (newHistory.length > 0 && !selectedHistory) {
+                    newHistory[0].preview = e.target.value;
+                    setHistory(newHistory);
+                    localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+                  }
+                }}
+              />
               {shareUrl && (
                 <div style={{ background: C.highlight, border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>✓ URLをコピーしました</div>
