@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -24,6 +25,19 @@ async function fetchWebsite(url) {
 }
 
 export async function POST(req) {
+  // 使用回数チェック
+  const session = await getServerSession();
+  if (session) {
+    const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    const usageData = await usageRes.json();
+    if (usageRes.status === 429) {
+      return NextResponse.json({ error: usageData.error }, { status: 429 });
+    }
+  }
+
   const { input, url } = await req.json();
 
   let analysisTarget = "";
