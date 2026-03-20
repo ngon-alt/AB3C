@@ -1,12 +1,9 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 const C = {
-  A: "#1a6fd4",  // 青
-  B: "#FF0000",  // 赤
-  C: "#1a1a14",  // 黒
-  red: "#c0392b",
+  A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
   ink: "#1a1a14", muted: "#8a8478", highlight: "#f0ebe0",
 };
@@ -158,20 +155,12 @@ function TitleEditor({ title, onChange }) {
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, background: "#f8f6f0", border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px" }}>
       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>タイトル</span>
       {editing ? (
-        <input
-          autoFocus
-          value={title}
-          onChange={onChange}
-          onBlur={() => setEditing(false)}
-          onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
-          style={{ flex: 1, background: "#fff", border: `1px solid ${C.A}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "4px 8px", outline: "none" }}
-        />
+        <input autoFocus value={title} onChange={onChange} onBlur={() => setEditing(false)} onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
+          style={{ flex: 1, background: "#fff", border: `1px solid ${C.A}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "4px 8px", outline: "none" }} />
       ) : (
         <span style={{ flex: 1, fontSize: 13, color: C.ink, fontFamily: "'Noto Serif JP', serif" }}>{title || "（タイトルなし）"}</span>
       )}
-      <button
-        onClick={() => setEditing(!editing)}
-        title="タイトルを編集"
+      <button onClick={() => setEditing(!editing)} title="タイトルを編集"
         style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 14, padding: "2px 4px", color: editing ? C.A : C.muted }}>
         ✏️
       </button>
@@ -197,22 +186,14 @@ export default function Home() {
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
     try {
-      const res = await fetch("/api/share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: inputText, result: resultData }),
-      });
+      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData }) });
       const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
         setShareUrl(url);
         navigator.clipboard.writeText(url).catch(() => {});
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSharing(false);
-    }
+    } catch (e) { console.error(e); } finally { setSharing(false); }
   };
 
   useEffect(() => {
@@ -222,22 +203,14 @@ export default function Home() {
   }, []);
 
   const saveHistory = (inputText, resultData, title) => {
-    const entry = {
-      id: Date.now(),
-      date: new Date().toLocaleString("ja-JP"),
-      preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""),
-      input: inputText,
-      result: resultData,
-    };
+    const entry = { id: Date.now(), date: new Date().toLocaleString("ja-JP"), preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), input: inputText, result: resultData };
     const newHistory = [entry, ...history];
     setHistory(newHistory);
     localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
   };
 
   const notify = (text) => {
-    if (Notification.permission === "granted") {
-      new Notification("AB3C分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
-    }
+    if (Notification.permission === "granted") new Notification("AB3C分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
   };
 
   const analyze = async () => {
@@ -246,11 +219,7 @@ export default function Home() {
     setError(""); setResult(null); setSelectedHistory(null); setLoading(true);
     try {
       const body = tab === "url" ? { url } : { input };
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.error) { setError(data.error); return; }
       setResult(data);
@@ -258,22 +227,11 @@ export default function Home() {
       const savedText = tab === "url" ? url : input;
       saveHistory(savedText, data, data?.strategy_message?.message || "");
       notify(savedText);
-    } catch {
-      setError("通信エラーが発生しました。もう一度お試しください。");
-    } finally {
-      setLoading(false);
-    }
+    } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
   };
 
   const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); };
-
-  const editAndReanalyze = (text) => {
-    setInput(text);
-    setTab("text");
-    setResult(null);
-    setSelectedHistory(null);
-  };
-
+  const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
     setHistory(newHistory);
@@ -281,127 +239,91 @@ export default function Home() {
     if (selectedHistory?.id === id) setSelectedHistory(null);
   };
 
-  const tabStyle = (t) => ({
-    padding: "8px 20px", fontFamily: "'Space Mono', monospace", fontSize: 12,
-    fontWeight: 700, letterSpacing: "0.06em", border: "none", cursor: "pointer",
-    borderBottom: tab === t ? `2px solid ${C.ink}` : "2px solid transparent",
-    background: "transparent", color: tab === t ? C.ink : C.muted,
-  });
-
+  const tabStyle = (t) => ({ padding: "8px 20px", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", border: "none", cursor: "pointer", borderBottom: tab === t ? `2px solid ${C.ink}` : "2px solid transparent", background: "transparent", color: tab === t ? C.ink : C.muted });
   const currentResult = selectedHistory ? selectedHistory.result : result;
   const currentInput = selectedHistory ? selectedHistory.input : null;
 
   return (
+    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
 
-  <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
-{/* Header */}
-<div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
-  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-    <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
-      {sidebarOpen ? "◀" : "▶"}
-    </button>
-    <div>
-<div style={{
-fontFamily: "var(--font-black-han-sans), sans-serif",
-  fontSize: "clamp(24px, 5vw, 44px)",
-  fontWeight: 900,
-  lineHeight: 1,
-  letterSpacing: "0.02em",
-}}>
-  <span style={{ color: "#1a6fd4" }}>A</span>
-  <span style={{ color: "#FF0000" }}>B</span>
-  <span style={{ color: "#1a1a14" }}>3C</span>
-</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", marginTop: 4 }}>
-        「選ばれる理由」を見つけるフレームワーク
+      {/* Header */}
+      <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
+            {sidebarOpen ? "◀" : "▶"}
+          </button>
+          <div>
+            <div style={{ fontFamily: "var(--font-black-han-sans), sans-serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
+              <span style={{ color: "#1a6fd4" }}>A</span>
+              <span style={{ color: "#FF0000" }}>B</span>
+              <span style={{ color: "#1a1a14" }}>3C</span>
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", marginTop: 4 }}>
+              「選ばれる理由」を見つけるフレームワーク
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+          <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
+            <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a6fd4" }}>A</b> — Advantage（差別的優位点）</div>
+            <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#FF0000" }}>B</b> — Benefit（お客様が求める価値）</div>
+            <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a1a14" }}>3C</b> — Customer · Competitor · Company</div>
+          </div>
+
+          {session ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
+              <button
+                onClick={async () => {
+                  const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: 'price_1TCxTtCYHZ66REnUAgK8vyeh' }) });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                }}
+                style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
+              >
+                アップグレード
+              </button>
+              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
+                ログアウト
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => signIn("google")} style={{ display: "flex", alignItems: "center", gap: 0, border: "none", borderRadius: 4, cursor: "pointer", padding: 0, overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.25)", fontFamily: "Roboto, Arial, sans-serif" }}>
+              <div style={{ background: "#fff", padding: "10px 12px 11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13 17.8 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.1z"/>
+                  <path fill="#FBBC05" d="M10.5 28.6A14.8 14.8 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6L2.4 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l7.9-6z"/>
+                  <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.6-5.9c-2 1.4-4.7 2.2-7.6 2.2-6.2 0-11.5-4.2-13.4-9.8l-7.9 6C6.5 42.5 14.6 48 24 48z"/>
+                </svg>
+              </div>
+              <div style={{ background: "#DB4437", padding: "10px 16px", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                Googleでログイン
+              </div>
+            </button>
+          )}
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-    {/* AB3C説明 */}
-    <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
-      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.A }}>A</b> — Advantage（差別的優位点）</div>
-      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.B }}>B</b> — Benefit（お客様が求める価値）</div>
-      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.C }}>3C</b> — Customer · Competitor · Company</div>
-    </div>
-
-    {/* ログインボタン */}
-{session ? (
-  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-    <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
-    <button
-      onClick={async () => {
-        const res = await fetch('/api/stripe/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ priceId: 'price_1TCxTtCYHZ66REnUAgK8vyeh' }),
-        });
-        const data = await res.json();
-        if (data.url) window.location.href = data.url;
-      }}
-      style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
-    >
-      アップグレード
-    </button>
-    <button
-      onClick={() => signOut()}
-      style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}
-    >
-      ログアウト
-    </button>
-  </div>
-) : (
-  <button
-    onClick={() => signIn("google")}
-    style={{ display: "flex", alignItems: "center", gap: 0, border: "none", borderRadius: 4, cursor: "pointer", padding: 0, overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.25)", fontFamily: "Roboto, Arial, sans-serif" }}
-  >
-    <div style={{ background: "#fff", padding: "10px 12px 11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.5 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.9 6.1C12.4 13 17.8 9.5 24 9.5z"/>
-        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.1z"/>
-        <path fill="#FBBC05" d="M10.5 28.6A14.8 14.8 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6L2.4 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l7.9-6z"/>
-        <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.6-5.9c-2 1.4-4.7 2.2-7.6 2.2-6.2 0-11.5-4.2-13.4-9.8l-7.9 6C6.5 42.5 14.6 48 24 48z"/>
-      </svg>
-    </div>
-<div style={{ background: "#DB4437", padding: "10px 16px", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
-        Googleでログイン
-      </div>
-    </button>
-  )}
-</div>
 
       {/* Body */}
       <div style={{ display: "flex", flex: 1 }}>
-        {/* Sidebar */}
         {sidebarOpen && (
           <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>履歴</span>
-              <button onClick={reset} style={{ background: C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, padding: "4px 10px" }}>
-                + 新規
-              </button>
+              <button onClick={reset} style={{ background: C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, padding: "4px 10px" }}>+ 新規</button>
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
               {history.length === 0 ? (
                 <div style={{ padding: 16, fontSize: 12, color: C.muted, textAlign: "center" }}>履歴はありません</div>
               ) : (
                 history.map((h, i) => (
-                  <div key={h.id}
-                    onClick={() => { setSelectedHistory(h); setResult(null); }}
-                    style={{
-                      padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer",
-                      background: selectedHistory?.id === h.id ? C.highlight : "transparent",
-                      borderLeft: selectedHistory?.id === h.id ? `3px solid ${C.A}` : "3px solid transparent",
-                    }}>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, marginBottom: 4 }}>
-                      #{history.length - i} · {h.date}
-                    </div>
+                  <div key={h.id} onClick={() => { setSelectedHistory(h); setResult(null); }}
+                    style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selectedHistory?.id === h.id ? C.highlight : "transparent", borderLeft: selectedHistory?.id === h.id ? `3px solid ${C.A}` : "3px solid transparent" }}>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, marginBottom: 4 }}>#{history.length - i} · {h.date}</div>
                     <div style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>{h.preview}</div>
-                    <button onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }}
-                      style={{ marginTop: 6, background: "transparent", border: "none", cursor: "pointer", fontSize: 10, color: C.muted, padding: 0 }}>
-                      削除
-                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }} style={{ marginTop: 6, background: "transparent", border: "none", cursor: "pointer", fontSize: 10, color: C.muted, padding: 0 }}>削除</button>
                   </div>
                 ))
               )}
@@ -409,7 +331,6 @@ fontFamily: "var(--font-black-han-sans), sans-serif",
           </div>
         )}
 
-        {/* Main */}
         <div style={{ flex: 1, padding: "32px 24px 80px", overflowY: "auto", maxWidth: 900 }}>
           {!currentResult && !loading && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, marginBottom: 28, boxShadow: `2px 2px 0 ${C.border}` }}>
@@ -420,39 +341,23 @@ fontFamily: "var(--font-black-han-sans), sans-serif",
               <div style={{ padding: "26px 28px" }}>
                 {tab === "text" ? (
                   <>
-                    <label style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 10 }}>
-                      事業の概要を入力してください
-                    </label>
-                    <textarea
-                      value={input}
-                      onChange={e => setInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) analyze(); }}
+                    <label style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 10 }}>事業の概要を入力してください</label>
+                    <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) analyze(); }}
                       placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
-                      style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 14, lineHeight: 1.8, padding: "14px 16px", resize: "vertical", minHeight: 120, outline: "none", boxSizing: "border-box" }}
-                    />
+                      style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 14, lineHeight: 1.8, padding: "14px 16px", resize: "vertical", minHeight: 120, outline: "none", boxSizing: "border-box" }} />
                   </>
                 ) : (
                   <>
-                    <label style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 10 }}>
-                      分析したいウェブサイトのURLを入力してください
-                    </label>
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={e => setUrl(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") analyze(); }}
+                    <label style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, display: "block", marginBottom: 10 }}>分析したいウェブサイトのURLを入力してください</label>
+                    <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter") analyze(); }}
                       placeholder="例：https://www.example.co.jp"
-                      style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 14, lineHeight: 1.8, padding: "14px 16px", outline: "none", boxSizing: "border-box" }}
-                    />
+                      style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 14, lineHeight: 1.8, padding: "14px 16px", outline: "none", boxSizing: "border-box" }} />
                     <p style={{ fontSize: 12, color: C.muted, marginTop: 8 }}>※ サイトの内容を読み取りAB3C分析を行います。一部のサイトは読み取れない場合があります。</p>
                   </>
                 )}
-                {error && (
-                  <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 13, color: C.red, marginTop: 12 }}>{error}</div>
-                )}
+                {error && <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 13, color: C.red, marginTop: 12 }}>{error}</div>}
                 <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 14 }}>
-                  <button onClick={analyze} disabled={loading}
-                    style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", padding: "12px 28px" }}>
+                  <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", padding: "12px 28px" }}>
                     {loading ? "分析中…" : "▶ 分析する"}
                   </button>
                   <span style={{ fontSize: 12, color: C.muted }}>{tab === "text" ? "Ctrl + Enter でも実行できます" : "Enter でも実行できます"}</span>
@@ -467,33 +372,22 @@ fontFamily: "var(--font-black-han-sans), sans-serif",
             <div>
               <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
                 {currentInput && (
-                  <button onClick={() => editAndReanalyze(currentInput)}
-                    style={{ background: C.A, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
+                  <button onClick={() => editAndReanalyze(currentInput)} style={{ background: C.A, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
                     ✏️ このテキストを修正して再分析
                   </button>
                 )}
-                <button onClick={() => shareResult(currentInput || "", currentResult)}
-                  disabled={sharing}
-                  style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
+                <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
                   {sharing ? "作成中…" : "🔗 シェアURLを発行"}
                 </button>
-                <button onClick={reset}
-                  style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
+                <button onClick={reset} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
                   ← 新規分析
                 </button>
               </div>
-              <TitleEditor
-                title={historyTitle}
-                onChange={e => {
-                  setHistoryTitle(e.target.value);
-                  const newHistory = [...history];
-                  if (newHistory.length > 0 && !selectedHistory) {
-                    newHistory[0].preview = e.target.value;
-                    setHistory(newHistory);
-                    localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
-                  }
-                }}
-              />
+              <TitleEditor title={historyTitle} onChange={e => {
+                setHistoryTitle(e.target.value);
+                const newHistory = [...history];
+                if (newHistory.length > 0 && !selectedHistory) { newHistory[0].preview = e.target.value; setHistory(newHistory); localStorage.setItem("ab3c_history", JSON.stringify(newHistory)); }
+              }} />
               {shareUrl && (
                 <div style={{ background: C.highlight, border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>✓ URLをコピーしました</div>
