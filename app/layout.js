@@ -1,6 +1,5 @@
 import { Providers } from "./providers";
 import { Noto_Serif_JP, Space_Mono } from "next/font/google";
-import Header from "./components/Header";
 
 const notoSerifJP = Noto_Serif_JP({ 
   subsets: ["latin"], 
@@ -24,7 +23,6 @@ export default function RootLayout({ children }) {
     <html lang="ja">
       <body className={`${notoSerifJP.variable} ${spaceMono.variable}`}>
         <Providers>
-          <Header />
           {children}
         </Providers>
       </body>
