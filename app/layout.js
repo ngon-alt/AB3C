@@ -1,16 +1,17 @@
 import { Providers } from "./providers";
 import { Noto_Serif_JP, Space_Mono } from "next/font/google";
+import Header from "./components/Header";
 
 const notoSerifJP = Noto_Serif_JP({ 
   subsets: ["latin"], 
   weight: ["400", "700"],
-  variable: "--font-noto-serif-jp"  // ← 追加
+  variable: "--font-noto-serif-jp"
 });
 
 const spaceMono = Space_Mono({ 
   subsets: ["latin"], 
   weight: ["400", "700"],
-  variable: "--font-space-mono"  // ← 追加
+  variable: "--font-space-mono"
 });
 
 export const metadata = { 
@@ -22,7 +23,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ja">
       <body className={`${notoSerifJP.variable} ${spaceMono.variable}`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <Header />
+          {children}
+        </Providers>
       </body>
     </html>
   );
