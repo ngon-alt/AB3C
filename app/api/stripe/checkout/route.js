@@ -1,10 +1,11 @@
 import Stripe from 'stripe';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(req) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session) {
     return Response.json({ error: 'ログインが必要です' }, { status: 401 });
   }
