@@ -296,7 +296,7 @@ export default function Home() {
           </button>
           <div>
 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 700, lineHeight: 1, letterSpacing: "-0.04em" }}>
-  <span style={{ color: "#2c4a8c" }}>A</span><span style={{ color: "#c0392b" }}>B</span><span style={{ color: "#1a1a14" }}>3C</span>
+<span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#1a1a14" }}>3C</span>
 </div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 4 }}>
               「選ばれる理由」を見つけるフレームワーク
