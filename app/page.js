@@ -470,23 +470,7 @@ export default function Home() {
     </div>
   </div>
 </div>
-  <button
-    onClick={() => { setTab("text"); setError(""); }}
-    style={{ background: tab === "text" ? C.surface : C.highlight, border: tab === "text" ? `2px solid ${C.ink}` : `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", cursor: "pointer", textAlign: "left" }}
-  >
-    <div style={{ fontSize: 16, marginBottom: 4 }}>✏️</div>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 4 }}>テキストで入力</div>
-    <div style={{ fontSize: 11, color: C.muted }}>事業概要を自由に記述</div>
-  </button>
-  <button
-    onClick={() => { setTab("url"); setError(""); }}
-    style={{ background: tab === "url" ? C.surface : C.highlight, border: tab === "url" ? `2px solid ${C.ink}` : `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", cursor: "pointer", textAlign: "left" }}
-  >
-    <div style={{ fontSize: 16, marginBottom: 4 }}>🌐</div>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 4 }}>URLで分析</div>
-    <div style={{ fontSize: 11, color: C.muted }}>WebサイトのURLを貼るだけ</div>
-  </button>
-</div>
+
               <div style={{ padding: "26px 28px" }}>
                 {tab === "text" ? (
                   <>
