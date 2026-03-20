@@ -230,6 +230,7 @@ function TitleEditor({ title, onChange }) {
         <input autoFocus value={title} onChange={onChange} onBlur={() => setEditing(false)} onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
           style={{ flex: 1, background: "#fff", border: `1px solid ${C.A}`, borderRadius: 2, color: C.ink, fontFamily: "'Noto Serif JP', serif", fontSize: 13, padding: "4px 8px", outline: "none" }} />
       ) : (
+        : (
         <span style={{ flex: 1, fontSize: 13, color: C.ink, fontFamily: "'Noto Serif JP', serif" }}>{title || "（タイトルなし）"}</span>
       )}
       <button onClick={() => setEditing(!editing)} title="タイトルを編集"
@@ -256,6 +257,7 @@ export default function Home() {
   const [sharing, setSharing] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [isPro, setIsPro] = useState(false);
 
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
@@ -285,7 +287,13 @@ export default function Home() {
       }
     }
   }, [session]);
-
+useEffect(() => {
+  if (session) {
+    fetch('/api/check-pro')
+      .then(res => res.json())
+      .then(data => setIsPro(data.isPro));
+  }
+}, [session]);
   const saveHistory = (inputText, resultData, title) => {
     const entry = { id: Date.now(), date: new Date().toLocaleString("ja-JP"), preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), input: inputText, result: resultData };
     const newHistory = [entry, ...history];
@@ -358,7 +366,10 @@ export default function Home() {
          {session ? (
   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
+<span style={{ fontSize: 12, color: C.muted }}>
+  {session.user?.name}
+  {isPro && <span style={{ marginLeft: 6, background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+</span>
       <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
         ログアウト
       </button>
