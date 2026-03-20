@@ -379,24 +379,6 @@ export default function Home() {
       </button>
     </div>
   </div>
-              <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
-              <button onClick={() => setShowPricing(true)} style={{ background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, textDecoration: "underline", padding: 0 }}>
-                プランと料金
-              </button>
-              <button
-                onClick={async () => {
-                  const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: 'price_1TCxTtCYHZ66REnUAgK8vyeh' }) });
-                  const data = await res.json();
-                  if (data.url) window.location.href = data.url;
-                }}
-                style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
-              >
-                アップグレード
-              </button>
-              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
-                ログアウト
-              </button>
-            </div>
           ) : (
             <button onClick={() => signIn("google")} style={{ display: "flex", alignItems: "center", gap: 0, border: "none", borderRadius: 4, cursor: "pointer", padding: 0, overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.25)", fontFamily: "Roboto, Arial, sans-serif" }}>
               <div style={{ background: "#fff", padding: "10px 12px 11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
