@@ -253,7 +253,7 @@ export default function Home() {
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <div>
-            <div style={{ fontFamily: "var(--font-black-han-sans), sans-serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
+            <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
               <span style={{ color: "#1a6fd4" }}>A</span>
               <span style={{ color: "#FF0000" }}>B</span>
               <span style={{ color: "#1a1a14" }}>3C</span>
