@@ -423,10 +423,24 @@ export default function Home() {
         <div style={{ flex: 1, padding: "32px 24px 80px", overflowY: "auto", maxWidth: 900 }}>
           {!currentResult && !loading && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, marginBottom: 28, boxShadow: `2px 2px 0 ${C.border}` }}>
-              <div style={{ borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", gap: 8 }}>
-                <button style={tabStyle("text")} onClick={() => { setTab("text"); setError(""); }}>✏️ テキストで入力</button>
-                <button style={tabStyle("url")} onClick={() => { setTab("url"); setError(""); }}>🌐 URLで分析</button>
-              </div>
+<div style={{ padding: "20px 28px 0", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+  <button
+    onClick={() => { setTab("text"); setError(""); }}
+    style={{ background: tab === "text" ? C.surface : C.highlight, border: tab === "text" ? `2px solid ${C.ink}` : `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", cursor: "pointer", textAlign: "left" }}
+  >
+    <div style={{ fontSize: 16, marginBottom: 4 }}>✏️</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 4 }}>テキストで入力</div>
+    <div style={{ fontSize: 11, color: C.muted }}>事業概要を自由に記述</div>
+  </button>
+  <button
+    onClick={() => { setTab("url"); setError(""); }}
+    style={{ background: tab === "url" ? C.surface : C.highlight, border: tab === "url" ? `2px solid ${C.ink}` : `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", cursor: "pointer", textAlign: "left" }}
+  >
+    <div style={{ fontSize: 16, marginBottom: 4 }}>🌐</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 4 }}>URLで分析</div>
+    <div style={{ fontSize: 11, color: C.muted }}>WebサイトのURLを貼るだけ</div>
+  </button>
+</div>
               <div style={{ padding: "26px 28px" }}>
                 {tab === "text" ? (
                   <>
