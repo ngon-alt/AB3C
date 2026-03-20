@@ -290,25 +290,51 @@ export default function Home() {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
-            {sidebarOpen ? "◀" : "▶"}
-          </button>
-          <div>
-            <img src="https://ab3c.jp/img/common/logo.svg" alt="AB3C" style={{ height: "clamp(32px, 6vw, 56px)", display: "block" }} />
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 4 }}>
-              「選ばれる理由」を見つけるフレームワーク
-            </div>
-          </div>
-        </div>
-        <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.A }}>A</b> — Advantage（差別的優位点）</div>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.B }}>B</b> — Benefit（お客様が求める価値）</div>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.C }}>3C</b> — Customer · Competitor · Company</div>
-        </div>
+{/* Header */}
+<div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+    <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
+      {sidebarOpen ? "◀" : "▶"}
+    </button>
+    <div>
+      {/* テキストロゴ */}
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(24px, 5vw, 40px)", fontWeight: 700, lineHeight: 1 }}>
+        <span style={{ color: "#1a6fd4" }}>A</span>
+        <span style={{ color: "#FF0000" }}>B</span>
+        <span style={{ color: "#1a1a14" }}>3C</span>
       </div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", marginTop: 4 }}>
+        「選ばれる理由」を見つけるフレームワーク
+      </div>
+    </div>
+  </div>
+
+  <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+    {/* AB3C説明 */}
+    <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
+      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.A }}>A</b> — Advantage（差別的優位点）</div>
+      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.B }}>B</b> — Benefit（お客様が求める価値）</div>
+      <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.C }}>3C</b> — Customer · Competitor · Company</div>
+    </div>
+
+    {/* ログインボタン */}
+    {session ? (
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
+        <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
+          ログアウト
+        </button>
+      </div>
+    ) : (
+      <button onClick={() => signIn("google")} style={{ display: "flex", alignItems: "center", gap: 8, background: "#1a6fd4", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+        <svg width="16" height="16" viewBox="0 0 48 48">
+          <path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
+        </svg>
+        Googleでログイン
+      </button>
+    )}
+  </div>
+</div>
 
       {/* Body */}
       <div style={{ display: "flex", flex: 1 }}>
