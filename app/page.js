@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const C = {
   A: "#2c4a8c", B: "#1a6b3a", C: "#8c6914", red: "#c0392b",
@@ -176,6 +177,7 @@ function TitleEditor({ title, onChange }) {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [tab, setTab] = useState("text");
   const [input, setInput] = useState("");
   const [url, setUrl] = useState("");
@@ -295,18 +297,16 @@ export default function Home() {
             {sidebarOpen ? "◀" : "▶"}
           </button>
           <div>
-<div style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 700, lineHeight: 1, letterSpacing: "-0.04em" }}>
-<span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#1a1a14" }}>3C</span>
-</div>
+            <img src="https://ab3c.jp/img/common/logo.svg" alt="AB3C" style={{ height: "clamp(32px, 6vw, 56px)", display: "block" }} />
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 4 }}>
               「選ばれる理由」を見つけるフレームワーク
             </div>
           </div>
         </div>
         <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a6fd4" }}>A</b> — Advantage（差別的優位点）</div>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#FF0000" }}>B</b> — Benefit（お客様が求める価値）</div>
-          <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a1a14" }}>3C</b> — Customer · Competitor · Company</div>
+          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.A }}>A</b> — Advantage（差別的優位点）</div>
+          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.B }}>B</b> — Benefit（お客様が求める価値）</div>
+          <div><b style={{ fontFamily: "'Space Mono', monospace", color: C.C }}>3C</b> — Customer · Competitor · Company</div>
         </div>
       </div>
 
