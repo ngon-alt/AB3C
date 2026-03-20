@@ -327,14 +327,30 @@ export default function Home() {
     </div>
 
     {/* ログインボタン */}
-    {session ? (
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
-        <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
-          ログアウト
-        </button>
-      </div>
-    ) : (
+{session ? (
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
+    <button
+      onClick={async () => {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_LIGHT }),
+        });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+      }}
+      style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
+    >
+      アップグレード
+    </button>
+    <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
+      ログアウト
+    </button>
+  </div>
+) : (
+  // ...既存のGoogleログインボタン
+)}
 <button
   onClick={() => signIn("google")}
   style={{
