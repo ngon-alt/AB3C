@@ -355,8 +355,30 @@ export default function Home() {
             <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#FF0000" }}>B</b> — Benefit（お客様が求める価値）</div>
             <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a1a14" }}>3C</b> — Customer · Competitor · Company</div>
           </div>
-          {session ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+         {session ? (
+  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
+      <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
+        ログアウト
+      </button>
+    </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <button onClick={() => setShowPricing(true)} style={{ background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, textDecoration: "underline", padding: 0 }}>
+        プランと料金
+      </button>
+      <button
+        onClick={async () => {
+          const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: 'price_1TCxTtCYHZ66REnUAgK8vyeh' }) });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url;
+        }}
+        style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
+      >
+        アップグレード
+      </button>
+    </div>
+  </div>
               <span style={{ fontSize: 12, color: C.muted }}>{session.user?.name}</span>
               <button onClick={() => setShowPricing(true)} style={{ background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, textDecoration: "underline", padding: 0 }}>
                 プランと料金
