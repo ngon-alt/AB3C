@@ -1,5 +1,5 @@
 import { Providers } from "./providers";
-import { Noto_Serif_JP, Space_Mono, Black_Han_Sans } from "next/font/google";
+import { Noto_Serif_JP, Space_Mono, EB_Garamond } from "next/font/google";
 
 const notoSerifJP = Noto_Serif_JP({ 
   subsets: ["latin"], 
@@ -13,10 +13,10 @@ const spaceMono = Space_Mono({
   variable: "--font-space-mono"
 });
 
-const blackHanSans = Black_Han_Sans({ 
+const ebGaramond = EB_Garamond({ 
   subsets: ["latin"], 
-  weight: ["400"],
-  variable: "--font-black-han-sans"
+  weight: ["700"],
+  variable: "--font-eb-garamond"
 });
 
 export const metadata = { 
@@ -27,7 +27,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ja">
-      <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${blackHanSans.variable}`}>
+      <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${ebGaramond.variable}`}>
         <Providers>
           {children}
         </Providers>
