@@ -302,7 +302,7 @@ export default function Home() {
     </button>
     <div>
 <div style={{
-  fontFamily: "'Black Han Sans', sans-serif",
+fontFamily: "var(--font-black-han-sans), sans-serif",
   fontSize: "clamp(24px, 5vw, 44px)",
   fontWeight: 900,
   lineHeight: 1,
