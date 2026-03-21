@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
 const PLAN_LIMITS = {
