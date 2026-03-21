@@ -6,12 +6,14 @@ const PLAN_LIMITS = {
   free: 5,
   lite: 30,
   standard: Infinity,
+  pro: Infinity,
 };
 
 const DAILY_LIMITS = {
   free: 5,
   lite: 30,
   standard: 30,
+  pro: Infinity,
 };
 
 const sql = neon(process.env.DATABASE_URL);
@@ -24,7 +26,12 @@ export async function GET(req) {
   if (rows.length === 0) return NextResponse.json({ error: "ユーザーが見つかりません。" }, { status: 404 });
 
   const user = rows[0];
-  const plan = user.plan || "free";
+
+  // プロ会員チェック
+  const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
+  const isPro = proRows.length > 0;
+  const plan = isPro ? "pro" : (user.plan || "free");
+
   const monthlyLimit = PLAN_LIMITS[plan];
   const dailyLimit = DAILY_LIMITS[plan];
 
@@ -45,11 +52,20 @@ export async function POST(req) {
   if (rows.length === 0) return NextResponse.json({ error: "ユーザーが見つかりません。" }, { status: 404 });
 
   const user = rows[0];
-  const plan = user.plan || "free";
+
+  // プロ会員チェック
+  const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
+  const isPro = proRows.length > 0;
+  const plan = isPro ? "pro" : (user.plan || "free");
+
   const monthlyLimit = PLAN_LIMITS[plan];
   const dailyLimit = DAILY_LIMITS[plan];
 
-  // 月リセット
+  // プロ会員は無制限
+  if (isPro) {
+    return NextResponse.json({ ok: true, usageCount: 0, dailyUsage: 0 });
+  }
+
   const today = new Date().toISOString().split("T")[0];
   const resetDate = user.usage_reset_date?.toISOString?.()?.split("T")[0] || today;
   const thisMonth = today.slice(0, 7);
@@ -65,7 +81,8 @@ export async function POST(req) {
   if (monthlyLimit !== Infinity && usageCount >= monthlyLimit) {
     return NextResponse.json({ error: `月間利用上限（${monthlyLimit}回）に達しました。プランをアップグレードしてください。` }, { status: 429 });
   }
-  if (dailyUsage >= dailyLimit) {
+
+  if (dailyLimit !== Infinity && dailyUsage >= dailyLimit) {
     return NextResponse.json({ error: `1日の利用上限（${dailyLimit}回）に達しました。明日またお試しください。` }, { status: 429 });
   }
 
