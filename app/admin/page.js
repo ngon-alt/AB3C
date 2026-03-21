@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 
-const ADMIN_EMAIL = 'info@digi-kaku.or.jp';
+const ADMIN_EMAIL = 'webconsultant2022@gmail.com';
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
