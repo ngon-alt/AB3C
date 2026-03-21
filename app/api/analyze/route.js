@@ -27,9 +27,19 @@ async function fetchWebsite(url) {
 export async function POST(req) {
   // 使用回数チェック
   const session = await getServerSession();
-  if (session) {
+ if (session) {
   const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
-    const usageData = await usageRes.json();
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Cookie": req.headers.get("cookie") || "",
+    },
+  });
+  const usageData = await usageRes.json();
+  if (usageRes.status === 429) {
+    return NextResponse.json({ error: usageData.error }, { status: 429 });
+  }
+}
     if (usageRes.status === 429) {
       return NextResponse.json({ error: usageData.error }, { status: 429 });
     }
