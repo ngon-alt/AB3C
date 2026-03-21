@@ -28,10 +28,7 @@ export async function POST(req) {
   // 使用回数チェック
   const session = await getServerSession();
   if (session) {
-    const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
+  const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
     const usageData = await usageRes.json();
     if (usageRes.status === 429) {
       return NextResponse.json({ error: usageData.error }, { status: 429 });
