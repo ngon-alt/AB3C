@@ -22,9 +22,21 @@ export default function AdminPage() {
 
   const isAdmin = session?.user?.email === ADMIN_EMAIL;
 
-  useEffect(() => {
-    if (isAdmin && secret) fetchProUsers();
-  }, [isAdmin, secret]);
+ useEffect(() => {
+  if (isAdmin) {
+    fetch('/api/admin/secret')
+      .then(res => res.json())
+      .then(data => {
+        if (data.secret) {
+          setSecret(data.secret);
+        }
+      });
+  }
+}, [isAdmin]);
+
+useEffect(() => {
+  if (isAdmin && secret) fetchProUsers();
+}, [isAdmin, secret]);
 
   const fetchProUsers = async () => {
     const res = await fetch('/api/admin/pro-users/list?secret=' + secret);
