@@ -20,7 +20,7 @@ const DAILY_LIMITS = {
 const sql = neon(process.env.DATABASE_URL);
 
 export async function GET(req) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
   const rows = await sql`SELECT * FROM users WHERE email = ${session.user.email}`;
@@ -46,7 +46,7 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
   const rows = await sql`SELECT * FROM users WHERE email = ${session.user.email}`;
