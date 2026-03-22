@@ -333,6 +333,17 @@ function ChatWidget({ isPro, analysisResult }) {
             )}
             <div ref={messagesEndRef} />
           </div>
+{messages.length >= 3 && (
+  <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: C.highlight }}>
+    <button
+      onClick={reanalyze}
+      disabled={loading}
+      style={{ width: "100%", background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}
+    >
+      ↻ この会話内容で再分析する
+    </button>
+  </div>
+)}
           {/* 入力欄 */}
           <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: C.surface }}>
             <input
