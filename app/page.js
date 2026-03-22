@@ -490,7 +490,14 @@ useEffect(() => {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
-<ChatWidget isPro={isPro} analysisResult={currentResult} />
+<ChatWidget
+  isPro={isPro}
+  analysisResult={currentResult}
+  onReanalyze={(newResult) => {
+    setResult(newResult);
+    setSelectedHistory(null);
+  }}
+/>
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
