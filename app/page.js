@@ -220,7 +220,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function ChatWidget({ isPro, analysisResult }) {
+function ChatWidget({ isPro, analysisResult, onReanalyze }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
