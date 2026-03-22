@@ -338,9 +338,9 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
     <button
       onClick={reanalyze}
       disabled={loading}
-      style={{ width: "100%", background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}
+      style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}
     >
-      ↻ この会話内容で再分析する
+      {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
     </button>
   </div>
 )}
