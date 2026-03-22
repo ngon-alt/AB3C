@@ -220,7 +220,124 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
+function ChatWidget({ isPro, analysisResult }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (open && messages.length === 0) {
+      setMessages([{ role: "assistant", content: "分析結果をもとに相談できます。どんなことでも聞いてください！" }]);
+    }
+  }, [open]);
+
+  const send = async () => {
+    if (!input.trim() || loading) return;
+    const userMessage = { role: "user", content: input };
+    const newMessages = [...messages.filter(m => m.role !== "assistant" || messages.indexOf(m) > 0), userMessage];
+    setMessages([...messages, userMessage]);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newMessages.filter(m => m.role === "user" || (m.role === "assistant" && messages.indexOf(m) > 0)),
+          analysisResult,
+        }),
+      });
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isPro) return null;
+
+  return (
+    <div style={{ position: "fixed", bottom: 24, left: 24, zIndex: 999 }}>
+      {open && (
+        <div style={{ position: "absolute", bottom: 70, left: 0, width: 360, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
+          {/* ヘッダー */}
+          <div style={{ background: C.ink, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 16, fontWeight: 700 }}>
+                <span style={{ color: "#1a6fd4" }}>A</span>
+                <span style={{ color: "#FF0000" }}>B</span>
+                <span style={{ color: "#f0ebe0" }}>3C</span>
+              </span>
+              <span style={{ fontSize: 11, color: C.muted }}>AI相談</span>
+              <span style={{ background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</span>
+            </div>
+            <button onClick={() => setOpen(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
+          </div>
+          {/* メッセージ */}
+          <div style={{ height: 280, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: C.bg }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+                <div style={{
+                  background: m.role === "user" ? C.A : C.surface,
+                  border: m.role === "user" ? "none" : `1px solid ${C.border}`,
+                  borderRadius: 8, padding: "10px 14px", fontSize: 13,
+                  color: m.role === "user" ? "#fff" : C.ink,
+                  maxWidth: "85%", lineHeight: 1.6,
+                  fontFamily: "'Noto Serif JP', serif",
+                }}>
+                  {m.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 13, color: C.muted }}>
+                  考え中...
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          {/* 入力欄 */}
+          <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: C.surface }}>
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder="分析結果について相談する..."
+              style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px", fontSize: 13, outline: "none", fontFamily: "'Noto Serif JP', serif" }}
+            />
+            <button onClick={send} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 14px" }}>
+              送信
+            </button>
+          </div>
+        </div>
+      )}
+      {/* フローティングボタン */}
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={() => setOpen(!open)}
+          style={{ width: 56, height: 56, background: C.ink, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
+          </svg>
+        </button>
+        <div style={{ position: "absolute", top: -4, right: -4, background: "#1a6fd4", color: "#fff", fontSize: 9, padding: "2px 5px", borderRadius: 8, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</div>
+      </div>
+    </div>
+  );
+}
 function TitleEditor({ title, onChange }) {
   const [editing, setEditing] = useState(false);
   return (
