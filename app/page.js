@@ -264,6 +264,31 @@ function ChatWidget({ isPro, analysisResult }) {
     }
   };
 
+  const reanalyze = async () => {
+  if (loading || messages.length < 2) return;
+  setLoading(true);
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages,
+        analysisResult,
+        reanalyze: true,
+      }),
+    });
+    const data = await res.json();
+    if (data.reanalyzed && data.result) {
+      onReanalyze(data.result);
+      setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
+    }
+  } catch {
+    setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
+  } finally {
+    setLoading(false);
+  }
+};
+  
   if (!isPro) return null;
 
   return (
