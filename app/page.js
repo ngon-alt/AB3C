@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 const C = {
@@ -454,7 +454,7 @@ useEffect(() => {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
-
+<ChatWidget isPro={isPro} analysisResult={currentResult} />
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
