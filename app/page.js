@@ -89,8 +89,7 @@ function ResultView({ d }) {
         </div>
         {d.three_c.customer.market && (
           <div style={{ marginBottom: 14 }}>
-            <SubLabel color={C.C} text="市場規模" />
-            <Card color={C.C} title="SAM · SOM · 成長率">
+            <Card color={C.C} title="市場規模">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                 <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
