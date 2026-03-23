@@ -64,5 +64,5 @@ ${JSON.stringify(analysisResult, null, 2)}
     messages: messages,
   });
 
-  return NextResponse.json({ message: response.content[0].text });
+return NextResponse.json({ message: response.content[0].text, content: response.content[0].text });
 }
