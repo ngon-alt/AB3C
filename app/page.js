@@ -223,9 +223,10 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 function ChatWidget({ isPro, analysisResult, onReanalyze }) {
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-const [messages, setMessages] = useState(() => {
+const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
+  const [messages, setMessages] = useState(() => {
     try {
-      const saved = localStorage.getItem("ab3c_chat_history");
+      const saved = localStorage.getItem(chatKey);
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
