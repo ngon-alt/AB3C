@@ -495,7 +495,7 @@ useEffect(() => {
   const analyze = async () => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
-    setError(""); setResult(null); setSelectedHistory(null); setLoading(true);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]);
     try {
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
