@@ -534,8 +534,12 @@ onReanalyze={(newResult, summary) => {
     console.log("onReanalyze呼ばれた:", newResult?.strategy_message?.message);
     setResult(newResult);
     setSelectedHistory(null);
-    if (summary) {
-      setChatSummaries(prev => [...prev, summary]);
+if (summary) {
+      console.log("chatSummaries追加:", summary);
+      setChatSummaries(prev => {
+        console.log("現在のchatSummaries:", prev);
+        return [...prev, summary];
+      });
     }
     saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
   }}
