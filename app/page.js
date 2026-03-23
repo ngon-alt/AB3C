@@ -431,7 +431,12 @@ export default function Home() {
   const [showPricing, setShowPricing] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [isPro, setIsPro] = useState(false);
-  const [chatSummaries, setChatSummaries] = useState([]);
+const [chatSummaries, setChatSummaries] = useState(() => {
+  try {
+    const saved = localStorage.getItem("ab3c_chat_summaries");
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+});
   
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
