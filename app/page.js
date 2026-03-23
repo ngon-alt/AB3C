@@ -725,7 +725,7 @@ if (summary) {
     {chatSummaries.length > 0 && (
       <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>
         {chatSummaries.map((s, i) => (
-          <div key={i} style={{ fontSize: 12, color: C.A, lineHeight: 1.8 }}>＋{s.replace('＋', '')}</div>
+         <div key={i} style={{ fontSize: 12, color: C.A, lineHeight: 1.8 }}>＋{typeof s === 'string' ? s.replace('＋', '') : JSON.stringify(s)}</div>
         ))}
       </div>
     )}
