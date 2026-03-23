@@ -37,12 +37,14 @@ JSONのみ返してください。`;
       messages: [{ role: "user", content: systemPrompt }],
     });
 
-    try {
+try {
       const text = response.content[0].text;
       const clean = text.replace(/```json|```/g, "").trim();
       const newResult = JSON.parse(clean);
       return NextResponse.json({ reanalyzed: true, result: newResult });
-    } catch {
+    } catch (e) {
+      console.error("再分析JSONパースエラー:", e);
+      console.error("受信テキスト:", response.content[0].text);
       return NextResponse.json({ error: "再分析に失敗しました" }, { status: 500 });
     }
   }
