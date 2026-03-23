@@ -287,14 +287,13 @@ useEffect(() => {
     });
  const data = await res.json();
     console.log("再分析レスポンス:", data);
-    if (data.reanalyzed && data.result) {
-      const summary = messages
-  .filter(m => m.role === "user")
-  .slice(-1)
-  .map(m => m.content.slice(0, 40))
-  .join("、");
-      console.log("summary:", summary);
-      onReanalyze(data.result, `＋${summary}`);
+   if (data.reanalyzed && data.result) {
+      const summary = data.chatSummary || messages
+        .filter(m => m.role === "user")
+        .slice(-1)
+        .map(m => m.content.slice(0, 20))
+        .join("、");
+      onReanalyze(data.result, summary);
       setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
     } else {
       console.log("再分析条件未達:", data);
