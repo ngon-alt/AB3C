@@ -49,7 +49,17 @@ try {
       const text = response.content[0].text;
       const clean = text.replace(/```json|```/g, "").trim();
       const newResult = JSON.parse(clean);
-      return NextResponse.json({ reanalyzed: true, result: newResult });
+// 会話の概要を生成
+      const summaryResponse = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 100,
+        messages: [{ 
+          role: "user", 
+          content: `以下の会話内容を15文字以内で一言に要約してください。要約のみ返してください。\n\n${conversationSummary}` 
+        }],
+      });
+      const chatSummary = summaryResponse.content[0].text.trim();
+      return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
       console.error("再分析JSONパースエラー:", e);
       console.error("受信テキスト:", response.content[0].text);
