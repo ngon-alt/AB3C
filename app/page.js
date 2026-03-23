@@ -467,12 +467,10 @@ const [chatSummaries, setChatSummaries] = useState(() => {
     }
   }, [session]);
 useEffect(() => {
-  if (session) {
-    fetch('/api/check-pro')
-      .then(res => res.json())
-      .then(data => setIsPro(data.isPro));
-  }
-}, [session]);
+  try {
+    localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
+  } catch {}
+}, [chatSummaries]);
   const saveHistory = (inputText, resultData, title) => {
     const entry = { id: Date.now(), date: new Date().toLocaleString("ja-JP"), preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), input: inputText, result: resultData };
     const newHistory = [entry, ...history];
