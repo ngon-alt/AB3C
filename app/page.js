@@ -306,8 +306,7 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
   return (
 <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}>
       {open && (
-        <div style={{ position: "absolute", bottom: 70, right: 0, width: 320, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
-          {/* ヘッダー */}
+<div style={fullscreen ? { position: "fixed", inset: 0, width: "100%", height: "100%", background: "#fff", zIndex: 9999, borderRadius: 0, overflow: "hidden" } : { position: "absolute", bottom: 70, right: 0, width: 320, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>          {/* ヘッダー */}
           <div style={{ background: C.ink, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 16, fontWeight: 700 }}>
