@@ -246,9 +246,9 @@ const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).sli
     }
   }, [open]);
 
-  useEffect(() => {
+useEffect(() => {
     try {
-      localStorage.setItem("ab3c_chat_history", JSON.stringify(messages));
+      localStorage.setItem(chatKey, JSON.stringify(messages));
     } catch {}
   }, [messages]);
 
