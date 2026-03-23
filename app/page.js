@@ -718,7 +718,7 @@ if (summary) {
 {currentInput?.startsWith("http") ? (
         <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
       ) : (
-        <span>{currentInput.slice(0, 100)}{currentInput.length > 100 ? "…" : ""}</span>
+<span>{currentInput?.slice(0, 100)}{currentInput?.length > 100 ? "…" : ""}</span>
       )}
     </div>
     {chatSummaries.length > 0 && (
