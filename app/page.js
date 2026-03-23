@@ -519,6 +519,9 @@ useEffect(() => {
 
   const tabStyle = (t) => ({ padding: "8px 20px", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", border: "none", cursor: "pointer", borderBottom: tab === t ? `2px solid ${C.ink}` : "2px solid transparent", background: "transparent", color: tab === t ? C.ink : C.muted });
   const currentResult = selectedHistory ? selectedHistory.result : result;
+  console.log("currentResult:", currentResult?.strategy_message?.message);
+  console.log("result:", result?.strategy_message?.message);
+  console.log("selectedHistory:", selectedHistory);
   const currentInput = selectedHistory ? selectedHistory.input : null;
 
   return (
