@@ -466,6 +466,15 @@ const [chatSummaries, setChatSummaries] = useState(() => {
       }
     }
   }, [session]);
+
+  useEffect(() => {
+  if (session) {
+    fetch('/api/check-pro')
+      .then(res => res.json())
+      .then(data => setIsPro(data.isPro));
+  }
+}, [session]);
+  
 useEffect(() => {
   try {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
