@@ -325,8 +325,7 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
             </div>
           </div>
           {/* メッセージ */}
-          <div style={{ height: 280, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: C.bg }}>
-            {messages.map((m, i) => (
+<div style={{ height: fullscreen ? "calc(100vh - 120px)" : 280, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: C.bg }}>            {messages.map((m, i) => (
               <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
                 <div style={{
                   background: m.role === "user" ? C.A : C.surface,
