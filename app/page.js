@@ -426,7 +426,8 @@ export default function Home() {
   const [showPricing, setShowPricing] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [isPro, setIsPro] = useState(false);
-
+  const [chatSummaries, setChatSummaries] = useState([]);
+  
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
     try {
