@@ -223,7 +223,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 function ChatWidget({ isPro, analysisResult, onReanalyze }) {
   const [open, setOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [messages, setMessages] = useState(() => {
+const [messages, setMessages] = useState(() => {
     try {
       const saved = localStorage.getItem("ab3c_chat_history");
       return saved ? JSON.parse(saved) : [];
