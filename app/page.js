@@ -264,22 +264,22 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
     }
   };
 
-  const reanalyze = async () => {
+ const reanalyze = async () => {
   if (loading || messages.length < 2) return;
   setLoading(true);
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages,
-        analysisResult,
-        reanalyze: true,
-      }),
+      body: JSON.stringify({ messages, analysisResult, reanalyze: true }),
     });
     const data = await res.json();
     if (data.reanalyzed && data.result) {
-      onReanalyze(data.result);
+      const summary = messages
+        .filter(m => m.role === "user")
+        .map(m => m.content.slice(0, 30))
+        .join("、");
+      onReanalyze(data.result, `＋${summary}`);
       setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
     }
   } catch {
