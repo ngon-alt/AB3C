@@ -711,7 +711,7 @@ if (summary) {
                   ← 新規分析
                 </button>
               </div>
-{currentInput && (
+{(currentInput || chatSummaries.length > 0) && (
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
     <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.6 }}>
