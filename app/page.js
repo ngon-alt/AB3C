@@ -684,14 +684,22 @@ onReanalyze={(newResult, summary) => {
                   ← 新規分析
                 </button>
               </div>
-{/* 入力情報表示 */}
 {currentInput && (
-  <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "12px 16px", marginBottom: 12, fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
-    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", marginRight: 8 }}>入力</span>
-    {currentInput.startsWith("http") ? (
-      <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
-    ) : (
-      <span style={{ color: C.ink }}>{currentInput.slice(0, 100)}{currentInput.length > 100 ? "…" : ""}</span>
+  <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
+    <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.6 }}>
+      {currentInput.startsWith("http") ? (
+        <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
+      ) : (
+        <span>{currentInput.slice(0, 100)}{currentInput.length > 100 ? "…" : ""}</span>
+      )}
+    </div>
+    {chatSummaries.length > 0 && (
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>
+        {chatSummaries.map((s, i) => (
+          <div key={i} style={{ fontSize: 12, color: C.A, lineHeight: 1.8 }}>＋{s.replace('＋', '')}</div>
+        ))}
+      </div>
     )}
   </div>
 )}
