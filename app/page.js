@@ -292,6 +292,7 @@ useEffect(() => {
         .filter(m => m.role === "user")
         .map(m => m.content.slice(0, 30))
         .join("、");
+      console.log("summary:", summary);
       onReanalyze(data.result, `＋${summary}`);
       setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
     } else {
