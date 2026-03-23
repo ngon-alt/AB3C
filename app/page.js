@@ -318,7 +318,12 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
               <span style={{ fontSize: 11, color: C.muted }}>AI相談</span>
               <span style={{ background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</span>
             </div>
-            <button onClick={() => setOpen(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
+<div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setFullscreen(!fullscreen)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 14 }}>
+                {fullscreen ? "⊡" : "⊞"}
+              </button>
+              <button onClick={() => setOpen(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
+            </div>
           </div>
           {/* メッセージ */}
           <div style={{ height: 280, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: C.bg }}>
