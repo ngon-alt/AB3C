@@ -285,7 +285,8 @@ useEffect(() => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages, analysisResult, reanalyze: true }),
     });
-    const data = await res.json();
+ const data = await res.json();
+    console.log("再分析レスポンス:", data);
     if (data.reanalyzed && data.result) {
       const summary = messages
         .filter(m => m.role === "user")
@@ -293,6 +294,9 @@ useEffect(() => {
         .join("、");
       onReanalyze(data.result, `＋${summary}`);
       setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
+    } else {
+      console.log("再分析条件未達:", data);
+      setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。" }]);
     }
   } catch {
     setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
