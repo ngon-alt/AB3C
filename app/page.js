@@ -493,9 +493,12 @@ useEffect(() => {
 <ChatWidget
   isPro={isPro}
   analysisResult={currentResult}
-  onReanalyze={(newResult) => {
+  onReanalyze={(newResult, summary) => {
     setResult(newResult);
     setSelectedHistory(null);
+    if (summary) {
+      setHistoryTitle(prev => prev + " " + summary);
+    }
   }}
 />
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
