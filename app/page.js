@@ -715,7 +715,7 @@ if (summary) {
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
     <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.6 }}>
-      {currentInput.startsWith("http") ? (
+{currentInput?.startsWith("http") ? (
         <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
       ) : (
         <span>{currentInput.slice(0, 100)}{currentInput.length > 100 ? "…" : ""}</span>
