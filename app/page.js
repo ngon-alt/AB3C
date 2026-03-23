@@ -527,6 +527,7 @@ useEffect(() => {
   isPro={isPro}
   analysisResult={currentResult}
 onReanalyze={(newResult, summary) => {
+    console.log("onReanalyze呼ばれた:", newResult?.strategy_message?.message);
     setResult(newResult);
     setSelectedHistory(null);
     if (summary) {
