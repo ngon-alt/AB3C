@@ -52,7 +52,8 @@ JSONのみ返してください。`;
 ## 現在の分析結果
 ${JSON.stringify(analysisResult, null, 2)}
 
-回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。`;
+回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
+マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。`;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
