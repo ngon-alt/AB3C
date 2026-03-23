@@ -532,6 +532,7 @@ onReanalyze={(newResult, summary) => {
     if (summary) {
       setChatSummaries(prev => [...prev, summary]);
     }
+    saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
   }}
 />
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
