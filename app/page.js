@@ -508,11 +508,11 @@ useEffect(() => {
 <ChatWidget
   isPro={isPro}
   analysisResult={currentResult}
-  onReanalyze={(newResult, summary) => {
+onReanalyze={(newResult, summary) => {
     setResult(newResult);
     setSelectedHistory(null);
     if (summary) {
-      setHistoryTitle(prev => prev + " " + summary);
+      setChatSummaries(prev => [...prev, summary]);
     }
   }}
 />
