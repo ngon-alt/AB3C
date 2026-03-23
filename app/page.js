@@ -222,7 +222,13 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 }
 function ChatWidget({ isPro, analysisResult, onReanalyze }) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [messages, setMessages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("ab3c_chat_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
