@@ -33,10 +33,12 @@ ${JSON.stringify(analysisResult)}
 ## ユーザーからの追加情報（最新3件）
 ${conversationSummary}
 
-上記を反映した新しい分析結果を、元と同じJSON形式で返してください。
-重要：checkpointsは元の値をそのまま維持してください。
-JSONのみ返してください。`;
-
+上記を反映した新しい分析結果を返してください。
+絶対に守ること：
+- JSONのみ返す。説明文・前置き・コードブロック記号（\`\`\`）は一切不要
+- checkpointsは元の値をそのままコピーして変更しない
+- 必ず有効なJSONのみを返す`;
+    
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 8000,
