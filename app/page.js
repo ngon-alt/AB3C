@@ -239,11 +239,17 @@ function ChatWidget({ isPro, analysisResult, onReanalyze }) {
     }
   }, [messages]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (open && messages.length === 0) {
       setMessages([{ role: "assistant", content: "分析結果をもとに相談できます。どんなことでも聞いてください！" }]);
     }
   }, [open]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("ab3c_chat_history", JSON.stringify(messages));
+    } catch {}
+  }, [messages]);
 
   const send = async () => {
     if (!input.trim() || loading) return;
