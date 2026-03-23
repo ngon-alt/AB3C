@@ -19,16 +19,22 @@ export async function POST(req) {
   const { messages, analysisResult, reanalyze } = await req.json();
 
   if (reanalyze) {
+const conversationSummary = messages
+      .filter(m => m.role === 'user')
+      .slice(-3)
+      .map(m => m.content.slice(0, 200))
+      .join('\n');
+
     const systemPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果をJSON形式で返してください。
 
 ## 元の分析結果
-${JSON.stringify(analysisResult, null, 2)}
+${JSON.stringify(analysisResult)}
 
-## ユーザーとの会話
-${messages.map(m => `${m.role === 'user' ? 'ユーザー' : 'AI'}: ${m.content}`).join('\n')}
+## ユーザーからの追加情報（最新3件）
+${conversationSummary}
 
-上記の会話で出た提案や修正点を反映した新しい分析結果を、元と同じJSON形式で返してください。
-重要：checkpointsは元の値をそのまま維持してください。変更しないでください。
+上記を反映した新しい分析結果を、元と同じJSON形式で返してください。
+重要：checkpointsは元の値をそのまま維持してください。
 JSONのみ返してください。`;
 
     const response = await client.messages.create({
