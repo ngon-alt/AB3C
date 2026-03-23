@@ -27,7 +27,9 @@ ${JSON.stringify(analysisResult, null, 2)}
 ## ユーザーとの会話
 ${messages.map(m => `${m.role === 'user' ? 'ユーザー' : 'AI'}: ${m.content}`).join('\n')}
 
-上記の会話で出た提案や修正点を反映した新しい分析結果を、元と同じJSON形式で返してください。JSONのみ返してください。`;
+上記の会話で出た提案や修正点を反映した新しい分析結果を、元と同じJSON形式で返してください。
+重要：checkpointsは元の値をそのまま維持してください。変更しないでください。
+JSONのみ返してください。`;
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
