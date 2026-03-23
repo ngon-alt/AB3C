@@ -658,6 +658,18 @@ useEffect(() => {
                   ← 新規分析
                 </button>
               </div>
+{/* 入力情報表示 */}
+{currentInput && (
+  <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "12px 16px", marginBottom: 12, fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
+    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", marginRight: 8 }}>入力</span>
+    {currentInput.startsWith("http") ? (
+      <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
+    ) : (
+      <span style={{ color: C.ink }}>{currentInput.slice(0, 100)}{currentInput.length > 100 ? "…" : ""}</span>
+    )}
+  </div>
+)}
+                    
               <TitleEditor title={historyTitle} onChange={e => {
                 setHistoryTitle(e.target.value);
                 const newHistory = [...history];
