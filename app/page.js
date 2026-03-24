@@ -715,7 +715,7 @@ if (summary) {
     onClick={() => { window.print(); }}
     style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}
   >
-    📄 PDFダウンロード
+🖨️ 印刷・PDF保存
   </button>
 </div>
            
