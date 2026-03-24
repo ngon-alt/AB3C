@@ -15,6 +15,8 @@
     "@neondatabase/serverless": "^0.9.0",
     "next-auth": "^4.24.0",
     "stripe": "^14.0.0"
+    "jspdf": "^2.5.1",
+"html2canvas": "^1.4.1"
   },
   "devDependencies": {
     "typescript": "^5",
