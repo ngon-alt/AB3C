@@ -709,20 +709,20 @@ if (summary) {
           {currentResult && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-  <button onClick={reset} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
+  <button onClick={reset} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
     ← 新規分析
   </button>
   {currentInput && (
-    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: C.A, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
+    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: C.A, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
       ✏️ このテキストを修正して再分析
     </button>
   )}
-  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}>
+  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
     {sharing ? "作成中…" : "🔗 シェアURLを発行"}
   </button>
   <button
     onClick={() => { window.print(); }}
-    style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}
+    style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
   >
 🖨️ 印刷・PDF保存
   </button>
