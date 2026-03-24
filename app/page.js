@@ -157,7 +157,7 @@ function ResultView({ d }) {
           {d.checkpoints.map((cp, i) => (
             <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.6 }}>
               <Badge status={cp.status} />
-              <div><b>{cp.label}</b><br /><span style={{ color: C.muted, fontSize: 13 }}>{cp.comment}</span></div>
+<div style={{ fontSize: 16 }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 15 }}>{cp.comment}</span></div>
             </div>
           ))}
         </div>
