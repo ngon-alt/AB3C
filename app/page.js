@@ -161,7 +161,7 @@ function PricingModal({ onClose }) {
 ];
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 720, width: "100%", position: "relative" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 780, width: "100%", position: "relative", fontFamily: "sans-serif" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 20 }}>プランと料金</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
@@ -174,7 +174,7 @@ function PricingModal({ onClose }) {
                 {plan.sub && <span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>{plan.sub}</span>}
               </div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-line" }}>{plan.limit}</div>
-           {plan.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>{plan.note}</div>}
+           {plan.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 6, fontFamily: "sans-serif" }}>{plan.note}</div>}
 {plan.features && (
   <ul style={{ margin: "8px 0 0", padding: "0 0 0 14px", fontSize: 11, color: C.muted, lineHeight: 2 }}>
     {plan.features.map((f, i) => <li key={i}>{f}</li>)}
