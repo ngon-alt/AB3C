@@ -712,34 +712,7 @@ if (summary) {
     {sharing ? "作成中…" : "🔗 シェアURLを発行"}
   </button>
   <button
-    onClick={async () => {
-      const { jsPDF } = await import("jspdf");
-      const { default: html2canvas } = await import("html2canvas");
-      const element = document.getElementById("result-area");
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pdfWidth - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let position = 10;
-      let heightLeft = imgHeight;
-      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight - 20;
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight - 20;
-      }
-      pdf.save("AB3C分析結果.pdf");
-    }}
+    onClick={() => { window.print(); }}
     style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 20px" }}
   >
     📄 PDFダウンロード
