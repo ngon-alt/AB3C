@@ -27,6 +27,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ja">
+      <head>
+        <style>{`
+          @media print {
+            body * { visibility: hidden; }
+            #result-area, #result-area * { visibility: visible; }
+            #result-area { position: absolute; left: 0; top: 0; width: 100%; }
+            #result-area > div { page-break-inside: avoid; }
+          }
+        `}</style>
+      </head>
       <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${ebGaramond.variable}`}>
         <Providers>
           {children}
