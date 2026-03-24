@@ -136,8 +136,8 @@ function ResultView({ d }) {
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted }}>AB3C 5つのチェックポイント</div>
-  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700 }}>
+<div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink }}>AB3C 5つのチェックポイント</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700 }}>
     {(() => {
       const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
       const color = score >= 8 ? "#1a6b3a" : score >= 5 ? "#8c6914" : "#c0392b";
