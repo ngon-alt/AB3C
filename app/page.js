@@ -149,7 +149,9 @@ function ResultView({ d }) {
       return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>AB3Cスコア：{score} / 10</span>;
     })()}
   </div>
-
+</div>
+  );
+}
 
 function PricingModal({ onClose }) {
   const plans = [
