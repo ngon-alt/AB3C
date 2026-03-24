@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
-  ink: "#1a1a14", muted: "#8a8478", highlight: "#f0ebe0",
+  ink: "#1a1a14", muted: "#3a3a2e", highlight: "#f0ebe0",
 };
 
 const Badge = ({ status }) => {
