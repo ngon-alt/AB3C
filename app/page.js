@@ -148,7 +148,8 @@ function ResultView({ d }) {
       const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
       return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>AB3Cスコア：{score} / 10</span>;
     })()}
-  </div>
+</div>
+</div>
     </div>
   );
 }
