@@ -718,13 +718,13 @@ if (summary) {
     </button>
   )}
   <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
-    {sharing ? "作成中…" : "🔗 シェアURLを発行"}
+    {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
   </button>
   <button
     onClick={() => { window.print(); }}
     style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
   >
-🖨️ 印刷・PDF保存
+🖨️ 印刷・ＰＤＦ保存
   </button>
 </div>
            
