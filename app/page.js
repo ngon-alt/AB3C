@@ -168,7 +168,7 @@ const plans = [
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
           {plans.map((plan, i) => (
             <div key={i} style={{ background: C.bg, border: plan.featured ? `2px solid ${C.A}` : `1px solid ${C.border}`, borderRadius: 8, padding: "16px", position: "relative" }}>
-              {plan.featured && <div style={{ fontSize: 10, background: "#e6f1fb", color: "#0c447c", padding: "2px 8px", borderRadius: 4, display: "inline-block", marginBottom: 8 }}>おすすめ</div>}
+              {plan.featured && <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", fontSize: 10, background: "#1a6fd4", color: "#fff", padding: "3px 10px", borderRadius: 10, whiteSpace: "nowrap" }}>おすすめ</div>}
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{plan.name}</div>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink }}>
                 {plan.price}
