@@ -134,37 +134,22 @@ function ResultView({ d }) {
         </div>
       </div>
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-<div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink }}>AB3C 5つのチェックポイント</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700 }}>
+  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>
+  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    {d.checkpoints.map((cp, i) => (
+      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
+        <Badge status={cp.status} />
+        <div style={{ fontSize: 16 }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 15 }}>{cp.comment}</span></div>
+      </div>
+    ))}
+  </div>
+  <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
     {(() => {
       const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
-      const color = score >= 8 ? "#1a6b3a" : score >= 5 ? "#8c6914" : "#c0392b";
-      return <span style={{ color }}>スコア：{score} / 10</span>;
+      return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>AB3Cスコア：{score} / 10</span>;
     })()}
   </div>
 </div>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700 }}>
-      {(() => {
-        const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
-        const color = score >= 8 ? "#1a6b3a" : score >= 5 ? "#8c6914" : "#c0392b";
-        return <span style={{ color }}>スコア：{score} / 10</span>;
-      })()}
-    </div>
-  </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {d.checkpoints.map((cp, i) => (
-            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.6 }}>
-              <Badge status={cp.status} />
-<div style={{ fontSize: 16 }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 15 }}>{cp.comment}</span></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function PricingModal({ onClose }) {
   const plans = [
