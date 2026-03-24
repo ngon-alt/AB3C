@@ -616,8 +616,8 @@ if (summary) {
       </div>
 
       <div style={{ display: "flex", flex: 1 }}>
-        {sidebarOpen && (
-          <div style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column" }}>
+      {sidebarOpen && (
+  <div id="sidebar" style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>履歴</span>
               <button onClick={reset} style={{ background: C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, padding: "4px 10px" }}>+ 新規</button>
