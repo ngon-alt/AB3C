@@ -122,4 +122,66 @@ export default function ShareContent({ data, error }) {
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, marginBottom: 6 }}>SAM（獲得可能市場）</div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.sam}</div>
                       </div>
-                      <div style={{ background: C.h
+<div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.som}</div>
+                      </div>
+                      <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.C, marginBottom: 6 }}>成長率・トレンド</div>
+                        <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.6 }}>{d.three_c.customer.market.growth}</div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
+              <div style={g2}>
+                <div>
+                  <SubLabel color={C.C} text="Competitor（競合）" />
+                  <Card color={C.C} title="直接競合 / 異業種競合">
+                    <UL items={[...d.three_c.competitor.direct, ...d.three_c.competitor.indirect.map(i => `↳ ${i}`)]} />
+                  </Card>
+                </div>
+                <div>
+                  <SubLabel color={C.C} text="Company（自社）" />
+                  <Card color={C.C} title="強み · 構造 · パッション">
+                    <UL items={d.three_c.company.strength} />
+                    <p style={{ fontSize: 12, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>構造：{d.three_c.company.structure}</p>
+                    <p style={{ fontSize: 12, color: C.muted, marginTop: 6 }}>💡 {d.three_c.company.passion}</p>
+                  </Card>
+                </div>
+              </div>
+            </div>
+            <Divider />
+            <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", opacity: 0.5, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>
+              <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
+              <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16 }}>
+                <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
+                <b>Advantage：</b>{d.strategy_message.advantage_part}
+              </div>
+            </div>
+            <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {d.checkpoints.map((cp, i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.6 }}>
+                    <Badge status={cp.status} />
+                    <div><b>{cp.label}</b><br /><span style={{ color: C.muted, fontSize: 13 }}>{cp.comment}</span></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8 }}>
+            <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
+            <span style={{ fontSize: 12, color: C.ink }}>一般社団法人デジタル経営革新協会</span>
+          </div>
+          <div>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI</div>
+        </footer>
+      </div>
+    </main>
+  );
+}
