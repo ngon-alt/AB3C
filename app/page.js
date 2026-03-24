@@ -155,8 +155,8 @@ function ResultView({ d }) {
 function PricingModal({ onClose }) {
   const plans = [
   { name: "無料", price: "¥0", sub: null, limit: "月5回まで", note: "機能を試したい方向け", features: [], link: null, priceId: null },
-  { name: "ライト", price: "¥980", sub: "/月", limit: "月30回まで", note: "特定の事業向け", features: [], link: null, priceId: "price_1TCxTtCYHZ66REnUAgK8vyeh" },
-  { name: "スタンダード", price: "¥2,980", sub: "/月", limit: "月間無制限\n（1日30回上限）", note: "不特定多数の事業分析向け", features: [], link: null, featured: true, priceId: "price_1TCxW4CYHZ66REnUpMT11lBr" },
+  { name: "ライト", price: "¥980", sub: "/月", limit: "月30回まで", note: "自社の事業分析向け", features: [], link: null, priceId: "price_1TCxTtCYHZ66REnUAgK8vyeh" },
+  { name: "スタンダード", price: "¥2,980", sub: "/月", limit: "月間無制限\n（1日30回上限）", note: "多数の事業分析向け", features: [], link: null, featured: true, priceId: "price_1TCxW4CYHZ66REnUpMT11lBr" },
   { name: "プロフェッショナル", price: "¥22,000", sub: "/月", limit: "完全無制限", note: "戦略を提案する方向け", features: ["分析結果チャット機能", "チャットから再分析機能"], link: "https://www.digi-kaku.or.jp/", priceId: null },
 ];
   return (
