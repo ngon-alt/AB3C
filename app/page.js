@@ -133,8 +133,17 @@ function ResultView({ d }) {
           <b>Advantage：</b>{d.strategy_message.advantage_part}
         </div>
       </div>
-      <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>
+<div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted }}>AB3C 5つのチェックポイント</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700 }}>
+      {(() => {
+        const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
+        const color = score >= 8 ? "#1a6b3a" : score >= 5 ? "#8c6914" : "#c0392b";
+        return <span style={{ color }}>スコア：{score} / 10</span>;
+      })()}
+    </div>
+  </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {d.checkpoints.map((cp, i) => (
             <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, lineHeight: 1.6 }}>
