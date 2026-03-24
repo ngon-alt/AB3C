@@ -157,7 +157,7 @@ function PricingModal({ onClose }) {
     { name: "無料", price: "¥0", sub: null, limit: "月5回まで", note: null, priceId: null },
     { name: "ライト", price: "¥980", sub: "/月", limit: "月30回まで", note: null, priceId: "price_1TCxTtCYHZ66REnUAgK8vyeh" },
     { name: "スタンダード", price: "¥2,980", sub: "/月", limit: "月間無制限\n（1日30回上限）", note: null, featured: true, priceId: "price_1TCxW4CYHZ66REnUpMT11lBr" },
-    { name: "プロフェッショナル", price: "¥22,000", sub: "/月", limit: "完全無制限", note: "デジタル経営革新協会会員", priceId: null },
+    { name: "プロフェッショナル", price: "¥22,000", sub: "/月", limit: "完全無制限", note: "有償で戦略を提案する方向け", features: ["分析結果についてのチャット機能", "チャット内容からの分析改善機能"], link: "https://www.digi-kaku.or.jp/", priceId: null },
   ];
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -174,7 +174,17 @@ function PricingModal({ onClose }) {
                 {plan.sub && <span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>{plan.sub}</span>}
               </div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-line" }}>{plan.limit}</div>
-              {plan.note && <div style={{ fontSize: 10, color: C.muted, marginTop: 4 }}>{plan.note}</div>}
+           {plan.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 6 }}>{plan.note}</div>}
+{plan.features && (
+  <ul style={{ margin: "8px 0 0", padding: "0 0 0 14px", fontSize: 11, color: C.muted, lineHeight: 2 }}>
+    {plan.features.map((f, i) => <li key={i}>{f}</li>)}
+  </ul>
+)}
+{plan.link && (
+  <a href={plan.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 8, fontSize: 10, color: C.A, textDecoration: "underline", fontFamily: "'Space Mono', monospace" }}>
+    デジ革サイトへ →
+  </a>
+)}
               {plan.priceId && (
                 <button
                   onClick={async () => {
