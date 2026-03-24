@@ -159,7 +159,7 @@ const plans = [
   { name: "Business", price: "¥4,950", sub: "/月", limit: "月間無制限\n（1日30回上限）", note: "顧客提案利用ライセンス\nコンサルタント・士業向け", features: [], link: null, featured: true, priceId: "price_1TEYoHCYHZ66REnUcF4pMUuR" },
   { name: "プロフェッショナル", price: "¥20,000", sub: "/月", limit: "完全無制限", note: "戦略改善機能強化版\n戦略コンサルタント向け", features: ["分析結果チャット機能", "チャットから再分析機能"], link: "https://www.digi-kaku.or.jp/", priceId: null },
 ];
-];
+
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 780, width: "100%", position: "relative", fontFamily: "sans-serif" }}>
