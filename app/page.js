@@ -337,7 +337,7 @@ useEffect(() => {
                 <div style={{
                   background: m.role === "user" ? C.A : C.surface,
                   border: m.role === "user" ? "none" : `1px solid ${C.border}`,
-                  borderRadius: 8, padding: "10px 14px", fontSize: 13,
+                  borderRadius: 8, padding: "10px 14px", fontSize: 15,
                   color: m.role === "user" ? "#fff" : C.ink,
                   maxWidth: "85%", lineHeight: 1.6,
                   fontFamily: "'Noto Serif JP', serif",
