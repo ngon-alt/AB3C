@@ -10,10 +10,10 @@ const C = {
 };
 
 const Badge = ({ status }) => {
-  const map = { ok: { bg: C.B, icon: "✓" }, warn: { bg: C.C, icon: "!" }, ng: { bg: C.red, icon: "✗" } };
-  const { bg, icon } = map[status] || map.warn;
+  const map = { ok: { color: "#1a6b3a", icon: "○" }, warn: { color: "#8c6914", icon: "△" }, ng: { color: "#c0392b", icon: "✕" } };
+  const { color, icon } = map[status] || map.warn;
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: "50%", background: bg, color: "#fff", fontSize: 11, fontWeight: 700, fontFamily: "'Space Mono', monospace", flexShrink: 0, marginTop: 2 }}>
+    <span style={{ fontSize: 18, fontWeight: 700, color, flexShrink: 0, marginTop: 2, lineHeight: 1 }}>
       {icon}
     </span>
   );
