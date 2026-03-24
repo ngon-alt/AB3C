@@ -711,6 +711,23 @@ if (summary) {
                 <button onClick={reset} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}>
                   ← 新規分析
                 </button>
+                    <button
+  onClick={async () => {
+    const { jsPDF } = await import("jspdf");
+    const { default: html2canvas } = await import("html2canvas");
+    const element = document.getElementById("result-area");
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("AB3C分析結果.pdf");
+  }}
+  style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px" }}
+>
+  📄 PDFダウンロード
+</button>
               </div>
 {(currentInput || chatSummaries.length > 0) && (
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
