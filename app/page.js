@@ -29,7 +29,7 @@ const Card = ({ color, title, children }) => (
 const UL = ({ items }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => (
-      <li key={i} style={{ fontSize: 14, lineHeight: 1.65, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#3a3a2e" }}>
+     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#3a3a2e" }}>
         <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{item}
       </li>
     ))}
