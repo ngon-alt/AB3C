@@ -760,7 +760,9 @@ if (summary) {
                   <div style={{ fontSize: 13, color: C.ink, wordBreak: "break-all" }}>{shareUrl}</div>
                 </div>
               )}
-              <ResultView d={currentResult} />
+<div id="result-area">
+  <ResultView d={currentResult} />
+</div>
             </div>
           )}
           <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
