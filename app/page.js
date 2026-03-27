@@ -152,10 +152,11 @@ function ResultView({ d }) {
   );
 }
 
-const plans = [
-  { name: "フリー", price: "¥0", sub: null, limit: "月1回まで", note: "機能を試したい方向け", features: ["チャット1回体験つき"], link: null, priceId: null },
-  { name: "チケット", price: "¥3,300", sub: "/1回", limit: "分析1回＋チャット10回", note: "必要な時に必要な分だけ", features: ["チャット機能10回利用可", "再分析機能利用可"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" },
-];
+function PricingModal({ onClose }) {
+  const plans = [
+    { name: "フリー", price: "¥0", sub: null, limit: "月1回まで", note: "機能を試したい方向け", features: ["チャット1回体験つき"], link: null, priceId: null },
+    { name: "チケット", price: "¥3,300", sub: "/1回", limit: "分析1回＋チャット10回", note: "必要な時に必要な分だけ", features: ["チャット機能10回利用可", "再分析機能利用可"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" },
+  ];
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
