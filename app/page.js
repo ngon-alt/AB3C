@@ -404,7 +404,6 @@ useEffect(() => {
             <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
           </svg>
         </button>
-        <div style={{ position: "absolute", top: -4, right: -4, background: "#1a6fd4", color: "#fff", fontSize: 9, padding: "2px 5px", borderRadius: 8, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</div>
       </div>
     </div>
   );
