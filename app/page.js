@@ -430,7 +430,7 @@ function TitleEditor({ title, onChange }) {
 
 export default function Home() {
   const { data: session } = useSession();
-  const [tab, setTab] = useState("text");
+const [tab, setTab] = useState("url");
   const [input, setInput] = useState("");
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
