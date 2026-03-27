@@ -709,7 +709,54 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 </div>
           )}
-          {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 14 }}>AIがAB3Cを分析中です…</div>}
+{!currentResult && !loading && (
+  <div style={{ marginTop: 40, padding: "32px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>AB3Cアナライザー 使い方</div>
+    
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
+      <p style={{ fontSize: 14, lineHeight: 1.9, color: C.muted }}>AB3C分析は、「選ばれる理由」を明らかにする事業戦略フレームワークです。Benefit（お客様が求める価値）・Advantage（競合との好ましい違い）・3C（Customer・Competitor・Company）を構造化することで、事業にかかわるすべての人の共通言語をつくります。</p>
+    </div>
+
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+        <div style={{ background: C.highlight, borderRadius: 6, padding: "16px 18px" }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 8 }}>🌐 URLで分析（既存事業向け）</div>
+          <p style={{ fontSize: 13, lineHeight: 1.8, color: C.muted }}>すでにウェブサイトがある場合はURLを入力するだけ。現在のサイトが戦略を正しく伝えられているか、競合と比べてアドバンテージが伝わっているかを確認できます。</p>
+        </div>
+        <div style={{ background: C.highlight, borderRadius: 6, padding: "16px 18px" }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✏️ テキストで入力（新規事業向け）</div>
+          <p style={{ fontSize: 13, lineHeight: 1.8, color: C.muted }}>これから起業する、新規事業を立ち上げる、大幅に事業を刷新したい場合はテキストで事業概要を入力。試行錯誤しながら繰り返すことで事業モデルの精度を上げられます。</p>
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+        {[
+          { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
+          { icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけでスライド資料が完成。" },
+          { icon: "📝", title: "補助金・事業計画書", desc: "AB3Cで整理した戦略を補助金申請書や事業計画書にそのまま活用できます。" },
+          { icon: "🤝", title: "AI社長室に依頼", desc: "分析結果をもとにAIマーケッターがコンテンツ化。戦略を形にするサポートをします。" },
+        ].map((item, i) => (
+          <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px" }}>
+            <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
+            <p style={{ fontSize: 12, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", textAlign: "center" }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
+      <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.75)" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることがAB3Cアナライザーの役割です。</p>
+    </div>
+  </div>
+)}
+{loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 14 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
