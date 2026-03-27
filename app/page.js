@@ -738,9 +738,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
         {[
           { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
-          { icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけでスライド資料が完成。" },
+{ icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけで事業戦略の改善提案スライド資料が作成できます。" },
           { icon: "📝", title: "補助金・事業計画書", desc: "AB3Cで整理した戦略を補助金申請書や事業計画書にそのまま活用できます。" },
-          { icon: "🤝", title: "AI社長室に依頼", desc: "分析結果をもとにAIマーケッターがコンテンツ化。戦略を形にするサポートをします。" },
+
         ].map((item, i) => (
           <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px" }}>
             <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
