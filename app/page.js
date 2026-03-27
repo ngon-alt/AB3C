@@ -656,14 +656,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 <div style={{ marginBottom: 28 }}>
   {/* タブ */}
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: -1, position: "relative", zIndex: 1 }}>
-    <button
-      onClick={() => { setTab("text"); setError(""); }}
-      style={{ background: tab === "text" ? C.surface : C.highlight, border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
-    >
-      <div style={{ fontSize: 14, marginBottom: 3 }}>✏️</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
-      <div style={{ fontSize: 11, color: C.muted }}>事業概要を自由に記述</div>
-    </button>
+    
     <button
       onClick={() => { setTab("url"); setError(""); }}
       style={{ background: tab === "url" ? C.surface : C.highlight, border: `1px solid ${C.border}`, borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
@@ -671,6 +664,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ fontSize: 14, marginBottom: 3 }}>🌐</div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 11, color: C.muted }}>WebサイトのURLを貼るだけ</div>
+    </button>
+      <button
+      onClick={() => { setTab("text"); setError(""); }}
+      style={{ background: tab === "text" ? C.surface : C.highlight, border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
+    >
+      <div style={{ fontSize: 14, marginBottom: 3 }}>✏️</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
+      <div style={{ fontSize: 11, color: C.muted }}>事業概要を自由に記述</div>
     </button>
   </div>
 
