@@ -12,6 +12,8 @@ const handler = NextAuth({
   callbacks: {
     async signIn({ user }) {
       const sql = neon(process.env.DATABASE_URL);
+
+      // usersテーブル作成・ユーザー登録
       await sql`
         CREATE TABLE IF NOT EXISTS users (
           id SERIAL PRIMARY KEY,
@@ -23,11 +25,24 @@ const handler = NextAuth({
           created_at TIMESTAMP DEFAULT NOW()
         )
       `;
+
+      const existing = await sql`SELECT id FROM users WHERE email = ${user.email}`;
+      const isNewUser = existing.length === 0;
+
       await sql`
         INSERT INTO users (email, name)
         VALUES (${user.email}, ${user.name})
         ON CONFLICT (email) DO UPDATE SET name = ${user.name}
       `;
+
+      // 新規ユーザーにトライアルチケット（チャット1回）を付与
+      if (isNewUser) {
+        await sql`
+          INSERT INTO tickets (email, remaining_chats, is_trial)
+          VALUES (${user.email}, 1, TRUE)
+        `;
+      }
+
       return true;
     },
     async session({ session }) {
