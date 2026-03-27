@@ -444,8 +444,9 @@ export default function Home() {
   const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [chatTickets, setChatTickets] = useState(0);
+const [showWelcome, setShowWelcome] = useState(false);
+const [isPro, setIsPro] = useState(false);
+const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
