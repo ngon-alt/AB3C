@@ -152,12 +152,9 @@ function ResultView({ d }) {
   );
 }
 
-function PricingModal({ onClose }) {
 const plans = [
-  { name: "フリー", price: "¥0", sub: null, limit: "月5回まで", note: "機能を試したい方向け", features: [], link: null, priceId: null },
-  { name: "ベーシック", price: "¥1,980", sub: "/月", limit: "月30回まで", note: "自社分析専用ライセンス", features: [], link: null, priceId: "price_1TEYkMCYHZ66REnUcP11KCZb" },
-  { name: "ビジネス", price: "¥4,950", sub: "/月", limit: "月間無制限\n（1日30回上限）", note: "顧客提案利用ライセンス\nコンサルタント・士業向け", features: [], link: null, featured: true, priceId: "price_1TEYoHCYHZ66REnUcF4pMUuR" },
-  { name: "プロフェッショナル", price: "¥20,000", sub: "/月", limit: "完全無制限", note: "戦略を提案する方向け", features: ["分析結果チャット機能", "チャットから再分析機能"], link: "https://www.digi-kaku.or.jp/", priceId: null },
+  { name: "フリー", price: "¥0", sub: null, limit: "月1回まで", note: "機能を試したい方向け", features: ["チャット1回体験つき"], link: null, priceId: null },
+  { name: "チケット", price: "¥3,300", sub: "/1回", limit: "分析1回＋チャット10回", note: "必要な時に必要な分だけ", features: ["チャット機能10回利用可", "再分析機能利用可"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" },
 ];
 
   return (
