@@ -218,8 +218,8 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
           ようこそ、{session?.user?.name}さん！
         </div>
         <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 24 }}>
-          無料プランでは月5回まで分析できます。<br />
-          より多く使いたい方はプランのアップグレードをご検討ください。
+無料プランでは分析1回・チャット1回をお試しいただけます。<br />
+          より多く使いたい方はチケットのご購入をご検討ください。
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
           <button onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "10px 20px", color: C.muted }}>
