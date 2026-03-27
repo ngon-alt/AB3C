@@ -546,18 +546,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
 <ChatWidget
-  isPro={isPro}
+  isPro={isPro || chatTickets > 0 || trialChats > 0}
   analysisResult={currentResult}
-onReanalyze={(newResult, summary) => {
-    console.log("onReanalyze呼ばれた:", newResult?.strategy_message?.message);
+  onReanalyze={(newResult, summary) => {
     setResult(newResult);
     setSelectedHistory(null);
-if (summary) {
-      console.log("chatSummaries追加:", summary);
-      setChatSummaries(prev => {
-        console.log("現在のchatSummaries:", prev);
-        return [...prev, summary];
-      });
+    if (summary) {
+      setChatSummaries(prev => [...prev, summary]);
     }
     saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
   }}
