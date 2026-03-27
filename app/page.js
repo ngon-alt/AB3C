@@ -444,7 +444,8 @@ export default function Home() {
   const [sharing, setSharing] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [isPro, setIsPro] = useState(false);
+  const [chatTickets, setChatTickets] = useState(0);
+const [trialChats, setTrialChats] = useState(0);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
@@ -485,7 +486,11 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   if (session) {
     fetch('/api/check-pro')
       .then(res => res.json())
-      .then(data => setIsPro(data.isPro));
+      .then(data => {
+        setIsPro(data.isPro);
+        setChatTickets(data.chatTickets || 0);
+        setTrialChats(data.trialChats || 0);
+      });
   }
 }, [session]);
   
