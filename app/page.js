@@ -203,8 +203,7 @@ function PricingModal({ onClose }) {
           ))}
         </div>
         <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
-          ※ コンサルタント・税理士・ウェブ制作会社など、クライアント向けに複数の分析を行いたい方はプロプランをご用意しています。詳しくはお問い合わせください。
-        </div>
+※ コンサルタント・税理士・ウェブ制作会社など、クライアント向けに複数の分析を行いたい方はプロプランをご用意しています。詳しくは<a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>デジタル経営革新協会</a>までお問い合わせください。        </div>
       </div>
     </div>
   );
