@@ -9,6 +9,7 @@ export default async function SharePage({ searchParams }) {
   const id = searchParams?.id;
   let input = null;
   let result = null;
+  let improveResult = null;
   let error = "";
 
   if (!id) {
@@ -22,11 +23,12 @@ export default async function SharePage({ searchParams }) {
       } else {
         input = rows[0].input_text;
         result = typeof rows[0].result === 'string' ? JSON.parse(rows[0].result) : rows[0].result;
+        improveResult = rows[0].improve_result ? (typeof rows[0].improve_result === 'string' ? JSON.parse(rows[0].improve_result) : rows[0].improve_result) : null;
       }
     } catch (e) {
       error = "データの取得に失敗しました。";
     }
   }
 
-  return <ShareContent input={input} result={result} error={error} />;
+  return <ShareContent input={input} result={result} improveResult={improveResult} error={error} />;
 }
