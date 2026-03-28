@@ -546,7 +546,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   console.log("currentResult:", currentResult?.strategy_message?.message);
   console.log("result:", result?.strategy_message?.message);
   console.log("selectedHistory:", selectedHistory);
-  const currentInput = selectedHistory ? selectedHistory.input : null;
+  const currentInput = selectedHistory ? selectedHistory.input : (result ? (url || input || null) : null);
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
