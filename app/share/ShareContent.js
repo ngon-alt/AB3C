@@ -77,12 +77,16 @@ export default function ShareContent({ data, error }) {
 
         {d && (
           <div>
-            {data.input && (
-              <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "16px 20px", marginBottom: 28 }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>分析対象</div>
-                <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{data.input}</p>
-              </div>
-            )}
+           {data.input && (
+  <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "16px 20px", marginBottom: 28 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>分析対象</div>
+    {data.input.startsWith("http") ? (
+      <a href={data.input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{data.input}</a>
+    ) : (
+      <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{data.input}</p>
+    )}
+  </div>
+)}
             <div style={{ marginBottom: 28 }}>
               <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} />
               <div style={g2}>
