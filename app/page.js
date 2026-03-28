@@ -156,7 +156,7 @@ function PricingModal({ onClose }) {
   const plans = [
     { name: "フリー", price: "¥0", sub: null, limit: "1アカウント1回限り", note: "まず試してみたい方向け", features: [], link: null, priceId: null, comingSoon: false, inquiry: false },
     { name: "①分析レポート", price: "¥3,300", sub: "/1回", limit: "AB3C分析レポート", note: "ECサイト・コーポレート・サービスサイト対応", features: ["戦略メッセージの生成", "5つのチェックポイント評価"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6", comingSoon: false, inquiry: false },
-    { name: "③代表相談", price: "¥550,000〜", sub: null, limit: "件数限定", note: "個別戦略コンサルティング", features: ["代表による直接相談", "戦略立案サポート"], link: null, priceId: null, comingSoon: false, inquiry: true },
+    { name: "③コンサルタントに相談", price: "¥550,000〜", sub: null, limit: "件数限定", note: "個別戦略コンサルティング", features: ["代表による直接相談", "戦略立案サポート"], link: null, priceId: null, comingSoon: false, inquiry: true },
     { name: "プロプラン", price: "要相談", sub: null, limit: "複数クライアント対応", note: "コンサルタント・税理士・ウェブ制作会社向け", features: ["複数クライアントの分析が可能", "ライセンス契約"], link: null, priceId: null, comingSoon: false, inquiry: true },
   ];
   return (
