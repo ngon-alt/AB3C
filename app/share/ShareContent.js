@@ -1,3 +1,4 @@
+"use client";
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
