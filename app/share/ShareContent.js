@@ -49,7 +49,7 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
-export default function ShareContent({ input, result, error }) {
+export default function ShareContent({ input, result, improveResult, error }) {
   const d = result;
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
@@ -177,7 +177,27 @@ export default function ShareContent({ input, result, error }) {
             </div>
           </div>
         )}
-
+{improveResult && (
+  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px", marginTop: 32 }}>
+    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
+    {[
+      { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
+      { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
+      { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
+    ].map(section => (
+      <div key={section.key} style={{ marginBottom: 28 }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
+        {improveResult[section.key]?.map((item, i) => (
+          <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
+            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+          </div>
+        ))}
+      </div>
+    ))}
+  </div>
+)}
         <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8 }}>
             <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
