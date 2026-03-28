@@ -81,7 +81,7 @@ export default function ShareContent({ input, result, error }) {
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "16px 20px", marginBottom: 28 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>分析対象</div>
    {input.startsWith("http") ? (
-      <a href={input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{data.input}</a>
+      <a href={input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{input}</a>
     ) : (
       <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{input}</p>
     )}
