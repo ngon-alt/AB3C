@@ -206,8 +206,7 @@ function PricingModal({ onClose }) {
     </div>
   );
 }
-  );
-}
+
 
 function WelcomeModal({ session, onClose, onShowPricing }) {
   return (
