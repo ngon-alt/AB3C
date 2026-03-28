@@ -152,94 +152,60 @@ function ResultView({ d }) {
   );
 }
 
-const plans = [
-  { 
-    name: "①分析レポート", 
-    price: "¥3,300", 
-    sub: "/1回", 
-    limit: "AB3C分析レポート", 
-    note: "ECサイト・コーポレート・サービスサイト対応", 
-    features: ["戦略メッセージの生成", "5つのチェックポイント評価"], 
-    link: null, 
-    priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" 
-  },
-  { 
-    name: "②改善レポート", 
-    price: "¥55,000", 
-    sub: "/1回", 
-    limit: "分析＋AI改善提案", 
-    note: "①の分析結果をベースに改善提案を生成", 
-    features: ["AI改善提案レポート", "チャット機能利用可"], 
-    link: null, 
-    priceId: null,
-    comingSoon: true
-  },
-  { 
-    name: "③代表相談", 
-    price: "¥500,000〜", 
-    sub: null, 
-    limit: "件数限定", 
-    note: "個別戦略コンサルティング", 
-    features: ["代表による直接相談", "戦略立案サポート"], 
-    link: null, 
-    priceId: null,
-    inquiry: true
-  },
-];
-
+function PricingModal({ onClose }) {
+  const plans = [
+    { name: "フリー", price: "¥0", sub: null, limit: "1アカウント1回限り", note: "まず試してみたい方向け", features: [], link: null, priceId: null, comingSoon: false, inquiry: false },
+    { name: "①分析レポート", price: "¥3,300", sub: "/1回", limit: "AB3C分析レポート", note: "ECサイト・コーポレート・サービスサイト対応", features: ["戦略メッセージの生成", "5つのチェックポイント評価"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6", comingSoon: false, inquiry: false },
+    { name: "③代表相談", price: "¥550,000〜", sub: null, limit: "件数限定", note: "個別戦略コンサルティング", features: ["代表による直接相談", "戦略立案サポート"], link: null, priceId: null, comingSoon: false, inquiry: true },
+    { name: "プロプラン", price: "要相談", sub: null, limit: "複数クライアント対応", note: "コンサルタント・税理士・ウェブ制作会社向け", features: ["複数クライアントの分析が可能", "ライセンス契約"], link: null, priceId: null, comingSoon: false, inquiry: true },
+  ];
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 780, width: "100%", position: "relative", fontFamily: "sans-serif" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 860, width: "100%", position: "relative", fontFamily: "sans-serif" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 20 }}>プランと料金</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
           {plans.map((plan, i) => (
-            <div key={i} style={{ background: C.bg, border: plan.featured ? `2px solid ${C.A}` : `1px solid ${C.border}`, borderRadius: 8, padding: "16px", position: "relative" }}>
-              {plan.featured && <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", fontSize: 10, background: "#1a6fd4", color: "#fff", padding: "3px 10px", borderRadius: 10, whiteSpace: "nowrap" }}>おすすめ</div>}
+            <div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "16px", position: "relative" }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{plan.name}</div>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink }}>
                 {plan.price}
                 {plan.sub && <span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>{plan.sub}</span>}
               </div>
               <div style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-line" }}>{plan.limit}</div>
-           {plan.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 6, fontFamily: "sans-serif" }}>{plan.note}</div>}
-{plan.features && (
-  <ul style={{ margin: "8px 0 0", padding: "0 0 0 14px", fontSize: 11, color: C.muted, lineHeight: 2 }}>
-    {plan.features.map((f, i) => <li key={i}>{f}</li>)}
-  </ul>
-)}
-{plan.link && (
-  <a href={plan.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 8, fontSize: 10, color: C.A, textDecoration: "underline", fontFamily: "'Space Mono', monospace" }}>
-    デジ革サイトへ →
-  </a>
-)}
-{plan.comingSoon && (
-  <div style={{ marginTop: 12, width: "100%", background: C.muted, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center" }}>
-    近日公開
-  </div>
-)}
-{plan.inquiry && (
-  <a href="https://ab3c.jp/contact" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
-    お問い合わせ
-  </a>
-)}
-{plan.priceId && (
+              {plan.note && <div style={{ fontSize: 11, color: C.muted, marginTop: 6, fontFamily: "sans-serif" }}>{plan.note}</div>}
+              {plan.features && plan.features.length > 0 && (
+                <ul style={{ margin: "8px 0 0", padding: "0 0 0 14px", fontSize: 11, color: C.muted, lineHeight: 2 }}>
+                  {plan.features.map((f, j) => <li key={j}>{f}</li>)}
+                </ul>
+              )}
+              {plan.priceId && (
                 <button
                   onClick={async () => {
                     const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: plan.priceId }) });
                     const data = await res.json();
                     if (data.url) window.location.href = data.url;
                   }}
-                  style={{ marginTop: 12, width: "100%", background: plan.featured ? C.A : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px" }}
+                  style={{ marginTop: 12, width: "100%", background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px" }}
                 >
                   このプランにする
                 </button>
               )}
+              {plan.inquiry && (
+                <a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
+                  お問い合わせ
+                </a>
+              )}
             </div>
           ))}
         </div>
+        <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
+          ※ コンサルタント・税理士・ウェブ制作会社など、クライアント向けに複数の分析を行いたい方はプロプランをご用意しています。詳しくはお問い合わせください。
+        </div>
       </div>
     </div>
+  );
+}
   );
 }
 
