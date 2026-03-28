@@ -603,15 +603,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         プランと料金
       </button>
       <button
-        onClick={async () => {
-          const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: 'price_1TCxTtCYHZ66REnUAgK8vyeh' }) });
-          const data = await res.json();
-          if (data.url) window.location.href = data.url;
-        }}
-        style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
-      >
-        アップグレード
-      </button>
+  onClick={() => setShowPricing(true)}
+  style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}
+>
+  プランを見る
+</button>
     </div>
   </div>
           ) : (
