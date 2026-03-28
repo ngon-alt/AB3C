@@ -9,6 +9,7 @@ async function ensureTable() {
       id VARCHAR(12) PRIMARY KEY,
       input_text TEXT,
       result JSONB NOT NULL,
+      improve_result JSONB,
       created_at TIMESTAMP DEFAULT NOW()
     )
   `;
@@ -20,12 +21,12 @@ function generateId() {
 
 export async function POST(req) {
   try {
-    const { input, result } = await req.json();
+    const { input, result, improveResult } = await req.json();
     await ensureTable();
     const id = generateId();
     await sql`
-      INSERT INTO shared_results (id, input_text, result)
-      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)})
+      INSERT INTO shared_results (id, input_text, result, improve_result)
+      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null})
     `;
     return NextResponse.json({ id });
   } catch (e) {
@@ -42,7 +43,12 @@ export async function GET(req) {
     await ensureTable();
     const rows = await sql`SELECT * FROM shared_results WHERE id = ${id}`;
     if (rows.length === 0) return NextResponse.json({ error: "見つかりませんでした。" }, { status: 404 });
-    return NextResponse.json({ input: rows[0].input_text, result: rows[0].result, created_at: rows[0].created_at });
+    return NextResponse.json({ 
+      input: rows[0].input_text, 
+      result: rows[0].result, 
+      improveResult: rows[0].improve_result,
+      created_at: rows[0].created_at 
+    });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "データの取得に失敗しました。" }, { status: 500 });
