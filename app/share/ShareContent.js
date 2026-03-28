@@ -49,11 +49,10 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
-export default function ShareContent({ data, error }) {
+export default function ShareContent({ input, result, error }) {
+  const d = result;
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
-
-  const d = data?.result ? (typeof data.result === 'string' ? JSON.parse(data.result) : data.result) : null;
 
   return (
     <main style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
@@ -78,13 +77,13 @@ export default function ShareContent({ data, error }) {
 
         {d && (
           <div>
-           {data.input && (
+           {input && (
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "16px 20px", marginBottom: 28 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>分析対象</div>
-    {data.input.startsWith("http") ? (
-      <a href={data.input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{data.input}</a>
+   {input.startsWith("http") ? (
+      <a href={input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{data.input}</a>
     ) : (
-      <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{data.input}</p>
+      <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{input}</p>
     )}
   </div>
 )}
