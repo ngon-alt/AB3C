@@ -461,8 +461,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
     try {
-      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData }) });
-      const data = await res.json();
+const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null }) });      const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
         setShareUrl(url);
