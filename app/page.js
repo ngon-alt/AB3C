@@ -818,6 +818,61 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 <div id="result-area">
   <ResultView d={currentResult} />
 </div>
+
+{currentInput?.startsWith("http") && (
+  <div style={{ marginTop: 32 }}>
+    {!improveResult && (
+      <button
+        onClick={async () => {
+          setImproveLoading(true);
+          try {
+            const res = await fetch("/api/improve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ analysisResult: currentResult, url: currentInput }),
+            });
+            const data = await res.json();
+            if (data.error) {
+              alert(data.error);
+            } else {
+              setImproveResult(data);
+            }
+          } catch {
+            alert("エラーが発生しました。");
+          } finally {
+            setImproveLoading(false);
+          }
+        }}
+        disabled={improveLoading}
+        style={{ background: improveLoading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: improveLoading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 28px" }}
+      >
+        {improveLoading ? "🔧 改善レポート生成中…" : "🔧 ウェブサイト改善レポートを生成する"}
+      </button>
+    )}
+    {improveResult && (
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px" }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
+        
+        {[
+          { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
+          { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
+          { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
+        ].map(section => (
+          <div key={section.key} style={{ marginBottom: 28 }}>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
+            {improveResult[section.key]?.map((item, i) => (
+              <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
             </div>
           )}
           <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
