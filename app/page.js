@@ -166,8 +166,7 @@ function PricingModal({ onClose }) {
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 20 }}>プランと料金</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
           {plans.map((plan, i) => (
-            <div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "16px", position: "relative" }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{plan.name}</div>
+<div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "16px", position: "relative", display: "flex", flexDirection: "column" }}>              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{plan.name}</div>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink }}>
                 {plan.price}
                 {plan.sub && <span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>{plan.sub}</span>}
