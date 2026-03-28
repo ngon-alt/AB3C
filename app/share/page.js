@@ -7,7 +7,8 @@ export async function generateMetadata({ searchParams }) {
 
 export default async function SharePage({ searchParams }) {
   const id = searchParams?.id;
-  let data = null;
+  let input = null;
+  let result = null;
   let error = "";
 
   if (!id) {
@@ -19,12 +20,13 @@ export default async function SharePage({ searchParams }) {
       if (rows.length === 0) {
         error = "データが見つかりませんでした。";
       } else {
-        data = rows[0];
+        input = rows[0].input_text;
+        result = typeof rows[0].result === 'string' ? JSON.parse(rows[0].result) : rows[0].result;
       }
     } catch (e) {
       error = "データの取得に失敗しました。";
     }
   }
 
-  return <ShareContent data={data} error={error} />;
+  return <ShareContent input={input} result={result} error={error} />;
 }
