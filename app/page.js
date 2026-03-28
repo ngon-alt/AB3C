@@ -449,6 +449,8 @@ const [showWelcome, setShowWelcome] = useState(false);
 const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
+  const [improveResult, setImproveResult] = useState(null);
+const [improveLoading, setImproveLoading] = useState(false);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
