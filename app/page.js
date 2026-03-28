@@ -191,11 +191,12 @@ function PricingModal({ onClose }) {
                   このプランにする
                 </button>
               )}
-            {plan.inquiry && (
+ {plan.inquiry && (
   <a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
     お問い合わせ
   </a>
-)} target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
+)} 
+rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
                   お問い合わせ
                 </a>
               )}
