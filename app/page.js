@@ -152,11 +152,40 @@ function ResultView({ d }) {
   );
 }
 
-function PricingModal({ onClose }) {
-  const plans = [
-    { name: "フリー", price: "¥0", sub: null, limit: "月1回まで", note: "機能を試したい方向け", features: ["チャット1回体験つき"], link: null, priceId: null },
-    { name: "チケット", price: "¥3,300", sub: "/1回", limit: "分析1回＋チャット10回", note: "必要な時に必要な分だけ", features: ["チャット機能10回利用可", "再分析機能利用可"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" },
-  ];
+const plans = [
+  { 
+    name: "①分析レポート", 
+    price: "¥3,300", 
+    sub: "/1回", 
+    limit: "AB3C分析レポート", 
+    note: "ECサイト・コーポレート・サービスサイト対応", 
+    features: ["戦略メッセージの生成", "5つのチェックポイント評価"], 
+    link: null, 
+    priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6" 
+  },
+  { 
+    name: "②改善レポート", 
+    price: "¥55,000", 
+    sub: "/1回", 
+    limit: "分析＋AI改善提案", 
+    note: "①の分析結果をベースに改善提案を生成", 
+    features: ["AI改善提案レポート", "チャット機能利用可"], 
+    link: null, 
+    priceId: null,
+    comingSoon: true
+  },
+  { 
+    name: "③代表相談", 
+    price: "¥500,000〜", 
+    sub: null, 
+    limit: "件数限定", 
+    note: "個別戦略コンサルティング", 
+    features: ["代表による直接相談", "戦略立案サポート"], 
+    link: null, 
+    priceId: null,
+    inquiry: true
+  },
+];
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -184,7 +213,17 @@ function PricingModal({ onClose }) {
     デジ革サイトへ →
   </a>
 )}
-              {plan.priceId && (
+{plan.comingSoon && (
+  <div style={{ marginTop: 12, width: "100%", background: C.muted, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center" }}>
+    近日公開
+  </div>
+)}
+{plan.inquiry && (
+  <a href="https://ab3c.jp/contact" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
+    お問い合わせ
+  </a>
+)}
+{plan.priceId && (
                 <button
                   onClick={async () => {
                     const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: plan.priceId }) });
