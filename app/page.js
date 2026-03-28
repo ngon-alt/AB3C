@@ -769,7 +769,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       ✏️ このテキストを修正して再分析
     </button>
   )}
-  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
+  <button onClick={() => { console.log("shareResult input:", currentInput); shareResult(currentInput || "", currentResult); }} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
     {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
   </button>
   <button
