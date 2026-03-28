@@ -179,17 +179,17 @@ function PricingModal({ onClose }) {
                 </ul>
               )}
               {plan.priceId && (
-                <button
-                  onClick={async () => {
-                    const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: plan.priceId }) });
-                    const data = await res.json();
-                    if (data.url) window.location.href = data.url;
-                  }}
-                  style={{ marginTop: 12, width: "100%", background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px" }}
-                >
-                  このプランにする
-                </button>
-              )}
+  <button
+    onClick={async () => {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: plan.priceId }) });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    }}
+    style={{ marginTop: "auto", width: "100%", background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px" }}
+  >
+    このプランにする
+  </button>
+)}
  {plan.inquiry && (
   <a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 12, width: "100%", background: C.B, border: "none", borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 10, fontWeight: 700, padding: "8px", textAlign: "center", textDecoration: "none", boxSizing: "border-box" }}>
     お問い合わせ
