@@ -44,21 +44,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* モノ不足→モノ余りの流れ */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 20 }}>
-            {[
-              { num: "1", title: "モノ不足の時代", desc: "お客様が欲しいものを作れば売れました。", color: C.A },
-              { num: "2", title: "モノ余りの時代", desc: "選択肢（競合）が増え、売れなくなってきました。", color: C.B },
-              { num: "3", title: "差別化の時代", desc: "競合とは違う商品を作る「差別化」が必要になりました。", color: C.C },
-              { num: "4", title: "AB3Cの登場", desc: "競合と比較されても「選ばれる理由」を提示できるフレームワーク。", color: C.ink },
-            ].map((item, i) => (
-              <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `4px solid ${item.color}`, borderRadius: 6, padding: "16px 18px" }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: item.color, marginBottom: 6, letterSpacing: "0.1em" }}>STEP {item.num}</div>
-                <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{item.title}</div>
-                <p style={{ fontSize: 13, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
+         
         </div>
 
         {/* B — Benefit */}
