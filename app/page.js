@@ -199,6 +199,34 @@ function PricingModal({ onClose }) {
             </div>
           ))}
         </div>
+            <div style={{ marginTop: 20, overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "sans-serif" }}>
+            <thead>
+              <tr style={{ background: C.ink, color: "#fff" }}>
+                <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>⓪フリー</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>①ベーシック</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>②スタンダード</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: "AB3C分析レポート", free: "○（1回）", basic: "○", standard: "○" },
+                { feature: "シェアURL発行", free: "○", basic: "○", standard: "○" },
+                { feature: "印刷・PDF保存", free: "○", basic: "○", standard: "○" },
+                { feature: "ウェブサイト改善アドバイス", free: "✕", basic: "✕", standard: "○" },
+                { feature: "AIチャット相談", free: "✕", basic: "✕", standard: "○（30回）" },
+              ].map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: "10px 12px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.free}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.basic}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: row.standard === "✕" ? C.red : C.A, fontWeight: row.standard !== "✕" ? 700 : 400 }}>{row.standard}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
 ※ コンサルタント・税理士・ウェブ制作会社など、クライアント向けに複数の分析を行いたい方はプロプランをご用意しています。詳しくは<a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>デジタル経営革新協会</a>までお問い合わせください。        </div>
       </div>
