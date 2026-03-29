@@ -15,16 +15,16 @@ async function fetchWebsite(url) {
     const text = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+      .replace(/data:image\/[^;]+;base64,[^"']*/gi, "")
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 3000);
+      .slice(0, 5000);
     return text;
   } catch (e) {
     throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
   }
 }
-
 export async function POST(req) {
   const session = await getServerSession(authOptions);
 
