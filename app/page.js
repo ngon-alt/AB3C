@@ -158,7 +158,7 @@ function PricingModal({ onClose }) {
   { name: "①ベーシック", price: "¥3,300", sub: "/1回", limit: "AB3C簡易分析レポート", note: "必要な時に必要な分だけ", features: ["AB3C簡易分析レポート", "シェアURL発行"], link: null, priceId: "price_1TFVPQCYHZ66REnUPmSkDnV6", comingSoon: false, inquiry: false },
   { name: "②スタンダード", price: "¥9,900", sub: "/1回", limit: "分析＋改善アドバイス＋AIチャット", note: "改善まで踏み込みたい方向け", features: ["AB3C簡易分析レポート", "ウェブサイト改善アドバイス", "AIチャット相談（30回）"], link: null, priceId: "price_1TGLh2CYHZ66REnUXIK6b8X7", comingSoon: false, inquiry: false },
   { name: "③コンサルタント相談", price: "¥330,000〜", sub: null, limit: "件数限定", note: "個別戦略コンサルティング", features: ["代表による直接相談", "戦略立案サポート"], link: null, priceId: null, comingSoon: false, inquiry: true },
-  { name: "④プロプラン", price: "要相談", sub: null, limit: "複数クライアント対応", note: "コンサルタント・税理士・ウェブ制作会社向け", features: ["複数クライアントの分析が可能", "再販ライセンス（仕切り¥150,000）"], link: null, priceId: null, comingSoon: false, inquiry: true },
+  { name: "④プロプラン", price: "要相談", sub: null, limit: "複数クライアント対応", note: "コンサルタント・税理士・ウェブ制作会社向け", features: ["複数クライアントの分析が可能", "再販ライセンスと追加機能"], link: null, priceId: null, comingSoon: false, inquiry: true },
 ];
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
