@@ -725,23 +725,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>フレームワークの詳細</div>
       </div>
     </a>
-  </div>
-)}
-    <a href="/howto" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 20 }}>🔰</span>
-      <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.ink }}>初めての方へ</div>
-        <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>使い方・入力方法・活用法</div>
-      </div>
-    </a>
-    <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 20 }}>📖</span>
-      <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
-        <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>フレームワークの詳細</div>
-      </div>
-    </a>
-  </div>
+</div>
 )}
 {!currentResult && !loading && (
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "16px 0" }}>
