@@ -98,7 +98,43 @@ export default function HowtoPage() {
           </div>
         </div>
 
-        <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
+        {/* 機能比較表 */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16, borderLeft: `4px solid ${C.A}`, paddingLeft: 14 }}>
+            📋 プラン別機能比較
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: "sans-serif" }}>
+              <thead>
+                <tr style={{ background: C.ink, color: "#fff" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700 }}>機能</th>
+                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>⓪フリー<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥0</span></th>
+                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>①ベーシック<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥3,300</span></th>
+                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>②スタンダード<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥9,900</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature: "AB3C分析レポート", free: "○（1回）", basic: "○", standard: "○" },
+                  { feature: "シェアURL発行", free: "○", basic: "○", standard: "○" },
+                  { feature: "印刷・PDF保存", free: "○", basic: "○", standard: "○" },
+                  { feature: "ウェブサイト改善アドバイス", free: "✕", basic: "✕", standard: "○" },
+                  { feature: "AIチャット相談", free: "✕", basic: "✕", standard: "○（30回）" },
+                ].map((row, i) => (
+                  <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "12px 16px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "center", color: C.muted }}>{row.free}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "center", color: C.muted }}>{row.basic}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "center", color: row.standard === "✕" ? "#c0392b" : C.A, fontWeight: row.standard !== "✕" ? 700 : 400 }}>{row.standard}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: C.muted, fontFamily: "sans-serif" }}>
+            ※ ③コンサルタント相談・④プロプランについては<a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>デジタル経営革新協会</a>までお問い合わせください。
+          </div>
+        </div>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそく分析してみましょう</div>
           <a href="https://analyzer.ab3c.jp" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
             ▶ 分析ツールへ
