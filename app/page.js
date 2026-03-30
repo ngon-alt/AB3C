@@ -546,7 +546,7 @@ useEffect(() => {
   const analyze = async () => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
     try {
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -560,7 +560,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
     } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
