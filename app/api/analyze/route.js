@@ -53,7 +53,7 @@ export async function POST(req) {
       analysisTarget = `以下はウェブサイト（${url}）から取得したテキストです：\n\n${siteText}`;
       useWebSearch = true;
     } catch (e) {
-      return NextResponse.json({ error: e.message }, { status: 400 });
+      return NextResponse.json({ error: `URLの読み込みに失敗しました。\n\n以下のようなサイトは読み取りができない場合があります：\n・楽天市場・Yahoo!ショッピング・Amazonなどのモール型ECサイト\n・Instagram・FacebookなどのSNS\n・食べログ・ホットペッパーなどの予約サイト\n・SUUMO・HOME'Sなどの不動産ポータルサイト\n・Indeed・リクナビなどの求人サイト\n・金融・銀行系サイト\n\nこれらのサイトは「テキストで入力」タブから事業概要を直接入力してお試しください。` }, { status: 400 });
     }
   } else if (input && input.trim()) {
     analysisTarget = input.trim();
