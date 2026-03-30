@@ -723,7 +723,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     )}
 {error && (
   <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 13, color: C.red, marginTop: 12 }}>
-    <div>{error}</div>
+    <div style={{ whiteSpace: "pre-line" }}>{error}</div>
     <div style={{ marginTop: 8, fontSize: 12, color: C.muted, lineHeight: 1.7 }}>
       AIを利用したシステムのため、まれに動作がおかしくなることがあります。その場合は5分ほどして再度分析してみてください。それでも回復しない場合は、<a href="https://status.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>Claudeのシステムの稼働状況</a>を確認してください。
     </div>
