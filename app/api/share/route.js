@@ -16,7 +16,10 @@ async function ensureTable() {
 }
 
 function generateId() {
-  return Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+  const timestamp = Date.now().toString(36);
+  const random1 = Math.random().toString(36).slice(2, 8);
+  const random2 = Math.random().toString(36).slice(2, 6);
+  return timestamp + random1 + random2;
 }
 
 export async function POST(req) {
