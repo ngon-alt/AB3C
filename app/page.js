@@ -864,6 +864,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {currentInput?.startsWith("http") && (
   <div style={{ marginTop: 32 }}>
+{improveResult && (
+  <button
+    onClick={() => shareResult(currentInput || "", currentResult)}
+    disabled={sharing}
+    style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 28px", marginBottom: 16 }}
+  >
+    {sharing ? "作成中…" : "🔗 改善レポートを含むシェアURLを再発行"}
+  </button>
+)}
     {!improveResult && (
       <button
         onClick={async () => {
