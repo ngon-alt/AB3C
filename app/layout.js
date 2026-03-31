@@ -29,15 +29,50 @@ export default function RootLayout({ children }) {
     <html lang="ja">
       <head>
        <style>{`
-          @media print {
-            body * { visibility: hidden; }
-           #result-area, #result-area * { visibility: visible; }
-#improve-area, #improve-area * { visibility: visible; }
-#result-area { position: relative; width: 100%; }
-#improve-area { position: relative; width: 100%; margin-top: 40px; padding-top: 40px; border-top: 3px solid #1a1a14; }
-#result-area > div { page-break-inside: avoid; }
-            #sidebar { display: none !important; }
-          }
+         @media print {
+  body * { visibility: hidden; }
+  #result-area, #result-area *,
+  #improve-area, #improve-area * { visibility: visible; }
+  
+  #result-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  #improve-area {
+    position: relative;
+    width: 100%;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 3px solid #1a1a14;
+    page-break-before: always;
+  }
+  
+  /* グリッドを縦並びに */
+  #result-area [style*="grid"],
+  #improve-area [style*="grid"] {
+    display: block !important;
+  }
+  
+  /* 背景色を印刷で表示 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* 改ページ制御 */
+  #result-area > div { page-break-inside: avoid; }
+  #improve-area > div { page-break-inside: avoid; }
+  
+  /* 不要な要素を非表示 */
+  #sidebar { display: none !important; }
+  button { display: none !important; }
+  nav { display: none !important; }
+}
         `}</style>
       </head>
       <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${ebGaramond.variable}`}>
