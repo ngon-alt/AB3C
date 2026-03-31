@@ -42,15 +42,6 @@ export default function RootLayout({ children }) {
     padding: 20px;
   }
   
-  #improve-area {
-    position: relative;
-    width: 100%;
-    padding: 20px;
-    margin-top: 40px;
-    border-top: 3px solid #1a1a14;
-    page-break-before: always;
-  }
-  
   /* グリッドを縦並びに */
   #result-area [style*="grid"],
   #improve-area [style*="grid"] {
