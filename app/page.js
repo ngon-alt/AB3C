@@ -902,9 +902,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </button>
     )}
     {improveResult && (
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px" }}>
+      <div id="improve-area" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px" }}>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
-        
         {[
           { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
           { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
