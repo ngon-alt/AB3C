@@ -33,8 +33,8 @@ export default function RootLayout({ children }) {
             body * { visibility: hidden; }
            #result-area, #result-area * { visibility: visible; }
 #improve-area, #improve-area * { visibility: visible; }
-#result-area { position: absolute; left: 0; top: 0; width: 100%; }
-#improve-area { position: absolute; left: 0; top: 1200px; width: 100%; }
+#result-area { position: relative; width: 100%; }
+#improve-area { position: relative; width: 100%; margin-top: 40px; padding-top: 40px; border-top: 3px solid #1a1a14; }
 #result-area > div { page-break-inside: avoid; }
             #sidebar { display: none !important; }
           }
