@@ -50,11 +50,15 @@ export default function RootLayout({ children }) {
     max-width: 210mm;
     padding: 15mm;
     margin-top: 0;
-    padding-top: 15mm;
+    padding-top: 10mm;
     border-top: 3px solid #1a1a14;
     page-break-before: always;
-    page-break-inside: avoid;
     box-sizing: border-box;
+  }
+  
+  /* 改善レポート全体を1つのブロックとして扱う */
+  #improve-area {
+    page-break-inside: auto !important;
   }
   
   /* セクション間の余白を追加 */
@@ -63,16 +67,10 @@ export default function RootLayout({ children }) {
     padding-top: 5mm !important;
   }
   
-  /* 改善レポートの最初の見出しは余白なし */
-  #improve-area > div:first-child {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-  
+  /* 改善レポート内のセクション */
   #improve-area > div {
-    margin-bottom: 8mm !important;
-    padding-top: 5mm !important;
-    page-break-inside: avoid;
+    margin-bottom: 6mm !important;
+    padding-top: 3mm !important;
   }
   
   /* グリッドを縦並びに */
@@ -94,8 +92,14 @@ export default function RootLayout({ children }) {
     color-adjust: exact !important;
   }
   
-  /* 改ページ制御 */
-  #result-area > div { page-break-inside: avoid; }
+  /* 改ページ制御 - より緩やかに */
+  #result-area > div { 
+    page-break-inside: avoid; 
+  }
+  
+  #improve-area > div {
+    page-break-inside: auto;
+  }
   
   /* 不要な要素を非表示 */
   #sidebar { display: none !important; }
