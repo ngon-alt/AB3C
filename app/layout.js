@@ -31,9 +31,11 @@ export default function RootLayout({ children }) {
        <style>{`
           @media print {
             body * { visibility: hidden; }
-            #result-area, #result-area * { visibility: visible; }
-            #result-area { position: absolute; left: 0; top: 0; width: 100%; }
-            #result-area > div { page-break-inside: avoid; }
+           #result-area, #result-area * { visibility: visible; }
+#improve-area, #improve-area * { visibility: visible; }
+#result-area { position: absolute; left: 0; top: 0; width: 100%; }
+#improve-area { position: absolute; left: 0; top: 0; width: 100%; margin-top: 0; }
+#result-area > div { page-break-inside: avoid; }
             #sidebar { display: none !important; }
           }
         `}</style>
