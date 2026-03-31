@@ -41,7 +41,21 @@ export default function RootLayout({ children }) {
     width: 100%;
     padding: 20px;
   }
-  
+  #improve-area {
+    position: relative;
+    width: 100%;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 3px solid #1a1a14;
+    page-break-before: always;
+  }
+```
+
+5. **画面の右上にある「Commit changes...」ボタンをクリック**
+
+6. **コミットメッセージ欄に以下を入力**
+```
+   印刷機能の改善: 改善レポートを新ページに分ける設定を追加
   /* グリッドを縦並びに */
   #result-area [style*="grid"],
   #improve-area [style*="grid"] {
