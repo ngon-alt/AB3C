@@ -34,33 +34,26 @@ export default function RootLayout({ children }) {
   #result-area, #result-area *,
   #improve-area, #improve-area * { visibility: visible; }
   
-#result-area {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  max-width: 210mm;
-  padding: 15mm;
-  box-sizing: border-box;
-}
+  #result-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 210mm;
+    padding: 15mm;
+    box-sizing: border-box;
+  }
   
- #improve-area {
-  position: relative;
-  width: 100%;
-  max-width: 210mm;
-  padding: 15mm;
-  margin-top: 10mm;
-  border-top: 3px solid #1a1a14;
-  page-break-before: always;
-  box-sizing: border-box;
-}
-```
-
-**ステップ6: 「Commit changes...」をクリック**
-
-**ステップ7: コミットメッセージ**
-```
-印刷時の右側切れを修正（padding調整、box-sizing追加）
+  #improve-area {
+    position: relative;
+    width: 100%;
+    max-width: 210mm;
+    padding: 15mm;
+    margin-top: 10mm;
+    border-top: 3px solid #1a1a14;
+    page-break-before: always;
+    box-sizing: border-box;
+  }
   
   /* グリッドを縦並びに */
   #result-area [style*="grid"],
