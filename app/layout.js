@@ -55,10 +55,27 @@ export default function RootLayout({ children }) {
     box-sizing: border-box;
   }
   
+  /* セクション間の余白を追加 */
+  #result-area > div {
+    margin-bottom: 8mm !important;
+    padding-top: 5mm !important;
+  }
+  
+  #improve-area > div {
+    margin-bottom: 8mm !important;
+    padding-top: 5mm !important;
+  }
+  
   /* グリッドを縦並びに */
   #result-area [style*="grid"],
   #improve-area [style*="grid"] {
     display: block !important;
+  }
+  
+  /* グリッド内の各要素にも余白 */
+  #result-area [style*="grid"] > div,
+  #improve-area [style*="grid"] > div {
+    margin-bottom: 4mm !important;
   }
   
   /* 背景色を印刷で表示 */
