@@ -532,12 +532,19 @@ useEffect(() => {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
   } catch {}
 }, [chatSummaries]);
-  const saveHistory = (inputText, resultData, title) => {
-    const entry = { id: Date.now(), date: new Date().toLocaleString("ja-JP"), preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), input: inputText, result: resultData };
-    const newHistory = [entry, ...history];
-    setHistory(newHistory);
-    localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+  const saveHistory = (inputText, resultData, title, improve = null) => {
+  const entry = { 
+    id: Date.now(), 
+    date: new Date().toLocaleString("ja-JP"), 
+    preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), 
+    input: inputText, 
+    result: resultData,
+    improveResult: improve
   };
+  const newHistory = [entry, ...history];
+  setHistory(newHistory);
+  localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+};
 
   const notify = (text) => {
     if (Notification.permission === "granted") new Notification("AB3C分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
