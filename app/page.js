@@ -920,9 +920,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             const data = await res.json();
             if (data.error) {
               alert(data.error);
-            } else {
-              setImproveResult(data);
-            }
+           } else {
+  setImproveResult(data);
+  // 履歴を更新（改善レポートを含める）
+  const updatedHistory = history.map(item => 
+    item.input === currentInput && item.result === currentResult 
+      ? { ...item, improveResult: data }
+      : item
+  );
+  setHistory(updatedHistory);
+  localStorage.setItem("ab3c_history", JSON.stringify(updatedHistory));
+}
           } catch {
             alert("エラーが発生しました。");
           } finally {
