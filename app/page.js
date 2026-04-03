@@ -479,6 +479,8 @@ const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
   const [improveResult, setImproveResult] = useState(null);
+  const [currentResult, setCurrentResult] = useState(null);
+const [currentInput, setCurrentInput] = useState("");
 const [improveLoading, setImproveLoading] = useState(false);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
