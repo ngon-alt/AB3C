@@ -668,7 +668,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 <div style={{ padding: 16, fontSize: 12, color: C.muted, textAlign: "center" }}>履歴はありません</div>
               ) : (
                 history.map((h, i) => (
-                  <div key={h.id} onClick={() => { setSelectedHistory(h); setResult(null); }}
+                  <div key={h.id} onClick={() => { 
+  setSelectedHistory(h); 
+  setResult(null); 
+  setCurrentResult(h.result);
+  setCurrentInput(h.input);
+  setImproveResult(h.improveResult || null);
+}}
                     style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selectedHistory?.id === h.id ? C.highlight : "transparent", borderLeft: selectedHistory?.id === h.id ? `3px solid ${C.A}` : "3px solid transparent" }}>
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, marginBottom: 4 }}>#{history.length - i} · {h.date}</div>
                     <div style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>{h.preview}</div>
