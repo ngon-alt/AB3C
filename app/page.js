@@ -562,10 +562,12 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
       const data = await res.json();
       if (data.error) { setError(data.error); return; }
       setResult(data);
-      setHistoryTitle(data?.strategy_message?.message || "");
-      const savedText = tab === "url" ? url : input;
-      saveHistory(savedText, data, data?.strategy_message?.message || "");
-      notify(savedText);
+setHistoryTitle(data?.strategy_message?.message || "");
+const savedText = tab === "url" ? url : input;
+setCurrentResult(data);
+setCurrentInput(savedText);
+saveHistory(savedText, data, data?.strategy_message?.message || "");
+notify(savedText);
     } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
   };
 
