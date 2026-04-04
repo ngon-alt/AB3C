@@ -245,7 +245,7 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{
                 flex: 1,
-                background: showAnalysis ? C.highlight : "#fff",
+                background: showAnalysis ? C.highlight : C.bg,
                 border: "none",
                 borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
