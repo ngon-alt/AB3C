@@ -292,8 +292,8 @@ const [showGrowth, setShowGrowth] = useState(false);
             {/* 分析プラン */}
             {showAnalysis && (
               <div>
-                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20, paddingBottom: 20, borderBottom: `1px solid ${C.border}` }}>
-                  現在のWebサイトから戦略と改善点をレポートする機能です。<br/>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
+                  現在のWebサイトから戦略と改善点をレポートする機能です。
                   主にスポット営業等に使う機能です。<br/><br/>
                   <span style={{ color: C.B, fontWeight: 600 }}>※AIチャット相談は使えません</span>
                 </div>
@@ -360,8 +360,8 @@ const [showGrowth, setShowGrowth] = useState(false);
             {/* 伴走プラン */}
             {showGrowth && (
               <div>
-                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20, paddingBottom: 20, borderBottom: `1px solid ${C.border}` }}>
-                  伴走しながらサイトを改善していくためのプランです。<br/>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
+                  伴走しながらサイトを改善していくためのプランです。
                   経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます</span>
                 </div>
