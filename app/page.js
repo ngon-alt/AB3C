@@ -284,11 +284,6 @@ const [showGrowth, setShowGrowth] = useState(false);
           {/* タブコンテンツ */}
           <div style={{ 
             background: C.surface, 
-            border: `2px solid ${C.A}`, 
-            borderTop: "none",
-          {/* タブコンテンツ */}
-          <div style={{ 
-            background: C.surface, 
             border: `2px solid ${C.A}`,
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
