@@ -266,7 +266,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                 flex: 1,
                 background: showGrowth ? C.surface : C.bg,
                 border: showGrowth ? `2px solid ${C.A}` : `1px solid ${C.border}`,
-                borderBottom: "none",
+                borderBottom: showGrowth ? "2px solid transparent" : "none",
                 borderRadius: "8px 8px 0 0",
                 padding: "16px",
                 cursor: "pointer",
