@@ -245,9 +245,9 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{
                 flex: 1,
-                background: showAnalysis ? C.surface : C.highlight,
+                background: showAnalysis ? "#fff" : C.highlight,
                 border: "none",
-                borderBottom: showAnalysis ? "none" : `1px solid ${C.border}`,
+                borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
                 padding: "16px",
                 cursor: "pointer",
@@ -264,9 +264,9 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{
                 flex: 1,
-                background: showGrowth ? C.surface : C.highlight,
+                background: showGrowth ? "#fff" : C.highlight,
                 border: "none",
-                borderBottom: showGrowth ? "none" : `1px solid ${C.border}`,
+                borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
                 padding: "16px",
                 cursor: "pointer",
