@@ -283,7 +283,7 @@ const [showGrowth, setShowGrowth] = useState(false);
 
           {/* タブコンテンツ */}
           <div style={{ 
-            background: C.surface, 
+            background: C.highlight,
             border: "none",
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
