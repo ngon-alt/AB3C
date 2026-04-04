@@ -279,9 +279,20 @@ const [showGrowth, setShowGrowth] = useState(false);
             
 
        
+            >
+              伴走プラン
+            </button>
+          </div>
+
+          {/* タブコンテンツ */}
+          <div style={{ 
+            background: C.surface, 
+            border: `2px solid ${C.A}`,
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
           }}>
+つまり
+
             {/* 分析プラン */}
             {showAnalysis && (
               <div>
