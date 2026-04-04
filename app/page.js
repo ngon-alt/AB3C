@@ -483,7 +483,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                   <td style={{ padding: "10px 12px", textAlign: "center", color: row.growth === "✕" ? C.red : C.A, fontWeight: row.growth !== "✕" ? 700 : 400 }}>{row.growth}</td>
                 </tr>
               ))}
-            </tbody>
+</tbody>
           </table>
         </div>
 
@@ -491,8 +491,6 @@ const [showGrowth, setShowGrowth] = useState(false);
         <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
           ※ 全て税込価格です。月額契約は毎月自動更新、年額契約は年1回の支払いです。<br/>
           ※ コンサルタント・税理士・ウェブ制作会社など、クライアント向けに複数の分析を行いたい方は別途お問い合わせください。
-
-          </div>
         </div>
       </div>
     </div>
