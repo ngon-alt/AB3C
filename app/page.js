@@ -245,7 +245,7 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{
                 flex: 1,
-                background: showAnalysis ? C.highlight : "#e3f2fd",
+                background: showAnalysis ? "#bbdefb" : "#e3f2fd",
                 border: "none",
                 borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
@@ -264,7 +264,7 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{
                 flex: 1,
-                background: showGrowth ? C.highlight : "#fce4ec",
+                background: showGrowth ? "#f8bbd0" : "#fce4ec",
                 border: "none",
                 borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
@@ -283,7 +283,7 @@ const [showGrowth, setShowGrowth] = useState(false);
 
           {/* タブコンテンツ */}
           <div style={{ 
-            background: C.highlight,
+            background: "#fff",
             border: "none",
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
