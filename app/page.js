@@ -225,7 +225,7 @@ const [showGrowth, setShowGrowth] = useState(false);
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 20 }}>プランと料金</div>
 
         {/* フリープラン */}
-        <div style={{ background: C.highlight, border: "none",, borderRadius: 8, padding: "20px", marginBottom: 24 }}>
+        <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>⓪ 無料お試し（1回限り）</div>
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
             1アカウント1回限り有効<br/>
