@@ -238,186 +238,194 @@ const [showGrowth, setShowGrowth] = useState(false);
           </div>
         </div>
 
-        {/* 分析プラン vs 伴走プラン 比較 */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-          {/* 分析プラン */}
-          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px" }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 12 }}>分析プラン</div>
-            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.7, marginBottom: 16 }}>
-              現在のWebサイトから戦略と改善点をレポートする機能です。<br/><br/>
-              主にスポット営業等に使う機能です。<br/><br/>
-              <span style={{ color: C.B, fontWeight: 600 }}>※AIチャット相談は使えません</span>
-            </div>
-            <button 
-              onClick={() => setShowAnalysis(!showAnalysis)}
-              style={{ 
-                width: "100%", 
-                background: showAnalysis ? C.ink : C.A, 
-                border: "none", 
-                borderRadius: 4, 
-                color: "#fff", 
-                cursor: "pointer", 
-                fontFamily: "'Space Mono', monospace", 
-                fontSize: 12, 
-                fontWeight: 700, 
-                padding: "12px" 
+{/* タブ切り替え */}
+        <div style={{ marginBottom: 0 }}>
+          <div style={{ display: "flex", gap: 2 }}>
+            <button
+              onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
+              style={{
+                flex: 1,
+                background: showAnalysis ? C.surface : C.bg,
+                border: showAnalysis ? `2px solid ${C.A}` : `1px solid ${C.border}`,
+                borderBottom: showAnalysis ? "none" : `1px solid ${C.border}`,
+                borderRadius: "8px 8px 0 0",
+                padding: "16px",
+                cursor: "pointer",
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 15,
+                fontWeight: 700,
+                color: showAnalysis ? C.ink : C.muted,
+                transition: "all 0.2s"
               }}
             >
-              {showAnalysis ? "閉じる ▲" : "詳細を見る ▼"}
+              分析プラン
+            </button>
+            <button
+              onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
+              style={{
+                flex: 1,
+                background: showGrowth ? C.surface : C.bg,
+                border: showGrowth ? `2px solid ${C.A}` : `1px solid ${C.border}`,
+                borderBottom: showGrowth ? "none" : `1px solid ${C.border}`,
+                borderRadius: "8px 8px 0 0",
+                padding: "16px",
+                cursor: "pointer",
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 15,
+                fontWeight: 700,
+                color: showGrowth ? C.ink : C.muted,
+                transition: "all 0.2s"
+              }}
+            >
+              伴走プラン
             </button>
           </div>
 
-          {/* 伴走プラン */}
-          <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px" }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 12 }}>伴走プラン</div>
-            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.7, marginBottom: 16 }}>
-              伴走しながらサイトを改善していくためのプランです。<br/><br/>
-              経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
-              <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます</span>
-            </div>
-            <button 
-              onClick={() => setShowGrowth(!showGrowth)}
-              style={{ 
-                width: "100%", 
-                background: showGrowth ? C.ink : C.A, 
-                border: "none", 
-                borderRadius: 4, 
-                color: "#fff", 
-                cursor: "pointer", 
-                fontFamily: "'Space Mono', monospace", 
-                fontSize: 12, 
-                fontWeight: 700, 
-                padding: "12px" 
-              }}
-            >
-              {showGrowth ? "閉じる ▲" : "詳細を見る ▼"}
-            </button>
+          {/* タブコンテンツ */}
+          <div style={{ 
+            background: C.surface, 
+            border: `2px solid ${C.A}`, 
+            borderTop: "none",
+            borderRadius: "0 0 8px 8px", 
+            padding: "24px" 
+          }}>
+            {/* 分析プラン */}
+            {showAnalysis && (
+              <div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20, paddingBottom: 20, borderBottom: `1px solid ${C.border}` }}>
+                  現在のWebサイトから戦略と改善点をレポートする機能です。<br/>
+                  主にスポット営業等に使う機能です。<br/><br/>
+                  <span style={{ color: C.B, fontWeight: 600 }}>※AIチャット相談は使えません</span>
+                </div>
+                
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
+                {analysisPlanDetails.map((plan, i) => (
+                  <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                      月{plan.sessions}回プラン
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                          ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
+                        </div>
+                        <button
+                          onClick={() => handleCheckout(analysisPrices.monthly[plan.sessions])}
+                          style={{ 
+                            width: "100%", 
+                            background: C.ink, 
+                            border: "none", 
+                            borderRadius: 4, 
+                            color: "#fff", 
+                            cursor: "pointer", 
+                            fontFamily: "'Space Mono', monospace", 
+                            fontSize: 10, 
+                            fontWeight: 700, 
+                            padding: "8px" 
+                          }}
+                        >
+                          このプランにする
+                        </button>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                          ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                        </div>
+                        <button
+                          onClick={() => handleCheckout(analysisPrices.annual[plan.sessions])}
+                          style={{ 
+                            width: "100%", 
+                            background: C.A, 
+                            border: "none", 
+                            borderRadius: 4, 
+                            color: "#fff", 
+                            cursor: "pointer", 
+                            fontFamily: "'Space Mono', monospace", 
+                            fontSize: 10, 
+                            fontWeight: 700, 
+                            padding: "8px" 
+                          }}
+                        >
+                          このプランにする
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 伴走プラン */}
+            {showGrowth && (
+              <div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.8, marginBottom: 20, paddingBottom: 20, borderBottom: `1px solid ${C.border}` }}>
+                  伴走しながらサイトを改善していくためのプランです。<br/>
+                  経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
+                  <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます</span>
+                </div>
+                
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
+                {growthPlanDetails.map((plan, i) => (
+                  <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                      月{plan.sessions}回プラン
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                          ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
+                        </div>
+                        <button
+                          onClick={() => handleCheckout(growthPrices.monthly[plan.sessions])}
+                          style={{ 
+                            width: "100%", 
+                            background: C.ink, 
+                            border: "none", 
+                            borderRadius: 4, 
+                            color: "#fff", 
+                            cursor: "pointer", 
+                            fontFamily: "'Space Mono', monospace", 
+                            fontSize: 10, 
+                            fontWeight: 700, 
+                            padding: "8px" 
+                          }}
+                        >
+                          このプランにする
+                        </button>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                          ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                        </div>
+                        <button
+                          onClick={() => handleCheckout(growthPrices.annual[plan.sessions])}
+                          style={{ 
+                            width: "100%", 
+                            background: C.A, 
+                            border: "none", 
+                            borderRadius: 4, 
+                            color: "#fff", 
+                            cursor: "pointer", 
+                            fontFamily: "'Space Mono', monospace", 
+                            fontSize: 10, 
+                            fontWeight: 700, 
+                            padding: "8px" 
+                          }}
+                        >
+                          このプランにする
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* 分析プラン詳細（アコーディオン） */}
-        {showAnalysis && (
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px", marginBottom: 16 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 16 }}>分析プラン 料金一覧</div>
-            {analysisPlanDetails.map((plan, i) => (
-              <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                  月{plan.sessions}回プラン
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
-                    </div>
-                    <button
-                      onClick={() => handleCheckout(analysisPrices.monthly[plan.sessions])}
-                      style={{ 
-                        width: "100%", 
-                        background: C.ink, 
-                        border: "none", 
-                        borderRadius: 4, 
-                        color: "#fff", 
-                        cursor: "pointer", 
-                        fontFamily: "'Space Mono', monospace", 
-                        fontSize: 10, 
-                        fontWeight: 700, 
-                        padding: "8px" 
-                      }}
-                    >
-                      このプランにする
-                    </button>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
-                    </div>
-                    <button
-                      onClick={() => handleCheckout(analysisPrices.annual[plan.sessions])}
-                      style={{ 
-                        width: "100%", 
-                        background: C.A, 
-                        border: "none", 
-                        borderRadius: 4, 
-                        color: "#fff", 
-                        cursor: "pointer", 
-                        fontFamily: "'Space Mono', monospace", 
-                        fontSize: 10, 
-                        fontWeight: 700, 
-                        padding: "8px" 
-                      }}
-                    >
-                      このプランにする
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* 伴走プラン詳細（アコーディオン） */}
-        {showGrowth && (
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px", marginBottom: 16 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 16 }}>伴走プラン 料金一覧</div>
-            {growthPlanDetails.map((plan, i) => (
-              <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                  月{plan.sessions}回プラン
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
-                    </div>
-                    <button
-                      onClick={() => handleCheckout(growthPrices.monthly[plan.sessions])}
-                      style={{ 
-                        width: "100%", 
-                        background: C.ink, 
-                        border: "none", 
-                        borderRadius: 4, 
-                        color: "#fff", 
-                        cursor: "pointer", 
-                        fontFamily: "'Space Mono', monospace", 
-                        fontSize: 10, 
-                        fontWeight: 700, 
-                        padding: "8px" 
-                      }}
-                    >
-                      このプランにする
-                    </button>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
-                    </div>
-                    <button
-                      onClick={() => handleCheckout(growthPrices.annual[plan.sessions])}
-                      style={{ 
-                        width: "100%", 
-                        background: C.A, 
-                        border: "none", 
-                        borderRadius: 4, 
-                        color: "#fff", 
-                        cursor: "pointer", 
-                        fontFamily: "'Space Mono', monospace", 
-                        fontSize: 10, 
-                        fontWeight: 700, 
-                        padding: "8px" 
-                      }}
-                    >
-                      このプランにする
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* 注釈 */}
         <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
