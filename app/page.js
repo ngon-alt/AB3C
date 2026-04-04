@@ -288,6 +288,7 @@ const [showGrowth, setShowGrowth] = useState(false);
           <div style={{ 
             background: C.surface, 
             border: `2px solid ${C.A}`,
+            borderTop: "none",
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
           }}>
