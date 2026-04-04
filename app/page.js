@@ -276,10 +276,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                 color: showGrowth ? C.ink : C.muted,
                 transition: "all 0.2s"
               }}
-            >
-              伴走プラン
-            </button>
-          </div>
+            
 
        
             borderRadius: "0 0 8px 8px", 
