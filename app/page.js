@@ -153,8 +153,8 @@ function ResultView({ d }) {
 }
 
 function PricingModal({ onClose }) {
-  const [showAnalysis, setShowAnalysis] = React.useState(false);
-  const [showGrowth, setShowGrowth] = React.useState(false);
+const [showAnalysis, setShowAnalysis] = useState(false);
+const [showGrowth, setShowGrowth] = useState(false);
 
   // Stripe Price IDs（昨日作成したもの）
   const analysisPrices = {
