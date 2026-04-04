@@ -457,35 +457,7 @@ const [showGrowth, setShowGrowth] = useState(false);
           </div>
         </div>
 
-        {/* 機能比較表 */}
-        <div style={{ marginTop: 0, marginBottom: 24, overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "sans-serif" }}>
-            <thead>
-              <tr style={{ background: C.ink, color: "#fff" }}>
-                <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>分析プラン</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>伴走プラン</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { feature: "AB3C分析レポート", free: "○（1回）", analysis: "○", growth: "○" },
-                { feature: "ウェブサイト改善レポート", free: "○（1回）", analysis: "○", growth: "○" },
-                { feature: "シェアURL発行", free: "○", analysis: "○", growth: "○" },
-                { feature: "印刷・PDF保存", free: "○", analysis: "○", growth: "○" },
-                { feature: "AIチャット相談", free: "✕", analysis: "✕", growth: "○" },
-              ].map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 12px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.free}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.analysis}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: row.growth === "✕" ? C.red : C.A, fontWeight: row.growth !== "✕" ? 700 : 400 }}>{row.growth}</td>
-                </tr>
-              ))}
-</tbody>
-          </table>
-        </div>
+      
 
         {/* 注釈 */}
         <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
