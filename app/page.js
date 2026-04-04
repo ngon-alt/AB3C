@@ -226,7 +226,7 @@ const [showGrowth, setShowGrowth] = useState(false);
 
         {/* フリープラン */}
         <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>⓪ 無料お試し（1回限り）</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>無料お試し（1回限り）</div>
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
             1アカウント1回限り有効<br/>
             ・AB3C分析レポート<br/>
