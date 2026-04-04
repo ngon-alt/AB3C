@@ -247,7 +247,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                 flex: 1,
                 background: showAnalysis ? C.surface : C.bg,
                 border: showAnalysis ? `2px solid ${C.A}` : `1px solid ${C.border}`,
-                borderBottom: showAnalysis ? "none" : `1px solid ${C.border}`,
+                borderBottom: "none",
                 borderRadius: "8px 8px 0 0",
                 padding: "16px",
                 cursor: "pointer",
