@@ -264,9 +264,9 @@ const [showGrowth, setShowGrowth] = useState(false);
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{
                 flex: 1,
-                background: showGrowth ? C.surface : C.bg,
-                border: showGrowth ? `2px solid ${C.A}` : `1px solid ${C.border}`,
-                borderBottom: showGrowth ? "2px solid transparent" : "none",
+                background: showGrowth ? C.surface : C.highlight,
+                border: "none",
+                borderBottom: showGrowth ? "none" : `1px solid ${C.border}`,
                 borderRadius: "8px 8px 0 0",
                 padding: "16px",
                 cursor: "pointer",
@@ -276,9 +276,6 @@ const [showGrowth, setShowGrowth] = useState(false);
                 color: showGrowth ? C.ink : C.muted,
                 transition: "all 0.2s"
               }}
-            
-
-       
             >
               伴走プラン
             </button>
@@ -287,12 +284,10 @@ const [showGrowth, setShowGrowth] = useState(false);
           {/* タブコンテンツ */}
           <div style={{ 
             background: C.surface, 
-            border: `2px solid ${C.A}`,
-            borderTop: "none",
+            border: "none",
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
           }}>
-つまり
 
             {/* 分析プラン */}
             {showAnalysis && (
