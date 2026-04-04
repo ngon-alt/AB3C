@@ -153,7 +153,7 @@ function ResultView({ d }) {
 }
 
 function PricingModal({ onClose }) {
-const [showAnalysis, setShowAnalysis] = useState(false);
+const [showAnalysis, setShowAnalysis] = useState(true);
 const [showGrowth, setShowGrowth] = useState(false);
 
   // Stripe Price IDs（昨日作成したもの）
