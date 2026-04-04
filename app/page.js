@@ -281,9 +281,9 @@ const [showGrowth, setShowGrowth] = useState(false);
             </button>
           </div>
 
-          {/* タブコンテンツ */}
+         {/* タブコンテンツ */}
           <div style={{ 
-            background: "#fff",
+            background: showAnalysis ? "#bbdefb" : "#f8bbd0",
             border: "none",
             borderRadius: "0 0 8px 8px", 
             padding: "24px" 
