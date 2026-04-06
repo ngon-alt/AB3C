@@ -228,7 +228,7 @@ const [showGrowth, setShowGrowth] = useState(false);
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 900, width: "100%", maxHeight: "90vh", overflowY: "auto", position: "relative", fontFamily: "sans-serif" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
         
-         {/* キャンペーンバナー */}
+        {/* キャンペーンバナー */}
         <div style={{ 
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
           borderRadius: 8, 
