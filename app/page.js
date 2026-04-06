@@ -259,7 +259,7 @@ const [showGrowth, setShowGrowth] = useState(false);
             ※サービス内容の大幅変更時は価格改定の可能性あり
           </div>
         </div>
-              style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
 
      {/* フリープラン */}
         <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
