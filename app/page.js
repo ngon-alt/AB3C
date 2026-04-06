@@ -338,7 +338,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                 {analysisPlanDetails.map((plan, i) => (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      月{plan.sessions}回プラン
+                      月{plan.sessions}サイトプラン
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
@@ -406,7 +406,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                 {growthPlanDetails.map((plan, i) => (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                      月{plan.sessions}回プラン
+                      月{plan.sessions}サイトプラン
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
