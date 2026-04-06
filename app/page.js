@@ -159,52 +159,58 @@ const [showGrowth, setShowGrowth] = useState(false);
   // Stripe Price IDs（昨日作成したもの）
   const analysisPrices = {
     monthly: {
-      5: "price_1TI6TkCYHZ66REnUAhBLz41R",
-      10: "price_1TI6eKCYHZ66REnUgmrka860",
-      30: "price_1TI6h5CYHZ66REnUOeAMTDRS",
-      50: "price_1TI6jDCYHZ66REnUqffv9oxa",
-      100: "price_1TI6nkCYHZ66REnUHIMMZR92"
+      1: "price_1TJ9lcCYHZ66REnUFd8PP24z",
+      5: "price_1TJ9pNCYHZ66REnUCl03OmDO",
+      10: "price_1TJ9quCYHZ66REnUqJZIx23y",
+      30: "price_1TJ9rcCYHZ66REnUmtEZkCnz",
+      50: "price_1TJ9sQCYHZ66REnU4kQP9npL",
+      100: "price_1TJ9t9CYHZ66REnUeA49IVDs"
     },
     annual: {
-      5: "price_1TI6VOCYHZ66REnU23SqjZj5",
-      10: "price_1TI6f6CYHZ66REnU7rOGhmXO",
-      30: "price_1TI6iJCYHZ66REnUtECOgHzE",
-      50: "price_1TI6jrCYHZ66REnU8FeouJVT",
-      100: "price_1TI6oRCYHZ66REnU4HyzPoVD"
+      1: "price_1TJ9ohCYHZ66REnUN2caOn5h",
+      5: "price_1TJ9q7CYHZ66REnUYfCKElz8",
+      10: "price_1TJ9rFCYHZ66REnUUhQVgOd0",
+      30: "price_1TJ9s3CYHZ66REnUsfzwrunm",
+      50: "price_1TJ9soCYHZ66REnUjwmC7fuu",
+      100: "price_1TJ9uQCYHZ66REnUjLQ39eKG"
     }
   };
 
   const growthPrices = {
     monthly: {
-      5: "price_1TI6qCCYHZ66REnUIpHQ5Mbq",
-      10: "price_1TI6rSCYHZ66REnULN45L3c9",
-      30: "price_1TI6smCYHZ66REnU9zj3CpOQ",
-      50: "price_1TI6tpCYHZ66REnU5k9Jxqvi",
-      100: "price_1TI6v5CYHZ66REnUWdM0e3cy"
+      1: "price_1TJ9urCYHZ66REnUiLMhvaYr",
+      5: "price_1TJ9vbCYHZ66REnUr4WTXEbW",
+      10: "price_1TJ9wFCYHZ66REnUNVJYhJYY",
+      30: "price_1TJ9wuCYHZ66REnUjeDnayHy",
+      50: "price_1TJ9xXCYHZ66REnUmUTzdDYC",
+      100: "price_1TJ9yECYHZ66REnU9fMw0D5g"
     },
     annual: {
-      5: "price_1TI6qfCYHZ66REnUIRY4pEjD",
-      10: "price_1TI6rjCYHZ66REnURi1B9pK3",
-      30: "price_1TI6t7CYHZ66REnUDIZGBqEB",
-      50: "price_1TI6u6CYHZ66REnUbIJ4VmPw",
-      100: "price_1TI6vLCYHZ66REnUi565YbKx"
+      1: "price_1TJ9v7CYHZ66REnUKzAAIpZl",
+      5: "price_1TJ9vrCYHZ66REnUYWlCUrOB",
+      10: "price_1TJ9wUCYHZ66REnU1v2x2WPc",
+      30: "price_1TJ9x9CYHZ66REnUgnZwL8ym",
+      50: "price_1TJ9xtCYHZ66REnU2hqNs1M2",
+      100: "price_1TJ9yVCYHZ66REnUZOaH5iFs"
     }
   };
 
-  const analysisPlanDetails = [
-    { sessions: 5, monthly: 55000, annual: 660000 },
-    { sessions: 10, monthly: 110000, annual: 1320000 },
-    { sessions: 30, monthly: 297000, annual: 3564000 },
-    { sessions: 50, monthly: 440000, annual: 5280000 },
-    { sessions: 100, monthly: 770000, annual: 9240000 }
+ const analysisPlanDetails = [
+    { sessions: 1, monthly: 22000, annual: 220000 },
+    { sessions: 5, monthly: 110000, annual: 1100000 },
+    { sessions: 10, monthly: 220000, annual: 2200000 },
+    { sessions: 30, monthly: 594000, annual: 5940000 },
+    { sessions: 50, monthly: 880000, annual: 8800000 },
+    { sessions: 100, monthly: 1540000, annual: 15400000 }
   ];
 
-  const growthPlanDetails = [
-    { sessions: 5, monthly: 110000, annual: 1320000 },
-    { sessions: 10, monthly: 220000, annual: 2640000 },
-    { sessions: 30, monthly: 594000, annual: 7128000 },
-    { sessions: 50, monthly: 880000, annual: 10560000 },
-    { sessions: 100, monthly: 1540000, annual: 18480000 }
+ const growthPlanDetails = [
+    { sessions: 1, monthly: 44000, annual: 440000 },
+    { sessions: 5, monthly: 220000, annual: 2200000 },
+    { sessions: 10, monthly: 440000, annual: 4400000 },
+    { sessions: 30, monthly: 1188000, annual: 11880000 },
+    { sessions: 50, monthly: 1760000, annual: 17600000 },
+    { sessions: 100, monthly: 3080000, annual: 30800000 }
   ];
 
   const handleCheckout = async (priceId) => {
