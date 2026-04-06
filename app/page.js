@@ -402,8 +402,13 @@ const [showGrowth, setShowGrowth] = useState(false);
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                          ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                        <div style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>先行ユーザー価格</div>
+                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
+                            ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                          </div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.annual * 2).toLocaleString()}</div>
+                          <div style={{ fontSize: 10, color: '#1a6fd4' }}>※2ヶ月分無料</div>
                         </div>
                         <button
                           onClick={() => handleCheckout(analysisPrices.annual[plan.sessions])}
@@ -475,8 +480,13 @@ const [showGrowth, setShowGrowth] = useState(false);
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                          ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                       <div style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>先行ユーザー価格</div>
+                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
+                            ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
+                          </div>
+                          <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.annual * 2).toLocaleString()}</div>
+                          <div style={{ fontSize: 10, color: '#1a6fd4' }}>※2ヶ月分無料</div>
                         </div>
                         <button
                           onClick={() => handleCheckout(growthPrices.annual[plan.sessions])}
