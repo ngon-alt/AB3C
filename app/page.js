@@ -230,6 +230,38 @@ const [showGrowth, setShowGrowth] = useState(false);
         
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
 
+        {/* キャンペーンバナー */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+          borderRadius: 8, 
+          padding: '20px', 
+          marginBottom: 24,
+          textAlign: 'center',
+          color: '#fff'
+        }}>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+            🚀 先行ユーザー価格キャンペーン
+          </div>
+          <div style={{ fontSize: 14, marginBottom: 12 }}>
+            5月1日まで または 100名到達まで
+          </div>
+          <div style={{ 
+            fontSize: 24, 
+            fontWeight: 700, 
+            background: '#fff', 
+            color: '#667eea', 
+            display: 'inline-block',
+            padding: '8px 24px',
+            borderRadius: 4
+          }}>
+            全プラン 50%OFF
+          </div>
+          <div style={{ fontSize: 11, marginTop: 12, opacity: 0.9 }}>
+            ※先行ユーザーは契約期間中、特別価格継続<br/>
+            ※サービス内容の大幅変更時は価格改定の可能性あり
+          </div>
+        </div>
+
      {/* フリープラン */}
         <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>無料お試し（1回限り）</div>
@@ -343,9 +375,11 @@ const [showGrowth, setShowGrowth] = useState(false);
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, color: '#667eea', marginBottom: 2 }}>先行ユーザー価格</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
                         </div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 8 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
                         <button
                           onClick={() => handleCheckout(analysisPrices.monthly[plan.sessions])}
                           style={{ 
@@ -366,9 +400,12 @@ const [showGrowth, setShowGrowth] = useState(false);
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, color: '#667eea', marginBottom: 2 }}>先行ユーザー価格</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
                         </div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.annual * 2).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: '#1a6fd4', marginBottom: 8 }}>※2ヶ月分無料</div>
                         <button
                           onClick={() => handleCheckout(analysisPrices.annual[plan.sessions])}
                           style={{ 
@@ -411,9 +448,11 @@ const [showGrowth, setShowGrowth] = useState(false);
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>月額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, color: '#667eea', marginBottom: 2 }}>先行ユーザー価格</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
                         </div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 8 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
                         <button
                           onClick={() => handleCheckout(growthPrices.monthly[plan.sessions])}
                           style={{ 
@@ -434,9 +473,12 @@ const [showGrowth, setShowGrowth] = useState(false);
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>年額契約</div>
-                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+                        <div style={{ fontSize: 10, color: '#667eea', marginBottom: 2 }}>先行ユーザー価格</div>
+                        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/年</span>
                         </div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.annual * 2).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: '#1a6fd4', marginBottom: 8 }}>※2ヶ月分無料</div>
                         <button
                           onClick={() => handleCheckout(growthPrices.annual[plan.sessions])}
                           style={{ 
