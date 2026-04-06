@@ -228,7 +228,38 @@ const [showGrowth, setShowGrowth] = useState(false);
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 900, width: "100%", maxHeight: "90vh", overflowY: "auto", position: "relative", fontFamily: "sans-serif" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
         
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
+        <div {/* キャンペーンバナー */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+          borderRadius: 8, 
+          padding: '20px', 
+          marginBottom: 24,
+          textAlign: 'center',
+          color: '#fff'
+        }}>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+            🚀 先行ユーザー価格キャンペーン
+          </div>
+          <div style={{ fontSize: 14, marginBottom: 12 }}>
+            5月1日まで または 100名到達まで
+          </div>
+          <div style={{ 
+            fontSize: 24, 
+            fontWeight: 700, 
+            background: '#fff', 
+            color: '#667eea', 
+            display: 'inline-block',
+            padding: '8px 24px',
+            borderRadius: 4
+          }}>
+            全プラン 50%OFF
+          </div>
+          <div style={{ fontSize: 11, marginTop: 12, opacity: 0.9 }}>
+            ※先行ユーザーは契約期間中、特別価格継続<br/>
+            ※サービス内容の大幅変更時は価格改定の可能性あり
+          </div>
+        </div>
+              style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
 
      {/* フリープラン */}
         <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
