@@ -379,7 +379,8 @@ const [showGrowth, setShowGrowth] = useState(false);
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
                         </div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 8 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
+                        <div style={{ height: 18, marginBottom: 8 }}></div>
                         <button
                           onClick={() => handleCheckout(analysisPrices.monthly[plan.sessions])}
                           style={{ 
@@ -452,7 +453,8 @@ const [showGrowth, setShowGrowth] = useState(false);
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                           ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: C.muted }}>/月</span>
                         </div>
-                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 8 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
+                        <div style={{ fontSize: 10, color: C.muted, marginBottom: 2 }}>通常 ¥{(plan.monthly * 2).toLocaleString()}</div>
+                        <div style={{ height: 18, marginBottom: 8 }}></div>
                         <button
                           onClick={() => handleCheckout(growthPrices.monthly[plan.sessions])}
                           style={{ 
