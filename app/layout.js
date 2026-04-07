@@ -20,8 +20,8 @@ const ebGaramond = EB_Garamond({
 });
 
 export const metadata = { 
-  title: "AB3C アナライザー", 
-  description: "「選ばれる理由」を見つけるフレームワーク" 
+  title: "戦略大臣", 
+  description: "「選ばれる理由」を見つけるフレームワーク AB3C分析" 
 };
 
 export default function RootLayout({ children }) {
