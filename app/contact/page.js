@@ -2,6 +2,17 @@
 
 import React, { useState } from 'react';
 
+const C = {
+  bg: "#fafaf9",
+  surface: "#ffffff",
+  border: "#e5e5e0",
+  ink: "#1a1a14",
+  muted: "#78716c",
+  highlight: "#fef3c7",
+  A: "#1a6fd4",
+  B: "#FF0000",
+};
+
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
@@ -39,28 +50,28 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+    <div style={{ minHeight: "100vh", background: C.bg, padding: "48px 16px" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ヘッダー */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">お問い合わせ</h1>
-          <p className="text-gray-600">
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: C.ink, marginBottom: 8 }}>お問い合わせ</h1>
+          <p style={{ color: C.muted, lineHeight: 1.6 }}>
             100サイト以上のプランをご希望の方、その他ご質問がございましたらお気軽にお問い合わせください。
           </p>
         </div>
 
         {/* フォーム */}
-        <div className="bg-white shadow-lg rounded-lg p-8">
+        <div style={{ background: C.surface, boxShadow: "0 4px 6px rgba(0,0,0,0.1)", borderRadius: 8, padding: 32 }}>
           {status === 'success' ? (
-            <div className="text-center py-8">
-              <div className="text-green-600 text-xl font-semibold mb-2">送信完了</div>
-              <p className="text-gray-600 mb-4">
+            <div style={{ textAlign: "center", padding: "32px 0" }}>
+              <div style={{ color: "#16a34a", fontSize: 20, fontWeight: 600, marginBottom: 8 }}>送信完了</div>
+              <p style={{ color: C.muted, marginBottom: 16, lineHeight: 1.6 }}>
                 お問い合わせありがとうございます。<br />
                 2営業日以内に担当者よりご連絡させていただきます。
               </p>
               <button
                 onClick={() => setStatus('')}
-                className="text-blue-600 hover:text-blue-800 underline"
+                style={{ color: C.A, textDecoration: "underline", background: "none", border: "none", cursor: "pointer", fontSize: 14 }}
               >
                 続けて問い合わせる
               </button>
@@ -68,9 +79,9 @@ export default function Contact() {
           ) : (
             <form onSubmit={handleSubmit}>
               {/* お名前 */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  お名前 <span className="text-red-500">*</span>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", color: C.ink, fontWeight: 600, marginBottom: 8 }}>
+                  お名前 <span style={{ color: C.B }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -78,15 +89,15 @@ export default function Contact() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, boxSizing: "border-box" }}
                   placeholder="山田 太郎"
                 />
               </div>
 
               {/* メールアドレス */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  メールアドレス <span className="text-red-500">*</span>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", color: C.ink, fontWeight: 600, marginBottom: 8 }}>
+                  メールアドレス <span style={{ color: C.B }}>*</span>
                 </label>
                 <input
                   type="email"
@@ -94,14 +105,14 @@ export default function Contact() {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, boxSizing: "border-box" }}
                   placeholder="example@company.com"
                 />
               </div>
 
               {/* 会社名 */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", color: C.ink, fontWeight: 600, marginBottom: 8 }}>
                   会社名
                 </label>
                 <input
@@ -109,22 +120,22 @@ export default function Contact() {
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, boxSizing: "border-box" }}
                   placeholder="株式会社〇〇"
                 />
               </div>
 
               {/* お問い合わせ種別 */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  お問い合わせ種別 <span className="text-red-500">*</span>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", color: C.ink, fontWeight: 600, marginBottom: 8 }}>
+                  お問い合わせ種別 <span style={{ color: C.B }}>*</span>
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, boxSizing: "border-box" }}
                 >
                   <option value="100サイト以上のプラン希望">100サイト以上のプラン希望</option>
                   <option value="サービス内容について">サービス内容について</option>
@@ -134,9 +145,9 @@ export default function Contact() {
               </div>
 
               {/* お問い合わせ内容 */}
-              <div className="mb-6">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  お問い合わせ内容 <span className="text-red-500">*</span>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: "block", color: C.ink, fontWeight: 600, marginBottom: 8 }}>
+                  お問い合わせ内容 <span style={{ color: C.B }}>*</span>
                 </label>
                 <textarea
                   name="message"
@@ -144,14 +155,14 @@ export default function Contact() {
                   onChange={handleChange}
                   required
                   rows="6"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, resize: "none", boxSizing: "border-box" }}
                   placeholder="お問い合わせ内容をご記入ください"
                 />
               </div>
 
               {/* エラーメッセージ */}
               {status === 'error' && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <div style={{ marginBottom: 24, padding: 16, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, color: "#b91c1c" }}>
                   送信に失敗しました。時間をおいて再度お試しください。
                 </div>
               )}
@@ -160,7 +171,18 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                style={{ 
+                  width: "100%", 
+                  background: status === 'sending' ? C.muted : C.A, 
+                  color: "#fff", 
+                  fontWeight: 600, 
+                  padding: "12px 24px", 
+                  borderRadius: 6, 
+                  border: "none",
+                  cursor: status === 'sending' ? "not-allowed" : "pointer",
+                  fontSize: 16,
+                  transition: "background 0.2s"
+                }}
               >
                 {status === 'sending' ? '送信中...' : '送信する'}
               </button>
@@ -169,16 +191,16 @@ export default function Contact() {
         </div>
 
         {/* 補足情報 */}
-        <div className="mt-8 text-center text-gray-600 text-sm">
+        <div style={{ marginTop: 32, textAlign: "center", color: C.muted, fontSize: 14 }}>
           <p>営業時間：平日 9:00〜18:00</p>
-          <p className="mt-2">
-            直接メールでのお問い合わせ：<a href="mailto:info@digi-kaku.or.jp" className="text-blue-600 hover:text-blue-800 underline">info@digi-kaku.or.jp</a>
+          <p style={{ marginTop: 8 }}>
+            直接メールでのお問い合わせ：<a href="mailto:info@digi-kaku.or.jp" style={{ color: C.A, textDecoration: "underline" }}>info@digi-kaku.or.jp</a>
           </p>
         </div>
 
         {/* ホームに戻るリンク */}
-        <div className="mt-8 text-center">
-          <a href="/" className="text-blue-600 hover:text-blue-800 underline">
+        <div style={{ marginTop: 32, textAlign: "center" }}>
+          <a href="/" style={{ color: C.A, textDecoration: "underline" }}>
             ← トップページに戻る
           </a>
         </div>
