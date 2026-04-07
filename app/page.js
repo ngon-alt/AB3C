@@ -676,7 +676,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
 
     <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
         {[
           { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
@@ -686,20 +686,20 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         ].map((item, i) => (
           <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px" }}>
             <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
-            <p style={{ fontSize: 12, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
+            <p style={{ fontSize: 16, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
           </div>
         ))}
       </div>
     </div>
 
     <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", textAlign: "center" }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
-      <p style={{ fontSize: 13, lineHeight: 1.8, color: "rgba(255,255,255,0.75)" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることがAB3Cアナライザーの役割です。</p>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
+      <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.75)" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることがAB3Cアナライザーの役割です。</p>
     </div>
   </div>
 )}
-{loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 14 }}>AIがAB3Cを分析中です…</div>}
+{loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
