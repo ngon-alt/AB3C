@@ -34,14 +34,14 @@ export default function Header({ onShowPricing }) {
               <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略大臣</span>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>powered by AI</span>
             </div>
-            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 11, color: C.muted, letterSpacing: "0.05em", marginTop: 4 }}>
+            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 16, color: C.muted, letterSpacing: "0.05em", marginTop: 4 }}>
               選ばれる理由を言語化する 戦略策定AI
             </div>
           </a>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <div style={{ fontSize: 11, color: C.muted, textAlign: "right", lineHeight: 2 }}>
+        <div style={{ fontSize: 16, color: C.muted, textAlign: "right", lineHeight: 2 }}>
           <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a6fd4" }}>A</b> — Advantage（差別的優位点）</div>
           <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#FF0000" }}>B</b> — Benefit（お客様が求める価値）</div>
           <div><b style={{ fontFamily: "'Space Mono', monospace", color: "#1a1a14" }}>3C</b> — Customer · Competitor · Company</div>
@@ -49,17 +49,17 @@ export default function Header({ onShowPricing }) {
         {session ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, color: C.muted }}>
+              <span style={{ fontSize: 16, color: C.muted }}>
                 {session.user?.name}
-                {isPro && <span style={{ marginLeft: 6, background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+                {isPro && <span style={{ marginLeft: 6, background: "#1a6fd4", color: "#fff", fontSize: 16, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
               </span>
-              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted }}>
+              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted }}>
                 ログアウト
               </button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {onShowPricing && (
-                <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}>
+                <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "6px 12px" }}>
                   プランを見る
                 </button>
               )}
@@ -75,7 +75,7 @@ export default function Header({ onShowPricing }) {
                 <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.6-5.9c-2 1.4-4.7 2.2-7.6 2.2-6.2 0-11.5-4.2-13.4-9.8l-7.9 6C6.5 42.5 14.6 48 24 48z"/>
               </svg>
             </div>
-            <div style={{ background: "#DB4437", padding: "10px 16px", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+            <div style={{ background: "#DB4437", padding: "10px 16px", color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
               Googleでログイン
             </div>
           </button>
