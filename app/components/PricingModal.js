@@ -193,8 +193,8 @@ export default function PricingModal({ onClose }) {
               onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{
                 flex: 1,
-                background: showAnalysis ? C.ink : "#f0f0f0",
-                color: showAnalysis ? "#fff" : C.muted,
+                background: showAnalysis ? "#bbdefb" : "#e3f2fd",
+                color: showAnalysis ? C.ink : C.muted,
                 border: "none",
                 borderRadius: "6px 6px 0 0",
                 padding: "12px 16px",
@@ -211,8 +211,8 @@ export default function PricingModal({ onClose }) {
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{
                 flex: 1,
-                background: showGrowth ? C.ink : "#f0f0f0",
-                color: showGrowth ? "#fff" : C.muted,
+                background: showGrowth ? "#f8bbd0" : "#fce4ec",
+                color: showGrowth ? C.ink : C.muted,
                 border: "none",
                 borderRadius: "6px 6px 0 0",
                 padding: "12px 16px",
