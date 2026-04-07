@@ -1,11 +1,24 @@
 "use client";
 
 import React from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+
+const C = {
+  bg: "#fafaf9",
+  surface: "#ffffff",
+  border: "#e5e5e0",
+  ink: "#1a1a14",
+  muted: "#78716c",
+};
 
 export default function Terms() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
+      <Header />
+      
+      <div style={{ flex: 1, padding: "48px 16px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", background: C.surface, boxShadow: "0 4px 6px rgba(0,0,0,0.1)", borderRadius: 8, padding: "48px 32px" }}>
         <h1 className="text-3xl font-bold text-gray-900 mb-6">戦略大臣 利用規約</h1>
         <p className="text-sm text-gray-600 mb-8">最終更新日：2026年4月7日</p>
 
@@ -198,11 +211,13 @@ export default function Terms() {
             </div>
           </section>
 
-          <div className="text-center mt-8">
-            <p className="text-sm text-gray-600">以上</p>
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <p style={{ fontSize: 14, color: C.muted }}>以上</p>
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }
