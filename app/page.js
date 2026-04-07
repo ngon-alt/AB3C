@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Header from "./components/Header";
+import PricingModal from "./components/PricingModal";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
