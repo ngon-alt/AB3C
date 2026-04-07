@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Header from '../components/Header';
+import PricingModal from '../components/PricingModal';
 
 const C = {
   bg: "#fafaf9",
@@ -23,6 +24,7 @@ export default function Contact() {
     message: ''
   });
   const [status, setStatus] = useState(''); // 'sending', 'success', 'error'
+  const [showPricing, setShowPricing] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,7 +55,10 @@ export default function Contact() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
       {/* ヘッダー */}
-      <Header />
+      <Header onShowPricing={() => setShowPricing(true)} />
+      
+      {/* 料金モーダル */}
+      {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
 
 
       {/* メインコンテンツ */}

@@ -1,8 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import PricingModal from '../components/PricingModal';
 
 const C = {
   bg: "#fafaf9",
@@ -13,9 +14,14 @@ const C = {
 };
 
 export default function Legal() {
+  const [showPricing, setShowPricing] = useState(false);
+  
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
-      <Header />
+      <Header onShowPricing={() => setShowPricing(true)} />
+      
+      {/* 料金モーダル */}
+      {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       
       <div style={{ flex: 1, padding: "48px 16px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", background: C.surface, boxShadow: "0 4px 6px rgba(0,0,0,0.1)", borderRadius: 8, padding: "48px 32px" }}>
