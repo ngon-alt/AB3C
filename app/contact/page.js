@@ -53,7 +53,7 @@ export default function Contact() {
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column" }}>
       {/* ヘッダー */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "20px", position: "sticky", top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <a href="/" style={{ textDecoration: "none" }}>
             <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
               <span style={{ color: "#1a6fd4" }}>A</span>
@@ -65,6 +65,16 @@ export default function Contact() {
               「選ばれる理由」を見つけるフレームワーク
             </div>
           </a>
+          
+          {/* ナビゲーションリンク */}
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <a href="/" style={{ fontSize: 14, color: C.ink, textDecoration: "none", fontWeight: 500 }}>
+              ホーム
+            </a>
+            <a href="/login" style={{ fontSize: 14, color: C.A, textDecoration: "none", fontWeight: 500 }}>
+              ログイン
+            </a>
+          </div>
         </div>
       </div>
 
