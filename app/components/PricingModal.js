@@ -76,13 +76,31 @@ export default function PricingModal({ onClose }) {
   ];
 
   const handleCheckout = async (priceId) => {
-    const res = await fetch('/api/stripe/checkout', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ priceId }) 
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    try {
+      console.log('Checkout started with priceId:', priceId);
+      const res = await fetch('/api/stripe/checkout', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ priceId }) 
+      });
+      console.log('Response status:', res.status);
+      const data = await res.json();
+      console.log('Response data:', data);
+      
+      if (data.error) {
+        alert('エラー: ' + data.error);
+        return;
+      }
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('決済URLの取得に失敗しました');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('エラーが発生しました: ' + error.message);
+    }
   };
 
   return (
