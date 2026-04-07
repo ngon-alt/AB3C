@@ -833,8 +833,8 @@ useEffect(() => {
   localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
 };
 
-  const notify = (text) => {
-    if (Notification.permission === "granted") new Notification("AB3C分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
+ const notify = (text) => {
+    if (Notification.permission === "granted") new Notification("戦略大臣 分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
   };
 
   const analyze = async () => {
@@ -894,6 +894,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <span style={{ color: "#1a6fd4" }}>A</span>
               <span style={{ color: "#FF0000" }}>B</span>
               <span style={{ color: "#1a1a14" }}>3C</span>
+              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(16px, 3vw, 28px)", color: C.ink, marginLeft: 12 }}>戦略大臣</span>
             </div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", marginTop: 4 }}>
               「選ばれる理由」を見つけるフレームワーク
@@ -1056,7 +1057,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {!currentResult && !loading && (
   <div style={{ marginTop: 40, padding: "32px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>AB3Cアナライザー 使い方</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>戦略大臣 使い方</div>
     
     <div style={{ marginBottom: 28 }}>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
@@ -1237,7 +1238,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
               <span style={{ fontSize: 12, color: C.ink }}>一般社団法人デジタル経営革新協会</span>
             </div>
-            <div>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI</div>
+            <div style={{ marginBottom: 8 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI</div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+              <a href="/terms" style={{ color: C.muted, textDecoration: "none" }}>利用規約</a>
+              <span style={{ color: C.border }}>|</span>
+              <a href="/privacy" style={{ color: C.muted, textDecoration: "none" }}>プライバシーポリシー</a>
+              <span style={{ color: C.border }}>|</span>
+              <a href="/legal" style={{ color: C.muted, textDecoration: "none" }}>特定商取引法</a>
+            </div>
           </footer>
         </div>
       </div>
