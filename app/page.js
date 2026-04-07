@@ -583,7 +583,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     
     <button
       onClick={() => { setTab("url"); setError(""); }}
-      style={{ background: tab === "url" ? C.surface : "#d0d0d0", border: `1px solid ${C.border}`, borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
+      style={{ 
+        background: tab === "url" ? C.surface : "#d0d0d0", 
+        border: `1px solid ${C.border}`, 
+        borderTop: `4px solid ${C.B}`,
+        borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, 
+        borderRadius: "6px 6px 0 0", 
+        padding: "12px 14px", 
+        cursor: "pointer", 
+        textAlign: "left" 
+      }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
@@ -591,7 +600,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </button>
       <button
       onClick={() => { setTab("text"); setError(""); }}
-      style={{ background: tab === "text" ? C.surface : "#d0d0d0", border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
+      style={{ 
+        background: tab === "text" ? C.surface : "#d0d0d0", 
+        border: `1px solid ${C.border}`, 
+        borderTop: `4px solid ${C.A}`,
+        borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, 
+        borderRadius: "6px 6px 0 0", 
+        padding: "12px 14px", 
+        cursor: "pointer", 
+        textAlign: "left" 
+      }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
