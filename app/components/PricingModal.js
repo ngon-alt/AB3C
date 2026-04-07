@@ -227,7 +227,12 @@ export default function PricingModal({ onClose }) {
             </button>
           </div>
 
-          <div style={{ background: "#f9f9f9", border: `1px solid ${C.border}`, borderRadius: "0 0 6px 6px", padding: "20px" }}>
+          <div style={{ 
+            background: showAnalysis ? "#bbdefb" : "#f8bbd0", 
+            border: "none", 
+            borderRadius: "0 0 6px 6px", 
+            padding: "20px" 
+          }}>
             {/* 分析プラン */}
             {showAnalysis && (
               <div>
