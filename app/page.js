@@ -8,7 +8,7 @@ import PricingModal from "./components/PricingModal";
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
-  ink: "#1a1a14", muted: "#78716c", highlight: "#fef3c7",
+  ink: "#000000", muted: "#000000", highlight: "#fef3c7",
 };
 
 const Badge = ({ status }) => {
@@ -23,7 +23,7 @@ const Badge = ({ status }) => {
 
 const Card = ({ color, title, children }) => (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px" }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
     {children}
   </div>
 );
@@ -31,7 +31,7 @@ const Card = ({ color, title, children }) => (
 const UL = ({ items }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => (
-     <li key={i} style={{ fontSize: 18, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#3a3a2e" }}>
+     <li key={i} style={{ fontSize: 18, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000" }}>
         <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{item}
       </li>
     ))}
@@ -42,9 +42,9 @@ const SectionLabel = ({ color, letter, jp, en, desc }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}` }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 34, fontWeight: 700, color, lineHeight: 1, width: 56, flexShrink: 0 }}>{letter}</div>
     <div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700 }}>{jp}</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
-      {desc && <div style={{ fontSize: 14, color: C.muted, fontStyle: "italic", marginTop: 3 }}>{desc}</div>}
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700 }}>{jp}</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
+      {desc && <div style={{ fontSize: 16, color: C.muted, fontStyle: "italic", marginTop: 3 }}>{desc}</div>}
     </div>
   </div>
 );
@@ -52,7 +52,7 @@ const SectionLabel = ({ color, letter, jp, en, desc }) => (
 const Divider = () => <div style={{ borderTop: `1px solid ${C.border}`, margin: "32px 0" }} />;
 
 const SubLabel = ({ color, text }) => (
-  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
+  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
 function ResultView({ d }) {
@@ -71,9 +71,9 @@ function ResultView({ d }) {
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" />
         <div style={g3}>
-          <Card color={C.A} title="アドバンテージ"><div style={{ fontSize: 17, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card>
-          <Card color={C.A} title="なぜ好ましいのか"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#3a3a2e" }}>{d.advantage.why_good}</p></Card>
-          <Card color={C.A} title="なぜ真似されにくいか"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#3a3a2e" }}>{d.advantage.why_hard_to_copy}</p></Card>
+          <Card color={C.A} title="アドバンテージ"><div style={{ fontSize: 18, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card>
+          <Card color={C.A} title="なぜ好ましいのか"><p style={{ fontSize: 18, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_good}</p></Card>
+          <Card color={C.A} title="なぜ真似されにくいか"><p style={{ fontSize: 18, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_hard_to_copy}</p></Card>
         </div>
       </div>
       <Divider />
@@ -82,12 +82,12 @@ function ResultView({ d }) {
         <SubLabel color={C.C} text="Customer（お客様）" />
         <div style={{ ...g2, marginBottom: 14 }}>
           <Card color={C.C} title="ターゲット">
-            <div style={{ fontSize: 17, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
             <UL items={d.three_c.customer.profile} />
           </Card>
           <Card color={C.C} title="アプローチ段階 · 切り捨て">
-            <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12 }}><b>段階：</b>{d.three_c.customer.stage}</p>
-            <p style={{ fontSize: 16, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
+            <p style={{ fontSize: 18, lineHeight: 1.65, marginBottom: 12 }}><b>段階：</b>{d.three_c.customer.stage}</p>
+            <p style={{ fontSize: 18, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
           </Card>
         </div>
         {d.three_c.customer.market && (
@@ -95,16 +95,16 @@ function ResultView({ d }) {
             <Card color={C.C} title="市場規模">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                 <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.sam}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.sam}</div>
                 </div>
                 <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.som}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: C.ink }}>{d.three_c.customer.market.som}</div>
                 </div>
                 <div style={{ background: C.highlight, borderRadius: 4, padding: "12px 14px" }}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
-                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>{d.three_c.customer.market.growth}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
+                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6 }}>{d.three_c.customer.market.growth}</div>
                 </div>
               </div>
             </Card>
@@ -121,25 +121,25 @@ function ResultView({ d }) {
             <SubLabel color={C.C} text="Company（自社）" />
             <Card color={C.C} title="強み · 構造 · パッション">
               <UL items={d.three_c.company.strength} />
-              <p style={{ fontSize: 14, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>構造：{d.three_c.company.structure}</p>
-              <p style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>💡 {d.three_c.company.passion}</p></Card>
+              <p style={{ fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>構造：{d.three_c.company.structure}</p>
+              <p style={{ fontSize: 16, color: C.muted, marginTop: 6 }}>💡 {d.three_c.company.passion}</p></Card>
           </div>
         </div>
       </div>
       <Divider />
       <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28 }}>
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
-        <div style={{ fontSize: 16, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16 }}>
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
+        <div style={{ fontSize: 18, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16 }}>
           <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
           <b>Advantage：</b>{d.strategy_message.advantage_part}
         </div>
       </div>
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
     {d.checkpoints.map((cp, i) => (
       <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
         <Badge status={cp.status} />
-        <div style={{ fontSize: 18 }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 17 }}>{cp.comment}</span></div>
+        <div style={{ fontSize: 18 }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 18 }}>{cp.comment}</span></div>
       </div>
     ))}
   </div>
@@ -164,18 +164,18 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
           <span style={{ color: "#FF0000" }}>B</span>
           <span style={{ color: "#1a1a14" }}>3C</span>
         </div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
           ようこそ、{session?.user?.name}さん！
         </div>
-        <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 24 }}>
+        <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.8, marginBottom: 24 }}>
 無料プランでは分析1回・チャット1回をお試しいただけます。<br />
           より多く使いたい方はチケットのご購入をご検討ください。
         </div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-          <button onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px", color: C.muted }}>
+          <button onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, padding: "10px 20px", color: C.muted }}>
             まず使ってみる
           </button>
-          <button onClick={() => { onClose(); onShowPricing(); }} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", color: "#fff" }}>
+          <button onClick={() => { onClose(); onShowPricing(); }} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "10px 20px", color: "#fff" }}>
             プランを見る
           </button>
         </div>
