@@ -4,7 +4,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 
 const C = {
-  bg: "#f5f5f0",
+  bg: "#ebebeb",
   border: "#e5e5e0",
   ink: "#1a1a14",
   muted: "#78716c",

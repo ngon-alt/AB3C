@@ -7,7 +7,7 @@ import PricingModal from "./components/PricingModal";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
-  bg: "#f5f5f0", surface: "#ffffff", border: "#e5e5e0",
+  bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#1a1a14", muted: "#78716c", highlight: "#fef3c7",
 };
 

@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import PricingModal from '../components/PricingModal';
 
 const C = {
-  bg: "#f5f5f0",
+  bg: "#ebebeb",
   surface: "#ffffff",
   border: "#e5e5e0",
   ink: "#1a1a14",
