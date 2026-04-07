@@ -200,6 +200,7 @@ export default function Legal() {
           </section>
         </div>
       </div>
+      </div>
       
       <Footer />
     </div>
