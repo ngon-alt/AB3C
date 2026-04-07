@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// Updated: 2025-04-07 to force rebuild
 const nextConfig = {
   async redirects() {
     return [
