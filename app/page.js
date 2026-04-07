@@ -425,10 +425,7 @@ const [showGrowth, setShowGrowth] = useState(false);
                           このプランにする
                         </button>
                       </div>
-                    </div>
-                          このプランにする
-                        </button>
-                      </div>
+                   
                     </div>
                   </div>
                 ))}
