@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 
 const C = {
-  bg: "#fafaf9",
+  bg: "#f5f5f0",
   surface: "#ffffff",
   border: "#e5e5e0",
   ink: "#1a1a14",
