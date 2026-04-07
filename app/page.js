@@ -428,7 +428,6 @@ const [showGrowth, setShowGrowth] = useState(false);
                     </div>
                   </div>
                 ))}
-                        
               </div>
             )}
 
