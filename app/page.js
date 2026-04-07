@@ -629,7 +629,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "12px 28px" }}>
         {loading ? "分析中…" : "▶ 分析する"}
       </button>
-      <span style={{ fontSize: 16, color: C.muted }}>{tab === "text" ? "Ctrl + Enter でも実行できます" : "Enter でも実行できます"}</span>
+      <span style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{tab === "text" ? "Ctrl + Enter でも実行できます" : "Enter でも実行できます"}</span>
     </div>
   </div>
 </div>
@@ -640,14 +640,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <span style={{ fontSize: 24 }}>🔰</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink }}>初めての方へ</div>
-        <div style={{ fontSize: 16, color: C.muted, marginTop: 2 }}>使い方・入力方法・活用法</div>
+        <div style={{ fontSize: 16, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>使い方・入力方法・活用法</div>
       </div>
     </a>
     <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
       <span style={{ fontSize: 24 }}>📖</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
-        <div style={{ fontSize: 16, color: C.muted, marginTop: 2 }}>フレームワークの詳細</div>
+        <div style={{ fontSize: 16, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>フレームワークの詳細</div>
       </div>
     </a>
 </div>
