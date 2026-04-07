@@ -26,7 +26,7 @@ export default function Header({ onShowPricing }) {
   }, [session]);
 
   return (
-    <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
+    <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: "#ffffff" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <div>
           <a href="/" style={{ textDecoration: "none" }}>
