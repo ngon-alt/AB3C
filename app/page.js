@@ -1,4 +1,5 @@
 "use client";
+// Updated: 2025-04-07 - Force page rebuild
 import { useState, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import dynamic from "next/dynamic";
