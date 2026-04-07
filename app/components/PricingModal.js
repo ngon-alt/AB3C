@@ -132,25 +132,11 @@ export default function PricingModal({ onClose }) {
             color: '#667eea', 
             display: 'inline-block',
             padding: '8px 24px',
-            borderRadius: 4,
-            marginBottom: 12
+            borderRadius: 4
           }}>
             全プラン 50%OFF
           </div>
-          <div style={{ 
-            fontSize: 16, 
-            fontWeight: 700, 
-            background: 'rgba(255,255,255,0.2)', 
-            display: 'inline-block',
-            padding: '6px 16px',
-            borderRadius: 4,
-            border: '2px dashed #fff',
-            letterSpacing: '0.1em'
-          }}>
-            クーポンコード：SEMINAR2025APR
-          </div>
           <div style={{ fontSize: 11, marginTop: 12, opacity: 0.9 }}>
-            ※決済画面でクーポンコードを入力してください<br/>
             ※先行ユーザーは契約期間中、特別価格継続<br/>
             ※サービス内容の大幅変更時は価格改定の可能性あり
           </div>

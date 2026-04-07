@@ -22,7 +22,6 @@ export async function POST(req) {
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      allow_promotion_codes: true,
       success_url: `${process.env.NEXTAUTH_URL}/?success=true`,
       cancel_url: `${process.env.NEXTAUTH_URL}/?canceled=true`,
       customer_email: session.user.email,
