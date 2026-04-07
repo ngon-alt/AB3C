@@ -527,7 +527,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           style={{ 
             position: "absolute", 
             left: sidebarOpen ? 240 : 0, 
-            top: 20, 
+            top: 0, 
             zIndex: 100,
             background: C.surface, 
             border: `1px solid ${C.border}`, 
