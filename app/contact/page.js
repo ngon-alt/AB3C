@@ -158,6 +158,8 @@ export default function Contact() {
                   >
                     <option value="100サイト以上のプラン希望">100サイト以上のプラン希望</option>
                     <option value="サービス内容について">サービス内容について</option>
+                    <option value="費用と決済について">費用と決済について</option>
+                    <option value="分析結果についてのコンサルティング希望">分析結果についてのコンサルティング希望</option>
                     <option value="技術的な問題">技術的な問題</option>
                     <option value="その他">その他</option>
                   </select>
