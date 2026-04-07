@@ -25,6 +25,7 @@ export default function Contact() {
   });
   const [status, setStatus] = useState(''); // 'sending', 'success', 'error'
   const [showPricing, setShowPricing] = useState(false);
+  const [showPricing, setShowPricing] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

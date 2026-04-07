@@ -12,7 +12,7 @@ const C = {
   B: "#FF0000",
 };
 
-export default function Header({ onShowPricing, sidebarOpen, setSidebarOpen, showSidebarToggle = false }) {
+export default function Header({ onShowPricing }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
 
@@ -28,11 +28,6 @@ export default function Header({ onShowPricing, sidebarOpen, setSidebarOpen, sho
   return (
     <div style={{ borderBottom: `2px solid ${C.ink}`, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, background: C.bg }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        {showSidebarToggle && (
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
-            {sidebarOpen ? "◀" : "▶"}
-          </button>
-        )}
         <div>
           <a href="/" style={{ textDecoration: "none" }}>
             <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
@@ -65,19 +60,10 @@ export default function Header({ onShowPricing, sidebarOpen, setSidebarOpen, sho
               </button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              {onShowPricing ? (
-                <>
-                  <button onClick={onShowPricing} style={{ background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, textDecoration: "underline", padding: 0 }}>
-                    プランと料金
-                  </button>
-                  <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}>
-                    プランを見る
-                  </button>
-                </>
-              ) : (
-                <a href="/" style={{ background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, textDecoration: "underline", padding: 0 }}>
-                  分析画面へ
-                </a>
+              {onShowPricing && (
+                <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "6px 12px" }}>
+                  プランを見る
+                </button>
               )}
             </div>
           </div>

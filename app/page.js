@@ -518,14 +518,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
-      <Header 
-        onShowPricing={() => setShowPricing(true)} 
-        sidebarOpen={sidebarOpen} 
-        setSidebarOpen={setSidebarOpen} 
-        showSidebarToggle={true} 
-      />
+      <Header onShowPricing={() => setShowPricing(true)} />
 
       <div style={{ display: "flex", flex: 1 }}>
+        {/* サイドバートグルボタン */}
+        <div style={{ position: "absolute", left: 20, top: 100, zIndex: 10 }}>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 10px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted }}>
+            {sidebarOpen ? "◀" : "▶"}
+          </button>
+        </div>
+
       {sidebarOpen && (
   <div id="sidebar" style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
