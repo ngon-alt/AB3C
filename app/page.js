@@ -521,24 +521,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <Header onShowPricing={() => setShowPricing(true)} />
 
       <div style={{ display: "flex", flex: 1, position: "relative" }}>
-        {/* サイドバートグルボタン */}
+        {/* サイドバートグルボタン - タブスタイル */}
         <button 
           onClick={() => setSidebarOpen(!sidebarOpen)} 
           style={{ 
             position: "absolute", 
-            left: sidebarOpen ? 250 : 10, 
-            top: 10, 
+            left: sidebarOpen ? 240 : 0, 
+            top: 20, 
             zIndex: 100,
             background: C.surface, 
             border: `1px solid ${C.border}`, 
-            borderRadius: 4, 
-            padding: "6px 10px", 
+            borderLeft: sidebarOpen ? `1px solid ${C.border}` : "none",
+            borderRadius: sidebarOpen ? "0 4px 4px 0" : "0 4px 4px 0", 
+            padding: "8px 6px", 
             cursor: "pointer", 
             fontFamily: "'Space Mono', monospace", 
-            fontSize: 12, 
+            fontSize: 14, 
             color: C.muted,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            transition: "left 0.2s"
+            boxShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+            transition: "left 0.2s ease",
+            lineHeight: 1
           }}
         >
           {sidebarOpen ? "◀" : "▶"}
