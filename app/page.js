@@ -584,16 +584,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       onClick={() => { setTab("url"); setError(""); }}
       style={{ background: tab === "url" ? C.surface : C.highlight, border: `1px solid ${C.border}`, borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
     >
-      <div style={{ fontSize: 16, marginBottom: 3 }}>🌐</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
+      <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 16, color: C.muted }}>WebサイトのURLを貼るだけ</div>
     </button>
       <button
       onClick={() => { setTab("text"); setError(""); }}
       style={{ background: tab === "text" ? C.surface : C.highlight, border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
     >
-      <div style={{ fontSize: 16, marginBottom: 3 }}>✏️</div>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
+      <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
       <div style={{ fontSize: 16, color: C.muted }}>事業概要を自由に記述</div>
     </button>
   </div>
@@ -636,16 +636,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {!currentResult && !loading && (
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "16px 0" }}>
     <a href="/howto" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 20 }}>🔰</span>
+      <span style={{ fontSize: 24 }}>🔰</span>
       <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>初めての方へ</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>初めての方へ</div>
         <div style={{ fontSize: 16, color: C.muted, marginTop: 2 }}>使い方・入力方法・活用法</div>
       </div>
     </a>
     <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 20 }}>📖</span>
+      <span style={{ fontSize: 24 }}>📖</span>
       <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
         <div style={{ fontSize: 16, color: C.muted, marginTop: 2 }}>フレームワークの詳細</div>
       </div>
     </a>
