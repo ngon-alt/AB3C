@@ -95,15 +95,15 @@ function ResultView({ d }) {
           <div style={{ marginBottom: 14 }}>
             <Card color={C.C} title="市場規模">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-                <div style={{ background: "#f5f5f5", borderRadius: 4, padding: "12px 14px" }}>
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px" }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div>
                 </div>
-                <div style={{ background: "#f5f5f5", borderRadius: 4, padding: "12px 14px" }}>
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px" }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div>
                 </div>
-                <div style={{ background: "#f5f5f5", borderRadius: 4, padding: "12px 14px" }}>
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px" }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
                   <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div>
                 </div>
@@ -320,7 +320,7 @@ useEffect(() => {
             <div ref={messagesEndRef} />
           </div>
 {messages.length >= 3 && (
-  <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#f5f5f5" }}>
+  <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e8e8" }}>
     <button
       onClick={reanalyze}
       disabled={loading}
@@ -583,7 +583,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     
     <button
       onClick={() => { setTab("url"); setError(""); }}
-      style={{ background: tab === "url" ? C.surface : "#f5f5f5", border: `1px solid ${C.border}`, borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
+      style={{ background: tab === "url" ? C.surface : "#e8e8e8", border: `1px solid ${C.border}`, borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
@@ -591,7 +591,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </button>
       <button
       onClick={() => { setTab("text"); setError(""); }}
-      style={{ background: tab === "text" ? C.surface : "#f5f5f5", border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
+      style={{ background: tab === "text" ? C.surface : "#e8e8e8", border: `1px solid ${C.border}`, borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, borderRadius: "6px 6px 0 0", padding: "12px 14px", cursor: "pointer", textAlign: "left" }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
@@ -665,11 +665,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div style={{ marginBottom: 28 }}>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        <div style={{ background: "#f5f5f5", borderRadius: 6, padding: "16px 18px" }}>
+        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>🌐 URLで分析（既存事業向け）</div>
           <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>すでにウェブサイトがある場合はURLを入力するだけ。現在のサイトが戦略を正しく伝えられているか、競合と比べてアドバンテージが伝わっているかを確認できます。</p>
         </div>
-        <div style={{ background: "#f5f5f5", borderRadius: 6, padding: "16px 18px" }}>
+        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✏️ テキストで入力（新規事業向け）</div>
           <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>これから起業する、新規事業を立ち上げる、大幅に事業を刷新したい場合はテキストで事業概要を入力。試行錯誤しながら繰り返すことで事業モデルの精度を上げられます。</p>
         </div>
@@ -685,7 +685,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           { icon: "📝", title: "補助金・事業計画書", desc: "AB3Cで整理した戦略を補助金申請書や事業計画書にそのまま活用できます。" },
 
         ].map((item, i) => (
-          <div key={i} style={{ background: "#f5f5f5", borderRadius: 6, padding: "14px 16px" }}>
+          <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px" }}>
             <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
             <p style={{ fontSize: 16, lineHeight: 1.7, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{item.desc}</p>
@@ -724,7 +724,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 </div>
            
 {(currentInput || chatSummaries.length > 0) && (
-  <div style={{ background: "#f5f5f5", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
+  <div style={{ background: "#e8e8e8", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
     <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.6 }}>
 {currentInput?.startsWith("http") ? (
@@ -749,7 +749,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 if (newHistory.length > 0 && !selectedHistory) { newHistory[0].preview = e.target.value; setHistory(newHistory); localStorage.setItem("ab3c_history", JSON.stringify(newHistory)); }
               }} />
               {shareUrl && (
-                <div style={{ background: "#f5f5f5", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
+                <div style={{ background: "#e8e8e8", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>✓ URLをコピーしました</div>
                   <div style={{ fontSize: 13, color: C.ink, wordBreak: "break-all" }}>{shareUrl}</div>
                 </div>
@@ -767,7 +767,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div key={section.key} style={{ marginBottom: 28 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
           {improveResult[section.key]?.map((item, i) => (
-            <div key={i} style={{ background: "#f5f5f5", borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+            <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
               <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
               <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
