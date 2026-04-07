@@ -31,13 +31,11 @@ export default function Header({ onShowPricing }) {
         <div>
           <a href="/" style={{ textDecoration: "none" }}>
             <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
-              <span style={{ color: "#1a6fd4" }}>A</span>
-              <span style={{ color: "#FF0000" }}>B</span>
-              <span style={{ color: "#1a1a14" }}>3C</span>
-              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(16px, 3vw, 28px)", color: C.ink, marginLeft: 12 }}>戦略大臣</span>
+              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略大臣</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>powered by AI</span>
             </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.14em", marginTop: 4 }}>
-              「選ばれる理由」を見つけるフレームワーク
+            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 11, color: C.muted, letterSpacing: "0.05em", marginTop: 4 }}>
+              選ばれる理由を言語化する 戦略策定AI
             </div>
           </a>
         </div>
