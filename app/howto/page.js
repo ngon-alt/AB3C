@@ -109,8 +109,8 @@ export default function HowtoPage() {
                 <tr style={{ background: C.ink, color: "#fff" }}>
                   <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700 }}>機能</th>
                   <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>⓪フリー<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥0</span></th>
-                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>①ベーシック<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥3,300</span></th>
-                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>②スタンダード<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥9,900</span></th>
+                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700 }}>①分析プラン<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥22,000〜/月</span></th>
+                  <th style={{ padding: "12px 16px", textAlign: "center", fontWeight: 700, background: "#1a5cb0" }}>②伴走プラン<br /><span style={{ fontSize: 11, fontWeight: 400 }}>¥44,000〜/月</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -118,13 +118,14 @@ export default function HowtoPage() {
                   { feature: "AB3C分析レポート", free: "○（1回）", basic: "○", standard: "○" },
                   { feature: "シェアURL発行", free: "○", basic: "○", standard: "○" },
                   { feature: "印刷・PDF保存", free: "○", basic: "○", standard: "○" },
-                  { feature: "ウェブサイト改善アドバイス", free: "✕", basic: "✕", standard: "○" },
-                  { feature: "AIチャット相談", free: "✕", basic: "✕", standard: "○（30回）" },
+                  { feature: "ウェブサイト改善アドバイス", free: "✕", basic: "○", standard: "○" },
+                  { feature: "AIチャット相談", free: "✕", basic: "✕", standard: "○" },
+                  { feature: "複数サイト管理", free: "✕", basic: "○（5〜100サイト）", standard: "○（5〜100サイト）" },
                 ].map((row, i) => (
                   <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
                     <td style={{ padding: "12px 16px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
                     <td style={{ padding: "12px 16px", textAlign: "center", color: C.muted }}>{row.free}</td>
-                    <td style={{ padding: "12px 16px", textAlign: "center", color: C.muted }}>{row.basic}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "center", color: row.basic === "✕" ? "#c0392b" : C.A, fontWeight: row.basic !== "✕" ? 700 : 400 }}>{row.basic}</td>
                     <td style={{ padding: "12px 16px", textAlign: "center", color: row.standard === "✕" ? "#c0392b" : C.A, fontWeight: row.standard !== "✕" ? 700 : 400 }}>{row.standard}</td>
                   </tr>
                 ))}
@@ -132,10 +133,95 @@ export default function HowtoPage() {
             </table>
           </div>
           <div style={{ marginTop: 12, fontSize: 12, color: C.muted, fontFamily: "sans-serif" }}>
-            ※ ③コンサルタント相談・④プロプランについては<a href="https://www.digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>デジタル経営革新協会</a>までお問い合わせください。
+            ※ 現在、先行ユーザー価格キャンペーン中（全プラン50%OFF）。表示価格はキャンペーン価格です。<br />
+            ※ 100サイト以上のプランは<a href="/contact" style={{ color: C.A }}>お問い合わせ</a>ください。
           </div>
         </div>
-         <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
+
+        {/* Web制作者・コンサルタント向け活用ガイド */}
+        <div id="for-professionals" style={{ marginBottom: 40, border: `2px solid ${C.A}`, borderRadius: 8, overflow: "hidden" }}>
+          <div style={{ background: C.A, padding: "16px 24px" }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.8)", letterSpacing: "0.12em", marginBottom: 4 }}>FOR PROFESSIONALS</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#fff" }}>
+              Web制作者・コンサルタントの活用ガイド
+            </div>
+          </div>
+
+          <div style={{ padding: "28px 24px", background: "#fff" }}>
+
+            {/* 背景・根拠 */}
+            <div style={{ background: "#f8f4ff", border: "1px solid #c4b5fd", borderRadius: 8, padding: "20px 24px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#7c3aed", marginBottom: 10, letterSpacing: "0.1em" }}>BACKGROUND</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.9 }}>
+                戦略大臣の開発元であるゴンウェブイノベーションズは、20年以上にわたりAB3C分析を活用した戦略コンサルティングを提供してきました。<br /><br />
+                同等の分析を<strong>手作業で行う場合、月300〜500万円</strong>のコンサルティング費用が必要でした。<br />
+                戦略大臣はその知見をAIに凝縮したツールです。あなたはこれを使って、<strong>月20〜30万円</strong>という中小企業が現実的に払える価格で、同等水準の価値を提供できます。
+              </div>
+            </div>
+
+            {/* 提案モデル */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 16, letterSpacing: "0.08em" }}>📐 提案モデル例</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {[
+                  {
+                    title: "スポット提案型（分析プラン活用）",
+                    price: "提案単価：3〜5万円/件",
+                    desc: "Web制作の受注前にAB3C分析レポートを提案書として活用。競合との違いを言語化した提案で受注率を高め、制作単価も上げる。",
+                    color: "#dbeafe",
+                    border: "#93c5fd",
+                  },
+                  {
+                    title: "月次伴走型（伴走プラン活用）",
+                    price: "月額：20〜30万円/クライアント",
+                    desc: "毎月AB3C分析で戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化できる。",
+                    color: "#dcfce7",
+                    border: "#86efac",
+                  },
+                  {
+                    title: "複数クライアント管理型（5〜10サイトプラン）",
+                    price: "月額：100〜300万円（3〜10社×月30万）",
+                    desc: "複数の中小企業クライアントをまとめて管理。5サイトプラン（月11万円）で5社から月30万円ずつ受ければ月商150万円。",
+                    color: "#fef9c3",
+                    border: "#fcd34d",
+                  },
+                ].map((model, i) => (
+                  <div key={i} style={{ background: model.color, border: `1px solid ${model.border}`, borderRadius: 8, padding: "16px 20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: C.ink }}>{model.title}</div>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.A, background: "#fff", padding: "3px 10px", borderRadius: 4, whiteSpace: "nowrap" }}>{model.price}</div>
+                    </div>
+                    <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.8 }}>{model.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* クライアントへの説明文 */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 12, letterSpacing: "0.08em" }}>💬 クライアントへの説明例</div>
+              <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px", fontSize: 14, color: C.ink, lineHeight: 2, fontFamily: "'Noto Serif JP', serif", fontStyle: "italic" }}>
+                「月20〜30万円の投資で、御社の『選ばれる理由』を毎月言語化・更新し続けます。Webサイト・営業資料・採用ページ、すべての発信に一貫した戦略軸が生まれます。従来、同水準の分析コンサルティングには月300〜500万円が必要でした。それをAIの力で実現しています。」
+              </div>
+            </div>
+
+            {/* クライアント側ROI */}
+            <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 8, padding: "16px 20px", marginBottom: 24 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#c2410c", marginBottom: 10, letterSpacing: "0.08em" }}>CLIENT ROI</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.9 }}>
+                戦略の明確化による効果として、クライアントの売上・利益は<strong>年間最低数百万円以上の改善</strong>が期待できます。<br />
+                月20〜30万円（年240〜360万円）の支出に対して、数百万〜数千万円のリターン。<br />
+                これがクライアントにとっての<strong>現実的な費用対効果</strong>です。
+              </div>
+            </div>
+
+            <a href="https://analyzer.ab3c.jp" style={{ display: "block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 20px", textDecoration: "none", textAlign: "center" }}>
+              ▶ さっそく無料でお試しする
+            </a>
+          </div>
+        </div>
+
+        <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそく分析してみましょう</div>
           <a href="https://analyzer.ab3c.jp" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
             ▶ 分析ツールへ

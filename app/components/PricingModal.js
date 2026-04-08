@@ -151,8 +151,9 @@ export default function PricingModal({ onClose }) {
             ・ウェブサイト改善レポート<br/>
             <span style={{ color: C.B }}>※AIチャット相談は使えません</span>
           </div>
-          <div style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>
-            まず試してみたい方向け
+          <div style={{ fontSize: 12, color: C.muted, fontStyle: "italic", lineHeight: 1.7 }}>
+            まず試してみたい方向け。<br/>
+            <span style={{ color: C.ink, fontStyle: "normal", fontWeight: 600 }}>AB3C分析レポート＋ウェブサイト改善レポートの両方を、クレジットカード不要で無料体験できます。</span>
           </div>
         </div>
 
@@ -388,6 +389,92 @@ export default function PricingModal({ onClose }) {
             </div>
           </div>
         </div>
+
+        {/* Web制作者・コンサルタント向けセクション */}
+        <div style={{ marginTop: 32, border: `2px solid ${C.A}`, borderRadius: 8, overflow: "hidden" }}>
+          <div style={{ background: C.A, padding: "16px 24px" }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "0.08em" }}>
+              FOR PROFESSIONALS
+            </div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: "#fff", marginTop: 4 }}>
+              Web制作者・コンサルタントの方へ
+            </div>
+          </div>
+
+          <div style={{ padding: "24px", background: "#fff" }}>
+            <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.9, marginBottom: 24, fontFamily: "'Noto Serif JP', serif" }}>
+              戦略大臣は、<strong>あなたのサービス単価を引き上げるツール</strong>です。<br />
+              従来、同等の戦略分析レポートを手作業で作成すると<strong>月300〜500万円</strong>のコンサルティング費用が必要でした。<br />
+              このツールを活用することで、クライアントに<strong>月20〜30万円</strong>で高品質な戦略支援を提供できます。
+            </div>
+
+            {/* ビジネスモデル図 */}
+            <div style={{ background: "#f0f4ff", borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.A, marginBottom: 16, letterSpacing: "0.1em" }}>BUSINESS MODEL</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { step: "01", text: "クライアントのWebサイトをAB3C分析（月1〜複数サイト）" },
+                  { step: "02", text: "分析レポート・改善提案をそのまま提案書として納品" },
+                  { step: "03", text: "AIチャットを活用してクライアントの戦略相談に毎月伴走" },
+                  { step: "04", text: "月20〜30万円の戦略支援サービスとして継続契約" },
+                ].map((item) => (
+                  <div key={item.step} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#fff", background: C.A, borderRadius: 3, padding: "2px 8px", flexShrink: 0, marginTop: 2 }}>
+                      {item.step}
+                    </div>
+                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>{item.text}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* コスト対効果 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+              <div style={{ background: "#fff8f8", border: `1px solid #ffcccc`, borderRadius: 8, padding: "16px 20px" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.B, marginBottom: 8, letterSpacing: "0.08em" }}>YOUR COST</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/月〜</span></div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>分析プラン 1サイト<br />（先行ユーザー価格）</div>
+              </div>
+              <div style={{ background: "#f0fff4", border: `1px solid #86efac`, borderRadius: 8, padding: "16px 20px" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#16a34a", marginBottom: 8, letterSpacing: "0.08em" }}>CLIENT FEE</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥200,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/月〜</span></div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>クライアントへの<br />戦略支援サービス料</div>
+              </div>
+            </div>
+
+            {/* クライアント側の価値 */}
+            <div style={{ background: "#fffbeb", border: `1px solid #fcd34d`, borderRadius: 8, padding: "16px 20px", marginBottom: 24 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#b45309", marginBottom: 10, letterSpacing: "0.08em" }}>CLIENT VALUE</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8 }}>
+                クライアント（中小企業）にとっても、月20〜30万円の投資で<strong>年間数百万円以上の売上・利益インパクト</strong>が期待できる、費用対効果の高い経営支援です。
+                従来のコンサルティングでは同水準の分析に<strong>月300〜500万円</strong>が必要でした。
+              </div>
+            </div>
+
+            {/* こんな方に */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 12, letterSpacing: "0.08em" }}>こんな方に向いています</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  "Web制作の提案前にクライアントの戦略を整理・言語化したい",
+                  "制作後の運用支援まで継続契約にして収益を安定させたい",
+                  "コンサルティングメニューを新たに作りたい税理士・中小企業診断士",
+                  "クライアントへの提案単価を上げたいフリーランサー",
+                ].map((text, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
+                    <span style={{ color: C.A, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                    <span>{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <a href="/howto#for-professionals" style={{ display: "block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 20px", textDecoration: "none", textAlign: "center" }}>
+              活用ガイド・提案モデルを詳しく見る →
+            </a>
+          </div>
+        </div>
+
       </div>
     </div>
   );
