@@ -52,15 +52,14 @@ export async function sendWelcomeEmail({ email, name }) {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1a1a14;">戦略大臣</div>
 
-        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん、戦略大臣へようこそ。</p>
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん</p>
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">ありがとうございます。自社利用でご登録いただきました。</p>
 
         <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">早速ですが、一つ質問させてください。</p>
 
         <p style="font-size: 18px; font-weight: bold; line-height: 1.8; color: #1a6fd4; border-left: 4px solid #1a6fd4; padding-left: 16px; margin: 24px 0;">「なぜお客様はあなたから買うのですか？」</p>
 
         <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">この質問にすぐ答えられる経営者は、実はほとんどいません。でも、この「選ばれる理由」が言語化できた瞬間から、Webサイトも、営業も、採用も、すべてが変わり始めます。</p>
-
-        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣は、この「選ばれる理由」をAIの力で明らかにするツールです。</p>
 
         <hr style="border: none; border-top: 1px solid #e5e5e0; margin: 32px 0;" />
 
@@ -76,13 +75,9 @@ export async function sendWelcomeEmail({ email, name }) {
           <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">固めた戦略をぶらさずに、Webサイト改善・営業・採用・補助金申請など、さまざまな施策に展開します。普通の生成AIと違い、戦略という「軸」があるので、どの施策も一貫性を持って実行できます。</p>
         </div>
 
-        <p style="font-size: 15px; font-weight: bold; color: #1a1a14; margin-bottom: 12px;">まず最初にやること：</p>
-        <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin-bottom: 24px;">あなたのWebサイトのURLを入力して、AB3C分析を実行してください。5分もかかりません。</p>
-
         <a href="https://analyzer.ab3c.jp" style="display: inline-block; background: #1a6fd4; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-size: 15px; font-weight: bold;">さっそく分析を始める →</a>
 
         <p style="font-size: 13px; color: #78716c; margin-top: 40px; line-height: 1.8;">
-          無料トライアルでは分析1回・チャット1回をお試しいただけます。<br>
           ご不明な点は<a href="https://analyzer.ab3c.jp/contact" style="color: #1a6fd4;">お問い合わせ</a>ください。
         </p>
         <p style="font-size: 12px; color: #78716c;">一般社団法人デジタル経営革新協会</p>
@@ -101,9 +96,8 @@ export async function sendWelcomeEmailAgency({ email, name }) {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1a1a14;">戦略大臣</div>
 
-        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん、戦略大臣へようこそ。</p>
-
-        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣は、（株）ゴンウェブイノベーションズが300万円で提供していた事業戦略立案サービスを、生成AIを使ってボタン一つでできるようにしたものです。</p>
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん</p>
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">ありがとうございます。クライアント提供でご登録いただきました。</p>
 
         <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣によって戦略を立案し、この戦略にもとづいたマーケティング支援を提供することで、<strong>毎月20万円〜の伴走支援サービス</strong>を提供できます。</p>
 
