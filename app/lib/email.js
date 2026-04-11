@@ -4,29 +4,94 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME = '戦略大臣';
 
-// ① 新規登録ウェルカムメール
+// ① 新規登録ウェルカムメール（自社利用向け）
 export async function sendWelcomeEmail({ email, name }) {
   return resend.emails.send({
     from: `${FROM_NAME} <${FROM}>`,
     to: email,
-    subject: '【戦略大臣】ご登録ありがとうございます',
+    subject: 'あなたのビジネスの「選ばれる理由」、一緒に見つけましょう。',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-        <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px;">戦略大臣</div>
-        <p style="font-size: 16px; line-height: 1.8;">${name || 'お客様'}様、ご登録ありがとうございます。</p>
-        <p style="font-size: 16px; line-height: 1.8;">戦略大臣は、あなたのビジネスの「選ばれる理由」をAIが分析する戦略ツールです。</p>
-        
-        <div style="background: #f5f2eb; border-radius: 8px; padding: 24px; margin: 32px 0;">
-          <p style="font-size: 15px; font-weight: bold; margin: 0 0 16px;">まず最初にやること</p>
-          <p style="font-size: 14px; line-height: 1.8; margin: 0 0 8px;">① あなたのWebサイトのURLを入力して分析する</p>
-          <p style="font-size: 14px; line-height: 1.8; margin: 0 0 8px;">② 分析結果のAB3Cレポートを確認する</p>
-          <p style="font-size: 14px; line-height: 1.8; margin: 0;">③ AIチャットで「競合との違い」を深掘りする</p>
+        <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1a1a14;">戦略大臣</div>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん、戦略大臣へようこそ。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">早速ですが、一つ質問させてください。</p>
+
+        <p style="font-size: 18px; font-weight: bold; line-height: 1.8; color: #1a6fd4; border-left: 4px solid #1a6fd4; padding-left: 16px; margin: 24px 0;">「なぜお客様はあなたから買うのですか？」</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">この質問にすぐ答えられる経営者は、実はほとんどいません。でも、この「選ばれる理由」が言語化できた瞬間から、Webサイトも、営業も、採用も、すべてが変わり始めます。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣は、この「選ばれる理由」をAIの力で明らかにするツールです。</p>
+
+        <hr style="border: none; border-top: 1px solid #e5e5e0; margin: 32px 0;" />
+
+        <p style="font-size: 15px; font-weight: bold; color: #1a1a14; margin-bottom: 20px;">戦略大臣の使い方には2つのフェーズがあります。</p>
+
+        <div style="background: #f0f4ff; border-radius: 8px; padding: 20px 24px; margin-bottom: 16px;">
+          <p style="font-size: 13px; font-weight: bold; color: #1a6fd4; margin: 0 0 8px; letter-spacing: 0.08em;">① 戦略プランフェーズ</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">AB3C分析で「選ばれる理由」を言語化し、戦略を固めます。分析結果に「これは違う」と感じたら、AIチャットでその違和感を深掘りしてください。戦略が固まるまで何度でも対話できます。</p>
         </div>
 
-        <a href="https://analyzer.ab3c.jp" style="display: inline-block; background: #1a6fd4; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-size: 15px; font-weight: bold;">さっそく分析を始める</a>
+        <div style="background: #f0fff4; border-radius: 8px; padding: 20px 24px; margin-bottom: 32px;">
+          <p style="font-size: 13px; font-weight: bold; color: #16a34a; margin: 0 0 8px; letter-spacing: 0.08em;">② 戦略アクションフェーズ</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">固めた戦略をぶらさずに、Webサイト改善・営業・採用・補助金申請など、さまざまな施策に展開します。普通の生成AIと違い、戦略という「軸」があるので、どの施策も一貫性を持って実行できます。</p>
+        </div>
+
+        <p style="font-size: 15px; font-weight: bold; color: #1a1a14; margin-bottom: 12px;">まず最初にやること：</p>
+        <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin-bottom: 24px;">あなたのWebサイトのURLを入力して、AB3C分析を実行してください。5分もかかりません。</p>
+
+        <a href="https://analyzer.ab3c.jp" style="display: inline-block; background: #1a6fd4; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-size: 15px; font-weight: bold;">さっそく分析を始める →</a>
 
         <p style="font-size: 13px; color: #78716c; margin-top: 40px; line-height: 1.8;">
           無料トライアルでは分析1回・チャット1回をお試しいただけます。<br>
+          ご不明な点は<a href="https://analyzer.ab3c.jp/contact" style="color: #1a6fd4;">お問い合わせ</a>ください。
+        </p>
+        <p style="font-size: 12px; color: #78716c;">一般社団法人デジタル経営革新協会</p>
+      </div>
+    `,
+  });
+}
+
+// ① 新規登録ウェルカムメール（代理店・パートナー向け）
+export async function sendWelcomeEmailAgency({ email, name }) {
+  return resend.emails.send({
+    from: `${FROM_NAME} <${FROM}>`,
+    to: email,
+    subject: '毎月20万円〜の伴走支援が提供できます',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1a1a14;">戦略大臣</div>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん、戦略大臣へようこそ。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣は、（株）ゴンウェブイノベーションズが300万円で提供していた事業戦略立案サービスを、生成AIを使ってボタン一つでできるようにしたものです。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣によって戦略を立案し、この戦略にもとづいたマーケティング支援を提供することで、<strong>毎月20万円〜の伴走支援サービス</strong>を提供できます。</p>
+
+        <hr style="border: none; border-top: 1px solid #e5e5e0; margin: 32px 0;" />
+
+        <p style="font-size: 15px; font-weight: bold; color: #1a1a14; margin-bottom: 20px;">あなたがクライアントに提供できること：</p>
+
+        <div style="background: #f0f4ff; border-radius: 8px; padding: 20px 24px; margin-bottom: 16px;">
+          <p style="font-size: 13px; font-weight: bold; color: #1a6fd4; margin: 0 0 8px; letter-spacing: 0.08em;">① 戦略プランフェーズ</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">クライアントのWebサイトをAB3C分析し、「選ばれる理由」を言語化します。出てきたレポートがそのまま提案書になります。</p>
+        </div>
+
+        <div style="background: #f0fff4; border-radius: 8px; padding: 20px 24px; margin-bottom: 32px;">
+          <p style="font-size: 13px; font-weight: bold; color: #16a34a; margin: 0 0 8px; letter-spacing: 0.08em;">② 戦略アクションフェーズ</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">固めた戦略をぶらさずに、Web改善・営業・採用・補助金申請など、あらゆる施策に展開します。毎月AIチャットでクライアントの経営相談に伴走することで、継続契約が自然に生まれます。</p>
+        </div>
+
+        <p style="font-size: 15px; font-weight: bold; color: #1a1a14; margin-bottom: 12px;">まず最初にやること：</p>
+        <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin-bottom: 24px;">あなた自身のサイト、またはクライアントのWebサイトURLを入力して、AB3C分析を実行してください。レポートを見れば、提案のイメージが一気につかめます。</p>
+
+        <a href="https://analyzer.ab3c.jp" style="display: inline-block; background: #1a6fd4; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-size: 15px; font-weight: bold;">さっそく分析してみる →</a>
+
+        <p style="font-size: 14px; color: #78716c; margin-top: 32px; line-height: 1.8; border-top: 1px solid #e5e5e0; padding-top: 24px;">
+          次回のメールでは「クライアントへの具体的な提案の仕方」をお伝えします。
+        </p>
+        <p style="font-size: 13px; color: #78716c; line-height: 1.8;">
           ご不明な点は<a href="https://analyzer.ab3c.jp/contact" style="color: #1a6fd4;">お問い合わせ</a>ください。
         </p>
         <p style="font-size: 12px; color: #78716c;">一般社団法人デジタル経営革新協会</p>
