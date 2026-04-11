@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { neon } from "@neondatabase/serverless";
+import { sendWelcomeEmail } from "@/app/lib/email";
 
 export const authOptions = {
   providers: [
@@ -41,6 +42,12 @@ export const authOptions = {
           INSERT INTO tickets (email, remaining_chats, is_trial)
           VALUES (${user.email}, 1, TRUE)
         `;
+        // ウェルカムメール送信（エラーでもログインは止めない）
+        try {
+          await sendWelcomeEmail({ email: user.email, name: user.name });
+        } catch (e) {
+          console.error('ウェルカムメール送信エラー:', e);
+        }
       }
 
       return true;

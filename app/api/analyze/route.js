@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { sendAnalysisCompleteEmail } from "@/app/lib/email";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -155,6 +156,12 @@ if (jsonStart > 0) {
 
 try {
   const result = JSON.parse(clean);
+  // 分析完了メール送信（初回のみ・エラーでも止めない）
+  try {
+    if (session?.user?.email) {
+      sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name }).catch(() => {});
+    }
+  } catch (e) {}
   return NextResponse.json(result);
 } catch (parseError) {
   console.error("JSON Parse Error:", parseError.message);
