@@ -156,12 +156,11 @@ function ResultView({ d }) {
 }
 
 function WelcomeModal({ session, onClose, onShowPricing }) {
-  const [step, setStep] = React.useState(1); // 1:アンケート 2:完了
-  const [purpose, setPurpose] = React.useState(null); // 'self' or 'agency'
+  const [step, setStep] = React.useState(1); // 1:概要+アンケート 2:完了
+  const [purpose, setPurpose] = React.useState(null);
 
   const handleSelect = async (type) => {
     setPurpose(type);
-    // DBに利用目的を保存
     try {
       await fetch("/api/user/purpose", {
         method: "POST",
@@ -174,38 +173,53 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 480, width: "100%", position: "relative" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 520, width: "100%", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
 
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4, textAlign: "center" }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 20, textAlign: "center" }}>
           ようこそ、{session?.user?.name}さん！
-        </div>
-        <div style={{ fontSize: 14, color: C.muted, textAlign: "center", marginBottom: 28, fontFamily: "system-ui, sans-serif" }}>
-          まず一つだけ教えてください。
         </div>
 
         {step === 1 && (
           <>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16, fontFamily: "'Noto Serif JP', serif", textAlign: "center" }}>
-              戦略大臣をどのように使いますか？
+            {/* サービス概要 */}
+            <div style={{ background: "#f0f4ff", borderRadius: 8, padding: "20px 24px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.A, marginBottom: 12, letterSpacing: "0.1em" }}>WHAT IS 戦略大臣</div>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: C.ink, margin: "0 0 12px", fontFamily: "system-ui, sans-serif" }}>
+                戦略大臣は、300万円の事業戦略立案サービスをボタン一つで可能にしたツールです。
+              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: C.ink, margin: "0 0 12px", fontFamily: "system-ui, sans-serif" }}>
+                生成AIに戦略を相談すると都度都度の対処療法的な回答になりがちです。先日はこう言っていたのに今日はこんなふうに言っている——矛盾した回答に戸惑うことがありませんか？
+              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: C.ink, margin: "0 0 12px", fontFamily: "system-ui, sans-serif" }}>
+                戦略大臣では環境調査をした上で戦略を固めることで、その後のマーケティングの軸が定まり、一貫性のある経営戦略の実行が可能になります。
+              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.9, color: C.A, margin: 0, fontWeight: 700, fontFamily: "system-ui, sans-serif" }}>
+                あなたのWebサイトのURLを入れてお試しください。
+              </p>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+
+            {/* 利用目的選択 */}
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, fontFamily: "'Noto Serif JP', serif", textAlign: "center" }}>
+              あなたの利用目的を教えてください
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
               <button
                 onClick={() => handleSelect("self")}
-                style={{ background: "#f0f4ff", border: `2px solid #1a6fd4`, borderRadius: 8, cursor: "pointer", padding: "20px 24px", textAlign: "left" }}
+                style={{ background: "#f0f4ff", border: `2px solid #1a6fd4`, borderRadius: 8, cursor: "pointer", padding: "18px 24px", textAlign: "left" }}
               >
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.A, fontWeight: 700, marginBottom: 6 }}>SELF USE</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, fontWeight: 700, marginBottom: 6 }}>SELF USE</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "'Noto Serif JP', serif" }}>自社・自分のビジネスを分析したい</div>
                 <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>自社のWebサイトや事業戦略をAB3Cで整理し、経営判断に活かしたい。</div>
               </button>
               <button
                 onClick={() => handleSelect("agency")}
-                style={{ background: "#fff8f0", border: `2px solid #FF6B00`, borderRadius: 8, cursor: "pointer", padding: "20px 24px", textAlign: "left" }}
+                style={{ background: "#fff8f0", border: `2px solid #FF6B00`, borderRadius: 8, cursor: "pointer", padding: "18px 24px", textAlign: "left" }}
               >
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#FF6B00", fontWeight: 700, marginBottom: 6 }}>AGENCY USE</div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "#FF6B00", fontWeight: 700, marginBottom: 6 }}>AGENCY USE</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "'Noto Serif JP', serif" }}>クライアントへの戦略支援に活用したい</div>
                 <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>Web制作・コンサル・税理士など、クライアントへの提案・伴走サービスとして使いたい。</div>
-                <div style={{ fontSize: 12, color: "#FF6B00", marginTop: 8, fontFamily: "system-ui, sans-serif" }}>※ クライアント提供向けのサポート情報・活用ガイドをお届けします。</div>
+                <div style={{ fontSize: 12, color: "#FF6B00", marginTop: 8, fontFamily: "system-ui, sans-serif" }}>※ クライアント提供向けのサポート情報をお届けします。</div>
               </button>
             </div>
             <div style={{ fontSize: 12, color: C.muted, textAlign: "center", fontFamily: "system-ui, sans-serif" }}>
@@ -224,7 +238,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
             </div>
             <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 24, fontFamily: "system-ui, sans-serif" }}>
               {purpose === "agency"
-                ? "クライアントへの提案方法・活用事例・単価設計のヒントなど、パートナー向けの情報をメールでお届けします。"
+                ? "クライアントへの提案方法・活用事例など、パートナー向けの情報をメールでお届けします。"
                 : "無料トライアルでは分析1回・チャット1回をお試しいただけます。まずあなたのWebサイトのURLを入力してみてください。"
               }
             </div>
