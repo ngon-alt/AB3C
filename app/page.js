@@ -156,30 +156,88 @@ function ResultView({ d }) {
 }
 
 function WelcomeModal({ session, onClose, onShowPricing }) {
+  const [step, setStep] = React.useState(1); // 1:アンケート 2:完了
+  const [purpose, setPurpose] = React.useState(null); // 'self' or 'agency'
+
+  const handleSelect = async (type) => {
+    setPurpose(type);
+    // DBに利用目的を保存
+    try {
+      await fetch("/api/user/purpose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purpose: type }),
+      });
+    } catch (e) {}
+    setStep(2);
+  };
+
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 420, width: "100%", textAlign: "center", position: "relative" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 480, width: "100%", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
-        <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 36, fontWeight: 700, marginBottom: 12 }}>
-          <span style={{ color: "#1a6fd4" }}>A</span>
-          <span style={{ color: "#FF0000" }}>B</span>
-          <span style={{ color: "#1a1a14" }}>3C</span>
-        </div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4, textAlign: "center" }}>
           ようこそ、{session?.user?.name}さん！
         </div>
-        <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.8, marginBottom: 24, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-無料プランでは分析1回・チャット1回をお試しいただけます。<br />
-          より多く使いたい方はチケットのご購入をご検討ください。
+        <div style={{ fontSize: 14, color: C.muted, textAlign: "center", marginBottom: 28, fontFamily: "system-ui, sans-serif" }}>
+          まず一つだけ教えてください。
         </div>
-        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-          <button onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, padding: "10px 20px", color: C.muted }}>
-            まず使ってみる
-          </button>
-          <button onClick={() => { onClose(); onShowPricing(); }} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "10px 20px", color: "#fff" }}>
-            プランを見る
-          </button>
-        </div>
+
+        {step === 1 && (
+          <>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16, fontFamily: "'Noto Serif JP', serif", textAlign: "center" }}>
+              戦略大臣をどのように使いますか？
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              <button
+                onClick={() => handleSelect("self")}
+                style={{ background: "#f0f4ff", border: `2px solid #1a6fd4`, borderRadius: 8, cursor: "pointer", padding: "20px 24px", textAlign: "left" }}
+              >
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.A, fontWeight: 700, marginBottom: 6 }}>SELF USE</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "'Noto Serif JP', serif" }}>自社・自分のビジネスを分析したい</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>自社のWebサイトや事業戦略をAB3Cで整理し、経営判断に活かしたい。</div>
+              </button>
+              <button
+                onClick={() => handleSelect("agency")}
+                style={{ background: "#fff8f0", border: `2px solid #FF6B00`, borderRadius: 8, cursor: "pointer", padding: "20px 24px", textAlign: "left" }}
+              >
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#FF6B00", fontWeight: 700, marginBottom: 6 }}>AGENCY USE</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "'Noto Serif JP', serif" }}>クライアントへの戦略支援に活用したい</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>Web制作・コンサル・税理士など、クライアントへの提案・伴走サービスとして使いたい。</div>
+                <div style={{ fontSize: 12, color: "#FF6B00", marginTop: 8, fontFamily: "system-ui, sans-serif" }}>※ クライアント提供向けのサポート情報・活用ガイドをお届けします。</div>
+              </button>
+            </div>
+            <div style={{ fontSize: 12, color: C.muted, textAlign: "center", fontFamily: "system-ui, sans-serif" }}>
+              ※ 後から変更できます
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>
+              {purpose === "agency" ? "🤝" : "🎯"}
+            </div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
+              {purpose === "agency" ? "代理店・パートナー向けの情報をお届けします" : "さっそく自社の戦略を分析しましょう"}
+            </div>
+            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 24, fontFamily: "system-ui, sans-serif" }}>
+              {purpose === "agency"
+                ? "クライアントへの提案方法・活用事例・単価設計のヒントなど、パートナー向けの情報をメールでお届けします。"
+                : "無料トライアルでは分析1回・チャット1回をお試しいただけます。まずあなたのWebサイトのURLを入力してみてください。"
+              }
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button onClick={onClose} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 24px", color: "#fff" }}>
+                {purpose === "agency" ? "分析を始める" : "さっそく使ってみる"}
+              </button>
+              <button onClick={() => { onClose(); onShowPricing(); }} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "12px 24px", color: C.muted }}>
+                プランを見る
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
