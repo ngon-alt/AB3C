@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { neon } from "@neondatabase/serverless";
-import { sendWelcomeEmail, sendWelcomeEmailAgency } from "@/app/lib/email";
+import { sendWelcomeEmail, sendWelcomeEmailAgency, sendRegistrationEmail } from "@/app/lib/email";
 
 export const authOptions = {
   providers: [
@@ -42,7 +42,12 @@ export const authOptions = {
           INSERT INTO tickets (email, remaining_chats, is_trial)
           VALUES (${user.email}, 1, TRUE)
         `;
-        // ウェルカムメールは利用目的選択後（/api/user/purpose）で送信
+        // 登録完了メール送信
+        try {
+          await sendRegistrationEmail({ email: user.email, name: user.name });
+        } catch (e) {
+          console.error('登録完了メール送信エラー:', e);
+        }
       }
 
       return true;

@@ -4,6 +4,44 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME = '戦略大臣';
 
+// 登録完了メール（新規登録直後・目的選択前）
+export async function sendRegistrationEmail({ email, name }) {
+  return resend.emails.send({
+    from: `${FROM_NAME} <${FROM}>`,
+    to: email,
+    subject: '【戦略大臣】ご登録が完了しました',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="font-size: 24px; font-weight: bold; margin-bottom: 24px; color: #1a1a14;">戦略大臣</div>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">${name || 'お客様'}さん、ご登録ありがとうございます。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣は、300万円の事業戦略立案サービスをボタン一つで可能にしたツールです。</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">生成AIに戦略を相談すると都度都度の対処療法的な回答になりがちです。先日はこう言っていたのに今日はこんなふうに言っている——矛盾した回答に戸惑うことがありませんか？</p>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">戦略大臣では環境調査をした上で戦略を固めることで、その後のマーケティングの軸が定まり、一貫性のある経営戦略の実行が可能になります。</p>
+
+        <div style="background: #f5f2eb; border-radius: 8px; padding: 20px 24px; margin: 28px 0;">
+          <p style="font-size: 14px; font-weight: bold; color: #1a1a14; margin: 0 0 12px;">無料トライアルでできること：</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0 0 4px;">・AB3C分析レポート：1回</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0 0 4px;">・Webサイト改善レポート：1回</p>
+          <p style="font-size: 14px; line-height: 1.8; color: #1a1a14; margin: 0;">・AIチャット相談：1回</p>
+        </div>
+
+        <p style="font-size: 16px; line-height: 1.8; color: #1a1a14;">あなたのWebサイトのURLを入れてお試しください。</p>
+
+        <a href="https://analyzer.ab3c.jp" style="display: inline-block; background: #1a6fd4; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 4px; font-size: 15px; font-weight: bold; margin-top: 8px;">さっそく分析を始める →</a>
+
+        <p style="font-size: 13px; color: #78716c; margin-top: 40px; line-height: 1.8;">
+          ご不明な点は<a href="https://analyzer.ab3c.jp/contact" style="color: #1a6fd4;">お問い合わせ</a>ください。
+        </p>
+        <p style="font-size: 12px; color: #78716c;">一般社団法人デジタル経営革新協会</p>
+      </div>
+    `,
+  });
+}
+
 // ① 新規登録ウェルカムメール（自社利用向け）
 export async function sendWelcomeEmail({ email, name }) {
   return resend.emails.send({
