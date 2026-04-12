@@ -106,6 +106,9 @@ export default function RootLayout({ children }) {
   button { display: none !important; }
   nav { display: none !important; }
 }
+@media (max-width: 768px) {
+  #sidebar { display: none !important; }
+}
         `}</style>
       </head>
       <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${ebGaramond.variable}`}>

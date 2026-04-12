@@ -256,51 +256,51 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function ChatWidget({ isPro, analysisResult, onReanalyze }) {
-  const [open, setOpen] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
-const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) {
+  const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState(() => {
-    try {
-      const saved = localStorage.getItem(chatKey);
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
- useEffect(() => {
-    if (open && messages.length === 0) {
+  useEffect(() => {
+    if (messages.length === 0) {
       setMessages([{ role: "assistant", content: "分析結果をもとに相談できます。どんなことでも聞いてください！" }]);
     }
-  }, [open]);
+  }, []);
 
-useEffect(() => {
-    try {
-      localStorage.setItem(chatKey, JSON.stringify(messages));
-    } catch {}
+  useEffect(() => {
+    try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
   }, [messages]);
 
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMessage = { role: "user", content: input };
-    const newMessages = [...messages.filter(m => m.role !== "assistant" || messages.indexOf(m) > 0), userMessage];
-    setMessages([...messages, userMessage]);
-    setInput("");
+  // トピックチップからの送信
+  useEffect(() => {
+    if (onSendTopic) {
+      onSendTopic.current = (topic) => {
+        if (topic && !loading) {
+          setInput("");
+          const userMessage = { role: "user", content: topic };
+          setMessages(prev => [...prev, userMessage]);
+          sendMessage(topic, [...messages, userMessage]);
+        }
+      };
+    }
+  }, [messages, loading]);
+
+  const sendMessage = async (text, allMessages) => {
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: newMessages.filter(m => m.role === "user" || (m.role === "assistant" && messages.indexOf(m) > 0)),
+          messages: allMessages.filter(m => m.role === "user" || allMessages.indexOf(m) > 0),
           analysisResult,
         }),
       });
@@ -308,129 +308,182 @@ useEffect(() => {
       setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]);
     } catch {
       setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
- const reanalyze = async () => {
-  if (loading || messages.length < 2) return;
-  setLoading(true);
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages, analysisResult, reanalyze: true }),
-    });
- const data = await res.json();
-    console.log("再分析レスポンス:", data);
-   if (data.reanalyzed && data.result) {
-      const summary = data.chatSummary || messages
-        .filter(m => m.role === "user")
-        .slice(-1)
-        .map(m => m.content.slice(0, 20))
-        .join("、");
-      onReanalyze(data.result, summary);
-      setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
-    } else {
-      console.log("再分析条件未達:", data);
-      setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。" }]);
-    }
-  } catch {
-    setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
-  } finally {
-    setLoading(false);
-  }
-};
-  
+  const send = async () => {
+    if (!input.trim() || loading) return;
+    const userMessage = { role: "user", content: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setInput("");
+    await sendMessage(input, newMessages);
+  };
+
+  const reanalyze = async () => {
+    if (loading || messages.length < 2) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages, analysisResult, reanalyze: true }),
+      });
+      const data = await res.json();
+      if (data.reanalyzed && data.result) {
+        const summary = data.chatSummary || messages.filter(m => m.role === "user").slice(-1).map(m => m.content.slice(0, 20)).join("、");
+        onReanalyze(data.result, summary);
+        setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
+      } else {
+        setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。" }]);
+      }
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
+    } finally { setLoading(false); }
+  };
+
   if (!isPro) return null;
 
   return (
-<div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999 }}>
-      {open && (
-<div style={fullscreen ? { position: "fixed", inset: 0, width: "100%", height: "100%", background: "#fff", zIndex: 9999, borderRadius: 0, overflow: "hidden" } : { position: "absolute", bottom: 70, right: 0, width: 320, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>          {/* ヘッダー */}
-          <div style={{ background: C.ink, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 16, fontWeight: 700 }}>
-                <span style={{ color: "#1a6fd4" }}>A</span>
-                <span style={{ color: "#FF0000" }}>B</span>
-                <span style={{ color: "#f0ebe0" }}>3C</span>
-              </span>
-              <span style={{ fontSize: 11, color: C.muted }}>AI相談</span>
-              <span style={{ background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</span>
-            </div>
-<div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setFullscreen(!fullscreen)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 14 }}>
-                {fullscreen ? "⊡" : "⊞"}
-              </button>
-              <button onClick={() => setOpen(false)} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16 }}>✕</button>
-            </div>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", marginTop: 32 }}>
+      <div style={{ background: C.ink, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 16, fontWeight: 700 }}>
+          <span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#f0ebe0" }}>3C</span>
+        </span>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>AI相談</span>
+        <span style={{ background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</span>
+      </div>
+      <div style={{ height: 320, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{
+              background: m.role === "user" ? C.A : C.surface,
+              border: m.role === "user" ? "none" : `1px solid ${C.border}`,
+              borderRadius: 8, padding: "10px 14px", fontSize: 14,
+              color: m.role === "user" ? "#fff" : C.ink,
+              maxWidth: "80%", lineHeight: 1.7,
+              fontFamily: "system-ui, sans-serif",
+              whiteSpace: "pre-wrap",
+            }}>{m.content}</div>
           </div>
-          {/* メッセージ */}
-<div style={{ height: fullscreen ? "calc(100vh - 180px)" : 280, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: C.bg }}>
-  {messages.map((m, i) => (
-    <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-                <div style={{
-                  background: m.role === "user" ? C.A : C.surface,
-                  border: m.role === "user" ? "none" : `1px solid ${C.border}`,
-                  borderRadius: 8, padding: "10px 14px", fontSize: 15,
-                  color: m.role === "user" ? "#fff" : C.ink,
-                  maxWidth: "85%", lineHeight: 1.6,
-                  fontFamily: "'Noto Serif JP', serif",
-                }}>
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {loading && (
-              <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontSize: 13, color: C.muted }}>
-                  考え中...
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-{messages.length >= 3 && (
-  <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e8e8" }}>
-    <button
-      onClick={reanalyze}
-      disabled={loading}
-      style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}
-    >
-      {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
-    </button>
-  </div>
-)}
-          {/* 入力欄 */}
-          <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: C.surface }}>
-            <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder="分析結果について相談する..."
-              style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px", fontSize: 13, outline: "none", fontFamily: "'Noto Serif JP', serif" }}
-            />
-            <button onClick={send} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 14px" }}>
-              送信
-            </button>
-          </div>
+        ))}
+        {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        <div ref={messagesEndRef} />
+      </div>
+      {messages.length >= 3 && (
+        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e8e8" }}>
+          <button onClick={reanalyze} disabled={loading}
+            style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
+            {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
+          </button>
         </div>
       )}
-      {/* フローティングボタン */}
-      <div style={{ position: "relative" }}>
-        <button
-          onClick={() => setOpen(!open)}
-          style={{ width: 56, height: 56, background: C.ink, borderRadius: "50%", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
-          </svg>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}` }}>
+        <input value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder="分析結果について相談する..."
+          style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
+        />
+        <button onClick={send} disabled={loading}
+          style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+          送信
         </button>
       </div>
     </div>
   );
 }
+function ThreadChat({ threadId, analysisResult, isPro }) {
+  const chatKey = `ab3c_thread_${threadId}`;
+  const [messages, setMessages] = useState(() => {
+    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+    }
+  }, [threadId]);
+
+  useEffect(() => {
+    try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
+  }, [messages, chatKey]);
+
+  // threadId変更時にメッセージを再読込
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
+      setMessages(saved ? JSON.parse(saved) : [{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+    } catch {
+      setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+    }
+    setInput("");
+  }, [threadId]);
+
+  const send = async () => {
+    if (!input.trim() || loading || !isPro) return;
+    const userMessage = { role: "user", content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages.filter(m => m.role === "user" || messages.indexOf(m) > 0), userMessage],
+          analysisResult,
+        }),
+      });
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ height: 360, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{
+              background: m.role === "user" ? C.A : C.surface,
+              border: m.role === "user" ? "none" : `1px solid ${C.border}`,
+              borderRadius: 8, padding: "10px 14px", fontSize: 14,
+              color: m.role === "user" ? "#fff" : C.ink,
+              maxWidth: "80%", lineHeight: 1.7,
+              fontFamily: "system-ui, sans-serif",
+              whiteSpace: "pre-wrap",
+            }}>{m.content}</div>
+          </div>
+        ))}
+        {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        <div ref={messagesEndRef} />
+      </div>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}` }}>
+        <input
+          value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder={isPro ? "メッセージを入力..." : "プロプランでチャットが利用できます"}
+          disabled={!isPro}
+          style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
+        />
+        <button onClick={send} disabled={loading || !isPro}
+          style={{ background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+          送信
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function TitleEditor({ title, onChange }) {
   const [editing, setEditing] = useState(false);
   return (
@@ -476,8 +529,11 @@ const [currentInput, setCurrentInput] = useState("");
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
+const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
 const [recruitLoading, setRecruitLoading] = useState(false);
+const [threads, setThreads] = useState([]);
+const [activeThreadId, setActiveThreadId] = useState(null);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
@@ -485,6 +541,43 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   } catch { return []; }
 });
   
+  // フェーズ導出
+  const phase = !currentResult ? "input" : strategyConfirmed ? "action" : "analysis";
+
+  const DEFAULT_THREADS = [
+    { id: "marketing", label: "集客・広告", icon: "📣", preset: true },
+    { id: "recruit", label: "採用・求人", icon: "👥", preset: true },
+    { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
+    { id: "today", label: "今日のアクション", icon: "✅", preset: true },
+  ];
+
+  // スレッド初期化（戦略確定時）
+  useEffect(() => {
+    if (strategyConfirmed && threads.length === 0) {
+      const storageKey = `ab3c_threads_${siteId || "default"}`;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          setThreads(JSON.parse(saved));
+        } else {
+          setThreads(DEFAULT_THREADS);
+        }
+      } catch {
+        setThreads(DEFAULT_THREADS);
+      }
+    }
+  }, [strategyConfirmed]);
+
+  // スレッド永続化
+  useEffect(() => {
+    if (threads.length > 0) {
+      const storageKey = `ab3c_threads_${siteId || "default"}`;
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(threads));
+      } catch {}
+    }
+  }, [threads]);
+
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
     try {
@@ -594,7 +687,7 @@ notify(savedText);
     } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -607,78 +700,156 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
-<ChatWidget
-  isPro={isPro || chatTickets > 0 || trialChats > 0}
-  analysisResult={currentResult}
-  onReanalyze={(newResult, summary) => {
-    setResult(newResult);
-    setSelectedHistory(null);
-    if (summary) {
-      setChatSummaries(prev => [...prev, summary]);
-    }
-    saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-  }}
-/>
+{/* ChatWidget removed - now using integrated AnalysisChatPanel */}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
       <Header onShowPricing={() => setShowPricing(true)} />
 
-      <div style={{ display: "flex", flex: 1, position: "relative" }}>
-        {/* サイドバートグルボタン - タブスタイル */}
-        <button 
-          onClick={() => setSidebarOpen(!sidebarOpen)} 
-          style={{ 
-            position: "absolute", 
-            left: sidebarOpen ? 240 : 0, 
-            top: 0, 
-            zIndex: 100,
-            background: C.surface, 
-            border: `1px solid ${C.border}`, 
-            borderLeft: sidebarOpen ? `1px solid ${C.border}` : "none",
-            borderRadius: sidebarOpen ? "0 4px 4px 0" : "0 4px 4px 0", 
-            padding: "8px 6px", 
-            cursor: "pointer", 
-            fontFamily: "'Space Mono', monospace", 
-            fontSize: 14, 
-            color: C.muted,
-            boxShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-            transition: "left 0.2s ease",
-            lineHeight: 1
-          }}
-        >
-          {sidebarOpen ? "◀" : "▶"}
-        </button>
-
-      {sidebarOpen && (
-  <div id="sidebar" style={{ width: 240, minWidth: 240, borderRight: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column" }}>
-            <div style={{ padding: "14px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted }}>履歴</span>
-              <button onClick={reset} style={{ background: C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, padding: "4px 10px" }}>+ 新規</button>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? "200px 1fr" : "1fr", flex: 1, position: "relative" }}>
+        {/* サイドバー */}
+        {sidebarOpen && (
+  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? "#1a3a5c" : C.ink, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
+            {/* フェーズヘッダー */}
+            <div style={{ padding: "16px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: phase === "action" ? "#6db3f8" : "rgba(255,255,255,0.5)", marginBottom: 4 }}>
+                {phase === "action" ? "STEP 2" : "STEP 1"}
+              </div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                {phase === "action" ? "アクションフェーズ" : "分析フェーズ"}
+              </div>
             </div>
+
+            {/* フェーズ別サイドバーコンテンツ */}
+            {phase === "action" ? (
+              <>
+                {/* 確定戦略サマリー */}
+                <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>確定戦略</div>
+                  <div style={{ fontSize: 12, color: "#fff", lineHeight: 1.6 }}>{currentResult?.strategy_message?.message?.slice(0, 60) || "（未設定）"}</div>
+                </div>
+                {/* スレッド一覧 */}
+                <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>スレッド</div>
+                  {threads.map(t => (
+                    <div key={t.id} onClick={() => setActiveThreadId(t.id)}
+                      style={{ padding: "6px 8px", borderRadius: 4, cursor: "pointer", marginBottom: 2, fontSize: 12, color: "#fff", background: activeThreadId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 14 }}>{t.icon}</span>
+                      <span>{t.label}</span>
+                      {activeThreadId === t.id && <span style={{ marginLeft: "auto", fontSize: 8, color: "#6db3f8" }}>●</span>}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* 分析履歴 */}
+                <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>分析履歴</span>
+                  <button onClick={reset} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 9, padding: "3px 8px" }}>+ 新規</button>
+                </div>
+              </>
+            )}
+
             <div style={{ flex: 1, overflowY: "auto" }}>
-              {history.length === 0 ? (
-                <div style={{ padding: 16, fontSize: 12, color: C.muted, textAlign: "center" }}>履歴はありません</div>
-              ) : (
-                history.map((h, i) => (
-                  <div key={h.id} onClick={() => { 
-  setSelectedHistory(h); 
-  setResult(null); 
+              {phase !== "action" && (
+                history.length === 0 ? (
+                  <div style={{ padding: 14, fontSize: 11, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>履歴はありません</div>
+                ) : (
+                  history.map((h, i) => (
+                    <div key={h.id} onClick={() => {
+  setSelectedHistory(h);
+  setResult(null);
   setCurrentResult(h.result);
   setCurrentInput(h.input);
   setImproveResult(h.improveResult || null);
+  setStrategyConfirmed(false);
 }}
-                    style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: selectedHistory?.id === h.id ? C.highlight : "transparent", borderLeft: selectedHistory?.id === h.id ? `3px solid ${C.A}` : "3px solid transparent" }}>
-                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, marginBottom: 4 }}>#{history.length - i} · {h.date}</div>
-                    <div style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>{h.preview}</div>
-                    <button onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }} style={{ marginTop: 6, background: "transparent", border: "none", cursor: "pointer", fontSize: 10, color: C.muted, padding: 0 }}>削除</button>
-                  </div>
-                ))
+                      style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: selectedHistory?.id === h.id ? "rgba(255,255,255,0.1)" : "transparent", borderLeft: selectedHistory?.id === h.id ? "3px solid #6db3f8" : "3px solid transparent" }}>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{history.length - i} · {h.date}</div>
+                      <div style={{ fontSize: 11, color: "#fff", lineHeight: 1.5 }}>{h.preview?.slice(0, 40)}</div>
+                      <button onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }} style={{ marginTop: 4, background: "transparent", border: "none", cursor: "pointer", fontSize: 9, color: "rgba(255,255,255,0.3)", padding: 0 }}>削除</button>
+                    </div>
+                  ))
+                )
               )}
+            </div>
+
+            {/* サイドバートグルボタン */}
+            <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+              <button onClick={() => setSidebarOpen(false)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 10, padding: 0 }}>◀ 閉じる</button>
             </div>
           </div>
         )}
-        <div style={{ flex: 1, padding: "32px 24px 80px", overflowY: "auto", maxWidth: 900 }}>
+        {/* サイドバー閉じ時の開くボタン */}
+        {!sidebarOpen && (
+          <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
+        )}
+        <div style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          {/* フェーズトップバー */}
+          {phase !== "input" && (
+            <div style={{ padding: "10px 24px", background: phase === "action" ? "#e8f4fd" : C.surface, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: phase === "action" ? C.A : C.ink, letterSpacing: "0.1em" }}>
+                  {phase === "action" ? "ACTION PHASE" : "ANALYSIS PHASE"}
+                </span>
+                {currentResult?.strategy_message?.message && (
+                  <span style={{ fontSize: 12, color: C.muted, maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {currentResult.strategy_message.message.slice(0, 50)}
+                  </span>
+                )}
+              </div>
+              {phase === "analysis" && !strategyConfirmed && (
+                <button
+                  onClick={async () => {
+                    if (!siteId) {
+                      try {
+                        const createRes = await fetch("/api/sites", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
+                            site_url: currentInput?.startsWith("http") ? currentInput : null,
+                          }),
+                        });
+                        const createData = await createRes.json();
+                        if (createData.site) {
+                          setSiteId(createData.site.id);
+                          await fetch("/api/sites", {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
+                          });
+                          setStrategyConfirmed(true);
+                        }
+                      } catch { alert("保存に失敗しました。"); }
+                    } else {
+                      try {
+                        await fetch("/api/sites", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
+                        });
+                        setStrategyConfirmed(true);
+                      } catch { alert("保存に失敗しました。"); }
+                    }
+                  }}
+                  style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap" }}
+                >
+                  戦略を確定する →
+                </button>
+              )}
+              {phase === "action" && (
+                <button
+                  onClick={() => { setStrategyConfirmed(false); setActiveThreadId(null); }}
+                  style={{ background: "transparent", border: `1px solid ${C.A}`, borderRadius: 4, color: C.A, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, padding: "6px 14px" }}
+                >
+                  ロック解除
+                </button>
+              )}
+            </div>
+          )}
+          <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
   {/* タブ */}
@@ -951,144 +1122,94 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 
-{/* アクションフェーズ */}
-{currentResult && (
-  <div style={{ marginTop: 40, paddingTop: 32, borderTop: `3px solid ${C.A}` }}>
-    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 28, color: C.A }}>ACTION</span>
-      戦略を確定してアクションへ
+{/* 分析フェーズ: トピックチップ + チャットパネル */}
+{phase === "analysis" && (
+  <div style={{ marginTop: 32 }}>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+      {["集客について深掘りしたい", "競合との差別化を考えたい", "具体的なアクションを提案して", "採用にどう活かせる？"].map(topic => (
+        <button key={topic} onClick={() => chatSendTopicRef.current?.(topic)}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "6px 14px", cursor: "pointer", fontSize: 13, color: C.ink, fontFamily: "system-ui, sans-serif" }}>
+          {topic}
+        </button>
+      ))}
+    </div>
+    <AnalysisChatPanel
+      isPro={isPro || chatTickets > 0 || trialChats > 0}
+      analysisResult={currentResult}
+      onSendTopic={chatSendTopicRef}
+      onReanalyze={(newResult, summary) => {
+        setResult(newResult);
+        setSelectedHistory(null);
+        if (summary) setChatSummaries(prev => [...prev, summary]);
+        saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+      }}
+    />
+  </div>
+)}
+
+{/* アクションフェーズ - テーマ別カードとスレッド */}
+{phase === "action" && (
+  <div style={{ marginTop: 40 }}>
+    {/* 確定戦略サマリー */}
+    <div style={{ background: "#e8f4fd", border: `2px solid ${C.A}`, borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, fontWeight: 700, marginBottom: 6 }}>確定戦略</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, lineHeight: 1.6, fontFamily: "'Noto Serif JP', serif" }}>
+        {currentResult?.strategy_message?.message || ""}
+      </div>
     </div>
 
-    {/* 戦略確定ボタン */}
-    {!strategyConfirmed ? (
-      <div style={{ background: C.surface, border: `2px solid ${C.A}`, borderRadius: 8, padding: "24px 28px", marginBottom: 24 }}>
-        <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-          この分析結果を戦略として確定すると、ダッシュボードに保存され、求人コンテンツなどの生成に活用できます。
-        </div>
+    {/* テーマカード 2x2 グリッド */}
+    {!activeThreadId && (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginBottom: 24 }}>
+        {threads.map(t => (
+          <button key={t.id} onClick={() => setActiveThreadId(t.id)}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px", cursor: "pointer", textAlign: "left", transition: "border-color 0.15s" }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>{t.icon}</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink }}>{t.label}</div>
+          </button>
+        ))}
         <button
-          onClick={async () => {
-            if (!siteId) {
-              // サイト未登録の場合は新規登録してから確定
-              try {
-                const createRes = await fetch("/api/sites", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
-                    site_url: currentInput?.startsWith("http") ? currentInput : null,
-                  }),
-                });
-                const createData = await createRes.json();
-                if (createData.site) {
-                  setSiteId(createData.site.id);
-                  await fetch("/api/sites", {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
-                  });
-                  setStrategyConfirmed(true);
-                }
-              } catch { alert("保存に失敗しました。"); }
-            } else {
-              try {
-                await fetch("/api/sites", {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
-                });
-                setStrategyConfirmed(true);
-              } catch { alert("保存に失敗しました。"); }
+          onClick={() => {
+            const label = prompt("テーマ名を入力してください");
+            if (label?.trim()) {
+              const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false };
+              setThreads(prev => [...prev, newThread]);
+              setActiveThreadId(newThread.id);
             }
           }}
-          style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 15, fontWeight: 700, padding: "14px 32px" }}
+          style={{ background: "transparent", border: `2px dashed ${C.border}`, borderRadius: 8, padding: "20px", cursor: "pointer", textAlign: "center", color: C.muted }}
         >
-          この戦略を確定する
+          <div style={{ fontSize: 28, marginBottom: 8 }}>+</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12 }}>カスタムテーマを追加</div>
         </button>
-      </div>
-    ) : (
-      <div style={{ background: "#e8f4fd", border: `2px solid ${C.A}`, borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: C.A, fontWeight: 700, marginBottom: 8 }}>
-          戦略が確定されました
-        </div>
-        <div style={{ fontSize: 15, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-          ダッシュボードから確認できます。以下のアクションツールをご利用ください。
-        </div>
       </div>
     )}
 
-    {/* 求人コンテンツ生成 */}
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px", marginBottom: 24 }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", color: C.B, marginBottom: 12, textTransform: "uppercase" }}>Recruit Content</div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
-        求人コンテンツを生成
-      </div>
-      <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-        AB3C分析結果をもとに、企業の魅力を伝える採用メッセージを自動生成します。
-      </div>
-      {!recruitResult ? (
-        <button
-          onClick={async () => {
-            setRecruitLoading(true);
-            try {
-              const res = await fetch("/api/recruit", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ analysisResult: currentResult }),
-              });
-              const data = await res.json();
-              if (data.error) { alert(data.error); } else { setRecruitResult(data); }
-            } catch { alert("エラーが発生しました。"); }
-            finally { setRecruitLoading(false); }
-          }}
-          disabled={recruitLoading}
-          style={{ background: recruitLoading ? C.muted : C.B, border: "none", borderRadius: 4, color: "#fff", cursor: recruitLoading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 28px" }}
-        >
-          {recruitLoading ? "生成中..." : "求人コンテンツを生成する"}
-        </button>
-      ) : (
-        <div>
-          <div style={{ background: "#fef3c7", borderRadius: 6, padding: "16px 20px", marginBottom: 16 }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{recruitResult.catch_copy}</div>
-            <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{recruitResult.mission}</div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12, marginBottom: 16 }}>
-            {[
-              { label: "魅力ポイント", content: recruitResult.appeal_points?.join(" / ") },
-              { label: "求める人物像", content: recruitResult.ideal_candidate },
-              { label: "仕事内容", content: recruitResult.work_description },
-              { label: "社風・カルチャー", content: recruitResult.company_culture },
-            ].map(({ label, content }) => (
-              <div key={label} style={{ background: "#f5f5f5", borderRadius: 6, padding: "14px 16px" }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, marginBottom: 6, letterSpacing: "0.1em" }}>{label}</div>
-                <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{content}</div>
-              </div>
-            ))}
-          </div>
-          {recruitResult.message_to_applicants && (
-            <div style={{ background: C.ink, borderRadius: 6, padding: "16px 20px" }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>応募者へのメッセージ</div>
-              <div style={{ fontSize: 15, color: "#fff", lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{recruitResult.message_to_applicants}</div>
-            </div>
+    {/* 選択スレッドのチャット */}
+    {activeThreadId && (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <button onClick={() => setActiveThreadId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, padding: "6px 12px" }}>← 戻る</button>
+          <span style={{ fontSize: 20 }}>{threads.find(t => t.id === activeThreadId)?.icon}</span>
+          <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink }}>{threads.find(t => t.id === activeThreadId)?.label}</span>
+          {!threads.find(t => t.id === activeThreadId)?.preset && (
+            <button onClick={() => { setThreads(prev => prev.filter(t => t.id !== activeThreadId)); setActiveThreadId(null); }}
+              style={{ marginLeft: "auto", background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 11 }}>削除</button>
           )}
-          <button
-            onClick={() => setRecruitResult(null)}
-            style={{ marginTop: 12, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "8px 16px" }}
-          >
-            再生成する
-          </button>
         </div>
-      )}
-    </div>
+        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
+      </div>
+    )}
 
     {/* ダッシュボードへのリンク */}
     <a href="/dashboard" style={{
       display: "flex", alignItems: "center", gap: 12, background: C.surface, border: `1px solid ${C.border}`,
-      borderRadius: 8, padding: "16px 20px", textDecoration: "none", color: C.ink, marginBottom: 16,
+      borderRadius: 8, padding: "16px 20px", textDecoration: "none", color: C.ink, marginTop: 24,
     }}>
       <span style={{ fontSize: 24 }}>📋</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700 }}>ダッシュボードへ</div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>登録サイトの管理・戦略の一覧</div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 2, fontFamily: "system-ui, sans-serif" }}>登録サイトの管理・戦略の一覧</div>
       </div>
     </a>
   </div>
@@ -1109,8 +1230,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <a href="/legal" style={{ color: C.muted, textDecoration: "none" }}>特定商取引法</a>
             </div>
           </footer>
-        </div>
-      </div>
+          </div>{/* end inner padding wrapper */}
+        </div>{/* end main content column */}
+      </div>{/* end grid */}
     </div>
   );
 }
