@@ -345,15 +345,8 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
   if (!isPro) return null;
 
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", marginTop: 32 }}>
-      <div style={{ background: C.ink, padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 16, fontWeight: 700 }}>
-          <span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#f0ebe0" }}>3C</span>
-        </span>
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>AI相談</span>
-        <span style={{ background: "#1a6fd4", color: "#fff", fontSize: 10, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>PRO</span>
-      </div>
-      <div style={{ height: 320, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
@@ -449,8 +442,8 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
   };
 
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
-      <div style={{ height: 360, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
@@ -710,7 +703,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       <Header onShowPricing={() => setShowPricing(true)} />
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? "200px 1fr" : "1fr", flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 340px" : "200px 1fr") : (phase !== "input" ? "1fr 340px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? "#1a3a5c" : C.ink, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
@@ -1064,20 +1057,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   )}
   {currentInput?.startsWith("http") && improveResult && (
-    <div id="improve-area" style={{ marginTop: 40, paddingTop: 40, borderTop: `3px solid ${C.ink}` }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
+    <div id="improve-area" style={{ marginTop: 48 }}>
+      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+      </div>
       {[
-        { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
-        { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
-        { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
+        { key: "contents", label: "追加すべきコンテンツ", color: C.A },
+        { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
+        { key: "structure", label: "サイト構造の改善", color: C.C },
       ].map(section => (
         <div key={section.key} style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
+          <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
           {improveResult[section.key]?.map((item, i) => (
             <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
-              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
             </div>
           ))}
         </div>
@@ -1086,18 +1082,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   )}
 </div>
 
-{currentInput?.startsWith("http") && (
+{currentInput?.startsWith("http") && !improveResult && (
   <div style={{ marginTop: 32 }}>
-    {improveResult && (
-      <button
-        onClick={() => shareResult(currentInput || "", currentResult)}
-        disabled={sharing}
-        style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 28px", marginBottom: 16, display: "block" }}
-      >
-        {sharing ? "作成中…" : "🔗 改善レポートを含むシェアURLを再発行"}
-      </button>
-    )}
-    {!improveResult && (
+    {(
       <button
         onClick={async () => {
           setImproveLoading(true);
@@ -1137,30 +1124,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 
-{/* 分析フェーズ: トピックチップ + チャットパネル */}
-{phase === "analysis" && (
-  <div style={{ marginTop: 32 }}>
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-      {["集客について深掘りしたい", "競合との差別化を考えたい", "具体的なアクションを提案して", "採用にどう活かせる？"].map(topic => (
-        <button key={topic} onClick={() => chatSendTopicRef.current?.(topic)}
-          style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "6px 14px", cursor: "pointer", fontSize: 13, color: C.ink, fontFamily: "system-ui, sans-serif" }}>
-          {topic}
-        </button>
-      ))}
-    </div>
-    <AnalysisChatPanel
-      isPro={isPro || chatTickets > 0 || trialChats > 0}
-      analysisResult={currentResult}
-      onSendTopic={chatSendTopicRef}
-      onReanalyze={(newResult, summary) => {
-        setResult(newResult);
-        setSelectedHistory(null);
-        if (summary) setChatSummaries(prev => [...prev, summary]);
-        saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-      }}
-    />
-  </div>
-)}
+{/* チャットは右カラムに移動 */}
 
 {/* アクションフェーズ - テーマ別カードとスレッド */}
 {phase === "action" && (
@@ -1200,21 +1164,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     )}
 
-    {/* 選択スレッドのチャット */}
-    {activeThreadId && (
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <button onClick={() => setActiveThreadId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, padding: "6px 12px" }}>← 戻る</button>
-          <span style={{ fontSize: 20 }}>{threads.find(t => t.id === activeThreadId)?.icon}</span>
-          <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink }}>{threads.find(t => t.id === activeThreadId)?.label}</span>
-          {!threads.find(t => t.id === activeThreadId)?.preset && (
-            <button onClick={() => { setThreads(prev => prev.filter(t => t.id !== activeThreadId)); setActiveThreadId(null); }}
-              style={{ marginLeft: "auto", background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 11 }}>削除</button>
-          )}
-        </div>
-        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
-      </div>
-    )}
+    {/* スレッドチャットは右カラムに移動 */}
 
     {/* ダッシュボードへのリンク */}
     <a href="/dashboard" style={{
@@ -1247,6 +1197,81 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </footer>
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
+
+        {/* 右カラム: チャットパネル */}
+        {phase !== "input" && (
+          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", position: "sticky", top: 0 }}>
+            {/* チャットヘッダー */}
+            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 14, fontWeight: 700 }}>
+                <span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#f0ebe0" }}>3C</span>
+              </span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>AI相談</span>
+              {phase === "action" && activeThreadId && (
+                <span style={{ fontSize: 12, color: "#fff", marginLeft: "auto" }}>
+                  {threads.find(t => t.id === activeThreadId)?.icon} {threads.find(t => t.id === activeThreadId)?.label}
+                </span>
+              )}
+            </div>
+
+            {phase === "analysis" ? (
+              <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+                {/* トピックチップ */}
+                <div style={{ padding: "10px 12px", display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+                  {["集客を深掘り", "競合との差別化", "アクション提案", "採用活用"].map(topic => (
+                    <button key={topic} onClick={() => chatSendTopicRef.current?.(topic)}
+                      style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.ink, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+                      {topic}
+                    </button>
+                  ))}
+                </div>
+                {/* チャットパネル */}
+                <div style={{ flex: 1, overflow: "hidden" }}>
+                  <AnalysisChatPanel
+                    isPro={isPro || chatTickets > 0 || trialChats > 0}
+                    analysisResult={currentResult}
+                    onSendTopic={chatSendTopicRef}
+                    onReanalyze={(newResult, summary) => {
+                      setResult(newResult);
+                      setSelectedHistory(null);
+                      if (summary) setChatSummaries(prev => [...prev, summary]);
+                      saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+                {activeThreadId ? (
+                  <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                    <div style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <button onClick={() => setActiveThreadId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 10, padding: "3px 8px" }}>←</button>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{threads.find(t => t.id === activeThreadId)?.label}</span>
+                      {!threads.find(t => t.id === activeThreadId)?.preset && (
+                        <button onClick={() => { setThreads(prev => prev.filter(t => t.id !== activeThreadId)); setActiveThreadId(null); }}
+                          style={{ marginLeft: "auto", background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 10 }}>削除</button>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, overflow: "hidden" }}>
+                      <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: "20px 14px" }}>
+                    <div style={{ fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 16, fontFamily: "system-ui, sans-serif" }}>テーマを選択してチャットを開始</div>
+                    {threads.map(t => (
+                      <button key={t.id} onClick={() => setActiveThreadId(t.id)}
+                        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 12px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", marginBottom: 6, textAlign: "left" }}>
+                        <span style={{ fontSize: 18 }}>{t.icon}</span>
+                        <span style={{ fontSize: 13, color: C.ink, fontFamily: "system-ui, sans-serif" }}>{t.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>{/* end grid */}
     </div>
   );

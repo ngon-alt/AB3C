@@ -108,6 +108,7 @@ export default function RootLayout({ children }) {
 }
 @media (max-width: 768px) {
   #sidebar { display: none !important; }
+  #chat-column { display: none !important; }
 }
         `}</style>
       </head>
