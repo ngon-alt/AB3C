@@ -795,6 +795,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {/* 矢印 */}
           <div style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#999", fontSize: 14 }}>→</div>
           {/* STEP 2: 伴走 */}
+          <span style={{ position: "relative", display: "inline-flex" }}
+            onMouseEnter={e => { if (!isPro) { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "block"; } }}
+            onMouseLeave={e => { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "none"; }}>
           <button
             onClick={async () => {
               if (phase === "analysis" && !strategyConfirmed) {
@@ -846,6 +849,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             <span style={{ background: "rgba(255,255,255,0.25)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             伴走
           </button>
+          <div className="bansou-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 8, background: C.ink, color: "#fff", fontSize: 13, padding: "10px 14px", borderRadius: 6, whiteSpace: "nowrap", zIndex: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>
+            伴走プランでは戦略大臣が<br />日々のアクションに伴走、アドバイスしてくれます
+          </div>
+          </span>
           {/* 分析フェーズ：戦略確定ボタン */}
           {phase === "analysis" && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
