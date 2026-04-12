@@ -6,23 +6,32 @@ import { NextResponse } from "next/server";
 // sitesテーブルを作成（なければ）
 async function ensureTable(sql) {
   try {
-    await sql`
-      CREATE TABLE IF NOT EXISTS sites (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_email VARCHAR(255) NOT NULL,
-        site_url VARCHAR(2048),
-        site_name VARCHAR(255) NOT NULL,
-        company_name VARCHAR(255),
-        industry VARCHAR(100),
-        target_customer TEXT,
-        latest_analysis JSONB,
-        strategy_confirmed BOOLEAN DEFAULT FALSE,
-        strategy_confirmed_at TIMESTAMPTZ,
-        chat_history JSONB,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
+    // カラムの存在チェック — 古いスキーマの場合は再作成
+    const cols = await sql`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'sites' AND column_name = 'user_email'
     `;
+    if (cols.length === 0) {
+      // テーブルが存在しないか、古いスキーマ → DROP して再作成
+      await sql`DROP TABLE IF EXISTS sites`;
+      await sql`
+        CREATE TABLE sites (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_email VARCHAR(255) NOT NULL,
+          site_url VARCHAR(2048),
+          site_name VARCHAR(255) NOT NULL,
+          company_name VARCHAR(255),
+          industry VARCHAR(100),
+          target_customer TEXT,
+          latest_analysis JSONB,
+          strategy_confirmed BOOLEAN DEFAULT FALSE,
+          strategy_confirmed_at TIMESTAMPTZ,
+          chat_history JSONB,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `;
+    }
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
   } catch (e) {
     console.error("ensureTable error:", e);
