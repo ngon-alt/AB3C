@@ -775,24 +775,25 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div style={{ background: C.surface, display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
             onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
             style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
-              background: "transparent", border: "none", borderBottom: "none",
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
+              background: (phase === "analysis" || phase === "input") ? C.phase1 : "#ccc",
+              border: "none", borderRadius: "6px 6px 0 0",
               cursor: phase === "action" ? "pointer" : "default",
-              color: (phase === "analysis" || phase === "input") ? C.phase1 : "#999",
+              color: "#fff",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
             }}
           >
-            <span style={{ background: (phase === "analysis" || phase === "input") ? C.phase1 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+            <span style={{ background: "rgba(255,255,255,0.25)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
             分析
           </button>
           {/* 矢印 */}
-          <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: "#999", fontSize: 16 }}>→</div>
+          <div style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#999", fontSize: 14 }}>→</div>
           {/* STEP 2: 伴走 */}
           <button
             onClick={async () => {
@@ -834,14 +835,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               }
             }}
             style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "12px 0",
-              background: "transparent", border: "none", borderBottom: "none",
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
+              background: phase === "action" ? C.phase2 : "#ccc",
+              border: "none", borderRadius: "6px 6px 0 0",
               cursor: phase === "analysis" ? "pointer" : "default",
-              color: phase === "action" ? C.phase2 : "#999",
+              color: "#fff",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
             }}
           >
-            <span style={{ background: phase === "action" ? C.phase2 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            <span style={{ background: "rgba(255,255,255,0.25)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             伴走
           </button>
           {/* 分析フェーズ：戦略確定ボタン */}
@@ -875,7 +877,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
           </div>
           {/* フェーズカラーライン */}
-          <div style={{ height: 4, background: phase === "action" ? C.phase2 : C.phase1 }} />
+          <div style={{ height: 8, background: phase === "action" ? C.phase2 : C.phase1 }} />
         </div>
       )}
 
