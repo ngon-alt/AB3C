@@ -440,7 +440,10 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
   }, [messages]);
 
   useEffect(() => {
-    try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
+    // 「準備中」メッセージは保存しない
+    if (messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
+      try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
+    }
   }, [messages, chatKey]);
 
   // threadId変更時にメッセージを再読込、初回は自動生成
@@ -448,7 +451,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
     try {
       const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
       const parsed = saved ? JSON.parse(saved) : null;
-      if (parsed && parsed.length > 0 && parsed[0]?.content !== "準備中...") {
+      if (parsed && parsed.length > 0 && !parsed[0]?.content?.includes("準備中")) {
         setMessages(parsed);
       } else {
         // 初回: AIに戦略ベースの初期アドバイスを自動生成させる
@@ -650,11 +653,9 @@ const [chatSummaries, setChatSummaries] = useState(() => {
     }
   }, [strategyConfirmed]);
 
-  // 伴走フェーズ: デフォルトで最初のスレッドを開く
+  // 伴走フェーズ: テーマ未選択で開始（ユーザーが選択して初めて生成）
   useEffect(() => {
-    if (strategyConfirmed && threads.length > 0 && !activeThreadId) {
-      setActiveThreadId(threads[0].id);
-    }
+    if (false) {
   }, [strategyConfirmed, threads]);
 
   // スレッド永続化
