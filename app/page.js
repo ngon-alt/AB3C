@@ -550,16 +550,17 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
           </button>
         </div>
       )}
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
-        <input
+      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
+        <textarea
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={isPro ? "メッセージを入力..." : "プロプランでチャットが利用できます"}
           disabled={!isPro}
-          style={{ flex: 1, background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
+          rows={3}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
         <button onClick={send} disabled={loading || !isPro}
-          style={{ background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+          style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
           送信
         </button>
       </div>
@@ -635,7 +636,6 @@ const [chatSummaries, setChatSummaries] = useState(() => {
     { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
     { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
-    { id: "today", label: "今日のアクション", icon: "✅", preset: true },
   ];
 
   // スレッド初期化（戦略確定時）
@@ -1295,11 +1295,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
-  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ */}
-    <div style={{ padding: "10px 20px", background: C.phase2, flexShrink: 0 }}>
-      <div style={{ fontSize: 13, color: "#fff", fontFamily: "system-ui, sans-serif", lineHeight: 1.5 }}>
+  <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
+    {/* 戦略メッセージ（大きく表示） */}
+    <div style={{ padding: "20px 24px", background: C.phase2, flexShrink: 0 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>確定戦略メッセージ</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 10 }}>
         {currentResult?.strategy_message?.message || ""}
+      </div>
+      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
+        <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
+        <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
       </div>
     </div>
     {/* テーマ切替タブ（全テーマ並列） */}
@@ -1346,7 +1351,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", top: 0, right: 0, width: 340, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 130px)", position: "fixed", top: 130, right: 0, width: 340, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
