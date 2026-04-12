@@ -1271,9 +1271,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {/* チャットは右カラムに移動 */}
 
-{/* 伴走フェーズ - チャット中心レイアウト */}
-{phase === "action" && (
-  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "-32px -24px", padding: 0 }}>
+{/* 伴走フェーズのコンテンツは分析結果ブロックの外に移動済み */}
+            </div>
+          )}
+{/* 伴走フェーズ（分析結果ブロックの外） */}
+{phase === "action" && currentResult && (
+  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)" }}>
     {/* 戦略メッセージ + レポートボタン */}
     <div style={{ padding: "12px 20px", background: C.phase2Bg, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
       <div style={{ fontSize: 13, color: C.phase2, fontWeight: 700, fontFamily: "system-ui, sans-serif", marginBottom: 6 }}>
@@ -1282,7 +1285,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {currentInput?.startsWith("http") && (
           <button onClick={async () => {
-            if (improveResult) { /* 既に生成済み */ return; }
+            if (improveResult) return;
             setImproveLoading(true);
             try { const res = await fetch("/api/improve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, url: currentInput }) }); const data = await res.json(); if (!data.error) setImproveResult(data); } catch {} finally { setImproveLoading(false); }
           }} disabled={improveLoading}
@@ -1304,42 +1307,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <span>{t.icon}</span>{t.label}
         </button>
       ))}
-      <button
-        onClick={() => {
-          const label = prompt("テーマ名を入力してください");
-          if (label?.trim()) {
-            const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false };
-            setThreads(prev => [...prev, newThread]);
-            setActiveThreadId(newThread.id);
-          }
-        }}
-        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
-        + 追加
-      </button>
+      <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); setActiveThreadId(newThread.id); } }}
+        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>+ 追加</button>
     </div>
-    {/* チャット本体 */}
+    {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeThreadId ? (
         <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
-            try {
-              const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n");
-              const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) });
-              const data = await res.json();
-              if (data.error) { alert(data.error); } else { setRecruitResult(data); }
-            } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
+            try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
           }} />
       ) : (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 14, fontFamily: "system-ui, sans-serif" }}>
-          上のテーマタブを選択してチャットを開始してください
-        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 14 }}>テーマタブを選択してください</div>
       )}
     </div>
   </div>
 )}
-            </div>
-          )}
           <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 16 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8 }}>
               <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
