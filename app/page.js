@@ -447,31 +447,28 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
   useEffect(() => {
     try {
       const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
-      if (saved) {
-        setMessages(JSON.parse(saved));
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (parsed && parsed.length > 0 && parsed[0]?.content !== "準備中...") {
+        setMessages(parsed);
       } else {
         // 初回: AIに戦略ベースの初期アドバイスを自動生成させる
-        setMessages([{ role: "assistant", content: "準備中..." }]);
+        setMessages([{ role: "assistant", content: "戦略をもとにアドバイスを準備中..." }]);
         setLoading(true);
-        const autoGenerate = async () => {
-          try {
-            const res = await fetch("/api/chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                messages: [{ role: "user", content: `「${threadId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。` }],
-                analysisResult,
-                threadTheme: threadId,
-                initialAdvice: true,
-              }),
-            });
-            const data = await res.json();
-            setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。何でも聞いてください！" }]);
-          } catch {
-            setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
-          } finally { setLoading(false); }
-        };
-        autoGenerate();
+        fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: `「${threadId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。` }],
+            analysisResult,
+            threadTheme: threadId,
+            initialAdvice: true,
+          }),
+        }).then(res => res.json()).then(data => {
+          const msg = data.message || data.error || "このテーマについて相談できます。何でも聞いてください！";
+          setMessages([{ role: "assistant", content: msg }]);
+        }).catch(() => {
+          setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+        }).finally(() => { setLoading(false); });
       }
     } catch {
       setMessages([{ role: "assistant", content: "このテーマについて相談できます。" }]);

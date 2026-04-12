@@ -34,20 +34,22 @@ export async function POST(req) {
   `;
   const hasTrial = trialRows.length > 0;
 
-  if (!isPro && !hasTicket && !hasTrial) {
-    return NextResponse.json({ error: "チャット機能を利用するにはチケットが必要です" }, { status: 403 });
-  }
+  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice } = await req.json();
 
-  // チケット消費（プロ会員は消費しない）
-  if (!isPro) {
-    if (hasTicket) {
-      await sql`UPDATE tickets SET remaining_chats = remaining_chats - 1 WHERE id = ${ticketRows[0].id}`;
-    } else if (hasTrial) {
-      await sql`UPDATE tickets SET remaining_chats = remaining_chats - 1 WHERE id = ${trialRows[0].id}`;
+  // initialAdvice（テーマ初回自動生成）はチケット消費しない
+  if (!initialAdvice) {
+    if (!isPro && !hasTicket && !hasTrial) {
+      return NextResponse.json({ error: "チャット機能を利用するにはチケットが必要です" }, { status: 403 });
+    }
+    // チケット消費（プロ会員は消費しない）
+    if (!isPro) {
+      if (hasTicket) {
+        await sql`UPDATE tickets SET remaining_chats = remaining_chats - 1 WHERE id = ${ticketRows[0].id}`;
+      } else if (hasTrial) {
+        await sql`UPDATE tickets SET remaining_chats = remaining_chats - 1 WHERE id = ${trialRows[0].id}`;
+      }
     }
   }
-
-  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice } = await req.json();
 
   if (reanalyze) {
     const conversationSummary = messages
