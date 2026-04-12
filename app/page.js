@@ -377,14 +377,15 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
           </button>
         </div>
       )}
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#c8c8c3" }}>
-        <input value={input} onChange={e => setInput(e.target.value)}
+      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: "#c8c8c3" }}>
+        <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="分析結果について相談する..."
-          style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
+          rows={3}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
         <button onClick={send} disabled={loading}
-          style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+          style={{ marginTop: 8, width: "100%", background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
           送信
         </button>
       </div>
@@ -1206,13 +1207,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#c8c8c3", display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", position: "sticky", top: 0 }}>
+          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#c8c8c3", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 14, fontWeight: 700 }}>
-                <span style={{ color: "#1a6fd4" }}>A</span><span style={{ color: "#FF0000" }}>B</span><span style={{ color: "#f0ebe0" }}>3C</span>
-              </span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>AI相談</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>戦略分析チャット</span>
               {phase === "action" && activeThreadId && (
                 <span style={{ fontSize: 12, color: "#fff", marginLeft: "auto" }}>
                   {threads.find(t => t.id === activeThreadId)?.icon} {threads.find(t => t.id === activeThreadId)?.label}
@@ -1224,7 +1222,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                 {/* トピックチップ */}
                 <div style={{ padding: "10px 12px", display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}`, flexShrink: 0, background: "#c8c8c3" }}>
-                  {["集客を深掘り", "競合との差別化", "アクション提案", "採用活用"].map(topic => (
+                  {["Benefitを深掘りしたい", "Advantageを強化するには", "3C分析について質問", "チェックポイントの改善方法", "追加すべきコンテンツについて"].map(topic => (
                     <button key={topic} onClick={() => chatSendTopicRef.current?.(topic)}
                       style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 16, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.ink, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
                       {topic}
