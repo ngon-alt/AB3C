@@ -418,7 +418,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
     </div>
   );
 }
-function ThreadChat({ threadId, analysisResult, isPro }) {
+function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
   const chatKey = `ab3c_thread_${threadId}`;
   const [messages, setMessages] = useState(() => {
     try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
@@ -477,19 +477,38 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e0d4" }}>
-        {messages.map((m, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-            <div style={{
-              background: m.role === "user" ? C.A : "#ffffff",
-              border: m.role === "user" ? "none" : `1px solid ${C.border}`,
-              borderRadius: 8, padding: "10px 14px", fontSize: 14,
-              color: m.role === "user" ? "#fff" : C.ink,
-              maxWidth: "80%", lineHeight: 1.7,
-              fontFamily: "system-ui, sans-serif",
-              whiteSpace: "pre-wrap",
-            }}>{m.content}</div>
+        {messages.map((m, i) => {
+          const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
+          const displayContent = actionMatch ? m.content.replace(/\[ACTION:\s*.+?\]/g, "").trim() : m.content;
+          return (
+          <div key={i}>
+            <div style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+              <div style={{
+                background: m.role === "user" ? C.A : "#ffffff",
+                border: m.role === "user" ? "none" : `1px solid ${C.border}`,
+                borderRadius: 8, padding: "10px 14px", fontSize: 14,
+                color: m.role === "user" ? "#fff" : C.ink,
+                maxWidth: "80%", lineHeight: 1.7,
+                fontFamily: "system-ui, sans-serif",
+                whiteSpace: "pre-wrap",
+              }}>{displayContent}</div>
+            </div>
+            {actionMatch && onAddAction && !m.actionRegistered && (
+              <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 6, marginLeft: 8 }}>
+                <button onClick={() => {
+                  onAddAction(actionMatch[1], displayContent, threadId);
+                  setMessages(prev => prev.map((msg, idx) => idx === i ? { ...msg, actionRegistered: true } : msg));
+                }} style={{ background: "#2d6a30", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 12, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+                  ✓ 「{actionMatch[1]}」をアクションに登録
+                </button>
+              </div>
+            )}
+            {actionMatch && m.actionRegistered && (
+              <div style={{ fontSize: 11, color: "#2d6a30", marginTop: 4, marginLeft: 8 }}>✓ アクションに登録済み</div>
+            )}
           </div>
-        ))}
+          );
+        })}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
         <div ref={messagesEndRef} />
       </div>
@@ -499,7 +518,7 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={isPro ? "メッセージを入力..." : "プロプランでチャットが利用できます"}
           disabled={!isPro}
-          style={{ flex: 1, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
+          style={{ flex: 1, background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif" }}
         />
         <button onClick={send} disabled={loading || !isPro}
           style={{ background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
@@ -560,6 +579,8 @@ const [recruitResult, setRecruitResult] = useState(null);
 const [recruitLoading, setRecruitLoading] = useState(false);
 const [threads, setThreads] = useState([]);
 const [activeThreadId, setActiveThreadId] = useState(null);
+const [actions, setActions] = useState([]);
+const [selectedActionId, setSelectedActionId] = useState(null);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
@@ -598,11 +619,26 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   useEffect(() => {
     if (threads.length > 0) {
       const storageKey = `ab3c_threads_${siteId || "default"}`;
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(threads));
-      } catch {}
+      try { localStorage.setItem(storageKey, JSON.stringify(threads)); } catch {}
     }
   }, [threads]);
+
+  // アクション永続化
+  useEffect(() => {
+    if (strategyConfirmed) {
+      const key = `ab3c_actions_${siteId || "default"}`;
+      try { const saved = localStorage.getItem(key); if (saved && actions.length === 0) setActions(JSON.parse(saved)); } catch {}
+    }
+  }, [strategyConfirmed]);
+  useEffect(() => {
+    if (actions.length > 0) {
+      try { localStorage.setItem(`ab3c_actions_${siteId || "default"}`, JSON.stringify(actions)); } catch {}
+    }
+  }, [actions]);
+
+  const addAction = (title, detail, threadId) => {
+    setActions(prev => [...prev, { id: Date.now(), title, detail, threadId, createdAt: new Date().toLocaleString("ja-JP") }]);
+  };
 
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
@@ -1196,57 +1232,40 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {/* チャットは右カラムに移動 */}
 
-{/* アクションフェーズ - テーマ別カードとスレッド */}
+{/* アクションフェーズ - チャット中心レイアウト */}
 {phase === "action" && (
-  <div style={{ marginTop: 40 }}>
-    {/* 確定戦略サマリー */}
-    <div style={{ background: "#e8f4fd", border: `2px solid ${C.A}`, borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, fontWeight: 700, marginBottom: 6 }}>確定戦略</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, lineHeight: 1.6, fontFamily: "'Noto Serif JP', serif" }}>
-        {currentResult?.strategy_message?.message || ""}
-      </div>
-    </div>
-
-    {/* テーマカード 2x2 グリッド */}
-    {!activeThreadId && (
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 14, marginBottom: 24 }}>
-        {threads.map(t => (
-          <button key={t.id} onClick={() => setActiveThreadId(t.id)}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px", cursor: "pointer", textAlign: "left", transition: "border-color 0.15s" }}>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>{t.icon}</div>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink }}>{t.label}</div>
-          </button>
-        ))}
-        <button
-          onClick={() => {
-            const label = prompt("テーマ名を入力してください");
-            if (label?.trim()) {
-              const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false };
-              setThreads(prev => [...prev, newThread]);
-              setActiveThreadId(newThread.id);
-            }
-          }}
-          style={{ background: "transparent", border: `2px dashed ${C.border}`, borderRadius: 8, padding: "20px", cursor: "pointer", textAlign: "center", color: C.muted }}
-        >
-          <div style={{ fontSize: 28, marginBottom: 8 }}>+</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12 }}>カスタムテーマを追加</div>
+  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "-32px -24px", padding: 0 }}>
+    {/* テーマ切替タブ */}
+    <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, background: C.surface, flexShrink: 0, overflowX: "auto" }}>
+      {threads.map(t => (
+        <button key={t.id} onClick={() => setActiveThreadId(t.id)}
+          style={{ padding: "10px 16px", background: "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.ink}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.ink : C.muted, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+          <span>{t.icon}</span>{t.label}
         </button>
-      </div>
-    )}
-
-    {/* スレッドチャットは右カラムに移動 */}
-
-    {/* ダッシュボードへのリンク */}
-    <a href="/dashboard" style={{
-      display: "flex", alignItems: "center", gap: 12, background: C.surface, border: `1px solid ${C.border}`,
-      borderRadius: 8, padding: "16px 20px", textDecoration: "none", color: C.ink, marginTop: 24,
-    }}>
-      <span style={{ fontSize: 24 }}>📋</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700 }}>ダッシュボードへ</div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 2, fontFamily: "system-ui, sans-serif" }}>登録サイトの管理・戦略の一覧</div>
-      </div>
-    </a>
+      ))}
+      <button
+        onClick={() => {
+          const label = prompt("テーマ名を入力してください");
+          if (label?.trim()) {
+            const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false };
+            setThreads(prev => [...prev, newThread]);
+            setActiveThreadId(newThread.id);
+          }
+        }}
+        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+        + 追加
+      </button>
+    </div>
+    {/* チャット本体 */}
+    <div style={{ flex: 1, overflow: "hidden" }}>
+      {activeThreadId ? (
+        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction} />
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 14, fontFamily: "system-ui, sans-serif" }}>
+          上のテーマタブを選択してチャットを開始してください
+        </div>
+      )}
+    </div>
   </div>
 )}
             </div>
@@ -1273,17 +1292,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#e8e0d4", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>戦略分析チャット</span>
-              {phase === "action" && activeThreadId && (
-                <span style={{ fontSize: 12, color: "#fff", marginLeft: "auto" }}>
-                  {threads.find(t => t.id === activeThreadId)?.icon} {threads.find(t => t.id === activeThreadId)?.label}
-                </span>
-              )}
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
+                {phase === "action" ? "アクションリスト" : "戦略分析チャット"}
+              </span>
             </div>
 
             {phase === "analysis" ? (
               <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-                {/* チャットパネル（トピックチップは分析結果の各セクション💬アイコンに移行） */}
                 <div style={{ flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
                     isPro={isPro || chatTickets > 0 || trialChats > 0}
@@ -1300,32 +1315,44 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-                {activeThreadId ? (
-                  <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                    <div style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                      <button onClick={() => setActiveThreadId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 10, padding: "3px 8px" }}>←</button>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: C.ink }}>{threads.find(t => t.id === activeThreadId)?.label}</span>
-                      {!threads.find(t => t.id === activeThreadId)?.preset && (
-                        <button onClick={() => { setThreads(prev => prev.filter(t => t.id !== activeThreadId)); setActiveThreadId(null); }}
-                          style={{ marginLeft: "auto", background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 10 }}>削除</button>
+                {/* アクションリスト */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
+                  {selectedActionId ? (() => {
+                    const action = actions.find(a => a.id === selectedActionId);
+                    return action ? (
+                      <div>
+                        <button onClick={() => setSelectedActionId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "4px 10px", marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>← 一覧に戻る</button>
+                        <div style={{ fontFamily: "system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{action.title}</div>
+                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 12 }}>{action.createdAt}</div>
+                        <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, sans-serif", whiteSpace: "pre-wrap", background: "#fff", borderRadius: 6, padding: "12px 14px", border: `1px solid ${C.border}` }}>{action.detail}</div>
+                        <button onClick={() => { setActions(prev => prev.filter(a => a.id !== selectedActionId)); setSelectedActionId(null); }}
+                          style={{ marginTop: 12, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "6px 12px" }}>削除</button>
+                      </div>
+                    ) : null;
+                  })() : (
+                    <div>
+                      {actions.length === 0 ? (
+                        <div style={{ textAlign: "center", color: C.muted, fontSize: 13, padding: "40px 12px", fontFamily: "system-ui, sans-serif" }}>
+                          チャットでAIが提案したアクションがここに表示されます
+                        </div>
+                      ) : (
+                        actions.map(a => (
+                          <div key={a.id} onClick={() => setSelectedActionId(a.id)}
+                            style={{ padding: "10px 12px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: "#fff", borderRadius: 6, marginBottom: 6, border: `1px solid ${C.border}` }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "system-ui, sans-serif", marginBottom: 2 }}>{a.title}</div>
+                            <div style={{ fontSize: 10, color: C.muted }}>{a.createdAt}</div>
+                          </div>
+                        ))
                       )}
-                    </div>
-                    <div style={{ flex: 1, overflow: "hidden" }}>
-                      <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ padding: "20px 14px" }}>
-                    <div style={{ fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 16, fontFamily: "system-ui, sans-serif" }}>テーマを選択してチャットを開始</div>
-                    {threads.map(t => (
-                      <button key={t.id} onClick={() => setActiveThreadId(t.id)}
-                        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 12px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", marginBottom: 6, textAlign: "left" }}>
-                        <span style={{ fontSize: 18 }}>{t.icon}</span>
-                        <span style={{ fontSize: 13, color: C.ink, fontFamily: "system-ui, sans-serif" }}>{t.label}</span>
+                      <button onClick={() => {
+                        const title = prompt("アクションのタイトルを入力");
+                        if (title?.trim()) addAction(title.trim(), "", activeThreadId || "manual");
+                      }} style={{ width: "100%", marginTop: 8, background: "transparent", border: `1px dashed ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "8px", fontFamily: "'Space Mono', monospace" }}>
+                        + 手動でアクションを追加
                       </button>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
