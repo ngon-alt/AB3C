@@ -24,9 +24,9 @@ const Badge = ({ status }) => {
 
 const ChatBtn = ({ onClick }) => (
   <button onClick={onClick} title="チャットで質問"
-    style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 16, color: C.muted, padding: "2px 4px", opacity: 0.35, flexShrink: 0, lineHeight: 1 }}
-    onMouseEnter={e => e.currentTarget.style.opacity = 1}
-    onMouseLeave={e => e.currentTarget.style.opacity = 0.35}>💬</button>
+    style={{ background: "#c8c8c3", border: "none", cursor: "pointer", fontSize: 14, color: "#555", padding: "3px 6px", borderRadius: 4, flexShrink: 0, lineHeight: 1 }}
+    onMouseEnter={e => { e.currentTarget.style.background = "#aaa"; e.currentTarget.style.color = "#fff"; }}
+    onMouseLeave={e => { e.currentTarget.style.background = "#c8c8c3"; e.currentTarget.style.color = "#555"; }}>💬</button>
 );
 
 const Card = ({ color, title, children, onChat }) => (
@@ -1092,14 +1092,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         { key: "structure", label: "サイト構造の改善", color: C.C },
       ].map(section => (
         <div key={section.key} style={{ marginBottom: 28 }}>
-          <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 18, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>{section.label}<ChatBtn onClick={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)} /></div>
+          <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
           {improveResult[section.key]?.map((item, i) => (
-            <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
               <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}><span>{i + 1}. {item.title}</span><ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} /></div>
               <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
               <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
             </div>
-          ))}
+          ))
+          }</Card>
         </div>
       ))}
     </div>
