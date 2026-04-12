@@ -458,7 +458,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
         initialized.current = true;
       } else {
         // 初回: AIに戦略ベースの初期アドバイスを自動生成
-        setMessages([{ role: "assistant", content: "戦略をもとにアドバイスを準備中..." }]);
+        setMessages([{ role: "assistant", content: `「${threadId}」のアドバイスを準備中...` }]);
         setLoading(true);
         fetch("/api/chat", {
           method: "POST",
