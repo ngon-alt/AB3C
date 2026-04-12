@@ -290,7 +290,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) {
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy }) {
   const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState(() => {
     try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
@@ -412,10 +412,18 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
           rows={3}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
-        <button onClick={send} disabled={loading}
-          style={{ marginTop: 8, width: "100%", background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
-          送信
-        </button>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button onClick={send} disabled={loading}
+            style={{ flex: 1, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+            送信
+          </button>
+          {onConfirmStrategy && (
+            <button onClick={onConfirmStrategy}
+              style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "10px 14px", whiteSpace: "nowrap" }}>
+              戦略を確定 →
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1371,6 +1379,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+                    }}
+                    onConfirmStrategy={async () => {
+                      if (!siteId) {
+                        try {
+                          const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
+                          const createData = await createRes.json();
+                          if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
+                        } catch { alert("保存に失敗しました。"); }
+                      } else {
+                        try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
+                      }
                     }}
                   />
                 </div>
