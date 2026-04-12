@@ -1206,7 +1206,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: C.surface, display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", position: "sticky", top: 0 }}>
+          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#f5f5f0", display: "flex", flexDirection: "column", height: "calc(100vh - 60px)", position: "sticky", top: 0 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: 14, fontWeight: 700 }}>
