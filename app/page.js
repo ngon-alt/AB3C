@@ -352,11 +352,11 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e8e3" }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
-              background: m.role === "user" ? C.A : C.surface,
+              background: m.role === "user" ? C.A : "#ffffff",
               border: m.role === "user" ? "none" : `1px solid ${C.border}`,
               borderRadius: 8, padding: "10px 14px", fontSize: 14,
               color: m.role === "user" ? "#fff" : C.ink,
@@ -370,14 +370,14 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
         <div ref={messagesEndRef} />
       </div>
       {messages.length >= 3 && (
-        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e8e8" }}>
+        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e8e3" }}>
           <button onClick={reanalyze} disabled={loading}
             style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
             {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
           </button>
         </div>
       )}
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}` }}>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e8e3" }}>
         <input value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="分析結果について相談する..."
@@ -449,11 +449,11 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.bg }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e8e3" }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
-              background: m.role === "user" ? C.A : C.surface,
+              background: m.role === "user" ? C.A : "#ffffff",
               border: m.role === "user" ? "none" : `1px solid ${C.border}`,
               borderRadius: 8, padding: "10px 14px", fontSize: 14,
               color: m.role === "user" ? "#fff" : C.ink,
@@ -466,7 +466,7 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
         <div ref={messagesEndRef} />
       </div>
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}` }}>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e8e3" }}>
         <input
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
@@ -1223,10 +1223,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {phase === "analysis" ? (
               <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                 {/* トピックチップ */}
-                <div style={{ padding: "10px 12px", display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+                <div style={{ padding: "10px 12px", display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}`, flexShrink: 0, background: "#e8e8e3" }}>
                   {["集客を深掘り", "競合との差別化", "アクション提案", "採用活用"].map(topic => (
                     <button key={topic} onClick={() => chatSendTopicRef.current?.(topic)}
-                      style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.ink, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+                      style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 16, padding: "4px 10px", cursor: "pointer", fontSize: 11, color: C.ink, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
                       {topic}
                     </button>
                   ))}
