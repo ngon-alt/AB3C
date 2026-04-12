@@ -319,7 +319,8 @@ export default function PricingModal({ onClose }) {
               ※ 分析プランは年間ライセンス（有効期限1年）です。<br/>
               ※ 伴走プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
-              ※ 120サイト以上のプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
+              {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
+              {showGrowth && <>※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
             </div>
           </div>
         </div>
