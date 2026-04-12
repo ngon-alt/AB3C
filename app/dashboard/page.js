@@ -99,7 +99,7 @@ function NewSiteForm({ onCreated, onCancel }) {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "登録に失敗しました。"); return; }
       onCreated(data.site);
-    } catch { setError("エラーが発生しました。"); }
+    } catch (e) { setError("エラーが発生しました: " + (e.message || "")); }
     finally { setSaving(false); }
   };
 
@@ -177,7 +177,7 @@ export default function DashboardPage() {
       const res = await fetch("/api/sites");
       const data = await res.json();
       setSites(data.sites || []);
-    } catch { setError("サイト一覧の取得に失敗しました。"); }
+    } catch (e) { setError("サイト一覧の取得に失敗しました: " + (e.message || "")); }
     finally { setLoading(false); }
   };
 
