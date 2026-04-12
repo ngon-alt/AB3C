@@ -736,6 +736,110 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       <Header onShowPricing={() => setShowPricing(true)} />
 
+      {/* 2ステップ フェーズナビ（グリッドの上に配置） */}
+      {phase !== "input" && (
+        <div style={{ padding: "0 24px", background: C.surface, borderBottom: `2px solid ${C.border}`, display: "flex", alignItems: "stretch" }}>
+          {/* STEP 1: 分析 */}
+          <button
+            onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
+            style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
+              background: "transparent", border: "none", borderBottom: phase === "analysis" ? `3px solid ${C.ink}` : "3px solid transparent",
+              cursor: phase === "action" ? "pointer" : "default",
+              color: phase === "analysis" ? C.ink : C.muted,
+              fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
+              marginBottom: -2,
+            }}
+          >
+            <span style={{ background: phase === "analysis" ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+            分析
+          </button>
+          {/* 矢印 */}
+          <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: C.muted, fontSize: 16 }}>→</div>
+          {/* STEP 2: アクション */}
+          <button
+            onClick={async () => {
+              if (phase === "analysis" && !strategyConfirmed) {
+                const confirmStrategy = async () => {
+                  if (!siteId) {
+                    try {
+                      const createRes = await fetch("/api/sites", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
+                          site_url: currentInput?.startsWith("http") ? currentInput : null,
+                        }),
+                      });
+                      const createData = await createRes.json();
+                      if (createData.site) {
+                        setSiteId(createData.site.id);
+                        await fetch("/api/sites", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
+                        });
+                        setStrategyConfirmed(true);
+                      }
+                    } catch { alert("保存に失敗しました。"); }
+                  } else {
+                    try {
+                      await fetch("/api/sites", {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
+                      });
+                      setStrategyConfirmed(true);
+                    } catch { alert("保存に失敗しました。"); }
+                  }
+                };
+                await confirmStrategy();
+              }
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 8, padding: "12px 0",
+              background: "transparent", border: "none", borderBottom: phase === "action" ? `3px solid ${C.A}` : "3px solid transparent",
+              cursor: phase === "analysis" ? "pointer" : "default",
+              color: phase === "action" ? C.A : C.muted,
+              fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
+              marginBottom: -2,
+            }}
+          >
+            <span style={{ background: phase === "action" ? C.A : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            アクション
+          </button>
+          {/* 分析フェーズ：戦略確定ボタン */}
+          {phase === "analysis" && (
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+              <button
+                onClick={async () => {
+                  if (!siteId) {
+                    try {
+                      const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
+                      const createData = await createRes.json();
+                      if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
+                    } catch { alert("保存に失敗しました。"); }
+                  } else {
+                    try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
+                  }
+                }}
+                style={{ background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap" }}
+              >
+                戦略を確定する →
+              </button>
+            </div>
+          )}
+          {/* アクションフェーズ：確定戦略タイトル */}
+          {phase === "action" && currentResult?.strategy_message?.message && (
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, maxWidth: "50%", overflow: "hidden" }}>
+              <span style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "system-ui, sans-serif" }}>
+                確定戦略: {currentResult.strategy_message.message}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 340px" : "200px 1fr") : (phase !== "input" ? "1fr 340px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
@@ -816,75 +920,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
         )}
         <div style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          {/* 2ステップ フェーズナビ */}
-          {phase !== "input" && (
-            <div style={{ padding: "0 24px", background: C.surface, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "stretch" }}>
-              {/* STEP 1: 分析 */}
-              <button
-                onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
-                  background: "transparent", border: "none", borderBottom: phase === "analysis" ? `3px solid ${C.ink}` : "3px solid transparent",
-                  cursor: phase === "action" ? "pointer" : "default",
-                  color: phase === "analysis" ? C.ink : C.muted,
-                  fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-                }}
-              >
-                <span style={{ background: phase === "analysis" ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
-                分析
-              </button>
-              {/* 矢印 */}
-              <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: C.muted, fontSize: 16 }}>→</div>
-              {/* STEP 2: アクション */}
-              <button
-                onClick={async () => {
-                  if (phase === "analysis" && !strategyConfirmed) {
-                    if (!siteId) {
-                      try {
-                        const createRes = await fetch("/api/sites", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
-                            site_url: currentInput?.startsWith("http") ? currentInput : null,
-                          }),
-                        });
-                        const createData = await createRes.json();
-                        if (createData.site) {
-                          setSiteId(createData.site.id);
-                          await fetch("/api/sites", {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
-                          });
-                          setStrategyConfirmed(true);
-                        }
-                      } catch { alert("保存に失敗しました。"); }
-                    } else {
-                      try {
-                        await fetch("/api/sites", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
-                        });
-                        setStrategyConfirmed(true);
-                      } catch { alert("保存に失敗しました。"); }
-                    }
-                  }
-                }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 8, padding: "12px 0 12px 0",
-                  background: "transparent", border: "none", borderBottom: phase === "action" ? `3px solid ${C.A}` : "3px solid transparent",
-                  cursor: phase === "analysis" ? "pointer" : "default",
-                  color: phase === "action" ? C.A : C.muted,
-                  fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-                }}
-              >
-                <span style={{ background: phase === "action" ? C.A : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
-                アクション
-              </button>
-            </div>
-          )}
           <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
