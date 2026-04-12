@@ -1295,12 +1295,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
     {/* 戦略メッセージ（大きく表示） */}
-    <div style={{ padding: "20px 24px", background: C.phase2, flexShrink: 0 }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>確定戦略メッセージ</div>
+    <div style={{ padding: "20px 24px", background: C.ink, flexShrink: 0 }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 8 }}>戦略メッセージ = Benefit + Advantage</div>
       <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 10 }}>
         {currentResult?.strategy_message?.message || ""}
       </div>
-      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 10 }}>
         <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
         <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
       </div>
