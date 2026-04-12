@@ -10,7 +10,7 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#000000", muted: "#000000", highlight: "#fef3c7",
-  phase1: "#2d6a30", phase1Bg: "#e8f0e8",
+  phase1: "#2d6a30", phase1Bg: "#8bb88b",
   phase2: "#8c5e1a", phase2Bg: "#f0ebe0",
 };
 
