@@ -23,10 +23,13 @@ const Badge = ({ status }) => {
 };
 
 const ChatBtn = ({ onClick }) => (
-  <button onClick={onClick} title="チャットで質問"
-    style={{ background: "#c8c8c3", border: "none", cursor: "pointer", fontSize: 14, color: "#555", padding: "3px 6px", borderRadius: 4, flexShrink: 0, lineHeight: 1 }}
-    onMouseEnter={e => { e.currentTarget.style.background = "#aaa"; e.currentTarget.style.color = "#fff"; }}
-    onMouseLeave={e => { e.currentTarget.style.background = "#c8c8c3"; e.currentTarget.style.color = "#555"; }}>💬</button>
+  <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+    <button onClick={onClick}
+      style={{ background: "#ffffff", border: "1px solid #ccc", cursor: "pointer", fontSize: 13, color: "#333", padding: "4px 7px", borderRadius: 4, lineHeight: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}
+      onMouseEnter={e => { e.currentTarget.style.background = "#1a6fd4"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1a6fd4"; e.currentTarget.nextSibling.style.display = "block"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.color = "#333"; e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.nextSibling.style.display = "none"; }}>💬</button>
+    <span style={{ display: "none", position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 6, background: "#333", color: "#fff", fontSize: 11, padding: "4px 8px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none" }}>チャットで質問</span>
+  </span>
 );
 
 const Card = ({ color, title, children, onChat }) => (
