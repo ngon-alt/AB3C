@@ -23,16 +23,16 @@ const Badge = ({ status }) => {
 };
 
 const ChatBtn = ({ onClick, abs }) => (
-  <span className="chat-btn" style={abs ? { position: "absolute", top: 6, right: 6, zIndex: 2, display: "none" } : { display: "none", flexShrink: 0 }}>
-    <button onClick={e => { e.stopPropagation(); onClick(); }}
-      style={{ background: "#ffffff", border: "1px solid #ccc", cursor: "pointer", fontSize: 13, color: "#333", padding: "4px 7px", borderRadius: 4, lineHeight: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }}
-      onMouseEnter={e => { e.currentTarget.style.background = "#1a6fd4"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1a6fd4"; e.currentTarget.querySelector("span").style.display = "block"; }}
-      onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.color = "#333"; e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.querySelector("span").style.display = "none"; }}>💬<span style={{ display: "none", position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 6, background: "#333", color: "#fff", fontSize: 11, padding: "4px 8px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none" }}>チャットで質問</span></button>
+  <span className="chat-btn" style={abs ? { position: "absolute", top: 4, right: 4, zIndex: 2, display: "none" } : { display: "none", flexShrink: 0 }}>
+    <button onClick={e => { e.stopPropagation(); onClick(); }} title="チャットで質問"
+      style={{ background: "#1a6fd4", border: "none", cursor: "pointer", width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+    </button>
   </span>
 );
 const hoverShow = {
-  onMouseEnter: (e) => { const btn = e.currentTarget.querySelector(".chat-btn"); if (btn) btn.style.display = "inline-flex"; },
-  onMouseLeave: (e) => { const btn = e.currentTarget.querySelector(".chat-btn"); if (btn) btn.style.display = "none"; },
+  onMouseEnter: (e) => { const b = e.currentTarget.querySelector(":scope > .chat-btn"); if (b) b.style.display = "inline-flex"; },
+  onMouseLeave: (e) => { const b = e.currentTarget.querySelector(":scope > .chat-btn"); if (b) b.style.display = "none"; },
 };
 
 const Card = ({ color, title, children, onChat }) => (
