@@ -654,9 +654,8 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   }, [strategyConfirmed]);
 
   // 伴走フェーズ: テーマ未選択で開始（ユーザーが選択して初めて生成）
-  useEffect(() => {
-    if (false) {
-  }, [strategyConfirmed, threads]);
+  // 自動選択は無効化
+  useEffect(() => {}, [strategyConfirmed, threads]);
 
   // スレッド永続化
   useEffect(() => {
