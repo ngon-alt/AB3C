@@ -428,9 +428,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
 }
 function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
   const chatKey = `ab3c_thread_${threadId}`;
-  const [messages, setMessages] = useState(() => {
-    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
-  });
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
