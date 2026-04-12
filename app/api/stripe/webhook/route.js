@@ -3,41 +3,37 @@ import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// === 新料金体系 ===
 const PRICE_PLANS = {
-  // 分析プラン（月額）
-  'price_1TJ9lcCYHZ66REnUFd8PP24z': { type: 'analysis', sites: 1, interval: 'month' },
-  'price_1TJ9pNCYHZ66REnUCl03OmDO': { type: 'analysis', sites: 5, interval: 'month' },
-  'price_1TJ9quCYHZ66REnUqJZIx23y': { type: 'analysis', sites: 10, interval: 'month' },
-  'price_1TJ9rcCYHZ66REnUmtEZkCnz': { type: 'analysis', sites: 30, interval: 'month' },
-  'price_1TJ9sQCYHZ66REnU4kQP9npL': { type: 'analysis', sites: 50, interval: 'month' },
-  'price_1TJ9t9CYHZ66REnUeA49IVDs': { type: 'analysis', sites: 100, interval: 'month' },
-  // 分析プラン（年額）
-  'price_1TJ9ohCYHZ66REnUN2caOn5h': { type: 'analysis', sites: 1, interval: 'year' },
-  'price_1TJ9q7CYHZ66REnUYfCKElz8': { type: 'analysis', sites: 5, interval: 'year' },
-  'price_1TJ9rFCYHZ66REnUUhQVgOd0': { type: 'analysis', sites: 10, interval: 'year' },
-  'price_1TJ9s3CYHZ66REnUsfzwrunm': { type: 'analysis', sites: 30, interval: 'year' },
-  'price_1TJ9soCYHZ66REnUjwmC7fuu': { type: 'analysis', sites: 50, interval: 'year' },
-  'price_1TJ9uQCYHZ66REnUjLQ39eKG': { type: 'analysis', sites: 100, interval: 'year' },
+  // 分析プラン（年間ライセンス）— TODO: Stripe Price ID作成後に差し替え
+  'price_ANALYSIS_1_ANNUAL':   { type: 'analysis', sites: 1,   interval: 'year' },
+  'price_ANALYSIS_10_ANNUAL':  { type: 'analysis', sites: 10,  interval: 'year' },
+  'price_ANALYSIS_100_ANNUAL': { type: 'analysis', sites: 100, interval: 'year' },
+
   // 伴走プラン（月額）
-  'price_1TJ9urCYHZ66REnUiLMhvaYr': { type: 'support', sites: 1, interval: 'month' },
-  'price_1TJ9vbCYHZ66REnUr4WTXEbW': { type: 'support', sites: 5, interval: 'month' },
-  'price_1TJ9wFCYHZ66REnUNVJYhJYY': { type: 'support', sites: 10, interval: 'month' },
-  'price_1TJ9wuCYHZ66REnUjeDnayHy': { type: 'support', sites: 30, interval: 'month' },
-  'price_1TJ9xXCYHZ66REnUmUTzdDYC': { type: 'support', sites: 50, interval: 'month' },
-  'price_1TJ9yECYHZ66REnU9fMw0D5g': { type: 'support', sites: 100, interval: 'month' },
-  // 伴走プラン（年額）
-  'price_1TJ9v7CYHZ66REnUKzAAIpZl': { type: 'support', sites: 1, interval: 'year' },
-  'price_1TJ9vrCYHZ66REnUYWlCUrOB': { type: 'support', sites: 5, interval: 'year' },
-  'price_1TJ9wUCYHZ66REnU1v2x2WPc': { type: 'support', sites: 10, interval: 'year' },
-  'price_1TJ9x9CYHZ66REnUgnZwL8ym': { type: 'support', sites: 30, interval: 'year' },
-  'price_1TJ9xtCYHZ66REnU2hqNs1M2': { type: 'support', sites: 50, interval: 'year' },
-  'price_1TJ9yVCYHZ66REnUZOaH5iFs': { type: 'support', sites: 100, interval: 'year' },
+  'price_SUPPORT_1_MONTHLY':   { type: 'support', sites: 1,   interval: 'month' },
+  'price_SUPPORT_5_MONTHLY':   { type: 'support', sites: 5,   interval: 'month' },
+  'price_SUPPORT_15_MONTHLY':  { type: 'support', sites: 15,  interval: 'month' },
+  'price_SUPPORT_30_MONTHLY':  { type: 'support', sites: 30,  interval: 'month' },
+  'price_SUPPORT_60_MONTHLY':  { type: 'support', sites: 60,  interval: 'month' },
+  'price_SUPPORT_120_MONTHLY': { type: 'support', sites: 120, interval: 'month' },
+
+  // 伴走プラン（年額＝月額×10）
+  'price_SUPPORT_1_ANNUAL':    { type: 'support', sites: 1,   interval: 'year' },
+  'price_SUPPORT_5_ANNUAL':    { type: 'support', sites: 5,   interval: 'year' },
+  'price_SUPPORT_15_ANNUAL':   { type: 'support', sites: 15,  interval: 'year' },
+  'price_SUPPORT_30_ANNUAL':   { type: 'support', sites: 30,  interval: 'year' },
+  'price_SUPPORT_60_ANNUAL':   { type: 'support', sites: 60,  interval: 'year' },
+  'price_SUPPORT_120_ANNUAL':  { type: 'support', sites: 120, interval: 'year' },
 };
 
-const PRICE_CHAT_MAP = {
-  'price_1TFVPQCYHZ66REnUPmSkDnV6': 0,  // ベーシック：チャットなし
-  'price_1TGLh2CYHZ66REnUXIK6b8X7': 30, // スタンダード：チャット30回
-};
+// チャット回数マッピング：伴走プランは1サイトあたり月100回
+function getChatCount(plan) {
+  if (!plan) return 0;
+  if (plan.type === 'analysis') return 0; // 分析プランはチャットなし
+  // 伴走プラン：サイト数 × 100回/月
+  return plan.sites * 100;
+}
 
 export async function POST(req) {
   const body = await req.text();
@@ -58,13 +54,25 @@ export async function POST(req) {
 
     if (email) {
       const sql = neon(process.env.DATABASE_URL);
-      const chatCount = PRICE_CHAT_MAP[priceId] ?? 0;
+      const plan = PRICE_PLANS[priceId];
+      const chatCount = getChatCount(plan);
 
+      // チケット付与
       await sql`
         INSERT INTO tickets (email, remaining_chats, is_trial)
         VALUES (${email}, ${chatCount}, FALSE)
       `;
-      console.log(`チケット付与完了: ${email} / チャット${chatCount}回 / priceId: ${priceId}`);
+
+      // プロユーザー登録（伴走プランのみ）
+      if (plan?.type === 'support') {
+        await sql`
+          INSERT INTO pro_users (email, name, added_at)
+          VALUES (${email}, ${email}, NOW())
+          ON CONFLICT (email) DO NOTHING
+        `;
+      }
+
+      console.log(`決済完了: ${email} / プラン: ${plan?.type || 'unknown'} / ${plan?.sites || 0}サイト / チャット${chatCount}回 / priceId: ${priceId}`);
     }
   }
 
