@@ -22,32 +22,6 @@ async function sendEmail(to, subject, html) {
       to: [to],
       subject: subject,
       html: html,
-
-cat > app/lib/email.js << 'EOF'
-import { Resend } from "resend";
-
-// Resend API キーがない場合はダミーで初期化（メール機能は無効）
-const resend = process.env.RESEND_API_KEY 
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
-const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-const FROM_NAME = '戦略大臣';
-
-// メール送信関数（API キーがない場合はログ出力のみ）
-async function sendEmail(to, subject, html) {
-  if (!resend) {
-    console.log('📧 [メール送信スキップ] Resend API キー未設定');
-    console.log(`To: ${to}, Subject: ${subject}`);
-    return { success: true, skipped: true };
-  }
-  
-  try {
-    const data = await resend.emails.send({
-      from: `${FROM_NAME} <${FROM}>`,
-      to: [to],
-      subject: subject,
-      html: html,
     });
     return { success: true, data };
   } catch (error) {
