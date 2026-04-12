@@ -47,7 +47,7 @@ export async function POST(req) {
     }
   }
 
-  const { messages, analysisResult, reanalyze, recruitMode } = await req.json();
+  const { messages, analysisResult, reanalyze, recruitMode, threadTheme } = await req.json();
 
   if (reanalyze) {
     const conversationSummary = messages
@@ -94,6 +94,13 @@ ${conversationSummary}
     }
   }
 
+  const themeContext = threadTheme ? {
+    marketing: "\n現在のテーマは「集客・広告」です。AB3C分析結果から導かれるターゲット顧客にリーチするための具体的な集客施策を提案してください。チャネル選定、メッセージング、予算配分などをアドバイスし、具体的なアクションをToDoとして提案してください。",
+    website: "\n現在のテーマは「ウェブサイト改善」です。AB3C分析結果をもとに、戦略メッセージを正しく伝えるためのウェブサイト改善案を提案してください。コンテンツ、デザイン、構造の観点からアドバイスし、具体的なアクションをToDoとして提案してください。",
+    subsidy: "\n現在のテーマは「補助金申請」です。AB3C分析結果をもとに、申請書に活かせる事業の強み・差別化の表現方法をアドバイスしてください。具体的な申請準備のアクションをToDoとして提案してください。",
+    today: "\n現在のテーマは「今日のアクション」です。AB3C分析結果をもとに、今日取り組むべき具体的なタスクを優先度順に提案してください。",
+  }[threadTheme] || "" : "";
+
   const recruitPrompt = recruitMode ? `
 
 また、あなたは採用コンテンツの専門家でもあります。AB3C分析結果から導かれる採用戦略を提案しながら、以下の情報を自然な会話の中でヒアリングしてください:
@@ -111,7 +118,7 @@ ${JSON.stringify(analysisResult, null, 2)}
 回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
 マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。
 具体的なアクション（やるべきこと）を提案する場合は、回答の最後に [ACTION: アクションのタイトル] の形式で1つだけ明記してください。例：[ACTION: トップページのキャッチコピーを変更する]
-アクション提案が不要な一般的な質疑応答の場合は[ACTION:]を付けないでください。${recruitPrompt}`;
+アクション提案が不要な一般的な質疑応答の場合は[ACTION:]を付けないでください。${themeContext}${recruitPrompt}`;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",

@@ -419,8 +419,8 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
           </button>
           {onConfirmStrategy && (
             <button onClick={onConfirmStrategy}
-              style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "10px 14px", whiteSpace: "nowrap" }}>
-              戦略を確定 →
+              style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
+              伴走へ →
             </button>
           )}
         </div>
@@ -453,9 +453,14 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
 
   // threadId変更時にメッセージを再読込
   useEffect(() => {
-    const defaultMsg = threadId === "recruit"
-      ? "採用コンテンツ企画を始めましょう。確定した戦略をもとに、御社の採用メッセージを一緒に作ります。まず「採用について相談したい」と送信してください。"
-      : "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！";
+    const themeMessages = {
+      marketing: "集客・広告戦略について、確定した戦略をもとにアドバイスします。どんなチャネルや施策について相談しますか？",
+      recruit: "採用コンテンツ企画を始めましょう。確定した戦略をもとに、御社の採用メッセージを一緒に作ります。まず「採用について相談したい」と送信してください。",
+      website: "ウェブサイト改善について、確定した戦略をもとにアドバイスします。どのページやコンテンツについて相談しますか？",
+      subsidy: "補助金申請について、確定した戦略をもとにアドバイスします。どの補助金制度について相談しますか？",
+      today: "今日やるべきアクションを一緒に整理しましょう。何から手をつけますか？",
+    };
+    const defaultMsg = themeMessages[threadId] || "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！";
     try {
       const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
       setMessages(saved ? JSON.parse(saved) : [{ role: "assistant", content: defaultMsg }]);
@@ -479,6 +484,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
           messages: [...messages.filter(m => m.role === "user" || messages.indexOf(m) > 0), userMessage],
           analysisResult,
           recruitMode: threadId === "recruit",
+          threadTheme: threadId,
         }),
       });
       const data = await res.json();
@@ -615,7 +621,8 @@ const [chatSummaries, setChatSummaries] = useState(() => {
 
   const DEFAULT_THREADS = [
     { id: "marketing", label: "集客・広告", icon: "📣", preset: true },
-    { id: "recruit", label: "採用・求人", icon: "👥", preset: true },
+    { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
+    { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
     { id: "today", label: "今日のアクション", icon: "✅", preset: true },
   ];
@@ -896,9 +903,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
                   }
                 }}
-                style={{ background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap" }}
+                style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 28px", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
               >
-                戦略を確定する →
+                戦略を確定して伴走へ →
               </button>
             </div>
           )}
@@ -1278,38 +1285,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ + レポートボタン */}
-    <div style={{ padding: "12px 20px", background: C.phase2Bg, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-      <div style={{ fontSize: 13, color: C.phase2, fontWeight: 700, fontFamily: "system-ui, sans-serif", marginBottom: 6 }}>
-        確定戦略: {currentResult?.strategy_message?.message || ""}
-      </div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {currentInput?.startsWith("http") && (
-          <button onClick={async () => {
-            if (improveResult) return;
-            setImproveLoading(true);
-            try { const res = await fetch("/api/improve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, url: currentInput }) }); const data = await res.json(); if (!data.error) setImproveResult(data); } catch {} finally { setImproveLoading(false); }
-          }} disabled={improveLoading}
-            style={{ background: improveResult ? "#999" : C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: improveResult ? "default" : "pointer", fontSize: 11, padding: "6px 14px", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
-            {improveResult ? "✓ 改善レポート生成済み" : improveLoading ? "生成中..." : "🔧 ウェブサイト改善レポート"}
-          </button>
-        )}
-        <button onClick={() => { setActiveThreadId("recruit"); }}
-          style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 11, padding: "6px 14px", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
-          👥 採用コンテンツ企画
-        </button>
+    {/* 戦略メッセージ */}
+    <div style={{ padding: "10px 20px", background: C.phase2, flexShrink: 0 }}>
+      <div style={{ fontSize: 13, color: "#fff", fontFamily: "system-ui, sans-serif", lineHeight: 1.5 }}>
+        {currentResult?.strategy_message?.message || ""}
       </div>
     </div>
-    {/* テーマ切替タブ */}
-    <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, background: C.surface, flexShrink: 0, overflowX: "auto" }}>
+    {/* テーマ切替タブ（全テーマ並列） */}
+    <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${C.phase2}`, background: C.phase2Bg, flexShrink: 0, overflowX: "auto" }}>
       {threads.map(t => (
         <button key={t.id} onClick={() => setActiveThreadId(t.id)}
-          style={{ padding: "10px 16px", background: "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : C.muted, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+          style={{ padding: "10px 16px", background: activeThreadId === t.id ? C.surface : "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : "#666", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
           <span>{t.icon}</span>{t.label}
         </button>
       ))}
       <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); setActiveThreadId(newThread.id); } }}
-        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>+ 追加</button>
+        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: "#999", fontFamily: "'Space Mono', monospace" }}>+ 追加</button>
     </div>
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
@@ -1344,7 +1335,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 140px)", position: "sticky", top: 140 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "100vh", position: "fixed", top: 0, right: 0, width: 340, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
