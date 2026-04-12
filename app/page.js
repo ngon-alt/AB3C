@@ -474,6 +474,10 @@ const [trialChats, setTrialChats] = useState(0);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [improveLoading, setImproveLoading] = useState(false);
+const [siteId, setSiteId] = useState(null);
+const [strategyConfirmed, setStrategyConfirmed] = useState(false);
+const [recruitResult, setRecruitResult] = useState(null);
+const [recruitLoading, setRecruitLoading] = useState(false);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
@@ -497,6 +501,14 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
     const saved = localStorage.getItem("ab3c_history");
     if (saved) setHistory(JSON.parse(saved));
     if (Notification.permission === "default") Notification.requestPermission();
+    // URLパラメータからsite_idを読み取り
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get("site_id");
+    const urlParam = params.get("url");
+    if (sid) {
+      setSiteId(sid);
+      if (urlParam) { setUrl(urlParam); setTab("url"); }
+    }
   }, []);
 
   useEffect(() => {
@@ -917,6 +929,149 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </button>
     )}
 
+  </div>
+)}
+
+{/* アクションフェーズ */}
+{currentResult && (
+  <div style={{ marginTop: 40, paddingTop: 32, borderTop: `3px solid ${C.A}` }}>
+    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 28, color: C.A }}>ACTION</span>
+      戦略を確定してアクションへ
+    </div>
+
+    {/* 戦略確定ボタン */}
+    {!strategyConfirmed ? (
+      <div style={{ background: C.surface, border: `2px solid ${C.A}`, borderRadius: 8, padding: "24px 28px", marginBottom: 24 }}>
+        <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+          この分析結果を戦略として確定すると、ダッシュボードに保存され、求人コンテンツなどの生成に活用できます。
+        </div>
+        <button
+          onClick={async () => {
+            if (!siteId) {
+              // サイト未登録の場合は新規登録してから確定
+              try {
+                const createRes = await fetch("/api/sites", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
+                    site_url: currentInput?.startsWith("http") ? currentInput : null,
+                  }),
+                });
+                const createData = await createRes.json();
+                if (createData.site) {
+                  setSiteId(createData.site.id);
+                  await fetch("/api/sites", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
+                  });
+                  setStrategyConfirmed(true);
+                }
+              } catch { alert("保存に失敗しました。"); }
+            } else {
+              try {
+                await fetch("/api/sites", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
+                });
+                setStrategyConfirmed(true);
+              } catch { alert("保存に失敗しました。"); }
+            }
+          }}
+          style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 15, fontWeight: 700, padding: "14px 32px" }}
+        >
+          この戦略を確定する
+        </button>
+      </div>
+    ) : (
+      <div style={{ background: "#e8f4fd", border: `2px solid ${C.A}`, borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: C.A, fontWeight: 700, marginBottom: 8 }}>
+          戦略が確定されました
+        </div>
+        <div style={{ fontSize: 15, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+          ダッシュボードから確認できます。以下のアクションツールをご利用ください。
+        </div>
+      </div>
+    )}
+
+    {/* 求人コンテンツ生成 */}
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px", marginBottom: 24 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", color: C.B, marginBottom: 12, textTransform: "uppercase" }}>Recruit Content</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
+        求人コンテンツを生成
+      </div>
+      <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.8, marginBottom: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        AB3C分析結果をもとに、企業の魅力を伝える採用メッセージを自動生成します。
+      </div>
+      {!recruitResult ? (
+        <button
+          onClick={async () => {
+            setRecruitLoading(true);
+            try {
+              const res = await fetch("/api/recruit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ analysisResult: currentResult }),
+              });
+              const data = await res.json();
+              if (data.error) { alert(data.error); } else { setRecruitResult(data); }
+            } catch { alert("エラーが発生しました。"); }
+            finally { setRecruitLoading(false); }
+          }}
+          disabled={recruitLoading}
+          style={{ background: recruitLoading ? C.muted : C.B, border: "none", borderRadius: 4, color: "#fff", cursor: recruitLoading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 28px" }}
+        >
+          {recruitLoading ? "生成中..." : "求人コンテンツを生成する"}
+        </button>
+      ) : (
+        <div>
+          <div style={{ background: "#fef3c7", borderRadius: 6, padding: "16px 20px", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{recruitResult.catch_copy}</div>
+            <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{recruitResult.mission}</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 12, marginBottom: 16 }}>
+            {[
+              { label: "魅力ポイント", content: recruitResult.appeal_points?.join(" / ") },
+              { label: "求める人物像", content: recruitResult.ideal_candidate },
+              { label: "仕事内容", content: recruitResult.work_description },
+              { label: "社風・カルチャー", content: recruitResult.company_culture },
+            ].map(({ label, content }) => (
+              <div key={label} style={{ background: "#f5f5f5", borderRadius: 6, padding: "14px 16px" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.A, marginBottom: 6, letterSpacing: "0.1em" }}>{label}</div>
+                <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{content}</div>
+              </div>
+            ))}
+          </div>
+          {recruitResult.message_to_applicants && (
+            <div style={{ background: C.ink, borderRadius: 6, padding: "16px 20px" }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>応募者へのメッセージ</div>
+              <div style={{ fontSize: 15, color: "#fff", lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{recruitResult.message_to_applicants}</div>
+            </div>
+          )}
+          <button
+            onClick={() => setRecruitResult(null)}
+            style={{ marginTop: 12, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, padding: "8px 16px" }}
+          >
+            再生成する
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* ダッシュボードへのリンク */}
+    <a href="/dashboard" style={{
+      display: "flex", alignItems: "center", gap: 12, background: C.surface, border: `1px solid ${C.border}`,
+      borderRadius: 8, padding: "16px 20px", textDecoration: "none", color: C.ink, marginBottom: 16,
+    }}>
+      <span style={{ fontSize: 24 }}>📋</span>
+      <div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700 }}>ダッシュボードへ</div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>登録サイトの管理・戦略の一覧</div>
+      </div>
+    </a>
   </div>
 )}
             </div>
