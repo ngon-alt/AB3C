@@ -1308,7 +1308,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     </div>
     {/* テーマ切替タブ（全テーマ並列） */}
-    <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${C.phase2}`, background: C.phase2Bg, flexShrink: 0, overflowX: "auto" }}>
+    <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${C.phase2}`, background: C.phase2Bg, flexShrink: 0, overflowX: "auto", alignItems: "center" }}>
       {threads.map(t => (
         <button key={t.id} onClick={() => setActiveThreadId(t.id)}
           style={{ padding: "14px 20px", background: activeThreadId === t.id ? C.surface : "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 18, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : "#666", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}>
@@ -1317,11 +1317,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       ))}
       <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); setActiveThreadId(newThread.id); } }}
         style={{ padding: "14px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 16, color: "#999", fontFamily: "system-ui, sans-serif" }}>+ 追加</button>
-      {activeThreadId && (
-        <button onClick={() => { localStorage.removeItem(`ab3c_thread_${activeThreadId}`); setActiveThreadId(null); setTimeout(() => setActiveThreadId(activeThreadId), 50); }}
-          title="このテーマの会話をリセット"
-          style={{ padding: "10px 12px", background: "transparent", border: "none", cursor: "pointer", fontSize: 11, color: "#999", fontFamily: "'Space Mono', monospace", marginLeft: "auto" }}>↻ リセット</button>
-      )}
+      <button onClick={() => {
+        threads.forEach(t => localStorage.removeItem(`ab3c_thread_${t.id}`));
+        setActiveThreadId(null);
+      }}
+        title="全テーマの会話をリセット"
+        style={{ padding: "8px 14px", background: "#999", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 13, color: "#fff", fontFamily: "system-ui, sans-serif", marginLeft: "auto", whiteSpace: "nowrap" }}>↻ 全リセット</button>
     </div>
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
