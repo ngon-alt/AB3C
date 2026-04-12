@@ -24,7 +24,7 @@ const Badge = ({ status }) => {
 
 const Card = ({ color, title, children }) => (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px" }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 28, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 26, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
     {children}
   </div>
 );
@@ -43,7 +43,7 @@ const SectionLabel = ({ color, letter, jp, en, desc }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}` }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 34, fontWeight: 700, color, lineHeight: 1, width: 56, flexShrink: 0 }}>{letter}</div>
     <div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700 }}>{jp}</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700 }}>{jp}</div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
       {desc && <div style={{ fontSize: 16, color: C.muted, fontStyle: "italic", marginTop: 3 }}>{desc}</div>}
     </div>
@@ -129,14 +129,14 @@ function ResultView({ d }) {
       </div>
       <Divider />
       <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28 }}>
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.strategy_message.message}</div>
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.strategy_message.message}</div>
         <div style={{ fontSize: 18, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
           <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
           <b>Advantage：</b>{d.strategy_message.advantage_part}
         </div>
       </div>
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
     {d.checkpoints.map((cp, i) => (
       <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
         <Badge status={cp.status} />
@@ -176,7 +176,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 8, padding: "32px", maxWidth: 520, width: "100%", position: "relative", maxHeight: "90vh", overflowY: "auto" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
 
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 20, textAlign: "center" }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 20, textAlign: "center" }}>
           ようこそ、{session?.user?.name}さん！
         </div>
 
@@ -663,10 +663,12 @@ setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
+setLoading(false); // AB3C分析完了 → ローディング解除
 
 // URL分析の場合、ウェブサイト改善レポートも同時に生成
 let improveData = null;
 if (tab === "url" && savedText.startsWith("http")) {
+  setImproveLoading(true);
   try {
     const improveRes = await fetch("/api/improve", {
       method: "POST",
@@ -679,12 +681,14 @@ if (tab === "url" && savedText.startsWith("http")) {
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
+  } finally {
+    setImproveLoading(false);
   }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
-    } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
+    } catch { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
   };
 
 const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]); };
@@ -786,22 +790,29 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
         )}
         <div style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          {/* フェーズトップバー */}
+          {/* 2ステップ フェーズナビ */}
           {phase !== "input" && (
-            <div style={{ padding: "10px 24px", background: phase === "action" ? "#e8f4fd" : C.surface, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: phase === "action" ? C.A : C.ink, letterSpacing: "0.1em" }}>
-                  {phase === "action" ? "ACTION PHASE" : "ANALYSIS PHASE"}
-                </span>
-                {currentResult?.strategy_message?.message && (
-                  <span style={{ fontSize: 12, color: C.muted, maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {currentResult.strategy_message.message.slice(0, 50)}
-                  </span>
-                )}
-              </div>
-              {phase === "analysis" && !strategyConfirmed && (
-                <button
-                  onClick={async () => {
+            <div style={{ padding: "0 24px", background: C.surface, borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 50, display: "flex", alignItems: "stretch" }}>
+              {/* STEP 1: 分析 */}
+              <button
+                onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
+                  background: "transparent", border: "none", borderBottom: phase === "analysis" ? `3px solid ${C.ink}` : "3px solid transparent",
+                  cursor: phase === "action" ? "pointer" : "default",
+                  color: phase === "analysis" ? C.ink : C.muted,
+                  fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
+                }}
+              >
+                <span style={{ background: phase === "analysis" ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+                分析
+              </button>
+              {/* 矢印 */}
+              <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: C.muted, fontSize: 16 }}>→</div>
+              {/* STEP 2: アクション */}
+              <button
+                onClick={async () => {
+                  if (phase === "analysis" && !strategyConfirmed) {
                     if (!siteId) {
                       try {
                         const createRes = await fetch("/api/sites", {
@@ -833,20 +844,19 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setStrategyConfirmed(true);
                       } catch { alert("保存に失敗しました。"); }
                     }
-                  }}
-                  style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap" }}
-                >
-                  戦略を確定する →
-                </button>
-              )}
-              {phase === "action" && (
-                <button
-                  onClick={() => { setStrategyConfirmed(false); setActiveThreadId(null); }}
-                  style={{ background: "transparent", border: `1px solid ${C.A}`, borderRadius: 4, color: C.A, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, padding: "6px 14px" }}
-                >
-                  ロック解除
-                </button>
-              )}
+                  }
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "12px 0 12px 0",
+                  background: "transparent", border: "none", borderBottom: phase === "action" ? `3px solid ${C.A}` : "3px solid transparent",
+                  cursor: phase === "analysis" ? "pointer" : "default",
+                  color: phase === "action" ? C.A : C.muted,
+                  fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
+                }}
+              >
+                <span style={{ background: phase === "action" ? C.A : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+                アクション
+              </button>
             </div>
           )}
           <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
@@ -869,7 +879,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>WebサイトのURLを貼るだけ</div>
     </button>
       <button
@@ -886,7 +896,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       }}
     >
       <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>事業概要を自由に記述</div>
     </button>
   </div>
@@ -931,14 +941,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <a href="/howto" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
       <span style={{ fontSize: 24 }}>🔰</span>
       <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink }}>初めての方へ</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>初めての方へ</div>
         <div style={{ fontSize: 16, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>使い方・入力方法・活用法</div>
       </div>
     </a>
     <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
       <span style={{ fontSize: 24 }}>📖</span>
       <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
         <div style={{ fontSize: 16, color: C.muted, marginTop: 2, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>フレームワークの詳細</div>
       </div>
     </a>
@@ -950,12 +960,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>戦略大臣 使い方</div>
     
     <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
       <p style={{ fontSize: 16, lineHeight: 1.9, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>AB3C分析は、「選ばれる理由」を明らかにする事業戦略フレームワークです。Benefit（お客様が求める価値）・Advantage（競合との好ましい違い）・3C（Customer・Competitor・Company）を構造化することで、事業にかかわるすべての人の共通言語をつくります。</p>
     </div>
 
     <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
         <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>🌐 URLで分析（既存事業向け）</div>
@@ -969,7 +979,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
 
     <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
         {[
           { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
@@ -987,7 +997,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
 
     <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", textAlign: "center" }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
       <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.75)", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることが戦略大臣の役割です。</p>
     </div>
   </div>
@@ -1048,6 +1058,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               )}
 <div id="result-area">
   <ResultView d={currentResult} />
+  {currentInput?.startsWith("http") && improveLoading && !improveResult && (
+    <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
+      ウェブサイト改善レポートを生成中です…
+    </div>
+  )}
   {currentInput?.startsWith("http") && improveResult && (
     <div id="improve-area" style={{ marginTop: 40, paddingTop: 40, borderTop: `3px solid ${C.ink}` }}>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
