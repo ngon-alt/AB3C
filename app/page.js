@@ -25,7 +25,7 @@ const Badge = ({ status }) => {
 const ChatBtn = ({ onClick, abs }) => (
   <span className="chat-btn" style={abs ? { position: "absolute", top: 4, right: 4, zIndex: 2, display: "none" } : { display: "none", flexShrink: 0 }}>
     <button onClick={e => { e.stopPropagation(); onClick(); }} title="チャットで質問"
-      style={{ background: "#1a6fd4", border: "none", cursor: "pointer", width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+      style={{ background: "#8c7b6b", border: "none", cursor: "pointer", width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
     </button>
   </span>
@@ -378,7 +378,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#c8c8c3" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e0d4" }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
@@ -396,14 +396,14 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
         <div ref={messagesEndRef} />
       </div>
       {messages.length >= 3 && (
-        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#c8c8c3" }}>
+        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
           <button onClick={reanalyze} disabled={loading}
             style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
             {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
           </button>
         </div>
       )}
-      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: "#c8c8c3" }}>
+      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="分析結果について相談する..."
@@ -476,7 +476,7 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#c8c8c3" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e0d4" }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
@@ -493,7 +493,7 @@ function ThreadChat({ threadId, analysisResult, isPro }) {
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
         <div ref={messagesEndRef} />
       </div>
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#c8c8c3" }}>
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
         <input
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
@@ -1235,7 +1235,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#c8c8c3", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
+          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#e8e0d4", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>戦略分析チャット</span>
