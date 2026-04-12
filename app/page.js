@@ -22,19 +22,23 @@ const Badge = ({ status }) => {
   );
 };
 
-const ChatBtn = ({ onClick }) => (
-  <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
-    <button onClick={onClick}
-      style={{ background: "#ffffff", border: "1px solid #ccc", cursor: "pointer", fontSize: 13, color: "#333", padding: "4px 7px", borderRadius: 4, lineHeight: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}
-      onMouseEnter={e => { e.currentTarget.style.background = "#1a6fd4"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1a6fd4"; e.currentTarget.nextSibling.style.display = "block"; }}
-      onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.color = "#333"; e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.nextSibling.style.display = "none"; }}>💬</button>
-    <span style={{ display: "none", position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 6, background: "#333", color: "#fff", fontSize: 11, padding: "4px 8px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none" }}>チャットで質問</span>
+const ChatBtn = ({ onClick, abs }) => (
+  <span className="chat-btn" style={abs ? { position: "absolute", top: 6, right: 6, zIndex: 2, display: "none" } : { display: "none", flexShrink: 0 }}>
+    <button onClick={e => { e.stopPropagation(); onClick(); }}
+      style={{ background: "#ffffff", border: "1px solid #ccc", cursor: "pointer", fontSize: 13, color: "#333", padding: "4px 7px", borderRadius: 4, lineHeight: 1, boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }}
+      onMouseEnter={e => { e.currentTarget.style.background = "#1a6fd4"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#1a6fd4"; e.currentTarget.querySelector("span").style.display = "block"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.color = "#333"; e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.querySelector("span").style.display = "none"; }}>💬<span style={{ display: "none", position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)", marginBottom: 6, background: "#333", color: "#fff", fontSize: 11, padding: "4px 8px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none" }}>チャットで質問</span></button>
   </span>
 );
+const hoverShow = {
+  onMouseEnter: (e) => { const btn = e.currentTarget.querySelector(".chat-btn"); if (btn) btn.style.display = "inline-flex"; },
+  onMouseLeave: (e) => { const btn = e.currentTarget.querySelector(".chat-btn"); if (btn) btn.style.display = "none"; },
+};
 
 const Card = ({ color, title, children, onChat }) => (
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px" }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 26, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>{title}{onChat && <ChatBtn onClick={onChat} />}</div>
+  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 26, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
+    {onChat && <ChatBtn onClick={onChat} abs />}
     {children}
   </div>
 );
@@ -42,7 +46,8 @@ const Card = ({ color, title, children, onChat }) => (
 const UL = ({ items, onChatItem }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => (
-     <li key={i} style={{ fontSize: 18, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}>
+     <li key={i} style={{ fontSize: 18, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
+       {...(onChatItem ? hoverShow : {})}>
         <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{item}</span>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
@@ -51,21 +56,21 @@ const UL = ({ items, onChatItem }) => (
 );
 
 const SectionLabel = ({ color, letter, jp, en, desc, onChat }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}` }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 34, fontWeight: 700, color, lineHeight: 1, width: 56, flexShrink: 0 }}>{letter}</div>
-    <div style={{ flex: 1 }}>
+    <div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700 }}>{jp}</div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
       {desc && <div style={{ fontSize: 16, color: C.muted, fontStyle: "italic", marginTop: 3 }}>{desc}</div>}
     </div>
-    {onChat && <ChatBtn onClick={onChat} />}
+    {onChat && <ChatBtn onClick={onChat} abs />}
   </div>
 );
 
 const Divider = () => <div style={{ borderTop: `1px solid ${C.border}`, margin: "32px 0" }} />;
 
 const SubLabel = ({ color, text, onChat }) => (
-  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between" }}>{text}{onChat && <ChatBtn onClick={onChat} />}</div>
+  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>{text}{onChat && <ChatBtn onClick={onChat} />}</div>
 );
 
 function ResultView({ d, onChat }) {
@@ -109,27 +114,27 @@ function ResultView({ d, onChat }) {
           <div style={{ marginBottom: 14 }}>
             <Card color={C.C} title="市場規模" onChat={qs("市場規模")}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div></div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(d.three_c.customer.market.sam||"").slice(0,30)}」について詳しく教えてください`)} />}
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
+                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(d.three_c.customer.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
-                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div></div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(d.three_c.customer.market.som||"").slice(0,30)}」について詳しく教えてください`)} />}
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(d.three_c.customer.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
-                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div></div>
-                  {onChat && <ChatBtn onClick={() => onChat(`市場成長率・トレンドについて詳しく教えてください`)} />}
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
+                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`市場成長率・トレンドについて詳しく教えてください`)} abs />}
                 </div>
               </div>
               {d.three_c.customer.market.basis && (
-                <div style={{ marginTop: 12, padding: "12px 14px", background: "#f5f5f5", borderRadius: 4, borderLeft: `3px solid ${C.C}`, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>算出根拠</div>
-                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.basis}</div></div>
-                  {onChat && <ChatBtn onClick={() => onChat(`市場規模の算出根拠について詳しく教えてください`)} />}
+                <div style={{ marginTop: 12, padding: "12px 14px", background: "#f5f5f5", borderRadius: 4, borderLeft: `3px solid ${C.C}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>算出根拠</div>
+                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.basis}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`市場規模の算出根拠について詳しく教えてください`)} abs />}
                 </div>
               )}
             </Card>
@@ -152,21 +157,22 @@ function ResultView({ d, onChat }) {
         </div>
       </div>
       <Divider />
-      <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative" }}>
-        {onChat && <div style={{ position: "absolute", top: 12, right: 12 }}><ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} /></div>}
+      <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
+        {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.strategy_message.message}</div>
         <div style={{ fontSize: 18, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
           <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
           <b>Advantage：</b>{d.strategy_message.advantage_part}
         </div>
       </div>
-<div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>AB3C 5つのチェックポイント{onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} />}</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+<div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
+{onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
     {d.checkpoints.map((cp, i) => (
-      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
+      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6, position: "relative" }} {...(onChat ? hoverShow : {})}>
         <Badge status={cp.status} />
         <div style={{ flex: 1, fontSize: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 18 }}>{cp.comment}</span></div>
-        {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)} />}
+        {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)} abs />}
       </div>
     ))}
   </div>
@@ -1097,8 +1103,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div key={section.key} style={{ marginBottom: 28 }}>
           <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
           {improveResult[section.key]?.map((item, i) => (
-            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
-              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}><span>{i + 1}. {item.title}</span><ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} /></div>
+            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
+              <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
+              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
               <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
               <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
             </div>
