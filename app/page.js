@@ -602,6 +602,7 @@ const [threads, setThreads] = useState([]);
 const [activeThreadId, setActiveThreadId] = useState(null);
 const [actions, setActions] = useState([]);
 const [selectedActionId, setSelectedActionId] = useState(null);
+const [chatExpanded, setChatExpanded] = useState(false);
 const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
@@ -1343,12 +1344,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 140px)", position: "sticky", top: 140 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 140px)", position: "sticky", top: 140 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
                 {phase === "action" ? "アクションリスト" : "分析チャット"}
               </span>
+              <button onClick={() => setChatExpanded(!chatExpanded)} style={{ marginLeft: "auto", background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 12, padding: "2px 8px", fontFamily: "'Space Mono', monospace" }}>
+                {chatExpanded ? "⊡ 縮小" : "⊞ 拡大"}
+              </button>
             </div>
 
             {phase === "analysis" ? (
