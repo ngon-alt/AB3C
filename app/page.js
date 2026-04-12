@@ -570,7 +570,26 @@ setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
-saveHistory(savedText, data, data?.strategy_message?.message || "");
+
+// URL分析の場合、ウェブサイト改善レポートも同時に生成
+let improveData = null;
+if (tab === "url" && savedText.startsWith("http")) {
+  try {
+    const improveRes = await fetch("/api/improve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysisResult: data, url: savedText }),
+    });
+    improveData = await improveRes.json();
+    if (!improveData.error) {
+      setImproveResult(improveData);
+    }
+  } catch (e) {
+    console.error("改善レポート自動生成エラー:", e);
+  }
+}
+
+saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
     } catch { setError("通信エラーが発生しました。もう一度お試しください。"); } finally { setLoading(false); }
   };
