@@ -442,30 +442,41 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
   }, [messages]);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
-    }
-  }, [threadId]);
-
-  useEffect(() => {
     try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
   }, [messages, chatKey]);
 
-  // threadId変更時にメッセージを再読込
+  // threadId変更時にメッセージを再読込、初回は自動生成
   useEffect(() => {
-    const themeMessages = {
-      marketing: "集客・広告戦略について、確定した戦略をもとにアドバイスします。どんなチャネルや施策について相談しますか？",
-      recruit: "採用コンテンツ企画を始めましょう。確定した戦略をもとに、御社の採用メッセージを一緒に作ります。まず「採用について相談したい」と送信してください。",
-      website: "ウェブサイト改善について、確定した戦略をもとにアドバイスします。どのページやコンテンツについて相談しますか？",
-      subsidy: "補助金申請について、確定した戦略をもとにアドバイスします。どの補助金制度について相談しますか？",
-      today: "今日やるべきアクションを一緒に整理しましょう。何から手をつけますか？",
-    };
-    const defaultMsg = themeMessages[threadId] || "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！";
     try {
       const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
-      setMessages(saved ? JSON.parse(saved) : [{ role: "assistant", content: defaultMsg }]);
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      } else {
+        // 初回: AIに戦略ベースの初期アドバイスを自動生成させる
+        setMessages([{ role: "assistant", content: "準備中..." }]);
+        setLoading(true);
+        const autoGenerate = async () => {
+          try {
+            const res = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messages: [{ role: "user", content: `「${threadId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。` }],
+                analysisResult,
+                threadTheme: threadId,
+                initialAdvice: true,
+              }),
+            });
+            const data = await res.json();
+            setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。何でも聞いてください！" }]);
+          } catch {
+            setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+          } finally { setLoading(false); }
+        };
+        autoGenerate();
+      }
     } catch {
-      setMessages([{ role: "assistant", content: defaultMsg }]);
+      setMessages([{ role: "assistant", content: "このテーマについて相談できます。" }]);
     }
     setInput("");
   }, [threadId]);
