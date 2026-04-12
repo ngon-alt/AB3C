@@ -10,6 +10,7 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#000000", muted: "#000000", highlight: "#fef3c7",
+  phase1: "#2d6a30", phase2: "#8c5e1a",
 };
 
 const Badge = ({ status }) => {
@@ -25,7 +26,7 @@ const Badge = ({ status }) => {
 const ChatBtn = ({ onClick, abs }) => (
   <span className="chat-btn" style={abs ? { position: "absolute", top: 4, right: 4, zIndex: 2, display: "none" } : { display: "none", flexShrink: 0 }}>
     <button onClick={e => { e.stopPropagation(); onClick(); }} title="チャットで質問"
-      style={{ background: "#8c7b6b", border: "none", cursor: "pointer", width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+      style={{ background: C.phase1, border: "none", cursor: "pointer", width: 28, height: 28, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
     </button>
   </span>
@@ -774,24 +775,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div style={{ padding: "0 24px", background: C.surface, borderBottom: `2px solid ${C.border}`, display: "flex", alignItems: "stretch" }}>
+        <div style={{ background: C.surface, display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px" }}>
           {/* STEP 1: 分析 */}
           <button
             onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
-              background: "transparent", border: "none", borderBottom: (phase === "analysis" || phase === "input") ? `3px solid ${C.ink}` : "3px solid transparent",
+              background: "transparent", border: "none", borderBottom: "none",
               cursor: phase === "action" ? "pointer" : "default",
-              color: (phase === "analysis" || phase === "input") ? C.ink : C.muted,
+              color: (phase === "analysis" || phase === "input") ? C.phase1 : "#999",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-              marginBottom: -2,
             }}
           >
-            <span style={{ background: (phase === "analysis" || phase === "input") ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+            <span style={{ background: (phase === "analysis" || phase === "input") ? C.phase1 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
             分析
           </button>
           {/* 矢印 */}
-          <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: C.muted, fontSize: 16 }}>→</div>
+          <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: "#999", fontSize: 16 }}>→</div>
           {/* STEP 2: 伴走 */}
           <button
             onClick={async () => {
@@ -834,14 +835,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             }}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 0",
-              background: "transparent", border: "none", borderBottom: phase === "action" ? `3px solid ${C.A}` : "3px solid transparent",
+              background: "transparent", border: "none", borderBottom: "none",
               cursor: phase === "analysis" ? "pointer" : "default",
-              color: phase === "action" ? C.A : C.muted,
+              color: phase === "action" ? C.phase2 : "#999",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-              marginBottom: -2,
             }}
           >
-            <span style={{ background: phase === "action" ? C.A : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            <span style={{ background: phase === "action" ? C.phase2 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             伴走
           </button>
           {/* 分析フェーズ：戦略確定ボタン */}
@@ -873,6 +873,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </span>
             </div>
           )}
+          </div>
+          {/* フェーズカラーライン */}
+          <div style={{ height: 4, background: phase === "action" ? C.phase2 : C.phase1 }} />
         </div>
       )}
 
@@ -1107,16 +1110,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     ← 新規分析
   </button>
   {currentInput && (
-    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: C.A, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
+    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
       ✏️ このテキストを修正して再分析
     </button>
   )}
-  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
+  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
     {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
   </button>
   <button
     onClick={() => { window.print(); }}
-    style={{ background: C.B, border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
+    style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
   >
 🖨️ 印刷・ＰＤＦ保存
   </button>

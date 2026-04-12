@@ -51,7 +51,7 @@ export default function Header({ onShowPricing }) {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 16, color: C.muted }}>
                 {session.user?.name}
-                {isPro && <span style={{ marginLeft: 6, background: "#1a6fd4", color: "#fff", fontSize: 16, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+                {isPro && <span style={{ marginLeft: 6, background: "#555", color: "#fff", fontSize: 16, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
               </span>
               <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted }}>
                 ログアウト
@@ -59,7 +59,7 @@ export default function Header({ onShowPricing }) {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {onShowPricing && (
-                <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "6px 12px" }}>
+                <button onClick={onShowPricing} style={{ background: "#555", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "6px 12px" }}>
                   プランを見る
                 </button>
               )}
