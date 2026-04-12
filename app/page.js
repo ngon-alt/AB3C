@@ -1317,6 +1317,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       ))}
       <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); setActiveThreadId(newThread.id); } }}
         style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: "#999", fontFamily: "'Space Mono', monospace" }}>+ 追加</button>
+      {activeThreadId && (
+        <button onClick={() => { localStorage.removeItem(`ab3c_thread_${activeThreadId}`); setActiveThreadId(null); setTimeout(() => setActiveThreadId(activeThreadId), 50); }}
+          title="このテーマの会話をリセット"
+          style={{ padding: "10px 12px", background: "transparent", border: "none", cursor: "pointer", fontSize: 11, color: "#999", fontFamily: "'Space Mono', monospace", marginLeft: "auto" }}>↻ リセット</button>
+      )}
     </div>
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
@@ -1351,7 +1356,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 130px)", position: "fixed", top: 130, right: 0, width: 340, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", position: "fixed", top: 100, bottom: 0, right: 0, width: 340, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
