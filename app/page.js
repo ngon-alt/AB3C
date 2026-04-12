@@ -772,27 +772,27 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       <Header onShowPricing={() => setShowPricing(true)} />
 
-      {/* 2ステップ フェーズナビ（グリッドの上に配置） */}
-      {phase !== "input" && (
+      {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
+      {(
         <div style={{ padding: "0 24px", background: C.surface, borderBottom: `2px solid ${C.border}`, display: "flex", alignItems: "stretch" }}>
           {/* STEP 1: 分析 */}
           <button
             onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "12px 20px 12px 0",
-              background: "transparent", border: "none", borderBottom: phase === "analysis" ? `3px solid ${C.ink}` : "3px solid transparent",
+              background: "transparent", border: "none", borderBottom: (phase === "analysis" || phase === "input") ? `3px solid ${C.ink}` : "3px solid transparent",
               cursor: phase === "action" ? "pointer" : "default",
-              color: phase === "analysis" ? C.ink : C.muted,
+              color: (phase === "analysis" || phase === "input") ? C.ink : C.muted,
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
               marginBottom: -2,
             }}
           >
-            <span style={{ background: phase === "analysis" ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+            <span style={{ background: (phase === "analysis" || phase === "input") ? C.ink : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
             分析
           </button>
           {/* 矢印 */}
           <div style={{ display: "flex", alignItems: "center", padding: "0 12px", color: C.muted, fontSize: 16 }}>→</div>
-          {/* STEP 2: アクション */}
+          {/* STEP 2: 伴走 */}
           <button
             onClick={async () => {
               if (phase === "analysis" && !strategyConfirmed) {
@@ -842,7 +842,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             }}
           >
             <span style={{ background: phase === "action" ? C.A : C.muted, color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
-            アクション
+            伴走
           </button>
           {/* 分析フェーズ：戦略確定ボタン */}
           {phase === "analysis" && (
@@ -865,7 +865,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </button>
             </div>
           )}
-          {/* アクションフェーズ：確定戦略タイトル */}
+          {/* 伴走フェーズ：確定戦略タイトル */}
           {phase === "action" && currentResult?.strategy_message?.message && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, maxWidth: "50%", overflow: "hidden" }}>
               <span style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "system-ui, sans-serif" }}>
@@ -886,7 +886,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 {phase === "action" ? "STEP 2" : "STEP 1"}
               </div>
               <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: "#fff" }}>
-                {phase === "action" ? "アクションフェーズ" : "分析フェーズ"}
+                {phase === "action" ? "伴走フェーズ" : "分析フェーズ"}
               </div>
             </div>
 
@@ -1232,7 +1232,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {/* チャットは右カラムに移動 */}
 
-{/* アクションフェーズ - チャット中心レイアウト */}
+{/* 伴走フェーズ - チャット中心レイアウト */}
 {phase === "action" && (
   <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "-32px -24px", padding: 0 }}>
     {/* テーマ切替タブ */}
@@ -1293,7 +1293,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
-                {phase === "action" ? "アクションリスト" : "戦略分析チャット"}
+                {phase === "action" ? "アクションリスト" : "分析チャット"}
               </span>
             </div>
 
