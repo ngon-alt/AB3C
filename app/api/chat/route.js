@@ -47,7 +47,7 @@ export async function POST(req) {
     }
   }
 
-  const { messages, analysisResult, reanalyze } = await req.json();
+  const { messages, analysisResult, reanalyze, recruitMode } = await req.json();
 
   if (reanalyze) {
     const conversationSummary = messages
@@ -94,13 +94,24 @@ ${conversationSummary}
     }
   }
 
+  const recruitPrompt = recruitMode ? `
+
+また、あなたは採用コンテンツの専門家でもあります。AB3C分析結果から導かれる採用戦略を提案しながら、以下の情報を自然な会話の中でヒアリングしてください:
+- 会社のビジョン（戦略メッセージをベースに提案し確認）
+- 会社の特徴・強み（働く人の観点で）
+- この会社で働くと身につくスキル
+- キャリアパス・転職先の可能性（同業界の一般的なパスも提示）
+- 待遇・環境面での差別化ポイント
+一問一答ではなく、戦略分析から推論した提案をしながら確認・修正を受ける形で進めてください。
+例えば「Advantageから考えると御社のビジョンはこうでしょうか」「同業界ではこのようなキャリアパスが考えられますが」のように、具体的な提案をベースにヒアリングしてください。` : "";
+
   const systemPrompt = `あなたはAB3C分析の専門家です。以下の分析結果をもとに、ユーザーの相談に答えてください。
 ## 現在の分析結果
 ${JSON.stringify(analysisResult, null, 2)}
 回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
 マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。
 具体的なアクション（やるべきこと）を提案する場合は、回答の最後に [ACTION: アクションのタイトル] の形式で1つだけ明記してください。例：[ACTION: トップページのキャッチコピーを変更する]
-アクション提案が不要な一般的な質疑応答の場合は[ACTION:]を付けないでください。`;
+アクション提案が不要な一般的な質疑応答の場合は[ACTION:]を付けないでください。${recruitPrompt}`;
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",

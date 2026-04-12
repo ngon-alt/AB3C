@@ -9,7 +9,7 @@ export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
-  const { analysisResult, company_name, industry } = await req.json();
+  const { analysisResult, company_name, industry, chatHistory } = await req.json();
 
   if (!analysisResult) {
     return NextResponse.json({ error: "AB3C分析結果が必要です。" }, { status: 400 });
@@ -24,13 +24,18 @@ ${JSON.stringify(analysisResult, null, 2)}
 
 ${company_name ? `## 会社名: ${company_name}` : ""}
 ${industry ? `## 業種: ${industry}` : ""}
+${chatHistory ? `## 採用に関するヒアリング内容\n${chatHistory}` : ""}
 
-## 作成する求人コンテンツ
+## 作成する採用コンテンツ企画
 
 以下のJSON形式で出力してください：
 {
-  "catch_copy": "キャッチコピー（30文字以内）",
-  "mission": "ミッション・ビジョン（企業の使命を100文字程度で）",
+  "catch_copy": "採用キャッチコピー（30文字以内）",
+  "company_vision": "会社のビジョン（戦略メッセージに基づく、求職者向けの表現で100文字程度）",
+  "mission": "ミッション（企業の使命を100文字程度で）",
+  "unique_features": "この会社ならではの特徴・強み（働く人の観点で150文字程度）",
+  "skills_gained": "この会社で身につくスキル・経験（具体的に150文字程度）",
+  "career_paths": "キャリアパス・転職先の可能性（同業界の一般的なパスも含めて150文字程度）",
   "appeal_points": [
     "魅力ポイント1（AB3Cの強みに基づく）",
     "魅力ポイント2",

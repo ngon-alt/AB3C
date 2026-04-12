@@ -10,7 +10,8 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#000000", muted: "#000000", highlight: "#fef3c7",
-  phase1: "#2d6a30", phase2: "#8c5e1a",
+  phase1: "#2d6a30", phase1Bg: "#e8f0e8",
+  phase2: "#8c5e1a", phase2Bg: "#f0ebe0",
 };
 
 const Badge = ({ status }) => {
@@ -379,11 +380,11 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e0d4" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase1Bg }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
-              background: m.role === "user" ? C.A : "#ffffff",
+              background: m.role === "user" ? C.phase1 : "#ffffff",
               border: m.role === "user" ? "none" : `1px solid ${C.border}`,
               borderRadius: 8, padding: "10px 14px", fontSize: 14,
               color: m.role === "user" ? "#fff" : C.ink,
@@ -397,14 +398,14 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
         <div ref={messagesEndRef} />
       </div>
       {messages.length >= 3 && (
-        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
+        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
           <button onClick={reanalyze} disabled={loading}
-            style={{ width: "100%", background: loading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
+            style={{ width: "100%", background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
             {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
           </button>
         </div>
       )}
-      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
+      <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder="分析結果について相談する..."
@@ -419,7 +420,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic }) 
     </div>
   );
 }
-function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
+function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
   const chatKey = `ab3c_thread_${threadId}`;
   const [messages, setMessages] = useState(() => {
     try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
@@ -444,11 +445,14 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
 
   // threadId変更時にメッセージを再読込
   useEffect(() => {
+    const defaultMsg = threadId === "recruit"
+      ? "採用コンテンツ企画を始めましょう。確定した戦略をもとに、御社の採用メッセージを一緒に作ります。まず「採用について相談したい」と送信してください。"
+      : "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！";
     try {
       const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
-      setMessages(saved ? JSON.parse(saved) : [{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+      setMessages(saved ? JSON.parse(saved) : [{ role: "assistant", content: defaultMsg }]);
     } catch {
-      setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
+      setMessages([{ role: "assistant", content: defaultMsg }]);
     }
     setInput("");
   }, [threadId]);
@@ -466,6 +470,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
         body: JSON.stringify({
           messages: [...messages.filter(m => m.role === "user" || messages.indexOf(m) > 0), userMessage],
           analysisResult,
+          recruitMode: threadId === "recruit",
         }),
       });
       const data = await res.json();
@@ -477,7 +482,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: "#e8e0d4" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
           const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
           const displayContent = actionMatch ? m.content.replace(/\[ACTION:\s*.+?\]/g, "").trim() : m.content;
@@ -485,7 +490,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
           <div key={i}>
             <div style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
               <div style={{
-                background: m.role === "user" ? C.A : "#ffffff",
+                background: m.role === "user" ? C.phase2 : "#ffffff",
                 border: m.role === "user" ? "none" : `1px solid ${C.border}`,
                 borderRadius: 8, padding: "10px 14px", fontSize: 14,
                 color: m.role === "user" ? "#fff" : C.ink,
@@ -499,13 +504,13 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
                 <button onClick={() => {
                   onAddAction(actionMatch[1], displayContent, threadId);
                   setMessages(prev => prev.map((msg, idx) => idx === i ? { ...msg, actionRegistered: true } : msg));
-                }} style={{ background: "#2d6a30", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 12, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+                }} style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 12, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
                   ✓ 「{actionMatch[1]}」をアクションに登録
                 </button>
               </div>
             )}
             {actionMatch && m.actionRegistered && (
-              <div style={{ fontSize: 11, color: "#2d6a30", marginTop: 4, marginLeft: 8 }}>✓ アクションに登録済み</div>
+              <div style={{ fontSize: 11, color: C.phase2, marginTop: 4, marginLeft: 8 }}>✓ アクションに登録済み</div>
             )}
           </div>
           );
@@ -513,7 +518,14 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction }) {
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
         <div ref={messagesEndRef} />
       </div>
-      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: "#e8e0d4" }}>
+      {threadId === "recruit" && messages.filter(m => m.role === "user").length >= 3 && onGenerateRecruit && (
+        <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
+          <button onClick={() => onGenerateRecruit(messages)} style={{ width: "100%", background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px" }}>
+            📝 採用コンテンツ企画レポートを生成する
+          </button>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
         <input
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
@@ -615,6 +627,13 @@ const [chatSummaries, setChatSummaries] = useState(() => {
       }
     }
   }, [strategyConfirmed]);
+
+  // 伴走フェーズ: デフォルトで最初のスレッドを開く
+  useEffect(() => {
+    if (strategyConfirmed && threads.length > 0 && !activeThreadId) {
+      setActiveThreadId(threads[0].id);
+    }
+  }, [strategyConfirmed, threads]);
 
   // スレッド永続化
   useEffect(() => {
@@ -891,10 +910,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 340px" : "200px 1fr") : (phase !== "input" ? "1fr 340px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? "#1a3a5c" : C.ink, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
+  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
             {/* フェーズヘッダー */}
             <div style={{ padding: "16px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: phase === "action" ? "#6db3f8" : "rgba(255,255,255,0.5)", marginBottom: 4 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>
                 {phase === "action" ? "STEP 2" : "STEP 1"}
               </div>
               <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: "#fff" }}>
@@ -1112,7 +1131,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
-          {currentResult && (
+          {currentResult && phase !== "action" && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
   <button onClick={reset} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
@@ -1247,11 +1266,33 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {/* 伴走フェーズ - チャット中心レイアウト */}
 {phase === "action" && (
   <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "-32px -24px", padding: 0 }}>
+    {/* 戦略メッセージ + レポートボタン */}
+    <div style={{ padding: "12px 20px", background: C.phase2Bg, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+      <div style={{ fontSize: 13, color: C.phase2, fontWeight: 700, fontFamily: "system-ui, sans-serif", marginBottom: 6 }}>
+        確定戦略: {currentResult?.strategy_message?.message || ""}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {currentInput?.startsWith("http") && (
+          <button onClick={async () => {
+            if (improveResult) { /* 既に生成済み */ return; }
+            setImproveLoading(true);
+            try { const res = await fetch("/api/improve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, url: currentInput }) }); const data = await res.json(); if (!data.error) setImproveResult(data); } catch {} finally { setImproveLoading(false); }
+          }} disabled={improveLoading}
+            style={{ background: improveResult ? "#999" : C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: improveResult ? "default" : "pointer", fontSize: 11, padding: "6px 14px", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+            {improveResult ? "✓ 改善レポート生成済み" : improveLoading ? "生成中..." : "🔧 ウェブサイト改善レポート"}
+          </button>
+        )}
+        <button onClick={() => { setActiveThreadId("recruit"); }}
+          style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 11, padding: "6px 14px", fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>
+          👥 採用コンテンツ企画
+        </button>
+      </div>
+    </div>
     {/* テーマ切替タブ */}
     <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, background: C.surface, flexShrink: 0, overflowX: "auto" }}>
       {threads.map(t => (
         <button key={t.id} onClick={() => setActiveThreadId(t.id)}
-          style={{ padding: "10px 16px", background: "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.ink}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.ink : C.muted, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
+          style={{ padding: "10px 16px", background: "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : C.muted, fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
           <span>{t.icon}</span>{t.label}
         </button>
       ))}
@@ -1271,7 +1312,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット本体 */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeThreadId ? (
-        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction} />
+        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+          onGenerateRecruit={async (msgs) => {
+            setRecruitLoading(true);
+            try {
+              const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n");
+              const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) });
+              const data = await res.json();
+              if (data.error) { alert(data.error); } else { setRecruitResult(data); }
+            } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
+          }} />
       ) : (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 14, fontFamily: "system-ui, sans-serif" }}>
           上のテーマタブを選択してチャットを開始してください
@@ -1301,9 +1351,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: "#e8e0d4", display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
+          <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0 }}>
             {/* チャットヘッダー */}
-            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: C.ink, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
                 {phase === "action" ? "アクションリスト" : "分析チャット"}
               </span>
@@ -1327,8 +1377,21 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-                {/* アクションリスト */}
+                {/* アクションリスト + レポート結果 */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
+                  {/* 採用レポート結果 */}
+                  {recruitResult && (
+                    <div style={{ marginBottom: 16, background: "#fff", borderRadius: 6, border: `1px solid ${C.border}`, padding: "14px", fontSize: 13 }}>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.phase2, fontWeight: 700, marginBottom: 8 }}>採用コンテンツ企画</div>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: C.ink, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}>{recruitResult.catch_copy}</div>
+                      {recruitResult.company_vision && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>ビジョン:</b> {recruitResult.company_vision}</div>}
+                      {recruitResult.skills_gained && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>身につくスキル:</b> {recruitResult.skills_gained}</div>}
+                      {recruitResult.career_paths && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>キャリアパス:</b> {recruitResult.career_paths}</div>}
+                      {recruitResult.unique_features && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>特徴・強み:</b> {recruitResult.unique_features}</div>}
+                      <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}><b>求める人物像:</b> {recruitResult.ideal_candidate}</div>
+                    </div>
+                  )}
+                  {recruitLoading && <div style={{ textAlign: "center", padding: 20, color: C.muted, fontSize: 13 }}>採用レポート生成中...</div>}
                   {selectedActionId ? (() => {
                     const action = actions.find(a => a.id === selectedActionId);
                     return action ? (
