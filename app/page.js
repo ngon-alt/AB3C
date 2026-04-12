@@ -437,22 +437,27 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
     if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    // 「準備中」メッセージは保存しない
-    if (messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
-      try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
-    }
-  }, [messages, chatKey]);
+  const initialized = useRef(false);
 
-  // threadId変更時にメッセージを再読込、初回は自動生成
+  // メッセージ保存（初期化完了後のみ、準備中は保存しない）
   useEffect(() => {
+    if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
+      try { localStorage.setItem(`ab3c_thread_${threadId}`, JSON.stringify(messages)); } catch {}
+    }
+  }, [messages, threadId]);
+
+  // マウント時にロードまたは生成
+  useEffect(() => {
+    initialized.current = false;
+    const key = `ab3c_thread_${threadId}`;
     try {
-      const saved = localStorage.getItem(`ab3c_thread_${threadId}`);
+      const saved = localStorage.getItem(key);
       const parsed = saved ? JSON.parse(saved) : null;
       if (parsed && parsed.length > 0 && !parsed[0]?.content?.includes("準備中")) {
         setMessages(parsed);
+        initialized.current = true;
       } else {
-        // 初回: AIに戦略ベースの初期アドバイスを自動生成させる
+        // 初回: AIに戦略ベースの初期アドバイスを自動生成
         setMessages([{ role: "assistant", content: "戦略をもとにアドバイスを準備中..." }]);
         setLoading(true);
         fetch("/api/chat", {
@@ -464,18 +469,20 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
             threadTheme: threadId,
             initialAdvice: true,
           }),
-        }).then(res => res.json()).then(data => {
-          const msg = data.message || data.error || "このテーマについて相談できます。何でも聞いてください！";
-          setMessages([{ role: "assistant", content: msg }]);
+        }).then(r => r.json()).then(data => {
+          setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。" }]);
+          initialized.current = true;
         }).catch(() => {
-          setMessages([{ role: "assistant", content: "このテーマについて、確定した戦略をもとに相談できます。何でも聞いてください！" }]);
-        }).finally(() => { setLoading(false); });
+          setMessages([{ role: "assistant", content: "このテーマについて相談できます。何でも聞いてください！" }]);
+          initialized.current = true;
+        }).finally(() => setLoading(false));
       }
     } catch {
       setMessages([{ role: "assistant", content: "このテーマについて相談できます。" }]);
+      initialized.current = true;
     }
     setInput("");
-  }, [threadId]);
+  }, []);
 
   const send = async () => {
     if (!input.trim() || loading || !isPro) return;
