@@ -16,7 +16,7 @@ const PRICE_PLANS = {
   'price_1TLOQdCYHZ66REnU1Ec7NPPl':  { type: 'support', sites: 15,  interval: 'month' },
   'price_1TLOQtCYHZ66REnUHbjU42om':  { type: 'support', sites: 30,  interval: 'month' },
   'price_1TLORACYHZ66REnUMWAWZ6As':  { type: 'support', sites: 60,  interval: 'month' },
-  // 'price_SUPPORT_120_MONTHLY': TODO: 作成後に追加
+  'price_1TLORSCYHZ66REnUiAP23UU2':  { type: 'support', sites: 120, interval: 'month' },
 
   // 伴走プラン（年額＝月額×10）
   'price_1TLOS8CYHZ66REnUaztmyqe7':  { type: 'support', sites: 1,   interval: 'year' },

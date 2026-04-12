@@ -31,7 +31,7 @@ export default function PricingModal({ onClose }) {
     15:  "price_1TLOQdCYHZ66REnU1Ec7NPPl",
     30:  "price_1TLOQtCYHZ66REnUHbjU42om",
     60:  "price_1TLORACYHZ66REnUMWAWZ6As",
-    120: "price_SUPPORT_120_MONTHLY", // TODO: Stripeで作成後に差し替え
+    120: "price_1TLORSCYHZ66REnUiAP23UU2",
   };
 
   const supportPricesAnnual = {
