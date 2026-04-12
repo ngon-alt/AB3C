@@ -816,7 +816,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", flexDirection: "column", position: "relative", zIndex: 200 }}>
           <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
@@ -1321,7 +1321,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeThreadId ? (
-        <ThreadChat threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+        <ThreadChat key={activeThreadId} threadId={activeThreadId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
