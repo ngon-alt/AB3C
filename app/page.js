@@ -412,18 +412,16 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
           rows={3}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
-        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          <button onClick={send} disabled={loading}
-            style={{ flex: 1, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
-            送信
+        <button onClick={send} disabled={loading}
+          style={{ width: "100%", marginTop: 8, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px 16px" }}>
+          送信
+        </button>
+        {onConfirmStrategy && (
+          <button onClick={onConfirmStrategy}
+            style={{ width: "100%", marginTop: 8, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 20px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
+            戦略を確定して伴走へ →
           </button>
-          {onConfirmStrategy && (
-            <button onClick={onConfirmStrategy}
-              style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
-              伴走へ →
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -934,7 +932,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 340px" : "200px 1fr") : (phase !== "input" ? "1fr 340px" : "1fr"), flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 400px" : "200px 1fr") : (phase !== "input" ? "1fr 400px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
@@ -1356,7 +1354,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", bottom: 0, right: 0, width: "60%", height: "50vh", zIndex: 200, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}`, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", position: "fixed", top: 100, bottom: 0, right: 0, width: 340, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", position: "fixed", top: 100, bottom: 0, right: 0, width: 400, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
