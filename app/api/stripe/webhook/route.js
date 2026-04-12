@@ -5,26 +5,26 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // === 新料金体系 ===
 const PRICE_PLANS = {
-  // 分析プラン（年間ライセンス）— TODO: Stripe Price ID作成後に差し替え
-  'price_ANALYSIS_1_ANNUAL':   { type: 'analysis', sites: 1,   interval: 'year' },
-  'price_ANALYSIS_10_ANNUAL':  { type: 'analysis', sites: 10,  interval: 'year' },
-  'price_ANALYSIS_100_ANNUAL': { type: 'analysis', sites: 100, interval: 'year' },
+  // 分析プラン（年間ライセンス）
+  'price_1TLOMpCYHZ66REnUpiZhPmSD': { type: 'analysis', sites: 1,   interval: 'year' },
+  'price_1TLONFCYHZ66REnUIosdtrFL':  { type: 'analysis', sites: 10,  interval: 'year' },
+  'price_1TLONcCYHZ66REnUo7W7QVjD': { type: 'analysis', sites: 100, interval: 'year' },
 
   // 伴走プラン（月額）
-  'price_SUPPORT_1_MONTHLY':   { type: 'support', sites: 1,   interval: 'month' },
-  'price_SUPPORT_5_MONTHLY':   { type: 'support', sites: 5,   interval: 'month' },
-  'price_SUPPORT_15_MONTHLY':  { type: 'support', sites: 15,  interval: 'month' },
-  'price_SUPPORT_30_MONTHLY':  { type: 'support', sites: 30,  interval: 'month' },
-  'price_SUPPORT_60_MONTHLY':  { type: 'support', sites: 60,  interval: 'month' },
-  'price_SUPPORT_120_MONTHLY': { type: 'support', sites: 120, interval: 'month' },
+  'price_1TLONuCYHZ66REnU8EQUyAyY': { type: 'support', sites: 1,   interval: 'month' },
+  'price_1TLOOECYHZ66REnUiUxRXASh':  { type: 'support', sites: 5,   interval: 'month' },
+  'price_1TLOQdCYHZ66REnU1Ec7NPPl':  { type: 'support', sites: 15,  interval: 'month' },
+  'price_1TLOQtCYHZ66REnUHbjU42om':  { type: 'support', sites: 30,  interval: 'month' },
+  'price_1TLORACYHZ66REnUMWAWZ6As':  { type: 'support', sites: 60,  interval: 'month' },
+  // 'price_SUPPORT_120_MONTHLY': TODO: 作成後に追加
 
   // 伴走プラン（年額＝月額×10）
-  'price_SUPPORT_1_ANNUAL':    { type: 'support', sites: 1,   interval: 'year' },
-  'price_SUPPORT_5_ANNUAL':    { type: 'support', sites: 5,   interval: 'year' },
-  'price_SUPPORT_15_ANNUAL':   { type: 'support', sites: 15,  interval: 'year' },
-  'price_SUPPORT_30_ANNUAL':   { type: 'support', sites: 30,  interval: 'year' },
-  'price_SUPPORT_60_ANNUAL':   { type: 'support', sites: 60,  interval: 'year' },
-  'price_SUPPORT_120_ANNUAL':  { type: 'support', sites: 120, interval: 'year' },
+  'price_1TLOS8CYHZ66REnUaztmyqe7':  { type: 'support', sites: 1,   interval: 'year' },
+  'price_1TLOSTCYHZ66REnU10zHVTgL':  { type: 'support', sites: 5,   interval: 'year' },
+  'price_1TLOSoCYHZ66REnUm20yhWGB':  { type: 'support', sites: 15,  interval: 'year' },
+  'price_1TLOT6CYHZ66REnUzMZqkLFL':  { type: 'support', sites: 30,  interval: 'year' },
+  'price_1TLOTSCYHZ66REnUIZcOWbfj':  { type: 'support', sites: 60,  interval: 'year' },
+  'price_1TLOTmCYHZ66REnUf3GdNmjf':  { type: 'support', sites: 120, interval: 'year' },
 };
 
 // チャット回数マッピング：伴走プランは1サイトあたり月100回

@@ -7,9 +7,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // 分析プランのPrice ID（年間ライセンス＝一括払い）
 const ANALYSIS_PRICE_IDS = new Set([
-  "price_ANALYSIS_1_ANNUAL",
-  "price_ANALYSIS_10_ANNUAL",
-  "price_ANALYSIS_100_ANNUAL",
+  "price_1TLOMpCYHZ66REnUpiZhPmSD",
+  "price_1TLONFCYHZ66REnUIosdtrFL",
+  "price_1TLONcCYHZ66REnUo7W7QVjD",
 ]);
 
 // キャンペーンクーポンID（TODO: Stripeで作成後に差し替え）

@@ -20,27 +20,27 @@ export default function PricingModal({ onClose }) {
 
   // === Stripe Price IDs（正規価格で登録・TODO: Stripe作成後に差し替え） ===
   const analysisPrices = {
-    1:   "price_ANALYSIS_1_ANNUAL",
-    10:  "price_ANALYSIS_10_ANNUAL",
-    100: "price_ANALYSIS_100_ANNUAL",
+    1:   "price_1TLOMpCYHZ66REnUpiZhPmSD",
+    10:  "price_1TLONFCYHZ66REnUIosdtrFL",
+    100: "price_1TLONcCYHZ66REnUo7W7QVjD",
   };
 
   const supportPricesMonthly = {
-    1:   "price_SUPPORT_1_MONTHLY",
-    5:   "price_SUPPORT_5_MONTHLY",
-    15:  "price_SUPPORT_15_MONTHLY",
-    30:  "price_SUPPORT_30_MONTHLY",
-    60:  "price_SUPPORT_60_MONTHLY",
-    120: "price_SUPPORT_120_MONTHLY",
+    1:   "price_1TLONuCYHZ66REnU8EQUyAyY",
+    5:   "price_1TLOOECYHZ66REnUiUxRXASh",
+    15:  "price_1TLOQdCYHZ66REnU1Ec7NPPl",
+    30:  "price_1TLOQtCYHZ66REnUHbjU42om",
+    60:  "price_1TLORACYHZ66REnUMWAWZ6As",
+    120: "price_SUPPORT_120_MONTHLY", // TODO: Stripeで作成後に差し替え
   };
 
   const supportPricesAnnual = {
-    1:   "price_SUPPORT_1_ANNUAL",
-    5:   "price_SUPPORT_5_ANNUAL",
-    15:  "price_SUPPORT_15_ANNUAL",
-    30:  "price_SUPPORT_30_ANNUAL",
-    60:  "price_SUPPORT_60_ANNUAL",
-    120: "price_SUPPORT_120_ANNUAL",
+    1:   "price_1TLOS8CYHZ66REnUaztmyqe7",
+    5:   "price_1TLOSTCYHZ66REnU10zHVTgL",
+    15:  "price_1TLOSoCYHZ66REnUm20yhWGB",
+    30:  "price_1TLOT6CYHZ66REnUzMZqkLFL",
+    60:  "price_1TLOTSCYHZ66REnUIZcOWbfj",
+    120: "price_1TLOTmCYHZ66REnUf3GdNmjf",
   };
 
   // === 料金データ（正規価格） ===
