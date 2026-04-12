@@ -3,14 +3,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
-// sitesテーブルを強制再作成（スキーマ修正 v2）
+// sitesテーブルを作成（なければ）
 let tableReady = false;
 async function ensureTable(sql) {
   if (tableReady) return;
   try {
-    await sql`DROP TABLE IF EXISTS sites CASCADE`;
     await sql`
-      CREATE TABLE sites (
+      CREATE TABLE IF NOT EXISTS sites (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_email VARCHAR(255) NOT NULL,
         site_url VARCHAR(2048),
@@ -28,7 +27,6 @@ async function ensureTable(sql) {
     `;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     tableReady = true;
-    console.log("sites table recreated successfully");
   } catch (e) {
     console.error("ensureTable error:", e);
     throw e;
