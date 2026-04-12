@@ -3,10 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
-const sql = neon(process.env.DATABASE_URL);
-
 // sitesテーブルを作成（なければ）
-async function ensureTable() {
+async function ensureTable(sql) {
   await sql`
     CREATE TABLE IF NOT EXISTS sites (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,7 +30,8 @@ export async function GET(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
-  await ensureTable();
+  const sql = neon(process.env.DATABASE_URL);
+  await ensureTable(sql);
 
   const sites = await sql`
     SELECT * FROM sites
@@ -54,7 +53,8 @@ export async function POST(req) {
     return NextResponse.json({ error: "サイト名は必須です。" }, { status: 400 });
   }
 
-  await ensureTable();
+  const sql = neon(process.env.DATABASE_URL);
+  await ensureTable(sql);
 
   const rows = await sql`
     INSERT INTO sites (user_email, site_url, site_name, company_name, industry, target_customer)
@@ -76,13 +76,19 @@ export async function PUT(req) {
     return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
   }
 
-  await ensureTable();
+  const sql = neon(process.env.DATABASE_URL);
+  await ensureTable(sql);
 
   // 所有権チェック
   const existing = await sql`SELECT id FROM sites WHERE id = ${id} AND user_email = ${session.user.email}`;
   if (existing.length === 0) {
     return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
   }
+
+  // 各フィールドを個別に更新（nullの場合は既存値を維持）
+  const analysisJson = latest_analysis ? JSON.stringify(latest_analysis) : null;
+  const chatJson = chat_history ? JSON.stringify(chat_history) : null;
+  const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
   const rows = await sql`
     UPDATE sites SET
@@ -91,13 +97,10 @@ export async function PUT(req) {
       company_name = COALESCE(${company_name ?? null}, company_name),
       industry = COALESCE(${industry ?? null}, industry),
       target_customer = COALESCE(${target_customer ?? null}, target_customer),
-      latest_analysis = COALESCE(${latest_analysis ? JSON.stringify(latest_analysis) : null}::jsonb, latest_analysis),
-      strategy_confirmed = COALESCE(${strategy_confirmed ?? null}, strategy_confirmed),
-      strategy_confirmed_at = CASE
-        WHEN ${strategy_confirmed ?? null}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW()
-        ELSE strategy_confirmed_at
-      END,
-      chat_history = COALESCE(${chat_history ? JSON.stringify(chat_history) : null}::jsonb, chat_history),
+      latest_analysis = CASE WHEN ${analysisJson} IS NOT NULL THEN ${analysisJson}::jsonb ELSE latest_analysis END,
+      strategy_confirmed = CASE WHEN ${confirmed} IS NOT NULL THEN ${confirmed} ELSE strategy_confirmed END,
+      strategy_confirmed_at = CASE WHEN ${confirmed} = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
+      chat_history = CASE WHEN ${chatJson} IS NOT NULL THEN ${chatJson}::jsonb ELSE chat_history END,
       updated_at = NOW()
     WHERE id = ${id} AND user_email = ${session.user.email}
     RETURNING *
@@ -118,7 +121,8 @@ export async function DELETE(req) {
     return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
   }
 
-  await ensureTable();
+  const sql = neon(process.env.DATABASE_URL);
+  await ensureTable(sql);
 
   const rows = await sql`
     DELETE FROM sites WHERE id = ${id} AND user_email = ${session.user.email} RETURNING id
