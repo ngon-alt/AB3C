@@ -956,8 +956,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>スレッド</div>
                   {threads.map(t => (
                     <div key={t.id} onClick={() => setActiveThreadId(t.id)}
-                      style={{ padding: "6px 8px", borderRadius: 4, cursor: "pointer", marginBottom: 2, fontSize: 12, color: "#fff", background: activeThreadId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 14 }}>{t.icon}</span>
+                      style={{ padding: "8px 10px", borderRadius: 4, cursor: "pointer", marginBottom: 2, fontSize: 14, color: "#fff", background: activeThreadId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 16 }}>{t.icon}</span>
                       <span>{t.label}</span>
                       {activeThreadId === t.id && <span style={{ marginLeft: "auto", fontSize: 8, color: "#6db3f8" }}>●</span>}
                     </div>
@@ -1306,12 +1306,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div style={{ display: "flex", gap: 0, borderBottom: `2px solid ${C.phase2}`, background: C.phase2Bg, flexShrink: 0, overflowX: "auto" }}>
       {threads.map(t => (
         <button key={t.id} onClick={() => setActiveThreadId(t.id)}
-          style={{ padding: "10px 16px", background: activeThreadId === t.id ? C.surface : "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 13, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : "#666", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
-          <span>{t.icon}</span>{t.label}
+          style={{ padding: "14px 20px", background: activeThreadId === t.id ? C.surface : "transparent", border: "none", borderBottom: activeThreadId === t.id ? `3px solid ${C.phase2}` : "3px solid transparent", cursor: "pointer", fontSize: 18, fontWeight: activeThreadId === t.id ? 700 : 400, color: activeThreadId === t.id ? C.phase2 : "#666", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 22 }}>{t.icon}</span>{t.label}
         </button>
       ))}
       <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); setActiveThreadId(newThread.id); } }}
-        style={{ padding: "10px 16px", background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: "#999", fontFamily: "'Space Mono', monospace" }}>+ 追加</button>
+        style={{ padding: "14px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 16, color: "#999", fontFamily: "system-ui, sans-serif" }}>+ 追加</button>
       {activeThreadId && (
         <button onClick={() => { localStorage.removeItem(`ab3c_thread_${activeThreadId}`); setActiveThreadId(null); setTimeout(() => setActiveThreadId(activeThreadId), 50); }}
           title="このテーマの会話をリセット"
