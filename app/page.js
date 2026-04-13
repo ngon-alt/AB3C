@@ -159,10 +159,10 @@ function ResultView({ d, onChat }) {
         </div>
       </div>
       <Divider />
-      <div style={{ background: C.ink, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
+      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
         {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.strategy_message.message}</div>
-        <div style={{ fontSize: 18, lineHeight: 1.8, opacity: 0.75, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        <div style={{ fontSize: 18, lineHeight: 1.8, opacity: 0.85, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
           <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
           <b>Advantage：</b>{d.strategy_message.advantage_part}
         </div>
@@ -1036,27 +1036,27 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>確定戦略</div>
                   <div style={{ fontSize: 11, color: "#fff", lineHeight: 1.5 }}>{currentResult?.strategy_message?.message?.slice(0, 60) || "（未設定）"}</div>
                 </div>
-                {/* テーマナビ */}
+                {/* 施策ナビ */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
                   {threads.map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
-                        style={{ padding: "7px 14px", cursor: "pointer", fontSize: 13, color: "#fff", background: activeThemeId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 6, borderLeft: activeThemeId === t.id ? "3px solid #fff" : "3px solid transparent" }}>
-                        <span style={{ fontSize: 14 }}>{t.icon}</span>
+                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: 18, color: "#fff", background: activeThemeId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 8, borderLeft: activeThemeId === t.id ? "3px solid #fff" : "3px solid transparent", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                        <span style={{ fontSize: 18 }}>{t.icon}</span>
                         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</span>
                       </div>
-                      {/* サブチャット一覧（テーマ展開時） */}
+                      {/* サブチャット一覧（施策展開時） */}
                       {activeThemeId === t.id && themeChats[t.id] && (
-                        <div style={{ paddingLeft: 20 }}>
+                        <div style={{ paddingLeft: 24 }}>
                           {themeChats[t.id].map(chat => (
                             <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
-                              style={{ padding: "5px 10px", cursor: "pointer", fontSize: 11, color: activeChatId === chat.id ? "#fff" : "rgba(255,255,255,0.6)", background: activeChatId === chat.id ? "rgba(255,255,255,0.1)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 4 }}>
-                              {activeChatId === chat.id && <span style={{ fontSize: 6, color: "#6db3f8" }}>●</span>}
+                              style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: activeChatId === chat.id ? "#fff" : "rgba(255,255,255,0.6)", background: activeChatId === chat.id ? "rgba(255,255,255,0.1)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 5, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                              {activeChatId === chat.id && <span style={{ fontSize: 8, color: "#6db3f8" }}>●</span>}
                               <span>{chat.label}</span>
                             </div>
                           ))}
                           <div onClick={() => addSubChat(t.id)}
-                            style={{ padding: "5px 10px", cursor: "pointer", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
+                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "rgba(255,255,255,0.4)", fontFamily: "system-ui, sans-serif" }}>
                             + チャット追加
                           </div>
                         </div>
@@ -1064,10 +1064,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     </div>
                   ))}
                 </div>
-                {/* テーマ追加・リセット */}
+                {/* 施策追加・リセット */}
                 <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.15)", display: "flex", gap: 6 }}>
-                  <button onClick={() => { const label = prompt("テーマ名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); selectTheme(newThread.id); } }}
-                    style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 10, padding: "6px" }}>+ テーマ</button>
+                  <button onClick={() => { const label = prompt("施策名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); selectTheme(newThread.id); } }}
+                    style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 13, padding: "8px" }}>+ 施策</button>
                   <button onClick={() => {
                     Object.values(themeChats).flat().forEach(c => localStorage.removeItem(`ab3c_thread_${c.id}`));
                     threads.forEach(t => localStorage.removeItem(`ab3c_thread_${t.id}`));
@@ -1406,7 +1406,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
     {/* 戦略メッセージ（コンパクト） */}
-    <div style={{ padding: "12px 24px", background: C.ink, flexShrink: 0, display: "flex", alignItems: "center", gap: 16 }}>
+    <div style={{ padding: "12px 24px", background: C.phase1, flexShrink: 0, display: "flex", alignItems: "center", gap: 16 }}>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", lineHeight: 1.5, fontFamily: "system-ui, sans-serif" }}>
           {currentResult?.strategy_message?.message || ""}
@@ -1426,7 +1426,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }} />
       ) : (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 16, fontFamily: "system-ui, sans-serif" }}>
-          ← サイドバーからテーマを選択してください
+          ← サイドバーから施策を選択してください
         </div>
       )}
     </div>
