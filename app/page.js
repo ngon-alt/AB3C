@@ -669,10 +669,18 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   }, [phase]);
 
   const DEFAULT_THREADS = [
-    { id: "marketing", label: "集客・広告", icon: "📣", preset: true },
-    { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
+    // 集客系
+    { id: "seo", label: "SEO対策", icon: "🔍", preset: true },
+    { id: "sns", label: "SNS運用", icon: "📱", preset: true },
+    { id: "webads", label: "Web広告", icon: "📣", preset: true },
+    { id: "meo", label: "Googleマップ", icon: "📍", preset: true },
+    { id: "flyer", label: "チラシ・DM", icon: "📄", preset: true },
+    { id: "press", label: "プレスリリース", icon: "📰", preset: true },
+    // 事業改善系
     { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
+    { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
+    { id: "sales", label: "営業資料・提案書", icon: "💼", preset: true },
   ];
 
   // スレッド初期化（戦略確定時）

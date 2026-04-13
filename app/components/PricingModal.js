@@ -143,10 +143,11 @@ export default function PricingModal({ onClose }) {
               {[
                 { feature: "AB3C分析レポート", free: "○（1回）", analysis: "○", growth: "○" },
                 { feature: "ウェブサイト改善レポート", free: "○（1回）", analysis: "○", growth: "○" },
+                { feature: "AIチャット相談", free: "✕", analysis: "○（30回）", growth: "○（月100回/サイト）" },
+                { feature: "テーマ別AI伴走（10テーマ）", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "シェアURL発行", free: "○", analysis: "○", growth: "○" },
                 { feature: "印刷・PDF保存", free: "○", analysis: "○", growth: "○" },
-                { feature: "AIチャット相談", free: "✕", analysis: "✕", growth: "○（月100回/サイト）" },
-                { feature: "契約期間", free: "—", analysis: "年間ライセンス", growth: "月額 or 年額" },
+                { feature: "契約期間", free: "—", analysis: "購入後1年間", growth: "月額 or 年額" },
               ].map((row, i) => (
                 <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
                   <td style={{ padding: "10px 12px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
