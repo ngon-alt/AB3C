@@ -910,7 +910,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, boxShadow: `0 1px 0 ${phase === "action" ? C.phase2 : C.phase1}` }}>
+        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, marginBottom: -2, boxShadow: `0 2px 0 ${phase === "action" ? C.phase2 : C.phase1}` }}>
           <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
