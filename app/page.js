@@ -190,8 +190,8 @@ function ResultView({ d, onChat }) {
 }
 
 function WelcomeModal({ session, onClose, onShowPricing }) {
-  const [step, setStep] = React.useState(1); // 1:概要+アンケート 2:完了
-  const [purpose, setPurpose] = React.useState(null);
+  const [step, setStep] = useState(1); // 1:概要+アンケート 2:完了
+  const [purpose, setPurpose] = useState(null);
 
   const handleSelect = async (type) => {
     setPurpose(type);
