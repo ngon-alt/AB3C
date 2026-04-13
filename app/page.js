@@ -376,7 +376,16 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     } finally { setLoading(false); }
   };
 
-  if (!isPro) return null;
+  if (!isPro) return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.phase1Bg }}>
+        <div style={{ textAlign: "center", color: C.muted, fontSize: 16, lineHeight: 1.8, fontFamily: "system-ui, sans-serif" }}>
+          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: C.ink }}>分析チャットを利用するにはログインが必要です</div>
+          <div>Googleアカウントでログインすると、分析結果をもとにAIと相談できます。</div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
