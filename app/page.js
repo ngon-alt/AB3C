@@ -662,12 +662,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   const [headerHeight, setHeaderHeight] = useState(80);
   useEffect(() => {
     const header = document.querySelector("#app-header");
-    if (!header) return;
-    const measure = () => setHeaderHeight(header.offsetHeight);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(header);
-    return () => observer.disconnect();
+    if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
   // タブ切替時にページトップへスクロール
@@ -915,7 +910,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, marginBottom: -1 }}>
+        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, boxShadow: `0 1px 0 ${phase === "action" ? C.phase2 : C.phase1}` }}>
           <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
