@@ -1424,15 +1424,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ（コンパクト） */}
-    <div style={{ padding: "12px 24px", background: C.phase1, flexShrink: 0, display: "flex", alignItems: "center", gap: 16 }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", lineHeight: 1.5, fontFamily: "system-ui, sans-serif" }}>
-          {currentResult?.strategy_message?.message || ""}
-        </div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4, fontFamily: "system-ui, sans-serif" }}>
-          <b>B:</b> {currentResult?.strategy_message?.benefit_part || ""} ／ <b>A:</b> {currentResult?.strategy_message?.advantage_part || ""}
-        </div>
+    {/* 戦略メッセージ */}
+    <div style={{ padding: "20px 24px", background: C.phase1, flexShrink: 0 }}>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>戦略メッセージ = Benefit + Advantage</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 8 }}>
+        {currentResult?.strategy_message?.message || ""}
+      </div>
+      <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontFamily: "system-ui, sans-serif", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 8 }}>
+        <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
+        <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
       </div>
     </div>
     {/* チャット */}
