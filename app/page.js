@@ -659,6 +659,16 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   const phase = viewOverride || derivedPhase;
 
   const stickyNavRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(80);
+  useEffect(() => {
+    const header = document.querySelector("#app-header");
+    if (!header) return;
+    const measure = () => setHeaderHeight(header.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   // タブ切替時にページトップへスクロール
   const mainContentRef = useRef(null);
@@ -905,7 +915,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: 80, zIndex: 200 }}>
+        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, marginBottom: -1 }}>
           <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
@@ -1460,10 +1470,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, borderTop: "none", background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", height: "100vh", position: "sticky", top: 0, zIndex: 150 }}>
-            {/* top:0から開始しナビ(z:200)の裏に完全に隠れるため白線が出ない */}
-            {/* ヘッダー+ナビ高さ分のスペーサー */}
-            {!chatExpanded && <div style={{ height: 128, flexShrink: 0 }} />}
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${headerHeight + 48}px)`, position: "sticky", top: headerHeight + 48, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
