@@ -659,18 +659,6 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   const phase = viewOverride || derivedPhase;
 
   const stickyNavRef = useRef(null);
-  const [rightColTop, setRightColTop] = useState(128);
-  useEffect(() => {
-    const measure = () => {
-      if (stickyNavRef.current) {
-        const navTop = parseInt(getComputedStyle(stickyNavRef.current).top) || 80;
-        setRightColTop(navTop + stickyNavRef.current.offsetHeight);
-      }
-    };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [phase]);
 
   // タブ切替時にページトップへスクロール
   const mainContentRef = useRef(null);
@@ -1472,9 +1460,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${rightColTop}px)`, position: "sticky", top: rightColTop, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", height: "calc(100vh - 80px)", position: "sticky", top: 80, zIndex: 150 }}>
+            {/* stickyナビと同じtop:80で開始。ナビ(z:200)が上に重なり白線が出ない */}
+            {/* ナビ高さ分のスペーサー（ナビの裏に隠れる） */}
+            {!chatExpanded && <div style={{ height: 48, flexShrink: 0 }} />}
             {/* チャットヘッダー */}
-            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, borderTop: `3px solid ${phase === "action" ? C.phase2 : C.phase1}` }}>
+            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
                 {phase === "action" ? "アクションリスト" : "分析チャット"}
               </span>
