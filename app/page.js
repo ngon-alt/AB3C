@@ -426,7 +426,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     </div>
   );
 }
-function ThreadChat({ threadId, themeId, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
+function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
   const effectiveThemeId = themeId || threadId;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -458,18 +458,22 @@ function ThreadChat({ threadId, themeId, analysisResult, isPro, onAddAction, onG
         setMessages(parsed);
         initialized.current = true;
       } else {
-        // 初回: AIに戦略ベースの初期アドバイスを自動生成
-        setMessages([{ role: "assistant", content: `「${effectiveThemeId}」のアドバイスを準備中...` }]);
+        // 初回アドバイス生成（全体アドバイス or サブチャット概要ベース）
+        const isSubChat = !!chatDescription;
+        const userPrompt = isSubChat
+          ? `「${effectiveThemeId}」テーマの中で、以下について相談したいです:\n\n${chatDescription}\n\n戦略分析結果をもとに、この内容について具体的なアドバイスをお願いします。`
+          : `「${effectiveThemeId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。`;
+        setMessages([{ role: "assistant", content: isSubChat ? `「${chatDescription}」について準備中...` : `「${effectiveThemeId}」のアドバイスを準備中...` }]);
         setLoading(true);
         fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
           body: JSON.stringify({
-            messages: [{ role: "user", content: `「${effectiveThemeId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。` }],
+            messages: [{ role: "user", content: userPrompt }],
             analysisResult,
             threadTheme: effectiveThemeId,
-            initialAdvice: true,
+            initialAdvice: !isSubChat,
           }),
         }).then(r => r.json()).then(data => {
           if (!controller.signal.aborted) {
@@ -724,9 +728,11 @@ const [chatSummaries, setChatSummaries] = useState(() => {
 
   // サブチャット追加
   const addSubChat = (themeId) => {
-    const label = prompt("チャット名を入力してください");
+    const label = prompt("チャット名を入力してください（例: TOPページのSEO）");
     if (!label?.trim()) return;
-    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim() };
+    const description = prompt("話し合いたい内容の概要を入力してください\n（例: TOPページのタイトルとメタディスクリプションを改善したい）");
+    if (!description?.trim()) return;
+    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim(), description: description.trim() };
     setThemeChats(prev => ({ ...prev, [themeId]: [...(prev[themeId] || []), newChat] }));
     setActiveChatId(newChat.id);
   };
@@ -1413,7 +1419,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeChatId ? (
-        <ThreadChat key={activeChatId} threadId={activeChatId} themeId={activeThemeId} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+        <ThreadChat key={activeChatId} threadId={activeChatId} themeId={activeThemeId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
