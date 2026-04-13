@@ -1028,7 +1028,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "200px 1fr 400px" : "200px 1fr") : (phase !== "input" ? "1fr 400px" : "1fr"), flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "240px 1fr 400px" : "240px 1fr") : (phase !== "input" ? "1fr 400px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
