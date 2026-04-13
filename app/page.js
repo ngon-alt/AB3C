@@ -427,7 +427,6 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   );
 }
 function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
-  const chatKey = `ab3c_thread_${threadId}`;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -446,9 +445,10 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
     }
   }, [messages, threadId]);
 
-  // マウント時にロードまたは生成
+  // マウント時にロードまたは生成（key={threadId}によるリマウントで実行）
   useEffect(() => {
     initialized.current = false;
+    const controller = new AbortController();
     const key = `ab3c_thread_${threadId}`;
     try {
       const saved = localStorage.getItem(key);
@@ -463,6 +463,7 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
         fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
           body: JSON.stringify({
             messages: [{ role: "user", content: `「${threadId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。` }],
             analysisResult,
@@ -470,18 +471,23 @@ function ThreadChat({ threadId, analysisResult, isPro, onAddAction, onGenerateRe
             initialAdvice: true,
           }),
         }).then(r => r.json()).then(data => {
-          setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。" }]);
-          initialized.current = true;
-        }).catch(() => {
-          setMessages([{ role: "assistant", content: "このテーマについて相談できます。何でも聞いてください！" }]);
-          initialized.current = true;
-        }).finally(() => setLoading(false));
+          if (!controller.signal.aborted) {
+            setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。" }]);
+            initialized.current = true;
+          }
+        }).catch(err => {
+          if (!controller.signal.aborted) {
+            setMessages([{ role: "assistant", content: "このテーマについて相談できます。何でも聞いてください！" }]);
+            initialized.current = true;
+          }
+        }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
       }
     } catch {
       setMessages([{ role: "assistant", content: "このテーマについて相談できます。" }]);
       initialized.current = true;
     }
     setInput("");
+    return () => controller.abort();
   }, []);
 
   const send = async () => {
@@ -631,8 +637,36 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   } catch { return []; }
 });
   
-  // フェーズ導出
-  const phase = !currentResult ? "input" : strategyConfirmed ? "action" : "analysis";
+  // フェーズ導出（viewOverrideで表示タブを切り替え、strategyConfirmedは変更しない）
+  const [viewOverride, setViewOverride] = useState(null);
+  const derivedPhase = !currentResult ? "input" : strategyConfirmed ? "action" : "analysis";
+  const phase = viewOverride || derivedPhase;
+
+  // stickyナビの高さを計測して右カラムのtop位置を動的に決定
+  const stickyNavRef = useRef(null);
+  const [stickyNavBottom, setStickyNavBottom] = useState(128);
+  useEffect(() => {
+    if (stickyNavRef.current) {
+      const navTop = parseInt(getComputedStyle(stickyNavRef.current).top) || 80;
+      setStickyNavBottom(navTop + stickyNavRef.current.offsetHeight);
+    }
+  });
+
+  // タブ切替時にページトップへスクロール
+  const mainContentRef = useRef(null);
+  const prevPhaseRef = useRef(phase);
+  useEffect(() => {
+    if (prevPhaseRef.current !== phase) {
+      prevPhaseRef.current = phase;
+      // DOM更新後の次フレームでスクロール（ブラウザの復元処理より後に実行）
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
+      });
+    }
+  }, [phase]);
 
   const DEFAULT_THREADS = [
     { id: "marketing", label: "集客・広告", icon: "📣", preset: true },
@@ -821,16 +855,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
       {(
-        <div style={{ display: "flex", flexDirection: "column", position: "sticky", top: 80, zIndex: 200 }}>
+        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: 80, zIndex: 200 }}>
           <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
           {/* STEP 1: 分析 */}
           <button
-            onClick={() => { if (phase === "action") { setStrategyConfirmed(false); setActiveThreadId(null); } }}
+            onClick={() => { if (derivedPhase === "action" && phase === "action") { setViewOverride("analysis"); } }}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
               background: (phase === "analysis" || phase === "input") ? C.phase1 : "#ccc",
               border: "none", borderRadius: "6px 6px 0 0",
-              cursor: phase === "action" ? "pointer" : "default",
+              cursor: (derivedPhase === "action" && phase === "action") ? "pointer" : "default",
               color: "#fff",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
             }}
@@ -846,7 +880,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             onMouseLeave={e => { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "none"; }}>
           <button
             onClick={async () => {
-              if (phase === "analysis" && !strategyConfirmed) {
+              // 既に戦略確定済みなら、viewOverrideをクリアして伴走に戻るだけ
+              if (strategyConfirmed) {
+                setViewOverride(null);
+                return;
+              }
+              if (phase === "analysis") {
                 const confirmStrategy = async () => {
                   if (!siteId) {
                     try {
@@ -885,9 +924,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             }}
             style={{
               display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
-              background: phase === "action" ? C.phase2 : "#ccc",
+              background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "99" : "#ccc",
               border: "none", borderRadius: "6px 6px 0 0",
-              cursor: phase === "analysis" ? "pointer" : "default",
+              cursor: (phase === "analysis" && (strategyConfirmed || currentResult)) ? "pointer" : "default",
               color: "#fff",
               fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
             }}
@@ -1013,7 +1052,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
         )}
-        <div style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
@@ -1357,7 +1396,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - 130px)", position: "sticky", top: 130, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${stickyNavBottom}px)`, position: "sticky", top: stickyNavBottom, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>

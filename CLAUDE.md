@@ -214,13 +214,15 @@ checkpoints: [{ label, status, comment }]
 ## 開発予定機能・要件
 
 ### 未解決バグ（最優先）
-1. **伴走タブのテーマ切替が正しく動作しない**
+1. **伴走タブのテーマ切替が正しく動作しない（修正済み・要確認）**
    - 症状: 採用コンテンツ企画を選んでも集客・広告のアドバイスが表示される
-   - デバッグ中: 準備中メッセージに`threadId`を表示するコードを追加済み（要確認）
-   - 原因候補: ThreadChatの`key={activeThreadId}`による再マウントが効いていない、またはlocalStorageに古いデータが残っている
-   - 対処: `↻ 全リセット`ボタンを押してから各テーマを選択してテスト
-   - ThreadChat内のuseEffectは依存配列`[]`（マウント時のみ）に変更済み
-   - `initialized` refで初期化完了前のlocalStorage保存を防止済み
+   - 修正内容:
+     - `key={activeThreadId}`による再マウント → 正常動作を確認
+     - `initialized` refで初期化完了前のlocalStorage保存を防止
+     - **AbortController追加**: テーマ切替時に進行中のfetchをキャンセルし、古いレスポンスによる状態更新を完全ブロック
+     - デッドコード(`chatKey`変数)削除
+   - 残りの確認事項: 本番で「全リセット」→各テーマ選択→正しいアドバイスが表示されるかテスト
+   - 根本原因: 高速テーマ切替時のfetchレースコンディション + 以前のバグで壊れたlocalStorageデータ
 
 2. **右カラムの位置調整**
    - sticky top:130px / height:calc(100vh-130px) に設定済み
