@@ -1014,14 +1014,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </button>
             </div>
           )}
-          {/* 伴走フェーズ：確定戦略タイトル */}
-          {phase === "action" && currentResult?.strategy_message?.message && (
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, maxWidth: "50%", overflow: "hidden" }}>
-              <span style={{ fontSize: 12, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "system-ui, sans-serif" }}>
-                確定戦略: {currentResult.strategy_message.message}
-              </span>
-            </div>
-          )}
           </div>
           {/* フェーズカラーライン */}
           <div style={{ height: 8, background: phase === "action" ? C.phase2 : C.phase1 }} />
