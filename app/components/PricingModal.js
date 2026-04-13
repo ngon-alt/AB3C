@@ -144,16 +144,26 @@ export default function PricingModal({ onClose }) {
                 { feature: "AB3C分析レポート", free: "○（1回）", analysis: "○", growth: "○" },
                 { feature: "ウェブサイト改善レポート", free: "○（1回）", analysis: "○", growth: "○" },
                 { feature: "AIチャット相談", free: "✕", analysis: "○（30回）", growth: "○（月100回/サイト）" },
-                { feature: "テーマ別AI伴走（10テーマ）", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "施策別AI伴走", free: "", analysis: "", growth: "", isHeader: true },
+                { feature: "　SEO対策", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　SNS運用", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　Web広告", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　Googleマップ（MEO）", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　チラシ・DM", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　プレスリリース", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　ウェブサイト改善", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　採用コンテンツ企画", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　補助金申請", free: "✕", analysis: "✕", growth: "○" },
+                { feature: "　営業資料・提案書", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "シェアURL発行", free: "○", analysis: "○", growth: "○" },
                 { feature: "印刷・PDF保存", free: "○", analysis: "○", growth: "○" },
                 { feature: "契約期間", free: "—", analysis: "購入後1年間", growth: "月額 or 年額" },
               ].map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 12px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.free}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.analysis}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: row.growth === "✕" ? C.red : C.A, fontWeight: row.growth !== "✕" ? 700 : 400 }}>{row.growth}</td>
+                <tr key={i} style={{ background: row.isHeader ? "#e8e8e8" : (i % 2 === 0 ? C.highlight : C.surface), borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: row.isHeader ? "8px 12px" : "10px 12px", color: C.ink, fontWeight: row.isHeader ? 700 : 600, fontSize: row.isHeader ? 13 : 12 }} colSpan={row.isHeader ? 4 : 1}>{row.feature}</td>
+                  {!row.isHeader && <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.free}</td>}
+                  {!row.isHeader && <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.analysis}</td>}
+                  {!row.isHeader && <td style={{ padding: "10px 12px", textAlign: "center", color: row.growth === "✕" ? C.red : C.A, fontWeight: row.growth !== "✕" ? 700 : 400 }}>{row.growth}</td>}
                 </tr>
               ))}
             </tbody>
