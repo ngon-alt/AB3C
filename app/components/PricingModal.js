@@ -159,10 +159,10 @@ export default function PricingModal({ onClose }) {
                 { feature: "契約期間", free: "—", analysis: "購入後1年間", growth: "月額 or 年額" },
               ].map((row, i) => (
                 <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 12px", color: C.ink, fontWeight: 600 }}>{row.feature}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.free}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: C.muted }}>{row.analysis}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: row.growth === "✕" ? C.red : C.A, fontWeight: row.growth !== "✕" ? 700 : 400 }}>{row.growth}</td>
+                  <td style={{ padding: "10px 12px", color: "#000", fontWeight: 600 }}>{row.feature}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.free}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.analysis}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000", fontWeight: 700 }}>{row.growth}</td>
                 </tr>
               ))}
             </tbody>
