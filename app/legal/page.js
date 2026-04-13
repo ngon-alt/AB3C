@@ -53,8 +53,8 @@ export default function Legal() {
           <section className="border-b border-gray-200 pb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">メールアドレス</h2>
             <p className="text-gray-700">
-              <a href="mailto:info@digi-kaku.or.jp" className="text-blue-600 hover:text-blue-800 underline">
-                info@digi-kaku.or.jp
+              <a href="mailto:info@senryaku.ai" className="text-blue-600 hover:text-blue-800 underline">
+                info@senryaku.ai
               </a>
             </p>
           </section>
@@ -184,7 +184,7 @@ export default function Legal() {
           <section className="border-b border-gray-200 pb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">サービス内容に関する問い合わせ先</h2>
             <div className="space-y-2 text-gray-700">
-              <p>Email: <a href="mailto:info@digi-kaku.or.jp" className="text-blue-600 hover:text-blue-800 underline">info@digi-kaku.or.jp</a></p>
+              <p>Email: <a href="mailto:info@senryaku.ai" className="text-blue-600 hover:text-blue-800 underline">info@senryaku.ai</a></p>
               <p className="text-sm text-gray-600">※お問い合わせは原則メールで受け付けております。</p>
             </div>
           </section>

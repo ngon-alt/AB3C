@@ -68,7 +68,7 @@ export default function ShareContent({ input, result, improveResult, error }) {
               「選ばれる理由」を見つけるフレームワーク
             </div>
           </div>
-          <a href="https://analyzer.ab3c.jp" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
+          <a href="https://senryaku.ai" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
             ← 分析ツールへ
           </a>
         </div>

@@ -208,7 +208,7 @@ export default function Contact() {
           <div style={{ marginTop: 32, textAlign: "center", color: C.muted, fontSize: 14 }}>
             <p>営業時間：平日 9:00〜18:00</p>
             <p style={{ marginTop: 8 }}>
-              直接メールでのお問い合わせ：<a href="mailto:info@digi-kaku.or.jp" style={{ color: C.A, textDecoration: "underline" }}>info@digi-kaku.or.jp</a>
+              直接メールでのお問い合わせ：<a href="mailto:info@senryaku.ai" style={{ color: C.A, textDecoration: "underline" }}>info@senryaku.ai</a>
             </p>
           </div>
         </div>

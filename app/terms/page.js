@@ -212,7 +212,7 @@ export default function Terms() {
               <p><strong>一般社団法人デジタル経営革新協会</strong></p>
               <p>〒170-0003 東京都豊島区駒込1-42-1 第三米山ビル502</p>
               <p>TEL: 090-3012-3301</p>
-              <p>Mail: <a href="mailto:info@digi-kaku.or.jp" className="text-blue-600 hover:text-blue-800 underline">info@digi-kaku.or.jp</a></p>
+              <p>Mail: <a href="mailto:info@senryaku.ai" className="text-blue-600 hover:text-blue-800 underline">info@senryaku.ai</a></p>
               <p>Website: <a href="https://www.digi-kaku.or.jp/" className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">https://www.digi-kaku.or.jp/</a></p>
             </div>
           </section>

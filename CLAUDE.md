@@ -5,7 +5,7 @@
 ## プロジェクト概要
 「戦略大臣」は、権成俊氏が20年以上のコンサルティング実績から開発したAB3Cフレームワーク（Advantage・Benefit・Customer・Competitor・Company）をSaaS化した戦略策定ツール。非エンジニアながらClaudeと協働開発しており、日本の中小企業に戦略コンサルティング品質の分析を届けることをミッションとしている。
 
-- **本番URL**: https://analyzer.ab3c.jp
+- **本番URL**: https://senryaku.ai （旧: analyzer.ab3c.jp）
 - **Vercelプロジェクト**: ngon-alts-projects/ab3c-analyzer
 - **リポジトリ**: ngon-alt/AB3C
 - **主なステークホルダー**: FutureShop（ECプラットフォーム、約2,500社が加盟）との提携試験中
@@ -17,7 +17,7 @@
 DB: Neon PostgreSQL（users, tickets テーブル）
 決済: Stripe（ライブキー sk_live_、Vercel環境変数に設定）
 AI: Anthropic Claude API（claude-sonnet-4-6）
-メール: Resend（FROM: info@digi-kaku.or.jp）
+メール: Resend（FROM: info@senryaku.ai）
 ホスティング: Vercel（GitHub mainブランチ自動デプロイ）
 フォント: Noto Serif JP（Google Fonts経由）
 ```

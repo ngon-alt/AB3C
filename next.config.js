@@ -11,7 +11,7 @@ const nextConfig = {
             value: 'ab3c-analyzer.vercel.app',
           },
         ],
-        destination: 'https://analyzer.ab3c.jp/:path*',
+        destination: 'https://senryaku.ai/:path*',
         permanent: true,
       },
     ];

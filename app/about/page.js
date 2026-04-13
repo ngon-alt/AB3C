@@ -22,7 +22,7 @@ export default function AboutPage() {
               AB3C分析とは
             </div>
           </div>
-          <a href="https://analyzer.ab3c.jp" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
+          <a href="https://senryaku.ai" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
             ← 分析ツールへ
           </a>
         </div>
@@ -260,7 +260,7 @@ export default function AboutPage() {
         <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそくAB3C分析を試してみましょう</div>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 20, lineHeight: 1.8 }}>URLを入力するだけで、あなたのビジネスの「選ばれる理由」を分析します。</p>
-          <a href="https://analyzer.ab3c.jp" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
+          <a href="https://senryaku.ai" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
             ▶ 分析ツールへ
           </a>
         </div>

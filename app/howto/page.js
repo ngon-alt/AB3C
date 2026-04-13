@@ -20,7 +20,7 @@ export default function HowtoPage() {
               初めての方へ
             </div>
           </div>
-          <a href="https://analyzer.ab3c.jp" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
+          <a href="https://senryaku.ai" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
             ← 分析ツールへ
           </a>
         </div>
@@ -215,7 +215,7 @@ export default function HowtoPage() {
               </div>
             </div>
 
-            <a href="https://analyzer.ab3c.jp" style={{ display: "block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 20px", textDecoration: "none", textAlign: "center" }}>
+            <a href="https://senryaku.ai" style={{ display: "block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 20px", textDecoration: "none", textAlign: "center" }}>
               ▶ さっそく無料でお試しする
             </a>
           </div>
@@ -223,7 +223,7 @@ export default function HowtoPage() {
 
         <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそく分析してみましょう</div>
-          <a href="https://analyzer.ab3c.jp" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
+          <a href="https://senryaku.ai" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
             ▶ 分析ツールへ
           </a>
         </div>
