@@ -418,7 +418,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   };
 
   if (!isPro) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.phase1Bg }}>
         <div style={{ textAlign: "center", color: C.muted, fontSize: 16, lineHeight: 1.8, fontFamily: "system-ui, sans-serif" }}>
           <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: C.ink }}>分析チャットを利用するにはログインが必要です</div>
@@ -429,7 +429,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase1Bg }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
@@ -570,7 +570,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
           const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
@@ -1120,7 +1120,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       />
 
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "240px 1fr 400px" : "240px 1fr") : (phase !== "input" ? "1fr 400px" : "1fr"), flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? "240px 1fr" : "1fr", flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
@@ -1196,25 +1196,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
             <div style={{ flex: 1, overflowY: "auto" }}>
               {phase !== "action" && (
-                history.length === 0 ? (
-                  <div style={{ padding: 14, fontSize: 11, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>履歴はありません</div>
-                ) : (
-                  history.map((h, i) => (
-                    <div key={h.id} onClick={() => {
-  setSelectedHistory(h);
-  setResult(null);
-  setCurrentResult(h.result);
-  setCurrentInput(h.input);
-  setImproveResult(h.improveResult || null);
-  setStrategyConfirmed(false);
-}}
-                      style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: selectedHistory?.id === h.id ? "rgba(255,255,255,0.1)" : "transparent", borderLeft: selectedHistory?.id === h.id ? "3px solid #6db3f8" : "3px solid transparent" }}>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{history.length - i} · {h.date}</div>
-                      <div style={{ fontSize: 11, color: "#fff", lineHeight: 1.5 }}>{h.preview?.slice(0, 40)}</div>
-                      <button onClick={(e) => { e.stopPropagation(); deleteHistory(h.id); }} style={{ marginTop: 4, background: "transparent", border: "none", cursor: "pointer", fontSize: 9, color: "rgba(255,255,255,0.3)", padding: 0 }}>削除</button>
+                <>
+                  {/* チャット履歴サマリー */}
+                  <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>チャット履歴</span>
+                  </div>
+                  {chatSummaries.length === 0 ? (
+                    <div style={{ padding: 14, fontSize: 13, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
+                      分析チャットで相談すると<br/>ここに履歴が表示されます
                     </div>
-                  ))
-                )
+                  ) : (
+                    chatSummaries.map(function(s, i) {
+                      return (
+                        <div key={i} style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", fontSize: 13, color: "#fff", lineHeight: 1.5 }}>
+                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{i + 1} 反映済み</div>
+                          <div>{typeof s === 'string' ? s : JSON.stringify(s)}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                </>
               )}
             </div>
 
@@ -1503,7 +1504,37 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 
-{/* チャットは右カラムに移動 */}
+{/* 分析チャット（メイン下部） */}
+{phase === "analysis" && currentResult && (
+  <div style={{ borderTop: `3px solid ${C.phase1}`, marginTop: 32 }}>
+    <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.phase1 }}>分析チャット</span>
+      <span style={{ fontSize: 13, color: C.muted }}>— 分析結果について相談・修正できます</span>
+    </div>
+    <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", minHeight: 400 }}>
+      <AnalysisChatPanel
+        isPro={isPro || chatTickets > 0 || trialChats > 0}
+        analysisResult={currentResult}
+        onSendTopic={chatSendTopicRef}
+        onReanalyze={function(newResult, summary) {
+          try {
+            var diff = diffResults(currentResult || {}, newResult);
+            setChangedPaths(diff);
+          } catch (e) { console.error("diff error:", e); }
+          setResult(newResult);
+          setCurrentResult(newResult);
+          setHistoryTitle(newResult?.strategy_message?.message || "");
+          setSelectedHistory(null);
+          if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
+          saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+          setTimeout(function() { setChangedPaths(new Set()); }, 10000);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+        onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
+      />
+    </div>
+  </div>
+)}
 
 {/* 伴走フェーズのコンテンツは分析結果ブロックの外に移動済み */}
             </div>
@@ -1555,100 +1586,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
 
-        {/* 右カラム: チャットパネル */}
-        {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${headerHeight}px)`, position: "sticky", top: headerHeight, zIndex: 100 }}>
-            {/* チャットヘッダー */}
-            <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
-                {phase === "action" ? "アクションリスト" : "分析チャット"}
-              </span>
-              <button onClick={() => setChatExpanded(!chatExpanded)} style={{ marginLeft: "auto", background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 12, padding: "2px 8px", fontFamily: "'Space Mono', monospace" }}>
-                {chatExpanded ? "⊡ 縮小" : "⊞ 拡大"}
-              </button>
-            </div>
-
-            {phase === "analysis" ? (
-              <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-                <div style={{ flex: 1, overflow: "hidden" }}>
-                  <AnalysisChatPanel
-                    isPro={isPro || chatTickets > 0 || trialChats > 0}
-                    analysisResult={currentResult}
-                    onSendTopic={chatSendTopicRef}
-                    onReanalyze={(newResult, summary) => {
-                      try {
-                        var diff = diffResults(currentResult || {}, newResult);
-                        setChangedPaths(diff);
-                      } catch (e) { console.error("diff error:", e); }
-                      setResult(newResult);
-                      setCurrentResult(newResult);
-                      setHistoryTitle(newResult?.strategy_message?.message || "");
-                      setSelectedHistory(null);
-                      if (summary) setChatSummaries(prev => [...prev, summary]);
-                      saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-                      setTimeout(function() { setChangedPaths(new Set()); }, 10000);
-                    }}
-                    onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-                {/* アクションリスト + レポート結果 */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
-                  {/* 採用レポート結果 */}
-                  {recruitResult && (
-                    <div style={{ marginBottom: 16, background: "#fff", borderRadius: 6, border: `1px solid ${C.border}`, padding: "14px", fontSize: 13 }}>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.phase2, fontWeight: 700, marginBottom: 8 }}>採用コンテンツ企画</div>
-                      <div style={{ fontWeight: 700, fontSize: 16, color: C.ink, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}>{recruitResult.catch_copy}</div>
-                      {recruitResult.company_vision && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>ビジョン:</b> {recruitResult.company_vision}</div>}
-                      {recruitResult.skills_gained && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>身につくスキル:</b> {recruitResult.skills_gained}</div>}
-                      {recruitResult.career_paths && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>キャリアパス:</b> {recruitResult.career_paths}</div>}
-                      {recruitResult.unique_features && <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 6, fontFamily: "system-ui, sans-serif" }}><b>特徴・強み:</b> {recruitResult.unique_features}</div>}
-                      <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}><b>求める人物像:</b> {recruitResult.ideal_candidate}</div>
-                    </div>
-                  )}
-                  {recruitLoading && <div style={{ textAlign: "center", padding: 20, color: C.muted, fontSize: 13 }}>採用レポート生成中...</div>}
-                  {selectedActionId ? (() => {
-                    const action = actions.find(a => a.id === selectedActionId);
-                    return action ? (
-                      <div>
-                        <button onClick={() => setSelectedActionId(null)} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "4px 10px", marginBottom: 12, fontFamily: "'Space Mono', monospace" }}>← 一覧に戻る</button>
-                        <div style={{ fontFamily: "system-ui, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>{action.title}</div>
-                        <div style={{ fontSize: 11, color: C.muted, marginBottom: 12 }}>{action.createdAt}</div>
-                        <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, sans-serif", whiteSpace: "pre-wrap", background: "#fff", borderRadius: 6, padding: "12px 14px", border: `1px solid ${C.border}` }}>{action.detail}</div>
-                        <button onClick={() => { setActions(prev => prev.filter(a => a.id !== selectedActionId)); setSelectedActionId(null); }}
-                          style={{ marginTop: 12, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "6px 12px" }}>削除</button>
-                      </div>
-                    ) : null;
-                  })() : (
-                    <div>
-                      {actions.length === 0 ? (
-                        <div style={{ textAlign: "center", color: C.muted, fontSize: 13, padding: "40px 12px", fontFamily: "system-ui, sans-serif" }}>
-                          チャットでAIが提案したアクションがここに表示されます
-                        </div>
-                      ) : (
-                        actions.map(a => (
-                          <div key={a.id} onClick={() => setSelectedActionId(a.id)}
-                            style={{ padding: "10px 12px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: "#fff", borderRadius: 6, marginBottom: 6, border: `1px solid ${C.border}` }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, fontFamily: "system-ui, sans-serif", marginBottom: 2 }}>{a.title}</div>
-                            <div style={{ fontSize: 10, color: C.muted }}>{a.createdAt}</div>
-                          </div>
-                        ))
-                      )}
-                      <button onClick={() => {
-                        const title = prompt("アクションのタイトルを入力");
-                        if (title?.trim()) addAction(title.trim(), "", activeThreadId || "manual");
-                      }} style={{ width: "100%", marginTop: 8, background: "transparent", border: `1px dashed ${C.border}`, borderRadius: 4, color: C.muted, cursor: "pointer", fontSize: 11, padding: "8px", fontFamily: "'Space Mono', monospace" }}>
-                        + 手動でアクションを追加
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {/* 右カラム廃止: チャットはメイン下部、アクションリストは伴走フェーズ内に統合済み */}
       </div>{/* end grid */}
     </div>
   );
