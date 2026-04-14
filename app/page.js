@@ -1224,7 +1224,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <>
                 {/* 確定履歴 */}
                 <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>確定履歴</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>確定履歴</span>
                 </div>
               </>
             )}
@@ -1242,17 +1242,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setChangedPaths(new Map());
                     }}
                       style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: currentResult?.strategy_message?.message === ch.strategyMessage ? "rgba(255,255,255,0.1)" : "transparent", borderLeft: currentResult?.strategy_message?.message === ch.strategyMessage ? "3px solid #6db3f8" : "3px solid transparent" }}>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                      <div style={{ fontSize: 13, color: "#fff", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>#{confirmHistory.length - i} · {ch.date}</div>
+                      <div style={{ fontSize: 16, color: "#fff", lineHeight: 1.5 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                       {ch.chatSummaries && ch.chatSummaries.length > 0 && (
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>チャット {ch.chatSummaries.length}件反映</div>
+                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>チャット {ch.chatSummaries.length}件反映</div>
                       )}
                     </div>
                   );
                 })
               )}
               {phase !== "action" && confirmHistory.length === 0 && (
-                <div style={{ padding: 14, fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
+                <div style={{ padding: 14, fontSize: 14, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
                   戦略を確定すると<br/>ここに履歴が残ります
                 </div>
               )}
