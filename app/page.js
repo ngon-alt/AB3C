@@ -1067,14 +1067,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
 {/* ローディングオーバーレイ */}
       {overlayMessage && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", maxWidth: 400 }}>
-            <div style={{ width: 48, height: 48, border: "4px solid #e5e5e0", borderTop: `4px solid ${overlayMessage.includes("改善") ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#1a1a14", marginBottom: 8 }}>
-              {overlayMessage}
-            </div>
-            <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.8 }}>
-              しばらくお待ちください。
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.15)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 40 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "24px 36px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", maxWidth: 360, display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a14", marginBottom: 2 }}>{overlayMessage}</div>
+              <div style={{ fontSize: 13, color: "#78716c" }}>しばらくお待ちください</div>
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
