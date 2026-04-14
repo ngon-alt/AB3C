@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing }) {
+export default function Header({ onShowPricing, currentSiteUrl }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -127,6 +127,16 @@ export default function Header({ onShowPricing }) {
             </span>
           );
         })}
+        {/* 現在分析中のサイトURL */}
+        {currentSiteUrl && (
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, padding: "0 8px" }}>
+            <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>分析中:</span>
+            <a href={currentSiteUrl} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 12, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
+              {currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+            </a>
+          </div>
+        )}
       </nav>
     </div>
   );
