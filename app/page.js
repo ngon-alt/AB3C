@@ -1065,14 +1065,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {(loading || improveLoading) && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", maxWidth: 400 }}>
-            <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 2s linear infinite" }}>
-              {improveLoading ? "🔧" : "🔍"}
-            </div>
+            <div style={{ width: 48, height: 48, border: "4px solid #e5e5e0", borderTop: `4px solid ${improveLoading ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
             <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#1a1a14", marginBottom: 8 }}>
               {improveLoading ? "ウェブサイト改善レポート生成中..." : "AB3C分析中..."}
             </div>
-            <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.6 }}>
-              {improveLoading ? "分析結果をもとに改善提案を作成しています。もう少しお待ちください。" : "AIがウェブサイトを分析しています。1〜2分ほどお待ちください。"}
+            <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.8 }}>
+              {improveLoading ? "分析結果をもとに改善提案を作成しています。" : "AIがウェブサイトを分析しています。"}
+              <br />しばらくお待ちください。
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
