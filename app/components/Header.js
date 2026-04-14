@@ -10,6 +10,8 @@ const C = {
   muted: "#78716c",
   A: "#1a6fd4",
   B: "#FF0000",
+  phase1: "#2d6a30",
+  phase2: "#8c5e1a",
 };
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
@@ -17,15 +19,40 @@ const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragi
 export default function Header({ onShowPricing }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
+  const [chatTickets, setChatTickets] = useState(0);
+  const [currentPath, setCurrentPath] = useState("/");
 
   useEffect(() => {
+    setCurrentPath(window.location.pathname + window.location.search);
     if (session?.user?.email) {
       fetch("/api/check-pro")
         .then((r) => r.json())
-        .then((d) => setIsPro(d.isPro))
-        .catch(() => setIsPro(false));
+        .then((d) => { setIsPro(d.isPro); setChatTickets(d.chatTickets || 0); })
+        .catch(() => { setIsPro(false); setChatTickets(0); });
     }
   }, [session]);
+
+  // 伴走リンクの状態判定
+  const canAccessBansou = isPro || chatTickets > 0;
+
+  // 現在地判定
+  const isActive = (href) => {
+    if (href === "/") return currentPath === "/" || currentPath.startsWith("/?") && !currentPath.includes("phase=action");
+    if (href === "/?phase=action") return currentPath.includes("phase=action");
+    return currentPath.startsWith(href);
+  };
+
+  // 伴走ツールチップのテキスト
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "伴走プランのみ利用可" : "戦略確定後に利用可";
+
+  const navItems = [
+    { label: "分析", href: "/" },
+    { label: "伴走", href: "/?phase=action", restricted: true },
+    { label: "サイト管理", href: "/dashboard" },
+    { label: "初めての方へ", href: "/howto" },
+    { label: "AB3C分析とは", href: "/about" },
+    { label: "料金とプラン", href: "/pricing" },
+  ];
 
   return (
     <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}>
@@ -44,7 +71,7 @@ export default function Header({ onShowPricing }) {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 14, color: C.muted, fontFamily: NAV_FONT }}>
               {session.user?.name}
-              {isPro && <span style={{ marginLeft: 6, background: "#1a6fd4", color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+              {isPro && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
             </span>
             <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, color: C.muted }}>
               ログアウト
@@ -68,19 +95,31 @@ export default function Header({ onShowPricing }) {
       </div>
       {/* 下段: グローバルナビ */}
       <nav style={{ padding: "0 24px", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 0, overflowX: "auto", background: "#fafafa" }}>
-        {[
-          { label: "分析", href: "/" },
-          { label: "伴走", href: "/?phase=action" },
-          { label: "サイト管理", href: "/dashboard" },
-          { label: "初めての方へ", href: "/howto" },
-          { label: "AB3C分析とは", href: "/about" },
-          { label: "料金とプラン", href: "/pricing" },
-        ].map((item) => (
-          <a key={item.label} href={item.href}
-            style={{ padding: "10px 16px", fontSize: 14, color: C.ink, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600 }}>
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          const disabled = item.restricted && !canAccessBansou;
+          return (
+            <span key={item.label} style={{ position: "relative", display: "inline-flex" }}
+              onMouseEnter={e => { if (disabled) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+              onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
+              <a href={disabled ? undefined : item.href}
+                onClick={e => { if (disabled) e.preventDefault(); }}
+                style={{
+                  padding: "10px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
+                  color: disabled ? "#bbb" : active ? C.phase1 : C.ink,
+                  borderBottom: active ? `3px solid ${C.phase1}` : "3px solid transparent",
+                  cursor: disabled ? "default" : "pointer",
+                }}>
+                {item.label}
+              </a>
+              {disabled && (
+                <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
+                  {bansouTooltip}
+                </div>
+              )}
+            </span>
+          );
+        })}
       </nav>
     </div>
   );
