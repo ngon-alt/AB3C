@@ -119,7 +119,7 @@ function ResultView({ d, onChat, changedPaths }) {
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
   const qs = (section) => onChat && (() => onChat(`${section}について詳しく教えてください`));
   var cp = changedPaths || new Set();
-  var hl = function(path) { return cp.has(path) ? HL : {}; };
+  var hl = function(path) { try { return cp.has && cp.has(path) ? HL : {}; } catch (e) { return {}; } };
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -1576,15 +1576,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     analysisResult={currentResult}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={(newResult, summary) => {
-                      var diff = diffResults(currentResult || {}, newResult);
-                      setChangedPaths(diff);
+                      try {
+                        var diff = diffResults(currentResult || {}, newResult);
+                        setChangedPaths(diff);
+                      } catch (e) { console.error("diff error:", e); }
                       setResult(newResult);
                       setCurrentResult(newResult);
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-                      // 10秒後にハイライトをクリア
                       setTimeout(function() { setChangedPaths(new Set()); }, 10000);
                     }}
                     onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
