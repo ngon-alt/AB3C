@@ -482,7 +482,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     </div>
   );
 }
-function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit }) {
+function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId }) {
   const effectiveThemeId = themeId || threadId;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -498,7 +498,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   // メッセージ保存（初期化完了後のみ、準備中は保存しない）
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
-      try { localStorage.setItem(`ab3c_thread_${threadId}`, JSON.stringify(messages)); } catch (e) {}
+      try { localStorage.setItem(`ab3c_thread_${threadSiteId || "default"}_${threadId}`, JSON.stringify(messages)); } catch (e) {}
     }
   }, [messages, threadId]);
 
@@ -506,7 +506,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   useEffect(() => {
     initialized.current = false;
     const controller = new AbortController();
-    const key = `ab3c_thread_${threadId}`;
+    const key = `ab3c_thread_${threadSiteId || "default"}_${threadId}`;
     try {
       const saved = localStorage.getItem(key);
       const parsed = saved ? JSON.parse(saved) : null;
@@ -1208,15 +1208,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 {/* 施策追加・リセット */}
                 <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.15)", display: "flex", gap: 6 }}>
                   <button onClick={() => { const label = prompt("施策名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); selectTheme(newThread.id); } }}
-                    style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 13, padding: "8px" }}>+ 施策</button>
+                    style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>+ 施策</button>
                   <button onClick={() => {
-                    Object.values(themeChats).flat().forEach(c => localStorage.removeItem(`ab3c_thread_${c.id}`));
-                    threads.forEach(t => localStorage.removeItem(`ab3c_thread_${t.id}`));
+                    Object.values(themeChats).flat().forEach(c => localStorage.removeItem(`ab3c_thread_${siteId || "default"}_${c.id}`));
+                    threads.forEach(t => localStorage.removeItem(`ab3c_thread_${siteId || "default"}_${t.id}`));
                     setThemeChats({});
                     setActiveThemeId(null);
                     setActiveChatId(null);
                   }}
-                    style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 10, padding: "6px 10px" }}>↻ リセット</button>
+                    style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>↻ リセット</button>
                 </div>
               </>
             ) : (
@@ -1570,7 +1570,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeChatId ? (
-        <ThreadChat key={activeChatId} threadId={activeChatId} themeId={activeThemeId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+        <ThreadChat key={siteId + "_" + activeChatId} threadId={activeChatId} themeId={activeThemeId} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
@@ -1675,9 +1675,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
                 </div>
+              ) : phase === "action" ? (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 16 }}>
+                  ← 施策を選択してチャットを開始
+                </div>
               ) : (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 14 }}>
-                  施策を選択してください
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 16 }}>
+                  分析結果をもとに相談できます
                 </div>
               )}
             </div>
