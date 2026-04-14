@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp }) {
+export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -99,32 +99,32 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
       {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
       <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
         {/* 分析タブ */}
-        <a href="/"
+        <button onClick={() => { if (onSwitchToAnalysis) onSwitchToAnalysis(); else window.location.href = "/"; }}
           style={{
             padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: isActive("analysis") ? C.phase1 : "#ccc",
-            color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
+            background: (phase === "analysis" || phase === "input") ? C.phase1 : "#ccc",
+            color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
           }}>
           <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
           分析
-        </a>
+        </button>
         {/* 矢印 */}
         <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
         {/* 伴走タブ */}
         <span style={{ position: "relative", display: "inline-flex" }}
           onMouseEnter={e => { if (!canAccessBansou) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
           onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
-          <a href={canAccessBansou ? "/?phase=action" : undefined}
-            onClick={e => { if (!canAccessBansou) e.preventDefault(); }}
+          <button
+            onClick={() => { if (!canAccessBansou) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: isActive("action") ? C.phase2 : canAccessBansou ? "#ccc" : "#ddd",
+              background: phase === "action" ? C.phase2 : canAccessBansou ? "#ccc" : "#ddd",
               color: canAccessBansou ? "#fff" : "#aaa", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: canAccessBansou ? "pointer" : "default",
+              cursor: canAccessBansou ? "pointer" : "default", border: "none",
             }}>
             <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             伴走
-          </a>
+          </button>
           {!canAccessBansou && (
             <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
               {bansouTooltip}

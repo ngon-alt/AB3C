@@ -917,7 +917,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   const tabStyle = (t) => ({ padding: "8px 20px", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", border: "none", cursor: "pointer", borderBottom: tab === t ? `2px solid ${C.ink}` : "2px solid transparent", background: "transparent", color: tab === t ? C.ink : C.muted });
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
 {/* ChatWidget removed - now using integrated AnalysisChatPanel */}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
@@ -927,6 +927,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)}
         phase={phase}
         canAccessBansou={isPro || chatTickets > 0}
+        onSwitchToAnalysis={() => setViewOverride("analysis")}
+        onSwitchToAction={() => { if (strategyConfirmed) setViewOverride(null); }}
         onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? async () => {
           if (!siteId) {
             try {
