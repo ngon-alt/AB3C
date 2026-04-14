@@ -150,13 +150,13 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           )}
         </span>
         {/* 区切り */}
-        <div style={{ width: 1, height: 24, background: C.border, margin: "0 12px", alignSelf: "center" }} />
+        <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "center" }} />
         {/* サイト管理ボタン */}
         <a href="/dashboard"
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
-            color: C.ink, display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
-            background: isActive("dashboard") ? "#e8e8e8" : "transparent", border: `1px solid ${isActive("dashboard") ? C.border : "transparent"}`, borderRadius: 4,
+            color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
+            background: isActive("dashboard") ? "#444" : "#555", border: "none", borderRadius: 4,
           }}>
           📋 サイト管理
         </a>
