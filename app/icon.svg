@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="4" fill="#2d6a30"/>
-  <text x="16" y="24" font-family="'Noto Serif JP', serif" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">戦</text>
+  <rect width="32" height="32" fill="#ffffff"/>
+  <text x="16" y="28" font-family="'Noto Serif JP', serif" font-size="32" font-weight="700" fill="#1a1a14" text-anchor="middle">戦</text>
 </svg>
