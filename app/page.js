@@ -609,7 +609,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
 function TitleEditor({ title, onChange }) {
   const [editing, setEditing] = useState(false);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, background: "#f8f6f0", border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "8px 12px" }}>
       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>タイトル</span>
       {editing ? (
         <input autoFocus value={title} onChange={onChange} onBlur={() => setEditing(false)} onKeyDown={e => { if (e.key === "Enter") setEditing(false); }}
