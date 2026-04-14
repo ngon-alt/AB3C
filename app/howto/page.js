@@ -77,8 +77,8 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 分析フェーズ */}
-        <Section title="分析フェーズ（STEP 1）" icon="🔍">
+        {/* 戦略立案フェーズ */}
+        <Section title="戦略立案フェーズ（STEP 1）" icon="🔍">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
             <Card title="🌐 URLで分析（既存事業向け）">
               ウェブサイトのURLを入力するだけで、AIがサイトの内容を読み取り、AB3C分析とウェブサイト改善レポートを自動生成します。
@@ -131,7 +131,7 @@ export default function HowtoPage() {
         {/* 戦略確定 */}
         <Section title="戦略確定" icon="✅">
           <Card title="分析結果に納得したら戦略を確定">
-            チャットパネルの一番下にある「戦略を確定」ボタンを押すと、現在の分析結果が確定され、伴走フェーズに進めるようになります。
+            チャットパネルの一番下にある「戦略を確定」ボタンを押すと、現在の分析結果が確定され、戦略アクションフェーズに進めるようになります。
           </Card>
           <div style={{ marginTop: 16 }}>
             <Step number="1" title="分析結果を確認・修正" desc="チャットで分析結果を磨き上げ、納得のいく内容にします。" />
@@ -140,8 +140,8 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 伴走フェーズ */}
-        <Section title="伴走フェーズ（STEP 2）" icon="🎯">
+        {/* 戦略アクションフェーズ */}
+        <Section title="戦略アクションフェーズ（STEP 2）" icon="🎯">
           <Card title="戦略に基づいて具体的な施策を検討">
             戦略確定後、伴走タブをクリックすると、10の施策テーマについてAIと相談できます。各施策はAB3C分析結果をベースにしたアドバイスが提供されます。
           </Card>

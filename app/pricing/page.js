@@ -108,8 +108,8 @@ export default function PricingPage() {
               <tr style={{ background: C.ink, color: "#fff" }}>
                 <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>分析プラン</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>伴走プラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>スポットプラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>サブスクプラン</th>
               </tr>
             </thead>
             <tbody>
@@ -147,11 +147,11 @@ export default function PricingPage() {
           <div style={{ display: "flex", gap: 2 }}>
             <button onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{ flex: 1, background: showAnalysis ? "#bbdefb" : "#e3f2fd", color: showAnalysis ? C.ink : C.muted, border: "none", borderRadius: "6px 6px 0 0", padding: "12px 16px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>
-              分析プラン（年間ライセンス）
+              スポットプラン（年間ライセンス）
             </button>
             <button onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{ flex: 1, background: showGrowth ? "#f8bbd0" : "#fce4ec", color: showGrowth ? C.ink : C.muted, border: "none", borderRadius: "6px 6px 0 0", padding: "12px 16px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>
-              伴走プラン（月額/年額）
+              サブスクプラン（月額/年額）
             </button>
           </div>
 
@@ -246,8 +246,8 @@ export default function PricingPage() {
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
-              ※ 分析プランは年間ライセンス（有効期限1年）です。<br/>
-              ※ 伴走プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+              ※ スポットプランは年間ライセンス（有効期限1年）です。<br/>
+              ※ サブスクプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
               {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
               {showGrowth && <>※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}

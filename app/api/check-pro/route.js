@@ -39,7 +39,7 @@ export async function GET() {
       `;
       if (planResult.length > 0) {
         const p = planResult[0];
-        const typeLabel = p.plan_type === "support" ? "伴走" : "分析";
+        const typeLabel = p.plan_type === "support" ? "サブスク" : "スポット";
         planLabel = `${typeLabel}${p.site_limit}`;
       }
     } catch (e) {}

@@ -136,8 +136,8 @@ export default function PricingModal({ onClose }) {
               <tr style={{ background: C.ink, color: "#fff" }}>
                 <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>分析プラン</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>伴走プラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>スポットプラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>サブスクプラン</th>
               </tr>
             </thead>
             <tbody>
@@ -182,7 +182,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              分析プラン（年間ライセンス）
+              スポットプラン（年間ライセンス）
             </button>
             <button
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
@@ -193,7 +193,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              伴走プラン（月額/年額）
+              サブスクプラン（月額/年額）
             </button>
           </div>
 
@@ -201,7 +201,7 @@ export default function PricingModal({ onClose }) {
             background: showAnalysis ? "#bbdefb" : "#f8bbd0",
             border: "none", borderRadius: "0 0 6px 6px", padding: "20px"
           }}>
-            {/* ===== 分析プラン ===== */}
+            {/* ===== スポットプラン ===== */}
             {showAnalysis && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
@@ -250,7 +250,7 @@ export default function PricingModal({ onClose }) {
               </div>
             )}
 
-            {/* ===== 伴走プラン ===== */}
+            {/* ===== サブスクプラン ===== */}
             {showGrowth && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
@@ -331,8 +331,8 @@ export default function PricingModal({ onClose }) {
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
-              ※ 分析プランは年間ライセンス（有効期限1年）です。<br/>
-              ※ 伴走プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+              ※ スポットプランは年間ライセンス（有効期限1年）です。<br/>
+              ※ サブスクプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
               {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
               {showGrowth && <>※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
@@ -381,7 +381,7 @@ export default function PricingModal({ onClose }) {
               <div style={{ background: "#fff8f8", border: `1px solid #ffcccc`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.B, marginBottom: 8, letterSpacing: "0.08em" }}>YOUR COST</div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/年〜</span></div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>分析プラン 1サイト<br />（先行ユーザー50%OFF価格）</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>スポットプラン 1サイト<br />（先行ユーザー50%OFF価格）</div>
               </div>
               <div style={{ background: "#f0fff4", border: `1px solid #86efac`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#16a34a", marginBottom: 8, letterSpacing: "0.08em" }}>CLIENT FEE</div>

@@ -1344,7 +1344,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <span style={{ fontSize: 24 }}>💰</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>料金とプラン</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>分析プラン・伴走プランの詳細</div>
+        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>スポットプラン・サブスクプランの詳細</div>
       </div>
     </a>
     <a href="/faq" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
