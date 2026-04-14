@@ -967,6 +967,26 @@ if (tab === "url" && savedText.startsWith("http")) {
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
+
+// 分析結果をDBにも保存（サイト管理から戻った時に復元できるように）
+if (tab === "url" && savedText.startsWith("http")) {
+  try {
+    var currentSid = siteId;
+    if (!currentSid) {
+      // 既存サイトがあれば更新、なければ新規作成
+      var siteName2 = "無題のサイト";
+      try { siteName2 = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
+      var createRes2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: siteName2, site_url: savedText }) });
+      var createData2 = await createRes2.json();
+      if (createData2.existingSite) { currentSid = createData2.existingSite.id; }
+      else if (createData2.site) { currentSid = createData2.site.id; }
+      if (currentSid) setSiteId(currentSid);
+    }
+    if (currentSid) {
+      await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentSid, latest_analysis: data }) });
+    }
+  } catch (e) {}
+}
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
   };
 
