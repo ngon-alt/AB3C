@@ -93,9 +93,9 @@ function ResultView({ d, onChat }) {
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} />
         <div style={g3}>
-          <Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)}><div style={{ fontSize: 18, fontWeight: 700, color: C.A, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.what}</div></Card>
-          <Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)}><p style={{ fontSize: 18, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_good}</p></Card>
-          <Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)}><p style={{ fontSize: 18, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_hard_to_copy}</p></Card>
+          <Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)}><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.what}</div></Card>
+          <Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_good}</p></Card>
+          <Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_hard_to_copy}</p></Card>
         </div>
       </div>
       <Divider />
@@ -104,12 +104,12 @@ function ResultView({ d, onChat }) {
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} />
         <div style={{ ...g2, marginBottom: 14 }}>
           <Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.C, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.target}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.target}</div>
             <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} />
           </Card>
           <Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")}>
-            <p style={{ fontSize: 18, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
-            <p style={{ fontSize: 18, lineHeight: 1.65, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
+            <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
+            <p style={{ fontSize: 16, lineHeight: 1.65, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
           </Card>
         </div>
         {d.three_c.customer.market && (
@@ -118,17 +118,17 @@ function ResultView({ d, onChat }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div>
+                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(d.three_c.customer.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div>
+                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(d.three_c.customer.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
-                  <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div>
+                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`市場成長率・トレンドについて詳しく教えてください`)} abs />}
                 </div>
               </div>
@@ -173,7 +173,7 @@ function ResultView({ d, onChat }) {
     {d.checkpoints.map((cp, i) => (
       <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6, position: "relative" }} {...(onChat ? hoverShow : {})}>
         <Badge status={cp.status} />
-        <div style={{ flex: 1, fontSize: 18, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 18 }}>{cp.comment}</span></div>
+        <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 16 }}>{cp.comment}</span></div>
         {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)} abs />}
       </div>
     ))}
@@ -1272,9 +1272,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {improveResult[section.key]?.map((item, i) => (
             <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
               <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
-              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-              <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
-              <div style={{ fontSize: 18, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
+              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
             </div>
           ))
           }</Card>
@@ -1368,11 +1368,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
             <div style={{ marginBottom: 8, fontSize: 16 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
             <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", fontSize: 16 }}>
-              <a href="/terms" style={{ color: C.muted, textDecoration: "none" }}>利用規約</a>
+              <a href="/terms" style={{ color: C.muted, textDecoration: "underline" }}>利用規約</a>
               <span style={{ color: C.border }}>|</span>
-              <a href="/privacy" style={{ color: C.muted, textDecoration: "none" }}>プライバシーポリシー</a>
+              <a href="/privacy" style={{ color: C.muted, textDecoration: "underline" }}>プライバシーポリシー</a>
               <span style={{ color: C.border }}>|</span>
-              <a href="/legal" style={{ color: C.muted, textDecoration: "none" }}>特定商取引法</a>
+              <a href="/legal" style={{ color: C.muted, textDecoration: "underline" }}>特定商取引法</a>
             </div>
           </footer>
           </div>{/* end inner padding wrapper */}

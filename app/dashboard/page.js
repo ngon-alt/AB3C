@@ -393,11 +393,11 @@ export default function DashboardPage() {
         </div>
         <div style={{ marginBottom: 8 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-          <a href="/terms" style={{ color: C.muted, textDecoration: "none" }}>利用規約</a>
+          <a href="/terms" style={{ color: C.muted, textDecoration: "underline" }}>利用規約</a>
           <span style={{ color: C.border }}>|</span>
-          <a href="/privacy" style={{ color: C.muted, textDecoration: "none" }}>プライバシーポリシー</a>
+          <a href="/privacy" style={{ color: C.muted, textDecoration: "underline" }}>プライバシーポリシー</a>
           <span style={{ color: C.border }}>|</span>
-          <a href="/legal" style={{ color: C.muted, textDecoration: "none" }}>特定商取引法</a>
+          <a href="/legal" style={{ color: C.muted, textDecoration: "underline" }}>特定商取引法</a>
         </div>
       </footer>
     </div>
