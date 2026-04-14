@@ -912,7 +912,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
-      <Header onShowPricing={() => setShowPricing(true)} currentSiteUrl={currentInput?.startsWith("http") ? currentInput : null} />
+      <Header onShowPricing={() => setShowPricing(true)} currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)} />
 
       {/* フェーズカラーライン */}
       {(
