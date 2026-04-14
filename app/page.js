@@ -684,6 +684,7 @@ const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
 const [chatWidth, setChatWidth] = useState(500);
 const chatResizing = useRef(false);
+const [confirmHistory, setConfirmHistory] = useState([]);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
@@ -906,6 +907,12 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
         }
       });
     }
+    // 確定履歴の読み込み
+    try {
+      var chKey = "ab3c_confirmations_" + (sid || urlParam || "default");
+      var chData = localStorage.getItem(chKey);
+      if (chData) setConfirmHistory(JSON.parse(chData));
+    } catch (e) {}
     // URLパラメータからphaseを読み取り
     const phaseParam = params.get("phase");
     if (phaseParam === "action") {
@@ -995,6 +1002,27 @@ useEffect(() => {
       try {
         await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: siteName }) });
         setStrategyConfirmed(true);
+        // 確定履歴にスナップショットを保存
+        try {
+          var chatKey2 = "ab3c_chat_" + (currentResult ? JSON.stringify(currentResult).slice(0, 50) : "default");
+          var chatMsgs = [];
+          try { var cm = localStorage.getItem(chatKey2); if (cm) chatMsgs = JSON.parse(cm); } catch (e) {}
+          var snapshot = {
+            id: Date.now(),
+            date: new Date().toLocaleString("ja-JP"),
+            result: currentResult,
+            chatMessages: chatMsgs,
+            chatSummaries: chatSummaries,
+            strategyMessage: currentResult?.strategy_message?.message || "",
+            url: siteUrl || currentInput || "",
+          };
+          var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
+          var existing2 = [];
+          try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
+          existing2.push(snapshot);
+          localStorage.setItem(chKey2, JSON.stringify(existing2));
+          setConfirmHistory(existing2);
+        } catch (e) {}
       } catch (e) { alert("保存に失敗しました。"); }
     }
   };
@@ -1194,16 +1222,41 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </>
             ) : (
               <>
-                {/* 分析履歴 */}
+                {/* 確定履歴 */}
                 <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>分析履歴</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>確定履歴</span>
                   <button onClick={reset} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 9, padding: "3px 8px" }}>+ 新規</button>
                 </div>
               </>
             )}
 
             <div style={{ flex: 1, overflowY: "auto" }}>
-              {/* サイドバーコンテンツ（フェーズ別に上で表示済み） */}
+              {phase !== "action" && confirmHistory.length > 0 && (
+                confirmHistory.slice().reverse().map(function(ch, i) {
+                  return (
+                    <div key={ch.id} onClick={function() {
+                      setCurrentResult(ch.result);
+                      setResult(ch.result);
+                      setHistoryTitle(ch.strategyMessage || "");
+                      if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
+                      if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                      setChangedPaths(new Map());
+                    }}
+                      style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: currentResult?.strategy_message?.message === ch.strategyMessage ? "rgba(255,255,255,0.1)" : "transparent", borderLeft: currentResult?.strategy_message?.message === ch.strategyMessage ? "3px solid #6db3f8" : "3px solid transparent" }}>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
+                      <div style={{ fontSize: 13, color: "#fff", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
+                      {ch.chatSummaries && ch.chatSummaries.length > 0 && (
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>チャット {ch.chatSummaries.length}件反映</div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+              {phase !== "action" && confirmHistory.length === 0 && (
+                <div style={{ padding: 14, fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
+                  戦略を確定すると<br/>ここに履歴が残ります
+                </div>
+              )}
             </div>
 
             {/* サイドバートグルボタン */}
