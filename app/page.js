@@ -822,9 +822,12 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
     // URLパラメータからphaseを読み取り
     const phaseParam = params.get("phase");
     if (phaseParam === "action") {
-      // 少し遅延させて、サイトデータ読み込み後にフェーズ切替
       setTimeout(() => setViewOverride(null), 500);
     }
+    // ブラウザの戻る/進むでURLパラメータが変わった時にリロード
+    const handlePopState = () => window.location.reload();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   useEffect(() => {
