@@ -89,7 +89,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
               { label: "料金とプラン", href: "/pricing" },
             ].map((item) => (
               <a key={item.label} href={item.href}
-                style={{ fontSize: 13, color: C.muted, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap" }}>
+                style={{ fontSize: 13, color: C.muted, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
                 {item.label}
               </a>
             ))}
