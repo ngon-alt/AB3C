@@ -165,9 +165,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         {session && sites.length > 0 && (
           <div style={{ position: "relative", alignSelf: "center", marginLeft: 4 }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, color: C.A }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
-              <span style={{ fontSize: 10, color: C.muted }}>▼</span>
+              <span style={{ fontSize: 12, color: C.ink }}>▼</span>
             </button>
             {showSiteDropdown && (
               <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 400, minWidth: 280, maxHeight: 300, overflowY: "auto" }}
