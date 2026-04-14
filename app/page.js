@@ -1539,27 +1539,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル（リサイズ可能） */}
         {phase !== "input" && (
-          <>
-            {/* リサイズハンドル */}
-            <div
-              onMouseDown={function() {
-                chatResizing.current = true;
-                var handleMove = function(e) {
-                  if (!chatResizing.current) return;
-                  var newWidth = window.innerWidth - e.clientX;
-                  if (newWidth >= 350 && newWidth <= 800) setChatWidth(newWidth);
-                };
-                var handleUp = function() { chatResizing.current = false; document.removeEventListener("mousemove", handleMove); document.removeEventListener("mouseup", handleUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; };
-                document.addEventListener("mousemove", handleMove);
-                document.addEventListener("mouseup", handleUp);
-                document.body.style.cursor = "col-resize";
-                document.body.style.userSelect = "none";
-              }}
-              style={{ width: 6, cursor: "col-resize", background: "transparent", position: "relative", zIndex: 101, marginRight: -3, marginLeft: -3 }}
-              onMouseEnter={function(e) { e.currentTarget.style.background = C.phase1; }}
-              onMouseLeave={function(e) { if (!chatResizing.current) e.currentTarget.style.background = "transparent"; }}
-            />
-            <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
+            <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
+              {/* リサイズハンドル */}
+              <div
+                onMouseDown={function() {
+                  chatResizing.current = true;
+                  var handleMove = function(e) {
+                    if (!chatResizing.current) return;
+                    var newWidth = window.innerWidth - e.clientX;
+                    if (newWidth >= 350 && newWidth <= 800) setChatWidth(newWidth);
+                  };
+                  var handleUp = function() { chatResizing.current = false; document.removeEventListener("mousemove", handleMove); document.removeEventListener("mouseup", handleUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; };
+                  document.addEventListener("mousemove", handleMove);
+                  document.addEventListener("mouseup", handleUp);
+                  document.body.style.cursor = "col-resize";
+                  document.body.style.userSelect = "none";
+                }}
+                style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 5, cursor: "col-resize", background: "transparent", zIndex: 101 }}
+                onMouseEnter={function(e) { e.currentTarget.style.background = C.phase1; }}
+                onMouseLeave={function(e) { if (!chatResizing.current) e.currentTarget.style.background = "transparent"; }}
+              />
               {/* チャットヘッダー */}
               <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
@@ -1616,7 +1615,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
             </div>
-          </>
         )}
       </div>{/* end grid */}
     </div>
