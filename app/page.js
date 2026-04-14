@@ -932,10 +932,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#999", fontSize: 14 }}>→</div>
           {/* STEP 2: 伴走 */}
           <span style={{ position: "relative", display: "inline-flex" }}
-            onMouseEnter={e => { if (!isPro) { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "block"; } }}
+            onMouseEnter={e => { if (!isPro && chatTickets <= 0) { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "block"; } }}
             onMouseLeave={e => { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "none"; }}>
           <button
             onClick={async () => {
+              // PRO会員または有料チケット保持者のみ伴走可能
+              if (!isPro && chatTickets <= 0) return;
               // 既に戦略確定済みなら、viewOverrideをクリアして伴走に戻るだけ
               if (strategyConfirmed) {
                 setViewOverride(null);
@@ -994,8 +996,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             伴走プランでは戦略大臣が<br />日々のアクションに伴走、アドバイスしてくれます
           </div>
           </span>
-          {/* 分析フェーズ：戦略確定ボタン */}
-          {phase === "analysis" && (
+          {/* 分析フェーズ：戦略確定ボタン（PRO or 有料チケット保持者のみ） */}
+          {phase === "analysis" && (isPro || chatTickets > 0) && (
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
               <button
                 onClick={async () => {
@@ -1482,7 +1484,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                     }}
-                    onConfirmStrategy={async () => {
+                    onConfirmStrategy={(isPro || chatTickets > 0) ? async () => {
                       if (!siteId) {
                         try {
                           const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
@@ -1492,7 +1494,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       } else {
                         try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
                       }
-                    }}
+                    } : null}
                   />
                 </div>
               </div>

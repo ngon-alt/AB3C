@@ -16,10 +16,10 @@ export async function POST(req) {
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
   const isPro = proRows.length > 0;
 
-  // 改善レポートチケットチェック
+  // チケットチェック（トライアル含む）
   const ticketRows = await sql`
     SELECT id, remaining_chats FROM tickets
-    WHERE email = ${session.user.email} AND remaining_chats > 0 AND is_trial = FALSE
+    WHERE email = ${session.user.email} AND remaining_chats > 0
     ORDER BY purchased_at ASC
     LIMIT 1
   `;
