@@ -42,6 +42,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ja">
       <head>
+       <meta name="viewport" content="width=1280" />
        <style>{`
          @media print {
   body * { visibility: hidden; }
@@ -120,10 +121,7 @@ export default function RootLayout({ children }) {
   button { display: none !important; }
   nav { display: none !important; }
 }
-@media (max-width: 768px) {
-  #sidebar { display: none !important; }
-  #chat-column { display: none !important; }
-}
+/* スマホでもPC表示を維持（最小幅で横スクロール） */
         `}</style>
       </head>
       <body className={`${notoSerifJP.variable} ${spaceMono.variable} ${ebGaramond.variable}`}>
