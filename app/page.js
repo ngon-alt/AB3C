@@ -674,6 +674,18 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
+  // 分析結果・改善レポートが変わったらlocalStorageに自動保存
+  useEffect(function() {
+    if (currentResult && currentInput) {
+      try {
+        var existing = {};
+        try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
+        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, timestamp: Date.now() };
+        localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
+      } catch (e) {}
+    }
+  }, [currentResult, improveResult, currentInput]);
+
   // タブ切替時にページトップへスクロール
   const mainContentRef = useRef(null);
   const prevPhaseRef = useRef(phase);
@@ -981,10 +993,7 @@ setCurrentResult(data);
 setCurrentInput(savedText);
 setLoading(false); // AB3C分析完了 → ローディング解除
 
-// 分析結果を即座にlocalStorageにバックアップ
-try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, timestamp: Date.now() })); } catch (e) {}
-
-// 分析結果をDBにも即座に保存
+// 分析結果をDBにも即座に保存（localStorageはuseEffectで自動保存）
 if (tab === "url" && savedText.startsWith("http")) {
   var saveSid = analyzeSiteId;
   if (!saveSid) {
@@ -1021,10 +1030,6 @@ if (tab === "url" && savedText.startsWith("http")) {
     console.error("改善レポート自動生成エラー:", e);
   } finally {
     setImproveLoading(false);
-  }
-  // 改善レポート付きでlocalStorageを再保存
-  if (improveData && !improveData.error) {
-    try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, improve: improveData, timestamp: Date.now() })); } catch (e) {}
   }
 }
 
