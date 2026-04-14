@@ -97,11 +97,11 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
         </div>
       </div>
       {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
-      <nav style={{ padding: "0 24px", display: "flex", alignItems: "stretch", background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+      <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
         {/* 分析タブ */}
         <a href="/"
           style={{
-            padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
+            padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
             background: isActive("analysis") ? C.phase1 : "#ccc",
             color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
           }}>
@@ -109,7 +109,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
           分析
         </a>
         {/* 矢印 */}
-        <div style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#999", fontSize: 14 }}>→</div>
+        <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
         {/* 伴走タブ */}
         <span style={{ position: "relative", display: "inline-flex" }}
           onMouseEnter={e => { if (!canAccessBansou) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
@@ -117,7 +117,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
           <a href={canAccessBansou ? "/?phase=action" : undefined}
             onClick={e => { if (!canAccessBansou) e.preventDefault(); }}
             style={{
-              padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
+              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: isActive("action") ? C.phase2 : canAccessBansou ? "#ccc" : "#ddd",
               color: canAccessBansou ? "#fff" : "#aaa", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
               cursor: canAccessBansou ? "pointer" : "default",
@@ -131,18 +131,21 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
             </div>
           )}
         </span>
-        {/* サイト管理 */}
+        {/* 区切り */}
+        <div style={{ width: 1, height: 24, background: C.border, margin: "0 12px", alignSelf: "center" }} />
+        {/* サイト管理ボタン */}
         <a href="/dashboard"
           style={{
-            padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
-            color: isActive("dashboard") ? C.ink : C.muted, display: "flex", alignItems: "center",
-            borderBottom: isActive("dashboard") ? `3px solid ${C.ink}` : "3px solid transparent",
+            padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
+            color: C.ink, display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
+            background: isActive("dashboard") ? "#e8e8e8" : "transparent", border: `1px solid ${isActive("dashboard") ? C.border : "transparent"}`, borderRadius: 4,
           }}>
-          サイト管理
+          📋 サイト管理
         </a>
         {/* 現在のサイトURL */}
         {currentSiteUrl && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 12px", borderLeft: `1px solid ${C.border}`, marginLeft: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px", alignSelf: "center" }}>
+            <span style={{ fontSize: 12, color: C.muted }}>｜</span>
             <a href={currentSiteUrl} target="_blank" rel="noopener noreferrer"
               style={{ fontSize: 13, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
               {currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
@@ -151,7 +154,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
         )}
         {/* 戦略確定ボタン（右寄せ） */}
         {onConfirmStrategy && phase === "analysis" && (
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", padding: "4px 0" }}>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
             <button onClick={onConfirmStrategy}
               style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
               戦略を確定して伴走へ →
@@ -159,6 +162,8 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
           </div>
         )}
       </nav>
+      {/* フェーズカラーライン */}
+      <div style={{ height: 4, background: phase === "action" ? C.phase2 : C.phase1 }} />
     </div>
   );
 }
