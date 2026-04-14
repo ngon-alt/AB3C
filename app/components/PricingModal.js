@@ -120,7 +120,7 @@ export default function PricingModal({ onClose }) {
             1アカウント1回限り有効<br/>
             ・AB3C分析レポート<br/>
             ・ウェブサイト改善レポート<br/>
-            <span style={{ color: C.B }}>※AIチャット相談は使えません</span>
+            ・AIチャット相談（1回）
           </div>
           <div style={{ fontSize: 12, color: C.muted, fontStyle: "italic", lineHeight: 1.7 }}>
             まず試してみたい方向け。<br/>
@@ -143,7 +143,7 @@ export default function PricingModal({ onClose }) {
               {[
                 { feature: "AB3C分析レポート", free: "○（1回）", analysis: "○", growth: "○" },
                 { feature: "ウェブサイト改善レポート", free: "○（1回）", analysis: "○", growth: "○" },
-                { feature: "AIチャット相談", free: "✕", analysis: "○（30回）", growth: "○（月100回/サイト）" },
+                { feature: "AIチャット相談", free: "○（1回）", analysis: "○（30回）", growth: "○（月100回/サイト）" },
                 { feature: "SEO対策チャット", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "SNS運用チャット", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "Web広告チャット", free: "✕", analysis: "✕", growth: "○" },
@@ -207,7 +207,7 @@ export default function PricingModal({ onClose }) {
                   現在のWebサイトから戦略と改善点をレポートする機能です。
                   主にスポット営業等に使う機能です。<br/>
                   <strong>年間ライセンス（有効期限1年）</strong>でのご提供です。<br/><br/>
-                  <span style={{ color: C.B, fontWeight: 600 }}>※AIチャット相談は使えません</span>
+                  <span style={{ color: C.A, fontWeight: 600 }}>※AIチャット相談が30回利用できます</span>
                 </div>
 
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
