@@ -58,6 +58,9 @@ export default function Header({ onShowPricing }) {
               </button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <a href="/dashboard" style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "6px 12px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted, textDecoration: "none" }}>
+                サイト管理
+              </a>
               {onShowPricing && (
                 <button onClick={onShowPricing} style={{ background: "#FF0000", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, padding: "6px 12px" }}>
                   プランを見る

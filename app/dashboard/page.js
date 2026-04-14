@@ -11,22 +11,40 @@ const C = {
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-function SiteCard({ site, onSelect, onDelete }) {
+function SiteCard({ site, onSelect, onDelete, onRename }) {
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(site.site_name);
   const hasAnalysis = !!site.latest_analysis;
   const confirmed = site.strategy_confirmed;
+
+  const handleSaveName = () => {
+    if (editName.trim() && editName !== site.site_name) {
+      onRename(site.id, editName.trim());
+    }
+    setEditing(false);
+  };
+
   return (
     <div style={{
       background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
       padding: "20px 24px", cursor: "pointer", transition: "box-shadow 0.2s",
       borderLeft: confirmed ? `4px solid ${C.A}` : hasAnalysis ? `4px solid ${C.B}` : `4px solid ${C.border}`,
     }}
-      onClick={() => onSelect(site)}
+      onClick={() => !editing && onSelect(site)}
       onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"}
       onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
         <div>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>{site.site_name}</div>
+          {editing ? (
+            <input value={editName} onChange={e => setEditName(e.target.value)}
+              onBlur={handleSaveName} onKeyDown={e => e.key === "Enter" && handleSaveName()}
+              onClick={e => e.stopPropagation()} autoFocus
+              style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, border: `1px solid ${C.A}`, borderRadius: 4, padding: "4px 8px", width: "100%" }} />
+          ) : (
+            <div onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
+              style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }} title="ダブルクリックで名前変更">{site.site_name}</div>
+          )}
           {site.company_name && <div style={{ fontSize: 14, color: C.muted, marginTop: 4, fontFamily: FONT }}>{site.company_name}</div>}
         </div>
         <div style={{ display: "flex", gap: 6 }}>
@@ -163,6 +181,7 @@ function NewSiteForm({ onCreated, onCancel }) {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [sites, setSites] = useState([]);
+  const [planLimit, setPlanLimit] = useState(1);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
@@ -177,16 +196,38 @@ export default function DashboardPage() {
       const res = await fetch("/api/sites");
       const data = await res.json();
       setSites(data.sites || []);
+      if (data.planLimit) setPlanLimit(data.planLimit);
     } catch (e) { setError("サイト一覧の取得に失敗しました: " + (e.message || "")); }
     finally { setLoading(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("このサイトを削除しますか？")) return;
+    const site = sites.find(s => s.id === id);
+    if (!confirm(`「${site?.site_name || "このサイト"}」を削除しますか？\n分析結果・チャット履歴も全て削除されます。`)) return;
     try {
       await fetch(`/api/sites?id=${id}`, { method: "DELETE" });
+      // localStorage掃除
+      try {
+        const threadsKey = `ab3c_threads_${id}`;
+        const threads = JSON.parse(localStorage.getItem(threadsKey) || "[]");
+        threads.forEach(t => localStorage.removeItem(`ab3c_thread_${t.id}`));
+        localStorage.removeItem(threadsKey);
+        localStorage.removeItem(`ab3c_theme_chats_${id}`);
+        localStorage.removeItem(`ab3c_actions_${id}`);
+      } catch {}
       setSites(sites.filter(s => s.id !== id));
     } catch { alert("削除に失敗しました。"); }
+  };
+
+  const handleRename = async (id, newName) => {
+    try {
+      await fetch("/api/sites", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, site_name: newName }),
+      });
+      setSites(sites.map(s => s.id === id ? { ...s, site_name: newName } : s));
+    } catch { alert("名前の変更に失敗しました。"); }
   };
 
   const handleSelect = (site) => {
@@ -241,21 +282,29 @@ export default function DashboardPage() {
             }}>
               分析画面へ
             </a>
-            <button onClick={() => setShowForm(true)} style={{
-              background: C.ink, border: "none", borderRadius: 4, color: "#fff",
-              cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
-            }}>
-              + 新規サイト登録
-            </button>
+            {sites.length < planLimit ? (
+              <button onClick={() => setShowForm(true)} style={{
+                background: C.ink, border: "none", borderRadius: 4, color: "#fff",
+                cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+              }}>
+                + 新規サイト登録
+              </button>
+            ) : (
+              <div style={{ fontSize: 13, color: C.muted, fontFamily: FONT, textAlign: "right" }}>
+                サイト上限（{planLimit}）に達しています<br/>
+                <span style={{ color: C.B, fontWeight: 600 }}>プランのアップグレードで追加可能</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* サマリーカード */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
           {[
-            { label: "登録サイト", count: sites.length, color: C.ink },
+            { label: "登録サイト", count: `${sites.length} / ${planLimit}`, color: C.ink },
             { label: "分析済み", count: analyzedSites.length + confirmedSites.length, color: C.B },
             { label: "戦略確定", count: confirmedSites.length, color: C.A },
+            { label: "サイト上限", count: planLimit, color: "#8c5e1a" },
           ].map(({ label, count, color }) => (
             <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 6, padding: "16px 20px", textAlign: "center" }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 32, fontWeight: 700, color }}>{count}</div>
@@ -306,7 +355,7 @@ export default function DashboardPage() {
                   戦略確定済み ({confirmedSites.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-                  {confirmedSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} />)}
+                  {confirmedSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} onRename={handleRename} />)}
                 </div>
               </div>
             )}
@@ -318,7 +367,7 @@ export default function DashboardPage() {
                   分析済み ({analyzedSites.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-                  {analyzedSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} />)}
+                  {analyzedSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} onRename={handleRename} />)}
                 </div>
               </div>
             )}
@@ -330,7 +379,7 @@ export default function DashboardPage() {
                   未分析 ({pendingSites.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-                  {pendingSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} />)}
+                  {pendingSites.map(site => <SiteCard key={site.id} site={site} onSelect={handleSelect} onDelete={handleDelete} onRename={handleRename} />)}
                 </div>
               </div>
             )}

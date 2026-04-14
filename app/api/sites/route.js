@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
-// sitesテーブルを作成（なければ）
+// テーブル作成（なければ）
 let tableReady = false;
 async function ensureTable(sql) {
   if (tableReady) return;
@@ -26,11 +26,38 @@ async function ensureTable(sql) {
       )
     `;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_plans (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_email VARCHAR(255) NOT NULL,
+        plan_type VARCHAR(20) NOT NULL,
+        site_limit INTEGER NOT NULL,
+        interval VARCHAR(10) NOT NULL,
+        stripe_price_id VARCHAR(255),
+        stripe_subscription_id VARCHAR(255),
+        status VARCHAR(20) DEFAULT 'active',
+        purchased_at TIMESTAMPTZ DEFAULT NOW(),
+        expires_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`;
     tableReady = true;
   } catch (e) {
     console.error("ensureTable error:", e);
     throw e;
   }
+}
+
+// ユーザーのサイト上限を取得
+async function getSiteLimit(sql, email) {
+  const plans = await sql`
+    SELECT MAX(site_limit) as max_sites FROM user_plans
+    WHERE user_email = ${email} AND status = 'active'
+  `;
+  const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
+  if (proRows.length > 0) return 999; // PRO会員は実質無制限
+  return plans[0]?.max_sites || 1; // プランなし = 1サイト（無料）
 }
 
 // GET: ユーザーのサイト一覧取得
@@ -47,8 +74,9 @@ export async function GET(req) {
       WHERE user_email = ${session.user.email}
       ORDER BY updated_at DESC
     `;
+    const planLimit = await getSiteLimit(sql, session.user.email);
 
-    return NextResponse.json({ sites });
+    return NextResponse.json({ sites, planLimit });
   } catch (e) {
     console.error("GET /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });
@@ -70,6 +98,14 @@ export async function POST(req) {
 
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
+
+    // サイト数制限チェック
+    const planLimit = await getSiteLimit(sql, session.user.email);
+    const countResult = await sql`SELECT COUNT(*) as count FROM sites WHERE user_email = ${session.user.email}`;
+    const currentCount = parseInt(countResult[0].count);
+    if (currentCount >= planLimit) {
+      return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
+    }
 
     const rows = await sql`
       INSERT INTO sites (user_email, site_url, site_name, company_name, industry, target_customer)

@@ -72,8 +72,44 @@ export async function POST(req) {
         `;
       }
 
+      // プラン情報をuser_plansに記録
+      if (plan) {
+        await sql`
+          CREATE TABLE IF NOT EXISTS user_plans (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_email VARCHAR(255) NOT NULL,
+            plan_type VARCHAR(20) NOT NULL,
+            site_limit INTEGER NOT NULL,
+            interval VARCHAR(10) NOT NULL,
+            stripe_price_id VARCHAR(255),
+            stripe_subscription_id VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'active',
+            purchased_at TIMESTAMPTZ DEFAULT NOW(),
+            expires_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+          )
+        `;
+        const expiresAt = plan.type === 'analysis' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null;
+        const subscriptionId = session.subscription || null;
+        await sql`
+          INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id, stripe_subscription_id, expires_at)
+          VALUES (${email}, ${plan.type}, ${plan.sites}, ${plan.interval}, ${priceId}, ${subscriptionId}, ${expiresAt})
+        `;
+      }
+
       console.log(`決済完了: ${email} / プラン: ${plan?.type || 'unknown'} / ${plan?.sites || 0}サイト / チャット${chatCount}回 / priceId: ${priceId}`);
     }
+  }
+
+  // サブスクリプション解約
+  if (event.type === 'customer.subscription.deleted') {
+    const subscription = event.data.object;
+    const sql = neon(process.env.DATABASE_URL);
+    await sql`
+      UPDATE user_plans SET status = 'canceled'
+      WHERE stripe_subscription_id = ${subscription.id}
+    `;
+    console.log(`サブスクリプション解約: ${subscription.id}`);
   }
 
   return Response.json({ received: true });
