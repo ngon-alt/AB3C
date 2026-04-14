@@ -47,17 +47,16 @@ const Card = ({ color, title, children, onChat }) => (
 
 // テキスト内のURLをリンク化するヘルパー
 const linkify = (text) => {
-  if (!text) return text;
+  if (!text || typeof text !== "string") return text;
   // 「テキスト｜URL」パターン
   if (text.includes("｜http")) {
-    const [label, url] = text.split("｜");
-    return <>{label} <a href={url.trim()} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", fontSize: 13 }}>🔗</a></>;
+    var parts2 = text.split("｜");
+    return <>{parts2[0]} <a href={(parts2[1] || "").trim()} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", fontSize: 13 }}>🔗</a></>;
   }
   // テキスト内のURL
-  const urlRegex = /(https?:\/\/[^\s）」]+)/g;
-  const parts = text.split(urlRegex);
-  if (parts.length === 1) return text;
-  return parts.map((part, i) => urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part);
+  var parts3 = text.split(/(https?:\/\/[^\s）」]+)/);
+  if (parts3.length === 1) return text;
+  return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
 const UL = ({ items, onChatItem }) => (
@@ -307,9 +306,10 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 }
 function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy }) {
   const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
-  const [messages, setMessages] = useState(() => {
-    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch (e) { return []; }
-  });
+  const [messages, setMessages] = useState([]);
+  useEffect(() => {
+    try { const saved = localStorage.getItem(chatKey); if (saved) setMessages(JSON.parse(saved)); } catch (e) {}
+  }, []);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -661,12 +661,7 @@ const [themeChats, setThemeChats] = useState({});
 const [actions, setActions] = useState([]);
 const [selectedActionId, setSelectedActionId] = useState(null);
 const [chatExpanded, setChatExpanded] = useState(false);
-const [chatSummaries, setChatSummaries] = useState(() => {
-  try {
-    const saved = localStorage.getItem("ab3c_chat_summaries");
-    return saved ? JSON.parse(saved) : [];
-  } catch (e) { return []; }
-});
+const [chatSummaries, setChatSummaries] = useState([]);
   
   // フェーズ導出（viewOverrideで表示タブを切り替え、strategyConfirmedは変更しない）
   const [viewOverride, setViewOverride] = useState(null);
@@ -803,8 +798,8 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem("ab3c_history");
-    if (saved) setHistory(JSON.parse(saved));
+    try { const saved = localStorage.getItem("ab3c_history"); if (saved) setHistory(JSON.parse(saved)); } catch (e) {}
+    try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {}
     if (Notification.permission === "default") Notification.requestPermission();
     // URLパラメータからsite_idを読み取り
     const params = new URLSearchParams(window.location.search);
