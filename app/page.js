@@ -1163,7 +1163,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>
+              <div style={{ fontSize: 16, fontWeight: 400, color: "#fff" }}>
                 {phase === "action" ? "施策一覧" : "戦略確定履歴"}
               </div>
               <button onClick={function() { setSidebarOpen(false); }} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 14, padding: "2px 4px" }}>◀ 閉じる</button>
@@ -1226,7 +1226,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         {/* サイドバー閉じ時の開くボタン */}
         {!sidebarOpen && (
           <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "10px 8px", cursor: "pointer", color: "#fff", fontSize: 14, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.1em" }}>
-            {phase === "action" ? "施策 ▶" : "履歴 ▶"}
+            {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
           </button>
         )}
         {/* 確定履歴パネル（左からスライド） — サイドバー開いている時のみ */}
