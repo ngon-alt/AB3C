@@ -981,6 +981,28 @@ setCurrentResult(data);
 setCurrentInput(savedText);
 setLoading(false); // AB3C分析完了 → ローディング解除
 
+// 分析結果を即座にlocalStorageにバックアップ
+try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, timestamp: Date.now() })); } catch (e) {}
+
+// 分析結果をDBにも即座に保存
+if (tab === "url" && savedText.startsWith("http")) {
+  var saveSid = analyzeSiteId;
+  if (!saveSid) {
+    try {
+      var sn = "無題のサイト";
+      try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
+      var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
+      var cd = await cr.json();
+      if (cd.existingSite) { saveSid = cd.existingSite.id; }
+      else if (cd.site) { saveSid = cd.site.id; }
+    } catch (e) {}
+  }
+  if (saveSid) {
+    setSiteId(saveSid);
+    try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) }); } catch (e) {}
+  }
+}
+
 // URL分析の場合、ウェブサイト改善レポートも同時に生成
 let improveData = null;
 if (tab === "url" && savedText.startsWith("http")) {
@@ -1004,28 +1026,6 @@ if (tab === "url" && savedText.startsWith("http")) {
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
-
-// 分析結果をlocalStorageにもバックアップ（確実な復元用）
-try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, improve: improveData, timestamp: Date.now() })); } catch (e) {}
-
-// 分析結果をDBにも保存
-if (tab === "url" && savedText.startsWith("http")) {
-  try {
-    var currentSid = analyzeSiteId;
-    if (!currentSid) {
-      var siteName2 = "無題のサイト";
-      try { siteName2 = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
-      var createRes2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: siteName2, site_url: savedText }) });
-      var createData2 = await createRes2.json();
-      if (createData2.existingSite) { currentSid = createData2.existingSite.id; }
-      else if (createData2.site) { currentSid = createData2.site.id; }
-      if (currentSid) setSiteId(currentSid);
-    }
-    if (currentSid) {
-      await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: currentSid, latest_analysis: data }) });
-    }
-  } catch (e) {}
-}
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
   };
 
