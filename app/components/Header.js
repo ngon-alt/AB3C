@@ -20,6 +20,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
+  const [planLabel, setPlanLabel] = useState(null);
   const [currentPath, setCurrentPath] = useState("/");
   const [sites, setSites] = useState([]);
   const [showSiteDropdown, setShowSiteDropdown] = useState(false);
@@ -29,7 +30,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
     if (session?.user?.email) {
       fetch("/api/check-pro")
         .then((r) => r.json())
-        .then((d) => { setIsPro(d.isPro); setChatTickets(d.chatTickets || 0); })
+        .then((d) => { setIsPro(d.isPro); setChatTickets(d.chatTickets || 0); setPlanLabel(d.planLabel || null); })
         .catch(() => { setIsPro(false); setChatTickets(0); });
       fetch("/api/sites")
         .then((r) => r.json())
@@ -68,7 +69,8 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 14, color: C.muted, fontFamily: NAV_FONT }}>
                 {session.user?.name}
-                {isPro && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+                {planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
+              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
               </span>
               <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, color: C.muted }}>
                 ログアウト

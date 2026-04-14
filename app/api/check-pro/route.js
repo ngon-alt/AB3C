@@ -29,9 +29,24 @@ export async function GET() {
     `;
     const trialChats = parseInt(trialResult[0].total);
 
-    return Response.json({ isPro, chatTickets, trialChats });
+    // 契約プラン情報
+    let planLabel = null;
+    try {
+      const planResult = await sql`
+        SELECT plan_type, site_limit FROM user_plans
+        WHERE user_email = ${session.user.email} AND status = 'active'
+        ORDER BY site_limit DESC LIMIT 1
+      `;
+      if (planResult.length > 0) {
+        const p = planResult[0];
+        const typeLabel = p.plan_type === "support" ? "伴走" : "分析";
+        planLabel = `${typeLabel}${p.site_limit}`;
+      }
+    } catch {}
+
+    return Response.json({ isPro, chatTickets, trialChats, planLabel });
   } catch (e) {
     console.error(e);
-    return Response.json({ isPro: false, chatTickets: 0, trialChats: 0 });
+    return Response.json({ isPro: false, chatTickets: 0, trialChats: 0, planLabel: null });
   }
 }
