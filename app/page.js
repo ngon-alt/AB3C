@@ -995,7 +995,10 @@ setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
-setLoading(false); // AB3C分析完了 → ローディング解除
+// URL分析の場合は改善レポート完了までloading維持
+if (!(tab === "url" && savedText.startsWith("http"))) {
+  setLoading(false);
+}
 
 // 分析結果をDBにも保存（非同期・ブロックしない）
 if (tab === "url" && savedText.startsWith("http")) {
@@ -1036,6 +1039,7 @@ if (tab === "url" && savedText.startsWith("http")) {
     console.error("改善レポート自動生成エラー:", e);
   } finally {
     setImproveLoading(false);
+    setLoading(false);
   }
 }
 
@@ -1062,13 +1066,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", maxWidth: 400 }}>
             <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 2s linear infinite" }}>
-              {loading ? "🔍" : "🔧"}
+              {improveLoading ? "🔧" : "🔍"}
             </div>
             <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#1a1a14", marginBottom: 8 }}>
-              {loading ? "AB3C分析中..." : "ウェブサイト改善レポート生成中..."}
+              {improveLoading ? "ウェブサイト改善レポート生成中..." : "AB3C分析中..."}
             </div>
             <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.6 }}>
-              {loading ? "AIがウェブサイトを分析しています。\n1〜2分ほどお待ちください。" : "分析結果をもとに改善提案を作成しています。\nもう少しお待ちください。"}
+              {improveLoading ? "分析結果をもとに改善提案を作成しています。もう少しお待ちください。" : "AIがウェブサイトを分析しています。1〜2分ほどお待ちください。"}
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
