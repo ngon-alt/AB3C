@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -109,7 +109,15 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
       {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
       <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
         {/* 分析タブ */}
-        <button onClick={() => { if (onSwitchToAnalysis) onSwitchToAnalysis(); else window.location.href = "/"; }}
+        <button onClick={() => {
+          if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
+          else {
+            const params = [];
+            if (currentSiteId) params.push(`site_id=${currentSiteId}`);
+            if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
+            window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
+          }
+        }}
           style={{
             padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
             background: (phase === "analysis" || phase === "input") ? C.phase1 : C.phase1 + "88",

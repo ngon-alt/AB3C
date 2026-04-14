@@ -992,6 +992,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <Header
         onShowPricing={() => setShowPricing(true)}
         currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)}
+        currentSiteId={siteId}
         phase={phase}
         canAccessBansou={isPro || chatTickets > 0}
         onSwitchToAnalysis={() => setViewOverride("analysis")}
