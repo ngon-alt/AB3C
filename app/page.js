@@ -805,19 +805,27 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
     const params = new URLSearchParams(window.location.search);
     const sid = params.get("site_id");
     const urlParam = params.get("url");
-    if (sid) {
-      setSiteId(sid);
+    if (sid || urlParam) {
+      if (sid) setSiteId(sid);
       if (urlParam) { setUrl(urlParam); setTab("url"); setCurrentInput(urlParam); }
       // DBからサイトの分析結果を復元
-      fetch("/api/sites").then(r => r.json()).then(data => {
-        const site = (data.sites || []).find(s => s.id === sid);
-        if (site?.latest_analysis) {
-          setResult(site.latest_analysis);
-          setCurrentResult(site.latest_analysis);
+      fetch("/api/sites").then(function(r) { return r.json(); }).then(function(data) {
+        var sites = data.sites || [];
+        // site_idで検索、なければURLで検索
+        var site = sid ? sites.find(function(s) { return s.id === sid; }) : null;
+        if (!site && urlParam) {
+          site = sites.find(function(s) { return s.site_url === urlParam; });
+        }
+        if (site) {
+          setSiteId(site.id);
+          if (site.latest_analysis) {
+            setResult(site.latest_analysis);
+            setCurrentResult(site.latest_analysis);
+          }
           if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
           if (site.strategy_confirmed) setStrategyConfirmed(true);
         }
-      }).catch(() => {});
+      }).catch(function() {});
     }
     // URLパラメータからphaseを読み取り
     const phaseParam = params.get("phase");
