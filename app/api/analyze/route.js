@@ -158,6 +158,11 @@ const jsonStart = clean.indexOf('{');
 if (jsonStart > 0) {
   clean = clean.substring(jsonStart);
 }
+// JSON後のゴミを削除（最後の } 以降を除去）
+const jsonEnd = clean.lastIndexOf('}');
+if (jsonEnd > 0) {
+  clean = clean.substring(0, jsonEnd + 1);
+}
 
 try {
   const result = JSON.parse(clean);
@@ -170,7 +175,15 @@ try {
   return NextResponse.json(result);
 } catch (parseError) {
   console.error("JSON Parse Error:", parseError.message);
-  return NextResponse.json({ error: "AI応答のJSON解析に失敗しました。" }, { status: 500 });
+  console.error("Raw AI response (first 500 chars):", clean.slice(0, 500));
+  // リトライ: 不正な制御文字を除去して再パース
+  try {
+    const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
+    const result2 = JSON.parse(cleaned2);
+    return NextResponse.json(result2);
+  } catch (e2) {
+    return NextResponse.json({ error: "AI応答の解析に失敗しました。もう一度お試しください。" }, { status: 500 });
+  }
 }
   } catch (e) {
     console.error(e);
