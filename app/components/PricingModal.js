@@ -99,7 +99,7 @@ export default function PricingModal({ onClose }) {
             先行ユーザー価格キャンペーン
           </div>
           <div style={{ fontSize: 14, marginBottom: 12 }}>
-            5月1日まで または 100名到達まで
+            4月30日まで または 100名到達まで
           </div>
           <div style={{
             fontSize: 24, fontWeight: 700, background: '#fff', color: '#667eea',
