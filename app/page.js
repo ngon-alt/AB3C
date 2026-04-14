@@ -1228,7 +1228,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
             {/* サイドバートグルボタン */}
             <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.1)", textAlign: "right" }}>
-              <button onClick={() => setSidebarOpen(false)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 16, padding: "4px 0" }}>◀ 閉じる</button>
+              <button onClick={() => setSidebarOpen(false)} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 16, padding: "4px 0" }}>◀ 閉じる</button>
             </div>
           </div>
         )}
