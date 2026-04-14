@@ -232,6 +232,7 @@ export default function PricingModal({ onClose }) {
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink }}>
                         ¥{campaign(plan.annual).toLocaleString()}
                         <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
+                        <div style={{ fontSize: 11, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみの価格です</div>
                       </div>
                     </div>
                     <button
@@ -282,6 +283,7 @@ export default function PricingModal({ onClose }) {
                         </div>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
                           ¥{campaign(plan.monthly).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/月</span>
+                          <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
                         </div>
                         <button
                           onClick={() => handleCheckout(supportPricesMonthly[plan.sites])}
@@ -306,6 +308,7 @@ export default function PricingModal({ onClose }) {
                         </div>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
                           ¥{campaign(plan.annual).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
+                          <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
                         </div>
                         <button
                           onClick={() => handleCheckout(supportPricesAnnual[plan.sites])}
@@ -327,6 +330,7 @@ export default function PricingModal({ onClose }) {
             {/* 注釈 */}
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
+              <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
               ※ 分析プランは年間ライセンス（有効期限1年）です。<br/>
               ※ 伴走プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
