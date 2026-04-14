@@ -1004,7 +1004,7 @@ useEffect(() => {
   };
 
   const analyze = async () => {
-    if (!session) { setError("分析にはGoogleログインが必要です。右上の「Googleでログイン」からログインしてください。"); return; }
+    // ログインチェックはAPI側で実施（sessionの読み込みタイミング問題を回避）
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
