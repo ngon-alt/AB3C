@@ -94,13 +94,13 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           {/* サブナビ */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {[
-              { label: "初めての方へ", href: "/howto" },
-              { label: "AB3C分析とは", href: "/about" },
-              { label: "料金とプラン", href: "/pricing" },
+              { label: "初めての方へ", href: "/howto", icon: "🔰" },
+              { label: "AB3C分析とは", href: "/about", icon: "📖" },
+              { label: "料金とプラン", href: "/pricing", icon: "💰" },
             ].map((item) => (
               <a key={item.label} href={item.href}
                 style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-                {item.label}
+                <span style={{ marginRight: 4 }}>{item.icon}</span>{item.label}
               </a>
             ))}
           </div>
