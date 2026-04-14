@@ -1223,9 +1223,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             ) : (
               <>
                 {/* 確定履歴 */}
-                <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>確定履歴</span>
-                  <button onClick={reset} style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 9, padding: "3px 8px" }}>+ 新規</button>
                 </div>
               </>
             )}
