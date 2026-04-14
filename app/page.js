@@ -873,6 +873,45 @@ useEffect(() => {
   localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
 };
 
+  // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
+  const confirmStrategy = async () => {
+    const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
+    let targetSiteId = siteId;
+    if (!targetSiteId && siteUrl) {
+      try {
+        const sitesRes = await fetch("/api/sites");
+        const sitesData = await sitesRes.json();
+        const existing = (sitesData.sites || []).find(s => s.site_url === siteUrl);
+        if (existing) {
+          if (existing.strategy_confirmed) {
+            if (!confirm(`このURLは既に戦略が確定されています（「${existing.site_name}」）。\n上書きしますか？`)) return;
+          }
+          targetSiteId = existing.id;
+          setSiteId(existing.id);
+        }
+      } catch {}
+    }
+    if (!targetSiteId) {
+      try {
+        const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: siteUrl }) });
+        const createData = await createRes.json();
+        if (createData.error && createData.existingSite) {
+          targetSiteId = createData.existingSite.id;
+          setSiteId(targetSiteId);
+        } else if (createData.site) {
+          targetSiteId = createData.site.id;
+          setSiteId(targetSiteId);
+        }
+      } catch { alert("保存に失敗しました。"); return; }
+    }
+    if (targetSiteId) {
+      try {
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト" }) });
+        setStrategyConfirmed(true);
+      } catch { alert("保存に失敗しました。"); }
+    }
+  };
+
  const notify = (text) => {
     if (Notification.permission === "granted") new Notification("戦略大臣 分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
   };
@@ -883,6 +922,17 @@ useEffect(() => {
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
     try {
+      // URL分析時: 既存サイトがあれば自動紐付け
+      if (tab === "url" && url.trim()) {
+        try {
+          const sitesRes = await fetch("/api/sites");
+          const sitesData = await sitesRes.json();
+          const existingSite = (sitesData.sites || []).find(s => s.site_url === url.trim());
+          if (existingSite) {
+            setSiteId(existingSite.id);
+          }
+        } catch {}
+      }
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -944,17 +994,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         canAccessBansou={isPro || chatTickets > 0}
         onSwitchToAnalysis={() => setViewOverride("analysis")}
         onSwitchToAction={() => { if (strategyConfirmed) setViewOverride(null); }}
-        onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? async () => {
-          if (!siteId) {
-            try {
-              const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
-              const createData = await createRes.json();
-              if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
-            } catch { alert("保存に失敗しました。"); }
-          } else {
-            try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
-          }
-        } : null}
+        onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
 
 
@@ -1419,17 +1459,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                     }}
-                    onConfirmStrategy={(isPro || chatTickets > 0) ? async () => {
-                      if (!siteId) {
-                        try {
-                          const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
-                          const createData = await createRes.json();
-                          if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
-                        } catch { alert("保存に失敗しました。"); }
-                      } else {
-                        try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
-                      }
-                    } : null}
+                    onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
                 </div>
               </div>
