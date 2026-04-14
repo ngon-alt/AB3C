@@ -16,6 +16,7 @@ export default function AdminPage() {
   const [proUsers, setProUsers] = useState([]);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [plan, setPlan] = useState('unlimited');
   const [secret, setSecret] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -50,12 +51,12 @@ useEffect(() => {
     const res = await fetch('/api/admin/pro-users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret, email, name }),
+      body: JSON.stringify({ secret, email, name, plan }),
     });
     const data = await res.json();
     if (data.success) {
-      setMessage(`✓ ${email} を追加しました`);
-      setEmail(''); setName('');
+      setMessage(`✓ ${email} を追加しました（${plan}）`);
+      setEmail(''); setName(''); setPlan('unlimited');
       fetchProUsers();
     } else {
       setMessage(`エラー: ${data.error}`);
@@ -133,21 +134,41 @@ useEffect(() => {
         {/* 新規追加 */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>プロ会員を追加</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
             <input
               type="email"
               placeholder="メールアドレス"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none', fontFamily: "'Noto Serif JP', serif" }}
+              style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none' }}
             />
             <input
               type="text"
               placeholder="名前"
               value={name}
               onChange={e => setName(e.target.value)}
-              style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none', fontFamily: "'Noto Serif JP', serif" }}
+              style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none' }}
             />
+            <select
+              value={plan}
+              onChange={e => setPlan(e.target.value)}
+              style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none' }}
+            >
+              <option value="unlimited">無制限</option>
+              <optgroup label="分析プラン">
+                <option value="analysis_1">分析 1サイト</option>
+                <option value="analysis_10">分析 10サイト</option>
+                <option value="analysis_100">分析 100サイト</option>
+              </optgroup>
+              <optgroup label="伴走プラン">
+                <option value="support_1">伴走 1サイト</option>
+                <option value="support_5">伴走 5サイト</option>
+                <option value="support_15">伴走 15サイト</option>
+                <option value="support_30">伴走 30サイト</option>
+                <option value="support_60">伴走 60サイト</option>
+                <option value="support_120">伴走 120サイト</option>
+              </optgroup>
+            </select>
           </div>
           <button onClick={addUser} disabled={loading} style={{ background: C.A, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: '10px 24px' }}>
             {loading ? '追加中...' : '+ 追加する'}
@@ -168,7 +189,7 @@ useEffect(() => {
                 <div>
                   <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: C.muted }}>{user.email}</div>
-                  <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)}</div>
+                  <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)} {user.plan_label && <span style={{ marginLeft: 8, background: C.A, color: '#fff', padding: '1px 6px', borderRadius: 3 }}>{user.plan_label}</span>}</div>
                 </div>
                 <button onClick={() => deleteUser(user.email)} style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.red, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 11, padding: '6px 12px' }}>
                   削除
