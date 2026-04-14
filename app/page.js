@@ -1233,6 +1233,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setCurrentResult(ch.result);
                         setResult(ch.result);
                         setHistoryTitle(ch.strategyMessage || "");
+                        setStrategyConfirmed(true);
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
                         setChangedPaths(new Map());
