@@ -60,19 +60,19 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略大臣</span>
             <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>powered by AI</span>
           </div>
-          <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.muted, letterSpacing: "0.05em", marginTop: 2 }}>
+          <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
             選ばれる理由を言語化する 戦略策定AI
           </div>
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
           {session ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 14, color: C.muted, fontFamily: NAV_FONT }}>
+              <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT }}>
                 {session.user?.name}
-                {planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
-              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 12, padding: "2px 6px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+                {planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
+              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
               </span>
-              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, color: C.muted }}>
+              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
                 ログアウト
               </button>
             </div>
@@ -99,7 +99,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               { label: "料金とプラン", href: "/pricing" },
             ].map((item) => (
               <a key={item.label} href={item.href}
-                style={{ fontSize: 13, color: C.muted, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+                style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
                 {item.label}
               </a>
             ))}
