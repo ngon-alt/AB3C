@@ -21,6 +21,8 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
   const [currentPath, setCurrentPath] = useState("/");
+  const [sites, setSites] = useState([]);
+  const [showSiteDropdown, setShowSiteDropdown] = useState(false);
 
   useEffect(() => {
     setCurrentPath(window.location.pathname + window.location.search);
@@ -29,6 +31,10 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
         .then((r) => r.json())
         .then((d) => { setIsPro(d.isPro); setChatTickets(d.chatTickets || 0); })
         .catch(() => { setIsPro(false); setChatTickets(0); });
+      fetch("/api/sites")
+        .then((r) => r.json())
+        .then((d) => setSites(d.sites || []))
+        .catch(() => {});
     }
   }, [session]);
 
@@ -144,14 +150,33 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
           }}>
           📋 サイト管理
         </a>
-        {/* 現在のサイトURL */}
-        {currentSiteUrl && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px", alignSelf: "center" }}>
-            <span style={{ fontSize: 12, color: C.muted }}>｜</span>
-            <a href={currentSiteUrl} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 13, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
-              {currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-            </a>
+        {/* サイト切替プルダウン */}
+        {session && sites.length > 0 && (
+          <div style={{ position: "relative", alignSelf: "center", marginLeft: 4 }}>
+            <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, color: C.A }}>
+              {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
+              <span style={{ fontSize: 10, color: C.muted }}>▼</span>
+            </button>
+            {showSiteDropdown && (
+              <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 400, minWidth: 280, maxHeight: 300, overflowY: "auto" }}
+                onMouseLeave={() => setShowSiteDropdown(false)}>
+                {sites.map(site => (
+                  <a key={site.id} href={`/?site_id=${site.id}${site.site_url ? `&url=${encodeURIComponent(site.site_url)}` : ""}`}
+                    style={{ display: "block", padding: "10px 14px", fontSize: 13, color: C.ink, textDecoration: "none", borderBottom: `1px solid ${C.border}`, fontFamily: NAV_FONT, lineHeight: 1.5 }}
+                    onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                    <div style={{ fontWeight: 600, marginBottom: 2 }}>{site.site_name}</div>
+                    {site.site_url && <div style={{ fontSize: 11, color: C.A }}>{site.site_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</div>}
+                  </a>
+                ))}
+                <a href="/dashboard" style={{ display: "block", padding: "10px 14px", fontSize: 13, color: C.muted, textDecoration: "none", fontFamily: NAV_FONT, textAlign: "center", fontWeight: 600 }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  サイト管理画面を開く →
+                </a>
+              </div>
+            )}
           </div>
         )}
       </nav>

@@ -107,6 +107,14 @@ export async function POST(req) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
     }
 
+    // URL重複チェック
+    if (site_url) {
+      const existing = await sql`SELECT id, site_name FROM sites WHERE user_email = ${session.user.email} AND site_url = ${site_url}`;
+      if (existing.length > 0) {
+        return NextResponse.json({ error: `このURLは既に「${existing[0].site_name}」として登録されています。`, existingSite: existing[0] }, { status: 409 });
+      }
+    }
+
     const rows = await sql`
       INSERT INTO sites (user_email, site_url, site_name, company_name, industry, target_customer)
       VALUES (${session.user.email}, ${site_url || null}, ${site_name}, ${company_name || null}, ${industry || null}, ${target_customer || null})

@@ -27,72 +27,71 @@ function SiteCard({ site, onSelect, onDelete, onRename }) {
   return (
     <div style={{
       background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
-      padding: "20px 24px", cursor: "pointer", transition: "box-shadow 0.2s",
+      padding: "20px 24px", transition: "box-shadow 0.2s",
       borderLeft: confirmed ? `4px solid ${C.A}` : hasAnalysis ? `4px solid ${C.B}` : `4px solid ${C.border}`,
     }}
-      onClick={() => !editing && onSelect(site)}
       onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)"}
       onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+      {/* サイト名 + ステータス */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
           {editing ? (
             <input value={editName} onChange={e => setEditName(e.target.value)}
               onBlur={handleSaveName} onKeyDown={e => e.key === "Enter" && handleSaveName()}
-              onClick={e => e.stopPropagation()} autoFocus
-              style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, border: `1px solid ${C.A}`, borderRadius: 4, padding: "4px 8px", width: "100%" }} />
+              autoFocus
+              style={{ fontSize: 18, fontWeight: 700, color: C.ink, border: `1px solid ${C.A}`, borderRadius: 4, padding: "4px 8px", width: "100%", fontFamily: FONT }} />
           ) : (
-            <div onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
-              style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }} title="ダブルクリックで名前変更">{site.site_name}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, fontFamily: FONT }}>{site.site_name}</div>
           )}
-          {site.company_name && <div style={{ fontSize: 14, color: C.muted, marginTop: 4, fontFamily: FONT }}>{site.company_name}</div>}
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          {confirmed && (
-            <span style={{ background: C.A, color: "#fff", fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>
-              戦略確定
-            </span>
-          )}
-          {hasAnalysis && !confirmed && (
-            <span style={{ background: C.B, color: "#fff", fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>
-              分析済み
-            </span>
-          )}
-          {!hasAnalysis && (
-            <span style={{ background: "#e8e8e8", color: C.muted, fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>
-              未分析
-            </span>
-          )}
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          {confirmed && <span style={{ background: C.A, color: "#fff", fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>戦略確定</span>}
+          {hasAnalysis && !confirmed && <span style={{ background: C.B, color: "#fff", fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>分析済み</span>}
+          {!hasAnalysis && <span style={{ background: "#e8e8e8", color: C.muted, fontSize: 11, padding: "3px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>未分析</span>}
         </div>
       </div>
 
+      {/* URL */}
       {site.site_url && (
-        <div style={{ fontSize: 13, color: C.A, marginBottom: 8, fontFamily: "'Space Mono', monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 10, fontFamily: FONT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {site.site_url}
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-        {site.industry && (
-          <span style={{ fontSize: 12, color: C.muted, background: "#f5f5f5", padding: "2px 8px", borderRadius: 3, fontFamily: FONT }}>{site.industry}</span>
-        )}
-        {site.target_customer && (
-          <span style={{ fontSize: 12, color: C.muted, background: "#f5f5f5", padding: "2px 8px", borderRadius: 3, fontFamily: FONT }}>
-            {site.target_customer.length > 20 ? site.target_customer.slice(0, 20) + "..." : site.target_customer}
-          </span>
-        )}
+      {/* 日付 */}
+      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace", marginBottom: 12 }}>
+        {new Date(site.updated_at).toLocaleDateString("ja-JP")}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 11, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
-          {new Date(site.updated_at).toLocaleDateString("ja-JP")}
-        </span>
-        <button
-          onClick={e => { e.stopPropagation(); onDelete(site.id); }}
-          style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 12, color: C.muted, padding: "4px 8px", fontFamily: FONT }}
-        >
+      {/* アクションリンク */}
+      <div style={{ display: "flex", gap: 16, borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+        <a href="#" onClick={(e) => { e.preventDefault(); onSelect(site); }}
+          style={{ fontSize: 14, color: C.A, textDecoration: "underline", cursor: "pointer", fontFamily: FONT, fontWeight: 600 }}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = "none"; e.currentTarget.style.color = "#0d4ea3"; }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = "underline"; e.currentTarget.style.color = C.A; }}>
+          分析を開く
+        </a>
+        {site.site_url && (
+          <a href={site.site_url} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize: 14, color: C.muted, textDecoration: "underline", fontFamily: FONT }}
+            onMouseEnter={e => { e.currentTarget.style.textDecoration = "none"; e.currentTarget.style.color = C.ink; }}
+            onMouseLeave={e => { e.currentTarget.style.textDecoration = "underline"; e.currentTarget.style.color = C.muted; }}>
+            URLを開く
+          </a>
+        )}
+        <a href="#" onClick={(e) => { e.preventDefault(); setEditing(true); }}
+          style={{ fontSize: 14, color: C.muted, textDecoration: "underline", cursor: "pointer", fontFamily: FONT }}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = "none"; e.currentTarget.style.color = C.ink; }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = "underline"; e.currentTarget.style.color = C.muted; }}>
+          名前変更
+        </a>
+        <a href="#" onClick={(e) => { e.preventDefault(); onDelete(site.id); }}
+          style={{ fontSize: 14, color: "#c0392b", textDecoration: "underline", cursor: "pointer", fontFamily: FONT }}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = "none"; e.currentTarget.style.color = "#e74c3c"; }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = "underline"; e.currentTarget.style.color = "#c0392b"; }}>
           削除
-        </button>
+        </a>
       </div>
     </div>
   );
