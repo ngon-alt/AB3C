@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl }) {
+export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -32,15 +32,15 @@ export default function Header({ onShowPricing, currentSiteUrl }) {
     }
   }, [session]);
 
-  const canAccessBansou = isPro || chatTickets > 0;
-
-  const isActive = (href) => {
-    if (href === "/") return currentPath === "/" || (currentPath.startsWith("/?") && !currentPath.includes("phase=action"));
-    if (href === "/?phase=action") return currentPath.includes("phase=action");
-    return currentPath.startsWith(href);
-  };
-
+  const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
   const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "伴走プランのみ利用可" : "戦略確定後に利用可";
+
+  const isActive = (key) => {
+    if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));
+    if (key === "action") return currentPath.includes("phase=action") || phase === "action";
+    if (key === "dashboard") return currentPath.startsWith("/dashboard");
+    return false;
+  };
 
   return (
     <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}>
@@ -81,7 +81,7 @@ export default function Header({ onShowPricing, currentSiteUrl }) {
               </div>
             </button>
           )}
-          {/* サブナビ（右上） */}
+          {/* サブナビ */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             {[
               { label: "初めての方へ", href: "/howto" },
@@ -89,52 +89,73 @@ export default function Header({ onShowPricing, currentSiteUrl }) {
               { label: "料金とプラン", href: "/pricing" },
             ].map((item) => (
               <a key={item.label} href={item.href}
-                style={{ fontSize: 13, color: isActive(item.href) ? C.phase1 : C.muted, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap" }}>
+                style={{ fontSize: 13, color: C.muted, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap" }}>
                 {item.label}
               </a>
             ))}
           </div>
         </div>
       </div>
-      {/* 下段: メインナビ（分析・伴走・サイト管理） */}
-      <nav style={{ padding: "0 24px", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 0, background: "#fafafa" }}>
-        {[
-          { label: "分析", href: "/" },
-          { label: "伴走", href: "/?phase=action", restricted: true },
-          { label: "サイト管理", href: "/dashboard" },
-        ].map((item) => {
-          const active = isActive(item.href);
-          const disabled = item.restricted && !canAccessBansou;
-          return (
-            <span key={item.label} style={{ position: "relative", display: "inline-flex" }}
-              onMouseEnter={e => { if (disabled) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
-              onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
-              <a href={disabled ? undefined : item.href}
-                onClick={e => { if (disabled) e.preventDefault(); }}
-                style={{
-                  padding: "10px 20px", fontSize: 15, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
-                  color: disabled ? "#bbb" : active ? C.phase1 : C.ink,
-                  borderBottom: active ? `3px solid ${C.phase1}` : "3px solid transparent",
-                  cursor: disabled ? "default" : "pointer",
-                }}>
-                {item.label}
-              </a>
-              {disabled && (
-                <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
-                  {bansouTooltip}
-                </div>
-              )}
-            </span>
-          );
-        })}
-        {/* 現在分析中のサイトURL */}
+      {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
+      <nav style={{ padding: "0 24px", display: "flex", alignItems: "stretch", background: C.bg, borderBottom: `1px solid ${C.border}` }}>
+        {/* 分析タブ */}
+        <a href="/"
+          style={{
+            padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
+            background: isActive("analysis") ? C.phase1 : "#ccc",
+            color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
+          }}>
+          <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
+          分析
+        </a>
+        {/* 矢印 */}
+        <div style={{ display: "flex", alignItems: "center", padding: "0 8px", color: "#999", fontSize: 14 }}>→</div>
+        {/* 伴走タブ */}
+        <span style={{ position: "relative", display: "inline-flex" }}
+          onMouseEnter={e => { if (!canAccessBansou) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+          onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
+          <a href={canAccessBansou ? "/?phase=action" : undefined}
+            onClick={e => { if (!canAccessBansou) e.preventDefault(); }}
+            style={{
+              padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
+              background: isActive("action") ? C.phase2 : canAccessBansou ? "#ccc" : "#ddd",
+              color: canAccessBansou ? "#fff" : "#aaa", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
+              cursor: canAccessBansou ? "pointer" : "default",
+            }}>
+            <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            伴走
+          </a>
+          {!canAccessBansou && (
+            <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
+              {bansouTooltip}
+            </div>
+          )}
+        </span>
+        {/* サイト管理 */}
+        <a href="/dashboard"
+          style={{
+            padding: "10px 20px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700,
+            color: isActive("dashboard") ? C.ink : C.muted, display: "flex", alignItems: "center",
+            borderBottom: isActive("dashboard") ? `3px solid ${C.ink}` : "3px solid transparent",
+          }}>
+          サイト管理
+        </a>
+        {/* 現在のサイトURL */}
         {currentSiteUrl && (
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, padding: "0 8px" }}>
-            <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>分析中:</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 12px", borderLeft: `1px solid ${C.border}`, marginLeft: 4 }}>
             <a href={currentSiteUrl} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 12, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
+              style={{ fontSize: 13, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
               {currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
             </a>
+          </div>
+        )}
+        {/* 戦略確定ボタン（右寄せ） */}
+        {onConfirmStrategy && phase === "analysis" && (
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", padding: "4px 0" }}>
+            <button onClick={onConfirmStrategy}
+              style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
+              戦略を確定して伴走へ →
+            </button>
           </div>
         )}
       </nav>

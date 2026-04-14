@@ -658,8 +658,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   const derivedPhase = !currentResult ? "input" : strategyConfirmed ? "action" : "analysis";
   const phase = viewOverride || derivedPhase;
 
-  const stickyNavRef = useRef(null);
-  const [headerHeight, setHeaderHeight] = useState(80);
+  const [headerHeight, setHeaderHeight] = useState(120);
   useEffect(() => {
     const header = document.querySelector("#app-header");
     if (header) setHeaderHeight(header.offsetHeight);
@@ -912,35 +911,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
-      <Header onShowPricing={() => setShowPricing(true)} currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)} />
+      <Header
+        onShowPricing={() => setShowPricing(true)}
+        currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)}
+        phase={phase}
+        canAccessBansou={isPro || chatTickets > 0}
+        onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? async () => {
+          if (!siteId) {
+            try {
+              const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
+              const createData = await createRes.json();
+              if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
+            } catch { alert("保存に失敗しました。"); }
+          } else {
+            try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
+          }
+        } : null}
+      />
 
-      {/* フェーズカラーライン */}
-      {(
-        <div ref={stickyNavRef} style={{ position: "sticky", top: headerHeight, zIndex: 200 }}>
-          <div style={{ height: 6, background: phase === "action" ? C.phase2 : C.phase1 }} />
-          {/* 分析フェーズ：戦略確定ボタン */}
-          {phase === "analysis" && currentResult && (isPro || chatTickets > 0) && (
-            <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 24px", background: C.surface, borderBottom: `1px solid ${C.border}` }}>
-              <button
-                onClick={async () => {
-                  if (!siteId) {
-                    try {
-                      const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: currentInput?.startsWith("http") ? currentInput : null }) });
-                      const createData = await createRes.json();
-                      if (createData.site) { setSiteId(createData.site.id); await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); }
-                    } catch { alert("保存に失敗しました。"); }
-                  } else {
-                    try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }) }); setStrategyConfirmed(true); } catch { alert("保存に失敗しました。"); }
-                  }
-                }}
-                style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 28px", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}
-              >
-                戦略を確定して伴走へ →
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? "240px 1fr 400px" : "240px 1fr") : (phase !== "input" ? "1fr 400px" : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
@@ -1379,7 +1367,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル */}
         {phase !== "input" && (
-          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${headerHeight + 48}px)`, position: "sticky", top: headerHeight + 48, zIndex: 100 }}>
+          <div id="chat-column" style={chatExpanded ? { position: "fixed", top: 100, bottom: 0, right: 0, width: "80%", zIndex: 200, borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", boxShadow: "-4px 0 20px rgba(0,0,0,0.15)" } : { borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: `calc(100vh - ${headerHeight}px)`, position: "sticky", top: headerHeight, zIndex: 100 }}>
             {/* チャットヘッダー */}
             <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: "0.05em" }}>
