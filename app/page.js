@@ -1057,7 +1057,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
-{/* ChatWidget removed - now using integrated AnalysisChatPanel */}
+{/* ローディングオーバーレイ */}
+      {(loading || improveLoading) && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", maxWidth: 400 }}>
+            <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 2s linear infinite" }}>
+              {loading ? "🔍" : "🔧"}
+            </div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#1a1a14", marginBottom: 8 }}>
+              {loading ? "AB3C分析中..." : "ウェブサイト改善レポート生成中..."}
+            </div>
+            <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.6 }}>
+              {loading ? "AIがウェブサイトを分析しています。\n1〜2分ほどお待ちください。" : "分析結果をもとに改善提案を作成しています。\nもう少しお待ちください。"}
+            </div>
+          </div>
+          <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
