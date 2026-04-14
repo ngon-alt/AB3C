@@ -56,8 +56,11 @@ async function getSiteLimit(sql, email) {
     WHERE user_email = ${email} AND status = 'active'
   `;
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
-  if (proRows.length > 0) return 999; // PRO会員は実質無制限
-  return plans[0]?.max_sites || 1; // プランなし = 1サイト（無料）
+  // user_plansにプランがあればそちらを優先
+  if (plans[0]?.max_sites) return plans[0].max_sites;
+  // PRO会員（プランなし）は無制限
+  if (proRows.length > 0) return 999;
+  return 1; // プランなし = 1サイト（無料）
 }
 
 // GET: ユーザーのサイト一覧取得

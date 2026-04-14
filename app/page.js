@@ -811,7 +811,6 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
       // DBからサイトの分析結果を復元
       fetch("/api/sites").then(function(r) { return r.json(); }).then(function(data) {
         var sites = data.sites || [];
-        // site_idで検索、なければURLで検索
         var site = sid ? sites.find(function(s) { return s.id === sid; }) : null;
         if (!site && urlParam) {
           site = sites.find(function(s) { return s.site_url === urlParam; });
@@ -821,11 +820,39 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
           if (site.latest_analysis) {
             setResult(site.latest_analysis);
             setCurrentResult(site.latest_analysis);
+            return; // DB復元成功
           }
           if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
           if (site.strategy_confirmed) setStrategyConfirmed(true);
         }
-      }).catch(function() {});
+        // DBに分析結果がない場合、localStorageから復元
+        var lsKey = urlParam ? "ab3c_analysis_" + urlParam : null;
+        if (lsKey) {
+          try {
+            var lsData = localStorage.getItem(lsKey);
+            if (lsData) {
+              var parsed = JSON.parse(lsData);
+              if (parsed.result) {
+                setResult(parsed.result);
+                setCurrentResult(parsed.result);
+                if (parsed.improve) setImproveResult(parsed.improve);
+              }
+            }
+          } catch (e) {}
+        }
+      }).catch(function() {
+        // API失敗時もlocalStorageから復元
+        if (urlParam) {
+          try {
+            var lsData2 = localStorage.getItem("ab3c_analysis_" + urlParam);
+            if (lsData2) {
+              var parsed2 = JSON.parse(lsData2);
+              if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); }
+              if (parsed2.improve) setImproveResult(parsed2.improve);
+            }
+          } catch (e) {}
+        }
+      });
     }
     // URLパラメータからphaseを読み取り
     const phaseParam = params.get("phase");
@@ -978,12 +1005,14 @@ if (tab === "url" && savedText.startsWith("http")) {
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
 
-// 分析結果をDBにも保存（サイト管理から戻った時に復元できるように）
+// 分析結果をlocalStorageにもバックアップ（確実な復元用）
+try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, improve: improveData, timestamp: Date.now() })); } catch (e) {}
+
+// 分析結果をDBにも保存
 if (tab === "url" && savedText.startsWith("http")) {
   try {
     var currentSid = analyzeSiteId;
     if (!currentSid) {
-      // 既存サイトがあれば更新、なければ新規作成
       var siteName2 = "無題のサイト";
       try { siteName2 = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
       var createRes2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: siteName2, site_url: savedText }) });
