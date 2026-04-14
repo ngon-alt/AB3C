@@ -1276,7 +1276,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
+          <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
   {/* タブ */}
