@@ -648,6 +648,7 @@ const [trialChats, setTrialChats] = useState(0);
   const [improveResult, setImproveResult] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
+const [overlayMessage, setOverlayMessage] = useState(null);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
@@ -972,6 +973,7 @@ useEffect(() => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
+    setOverlayMessage("AB3C分析中...");
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
       var analyzeSiteId = siteId;
@@ -995,9 +997,11 @@ setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
-// URL分析の場合は改善レポート完了までloading維持
-if (!(tab === "url" && savedText.startsWith("http"))) {
-  setLoading(false);
+setLoading(false);
+if (tab === "url" && savedText.startsWith("http")) {
+  setOverlayMessage("ウェブサイト改善レポート生成中...");
+} else {
+  setOverlayMessage(null);
 }
 
 // 分析結果をDBにも保存（非同期・ブロックしない）
@@ -1039,13 +1043,13 @@ if (tab === "url" && savedText.startsWith("http")) {
     console.error("改善レポート自動生成エラー:", e);
   } finally {
     setImproveLoading(false);
-    setLoading(false);
+    setOverlayMessage(null);
   }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
-    } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
+    } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
 const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]); };
@@ -1062,16 +1066,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
 {/* ローディングオーバーレイ */}
-      {(loading || improveLoading) && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {overlayMessage && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: "40px 48px", textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.3)", maxWidth: 400 }}>
-            <div style={{ width: 48, height: 48, border: "4px solid #e5e5e0", borderTop: `4px solid ${improveLoading ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
+            <div style={{ width: 48, height: 48, border: "4px solid #e5e5e0", borderTop: `4px solid ${overlayMessage.includes("改善") ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", margin: "0 auto 16px", animation: "spin 1s linear infinite" }} />
             <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#1a1a14", marginBottom: 8 }}>
-              {improveLoading ? "ウェブサイト改善レポート生成中..." : "AB3C分析中..."}
+              {overlayMessage}
             </div>
             <div style={{ fontSize: 14, color: "#78716c", lineHeight: 1.8 }}>
-              {improveLoading ? "分析結果をもとに改善提案を作成しています。" : "AIがウェブサイトを分析しています。"}
-              <br />しばらくお待ちください。
+              しばらくお待ちください。
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
