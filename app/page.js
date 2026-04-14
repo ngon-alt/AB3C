@@ -45,12 +45,27 @@ const Card = ({ color, title, children, onChat }) => (
   </div>
 );
 
+// テキスト内のURLをリンク化するヘルパー
+const linkify = (text) => {
+  if (!text) return text;
+  // 「テキスト｜URL」パターン
+  if (text.includes("｜http")) {
+    const [label, url] = text.split("｜");
+    return <>{label} <a href={url.trim()} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", fontSize: 13 }}>🔗</a></>;
+  }
+  // テキスト内のURL
+  const urlRegex = /(https?:\/\/[^\s）」]+)/g;
+  const parts = text.split(urlRegex);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => urlRegex.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part);
+};
+
 const UL = ({ items, onChatItem }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => (
      <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
        {...(onChatItem ? hoverShow : {})}>
-        <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{item}</span>
+        <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{linkify(item)}</span>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
     ))}
@@ -135,7 +150,7 @@ function ResultView({ d, onChat }) {
               {d.three_c.customer.market.basis && (
                 <div style={{ marginTop: 12, padding: "12px 14px", background: "#f5f5f5", borderRadius: 4, borderLeft: `3px solid ${C.C}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>算出根拠</div>
-                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.basis}</div>
+                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{linkify(d.three_c.customer.market.basis)}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`市場規模の算出根拠について詳しく教えてください`)} abs />}
                 </div>
               )}

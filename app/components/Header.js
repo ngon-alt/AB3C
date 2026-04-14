@@ -110,7 +110,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
         <button onClick={() => { if (onSwitchToAnalysis) onSwitchToAnalysis(); else window.location.href = "/"; }}
           style={{
             padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: (phase === "analysis" || phase === "input") ? C.phase1 : "#ccc",
+            background: (phase === "analysis" || phase === "input") ? C.phase1 : C.phase1 + "88",
             color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
           }}>
           <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
