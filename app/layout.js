@@ -19,9 +19,23 @@ const ebGaramond = EB_Garamond({
   variable: "--font-eb-garamond"
 });
 
-export const metadata = { 
-  title: "戦略大臣", 
-  description: "「選ばれる理由」を見つけるフレームワーク AB3C分析" 
+export const metadata = {
+  title: "戦略大臣 — 選ばれる理由を言語化する戦略策定AI",
+  description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI。ウェブサイトのURLを入力するだけで、Benefit・Advantage・3C分析をAIが自動生成。中小企業の戦略コンサルティングをAIで民主化。",
+  keywords: "AB3C分析, 戦略策定, AI, 選ばれる理由, 差別化, コンサルティング, 中小企業, ウェブ戦略",
+  openGraph: {
+    title: "戦略大臣 — 選ばれる理由を言語化する戦略策定AI",
+    description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI",
+    url: "https://senryaku.ai",
+    siteName: "戦略大臣",
+    type: "website",
+    locale: "ja_JP",
+  },
+  twitter: {
+    card: "summary",
+    title: "戦略大臣 — 選ばれる理由を言語化する戦略策定AI",
+    description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI",
+  },
 };
 
 export default function RootLayout({ children }) {
