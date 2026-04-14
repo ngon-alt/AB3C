@@ -893,7 +893,7 @@ useEffect(() => {
     }
     if (!targetSiteId) {
       try {
-        const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト", site_url: siteUrl }) });
+        const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: siteUrl ? new URL(siteUrl).hostname.replace(/^www\./, "") : "無題のサイト", site_url: siteUrl }) });
         const createData = await createRes.json();
         if (createData.error && createData.existingSite) {
           targetSiteId = createData.existingSite.id;
@@ -906,7 +906,7 @@ useEffect(() => {
     }
     if (targetSiteId) {
       try {
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト" }) });
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: siteUrl ? new URL(siteUrl).hostname.replace(/^www\./, "") : "無題のサイト" }) });
         setStrategyConfirmed(true);
       } catch { alert("保存に失敗しました。"); }
     }
