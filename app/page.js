@@ -923,12 +923,14 @@ useEffect(() => {
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
+      var analyzeSiteId = siteId;
       if (tab === "url" && url.trim()) {
         try {
           const sitesRes = await fetch("/api/sites");
           const sitesData = await sitesRes.json();
           const existingSite = (sitesData.sites || []).find(s => s.site_url === url.trim());
           if (existingSite) {
+            analyzeSiteId = existingSite.id;
             setSiteId(existingSite.id);
           }
         } catch (e) {}
@@ -971,7 +973,7 @@ notify(savedText);
 // 分析結果をDBにも保存（サイト管理から戻った時に復元できるように）
 if (tab === "url" && savedText.startsWith("http")) {
   try {
-    var currentSid = siteId;
+    var currentSid = analyzeSiteId;
     if (!currentSid) {
       // 既存サイトがあれば更新、なければ新規作成
       var siteName2 = "無題のサイト";
