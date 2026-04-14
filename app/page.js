@@ -832,6 +832,9 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
           if (site.latest_analysis) {
             setResult(site.latest_analysis);
             setCurrentResult(site.latest_analysis);
+            setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
+            if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+            if (site.strategy_confirmed) setStrategyConfirmed(true);
             return; // DB復元成功
           }
           if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
@@ -847,6 +850,7 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
               if (parsed.result) {
                 setResult(parsed.result);
                 setCurrentResult(parsed.result);
+                setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
               }
             }
@@ -859,7 +863,7 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
             var lsData2 = localStorage.getItem("ab3c_analysis_" + urlParam);
             if (lsData2) {
               var parsed2 = JSON.parse(lsData2);
-              if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); }
+              if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
             }
           } catch (e) {}
@@ -993,23 +997,25 @@ setCurrentResult(data);
 setCurrentInput(savedText);
 setLoading(false); // AB3C分析完了 → ローディング解除
 
-// 分析結果をDBにも即座に保存（localStorageはuseEffectで自動保存）
+// 分析結果をDBにも保存（非同期・ブロックしない）
 if (tab === "url" && savedText.startsWith("http")) {
-  var saveSid = analyzeSiteId;
-  if (!saveSid) {
+  (async function() {
     try {
-      var sn = "無題のサイト";
-      try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
-      var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
-      var cd = await cr.json();
-      if (cd.existingSite) { saveSid = cd.existingSite.id; }
-      else if (cd.site) { saveSid = cd.site.id; }
+      var saveSid = analyzeSiteId;
+      if (!saveSid) {
+        var sn = "無題のサイト";
+        try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
+        var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
+        var cd = await cr.json();
+        if (cd.existingSite) { saveSid = cd.existingSite.id; }
+        else if (cd.site) { saveSid = cd.site.id; }
+      }
+      if (saveSid) {
+        setSiteId(saveSid);
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
+      }
     } catch (e) {}
-  }
-  if (saveSid) {
-    setSiteId(saveSid);
-    try { await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) }); } catch (e) {}
-  }
+  })();
 }
 
 // URL分析の場合、ウェブサイト改善レポートも同時に生成
