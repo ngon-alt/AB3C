@@ -70,10 +70,11 @@ export default function Header({ onShowPricing }) {
       <nav style={{ padding: "0 24px", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 0, overflowX: "auto", background: "#fafafa" }}>
         {[
           { label: "分析", href: "/" },
+          { label: "伴走", href: "/?phase=action" },
           { label: "サイト管理", href: "/dashboard" },
           { label: "初めての方へ", href: "/howto" },
           { label: "AB3C分析とは", href: "/about" },
-          { label: "料金とプラン", href: null, onClick: onShowPricing },
+          { label: "料金とプラン", href: null, onClick: onShowPricing || (() => { window.location.href = "/?pricing=1"; }) },
         ].map((item) => (
           item.onClick ? (
             <button key={item.label} onClick={item.onClick}

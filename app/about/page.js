@@ -1,4 +1,6 @@
 "use client";
+import Header from "../components/Header";
+
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
@@ -7,24 +9,16 @@ const C = {
 
 export default function AboutPage() {
   return (
-    <main style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
+    <div style={{ background: C.bg, minHeight: "100vh" }}>
+      <Header />
+    <main style={{ fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
 
-        {/* ヘッダー */}
-        <div style={{ borderBottom: `2px solid ${C.ink}`, paddingBottom: 20, marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
-          <div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 32, fontWeight: 700, lineHeight: 1 }}>
-              <span style={{ color: "#1a6fd4" }}>A</span>
-              <span style={{ color: "#FF0000" }}>B</span>
-              <span style={{ color: "#1a1a14" }}>3C</span>
-            </div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginTop: 5 }}>
-              AB3C分析とは
-            </div>
+        {/* ページタイトル */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>
+            AB3C分析とは
           </div>
-          <a href="https://senryaku.ai" style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: C.muted, textDecoration: "none", border: `1px solid ${C.border}`, padding: "8px 16px", borderRadius: 2 }}>
-            ← 分析ツールへ
-          </a>
         </div>
 
         {/* 導入 */}
@@ -274,5 +268,6 @@ export default function AboutPage() {
         </footer>
       </div>
     </main>
+    </div>
   );
 }
