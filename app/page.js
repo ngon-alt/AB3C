@@ -1022,6 +1022,10 @@ if (tab === "url" && savedText.startsWith("http")) {
   } finally {
     setImproveLoading(false);
   }
+  // 改善レポート付きでlocalStorageを再保存
+  if (improveData && !improveData.error) {
+    try { localStorage.setItem("ab3c_analysis_" + savedText, JSON.stringify({ result: data, improve: improveData, timestamp: Date.now() })); } catch (e) {}
+  }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
