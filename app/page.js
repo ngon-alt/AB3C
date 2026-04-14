@@ -1239,16 +1239,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
         )}
         {/* 確定履歴パネル（左からスライド） */}
-        {phase !== "action" && (
+        {currentResult && (
           <>
             {/* 履歴タブ（常に表示） */}
             <div onClick={function() { setHistoryOpen(!historyOpen); }}
-              style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: "50%", transform: "translateY(-50%)", zIndex: 200, background: C.phase1, color: "#fff", padding: "12px 6px", borderRadius: "0 6px 6px 0", cursor: "pointer", writingMode: "vertical-rl", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", boxShadow: "2px 2px 8px rgba(0,0,0,0.15)" }}>
-              {historyOpen ? "◀ 閉じる" : "履歴 ▶"}
+              style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: 200, zIndex: 200, background: C.phase1, color: "#fff", padding: "16px 8px", borderRadius: "0 8px 8px 0", cursor: "pointer", writingMode: "vertical-rl", fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", boxShadow: "2px 2px 8px rgba(0,0,0,0.2)" }}>
+              {historyOpen ? "◀ 閉" : "履歴 ▶"}
             </div>
             {/* 履歴パネル本体 */}
             {historyOpen && (
-              <div style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: headerHeight, bottom: 0, width: 280, background: "#fff", borderRight: `2px solid ${C.phase1}`, zIndex: 199, overflowY: "auto", boxShadow: "4px 0 16px rgba(0,0,0,0.1)" }}>
+              <div style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: headerHeight || 120, bottom: 0, width: 300, background: "#fff", borderRight: `2px solid ${C.phase1}`, zIndex: 199, overflowY: "auto", boxShadow: "4px 0 16px rgba(0,0,0,0.1)" }}>
                 <div style={{ padding: "14px 16px", borderBottom: `2px solid ${C.phase1}`, background: C.phase1 }}>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>確定履歴</span>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginLeft: 8 }}>({confirmHistory.length}件)</span>
