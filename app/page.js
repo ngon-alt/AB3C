@@ -800,6 +800,11 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
       setSiteId(sid);
       if (urlParam) { setUrl(urlParam); setTab("url"); }
     }
+    // URLパラメータからphaseを読み取り
+    const phaseParam = params.get("phase");
+    if (phaseParam === "action" && strategyConfirmed) {
+      setViewOverride(null); // 伴走フェーズに切り替え
+    }
   }, []);
 
   useEffect(() => {
@@ -909,96 +914,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
       <Header onShowPricing={() => setShowPricing(true)} />
 
-      {/* 2ステップ フェーズナビ（グリッドの上に配置・常時表示） */}
+      {/* フェーズカラーライン */}
       {(
-        <div ref={stickyNavRef} style={{ display: "flex", flexDirection: "column", position: "sticky", top: headerHeight, zIndex: 200, marginBottom: -2, boxShadow: `0 2px 0 ${phase === "action" ? C.phase2 : C.phase1}` }}>
-          <div style={{ display: "flex", alignItems: "stretch", padding: "0 24px", background: C.surface }}>
-          {/* STEP 1: 分析 */}
-          <button
-            onClick={() => { if (derivedPhase === "action" && phase === "action") { setViewOverride("analysis"); } }}
-            style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
-              background: (phase === "analysis" || phase === "input") ? C.phase1 : "#ccc",
-              border: "none", borderRadius: "6px 6px 0 0",
-              cursor: (derivedPhase === "action" && phase === "action") ? "pointer" : "default",
-              color: "#fff",
-              fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-            }}
-          >
-            <span style={{ background: "rgba(255,255,255,0.25)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
-            分析
-          </button>
-          {/* 矢印 */}
-          <div style={{ display: "flex", alignItems: "center", padding: "0 10px", color: "#999", fontSize: 14 }}>→</div>
-          {/* STEP 2: 伴走 */}
-          <span style={{ position: "relative", display: "inline-flex" }}
-            onMouseEnter={e => { if (!isPro && chatTickets <= 0) { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "block"; } }}
-            onMouseLeave={e => { const tip = e.currentTarget.querySelector(".bansou-tip"); if (tip) tip.style.display = "none"; }}>
-          <button
-            onClick={async () => {
-              // PRO会員または有料チケット保持者のみ伴走可能
-              if (!isPro && chatTickets <= 0) return;
-              // 既に戦略確定済みなら、viewOverrideをクリアして伴走に戻るだけ
-              if (strategyConfirmed) {
-                setViewOverride(null);
-                return;
-              }
-              if (phase === "analysis") {
-                const confirmStrategy = async () => {
-                  if (!siteId) {
-                    try {
-                      const createRes = await fetch("/api/sites", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          site_name: currentResult?.strategy_message?.message?.slice(0, 50) || "無題のサイト",
-                          site_url: currentInput?.startsWith("http") ? currentInput : null,
-                        }),
-                      });
-                      const createData = await createRes.json();
-                      if (createData.site) {
-                        setSiteId(createData.site.id);
-                        await fetch("/api/sites", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id: createData.site.id, latest_analysis: currentResult, strategy_confirmed: true }),
-                        });
-                        setStrategyConfirmed(true);
-                      }
-                    } catch { alert("保存に失敗しました。"); }
-                  } else {
-                    try {
-                      await fetch("/api/sites", {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id: siteId, latest_analysis: currentResult, strategy_confirmed: true }),
-                      });
-                      setStrategyConfirmed(true);
-                    } catch { alert("保存に失敗しました。"); }
-                  }
-                };
-                await confirmStrategy();
-              }
-            }}
-            style={{
-              display: "flex", alignItems: "center", gap: 8, padding: "10px 18px",
-              background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "99" : "#ccc",
-              border: "none", borderRadius: "6px 6px 0 0",
-              cursor: (phase === "analysis" && (strategyConfirmed || currentResult)) ? "pointer" : "default",
-              color: "#fff",
-              fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.05em",
-            }}
-          >
-            <span style={{ background: "rgba(255,255,255,0.25)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
-            伴走
-          </button>
-          <div className="bansou-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 8, background: C.ink, color: "#fff", fontSize: 13, padding: "10px 14px", borderRadius: 6, whiteSpace: "nowrap", zIndex: 100, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>
-            伴走プランでは戦略大臣が<br />日々のアクションに伴走、アドバイスしてくれます
-          </div>
-          </span>
-          {/* 分析フェーズ：戦略確定ボタン（PRO or 有料チケット保持者のみ） */}
-          {phase === "analysis" && (isPro || chatTickets > 0) && (
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+        <div ref={stickyNavRef} style={{ position: "sticky", top: headerHeight, zIndex: 200 }}>
+          <div style={{ height: 6, background: phase === "action" ? C.phase2 : C.phase1 }} />
+          {/* 分析フェーズ：戦略確定ボタン */}
+          {phase === "analysis" && currentResult && (isPro || chatTickets > 0) && (
+            <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 24px", background: C.surface, borderBottom: `1px solid ${C.border}` }}>
               <button
                 onClick={async () => {
                   if (!siteId) {
@@ -1017,9 +939,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               </button>
             </div>
           )}
-          </div>
-          {/* フェーズカラーライン */}
-          <div style={{ height: 8, background: phase === "action" ? C.phase2 : C.phase1 }} />
         </div>
       )}
 

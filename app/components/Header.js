@@ -74,19 +74,12 @@ export default function Header({ onShowPricing }) {
           { label: "サイト管理", href: "/dashboard" },
           { label: "初めての方へ", href: "/howto" },
           { label: "AB3C分析とは", href: "/about" },
-          { label: "料金とプラン", href: null, onClick: onShowPricing || (() => { window.location.href = "/?pricing=1"; }) },
+          { label: "料金とプラン", href: "/pricing" },
         ].map((item) => (
-          item.onClick ? (
-            <button key={item.label} onClick={item.onClick}
-              style={{ background: "none", border: "none", padding: "10px 16px", cursor: "pointer", fontSize: 14, color: C.ink, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 600 }}>
-              {item.label}
-            </button>
-          ) : (
-            <a key={item.label} href={item.href}
-              style={{ padding: "10px 16px", fontSize: 14, color: C.ink, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600 }}>
-              {item.label}
-            </a>
-          )
+          <a key={item.label} href={item.href}
+            style={{ padding: "10px 16px", fontSize: 14, color: C.ink, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600 }}>
+            {item.label}
+          </a>
         ))}
       </nav>
     </div>
