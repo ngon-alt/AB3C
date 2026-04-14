@@ -424,8 +424,8 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       {messages.length >= 3 && (
         <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
           <button onClick={reanalyze} disabled={loading}
-            style={{ width: "100%", background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, padding: "8px" }}>
-            {loading ? "↻ 再分析中..." : "↻ この会話内容で再分析する"}
+            style={{ width: "100%", background: loading ? C.muted : "#e74c3c", border: "none", borderRadius: 6, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, padding: "12px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
+            {loading ? "↻ 再分析中..." : "↻ この会話内容を分析に反映する"}
           </button>
         </div>
       )}
@@ -1550,6 +1550,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={(newResult, summary) => {
                       setResult(newResult);
+                      setCurrentResult(newResult);
+                      setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
