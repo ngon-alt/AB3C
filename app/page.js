@@ -106,8 +106,14 @@ function diffResults(oldR, newR, prefix) {
   return changed;
 }
 
-// ハイライトスタイル
-var HL = { background: "#fff3cd", borderLeft: "3px solid #ffc107", paddingLeft: 8, transition: "background 2s" };
+// ハイライトスタイル（反映回数で色が変わる）
+var HL_COLORS = [
+  { background: "#fff3cd", borderLeft: "3px solid #ffc107", paddingLeft: 8 }, // 1回目: 黄色
+  { background: "#d4edda", borderLeft: "3px solid #28a745", paddingLeft: 8 }, // 2回目: 緑
+  { background: "#cce5ff", borderLeft: "3px solid #007bff", paddingLeft: 8 }, // 3回目: 青
+  { background: "#f8d7da", borderLeft: "3px solid #dc3545", paddingLeft: 8 }, // 4回目: 赤
+  { background: "#e2d9f3", borderLeft: "3px solid #6f42c1", paddingLeft: 8 }, // 5回目+: 紫
+];
 
 const SubLabel = ({ color, text, onChat }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>{text}{onChat && <ChatBtn onClick={onChat} />}</div>
@@ -118,8 +124,8 @@ function ResultView({ d, onChat, changedPaths }) {
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
   const qs = (section) => onChat && (() => onChat(`${section}について詳しく教えてください`));
-  var cp = changedPaths || new Set();
-  var hl = function(path) { try { return cp.has && cp.has(path) ? HL : {}; } catch (e) { return {}; } };
+  var cp = changedPaths || new Map();
+  var hl = function(path) { try { if (cp.has && cp.has(path)) { var n = cp.get(path); return HL_COLORS[Math.min(n - 1, HL_COLORS.length - 1)]; } return {}; } catch (e) { return {}; } };
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -199,7 +205,7 @@ function ResultView({ d, onChat, changedPaths }) {
         </div>
       </div>
       <Divider />
-      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px #ffc107" } : {}) }} {...(onChat ? hoverShow : {})}>
+      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(cp.has && cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + (["#ffc107","#28a745","#007bff","#dc3545","#6f42c1"][Math.min((cp.get("strategy_message.message")||1)-1, 4)]) } : {}) }} {...(onChat ? hoverShow : {})}>
         {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
         <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.85, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 16 }}>
@@ -675,7 +681,7 @@ const [trialChats, setTrialChats] = useState(0);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
-const [changedPaths, setChangedPaths] = useState(new Set());
+const [changedPaths, setChangedPaths] = useState(new Map());
 const [chatWidth, setChatWidth] = useState(500);
 const chatResizing = useRef(false);
 const [improveLoading, setImproveLoading] = useState(false);
@@ -1595,7 +1601,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     onReanalyze={function(newResult, summary) {
                       try {
                         var diff = diffResults(currentResult || {}, newResult);
-                        setChangedPaths(diff);
+                        setChangedPaths(function(prev) {
+                          var next = new Map(prev);
+                          diff.forEach(function(path) { next.set(path, (next.get(path) || 0) + 1); });
+                          return next;
+                        });
                       } catch (e) { console.error("diff error:", e); }
                       setResult(newResult);
                       setCurrentResult(newResult);
@@ -1603,7 +1613,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-                      setTimeout(function() { setChangedPaths(new Set()); }, 10000);
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
