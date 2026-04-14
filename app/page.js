@@ -1221,9 +1221,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 10, padding: "6px 10px" }}>↻ リセット</button>
                 </div>
               </>
-            ) : (
-              </>
-            )}
+            ) : null}
 
             <div style={{ flex: 1, overflowY: "auto" }}>
             </div>
