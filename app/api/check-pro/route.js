@@ -42,7 +42,7 @@ export async function GET() {
         const typeLabel = p.plan_type === "support" ? "伴走" : "分析";
         planLabel = `${typeLabel}${p.site_limit}`;
       }
-    } catch {}
+    } catch (e) {}
 
     return Response.json({ isPro, chatTickets, trialChats, planLabel });
   } catch (e) {

@@ -213,9 +213,9 @@ export default function DashboardPage() {
         localStorage.removeItem(threadsKey);
         localStorage.removeItem(`ab3c_theme_chats_${id}`);
         localStorage.removeItem(`ab3c_actions_${id}`);
-      } catch {}
+      } catch (e) {}
       setSites(sites.filter(s => s.id !== id));
-    } catch { alert("削除に失敗しました。"); }
+    } catch (e) { alert("削除に失敗しました。"); }
   };
 
   const handleRename = async (id, newName) => {
@@ -226,7 +226,7 @@ export default function DashboardPage() {
         body: JSON.stringify({ id, site_name: newName }),
       });
       setSites(sites.map(s => s.id === id ? { ...s, site_name: newName } : s));
-    } catch { alert("名前の変更に失敗しました。"); }
+    } catch (e) { alert("名前の変更に失敗しました。"); }
   };
 
   const handleSelect = (site) => {

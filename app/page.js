@@ -308,7 +308,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
 function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy }) {
   const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState(() => {
-    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(chatKey); return saved ? JSON.parse(saved) : []; } catch (e) { return []; }
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -325,7 +325,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch {}
+    try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch (e) {}
   }, [messages]);
 
   // トピックチップからの送信
@@ -355,7 +355,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]);
-    } catch {
+    } catch (e) {
       setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
     } finally { setLoading(false); }
   };
@@ -386,7 +386,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       } else {
         setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。" }]);
       }
-    } catch {
+    } catch (e) {
       setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
     } finally { setLoading(false); }
   };
@@ -466,7 +466,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   // メッセージ保存（初期化完了後のみ、準備中は保存しない）
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
-      try { localStorage.setItem(`ab3c_thread_${threadId}`, JSON.stringify(messages)); } catch {}
+      try { localStorage.setItem(`ab3c_thread_${threadId}`, JSON.stringify(messages)); } catch (e) {}
     }
   }, [messages, threadId]);
 
@@ -511,7 +511,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
           }
         }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
       }
-    } catch {
+    } catch (e) {
       setMessages([{ role: "assistant", content: "このテーマについて相談できます。" }]);
       initialized.current = true;
     }
@@ -538,7 +538,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]);
-    } catch {
+    } catch (e) {
       setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
     } finally { setLoading(false); }
   };
@@ -665,7 +665,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   try {
     const saved = localStorage.getItem("ab3c_chat_summaries");
     return saved ? JSON.parse(saved) : [];
-  } catch { return []; }
+  } catch (e) { return []; }
 });
   
   // フェーズ導出（viewOverrideで表示タブを切り替え、strategyConfirmedは変更しない）
@@ -721,7 +721,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
         } else {
           setThreads(DEFAULT_THREADS);
         }
-      } catch {
+      } catch (e) {
         setThreads(DEFAULT_THREADS);
       }
     }
@@ -733,12 +733,12 @@ const [chatSummaries, setChatSummaries] = useState(() => {
       try {
         const saved = localStorage.getItem(`ab3c_theme_chats_${siteId || "default"}`);
         if (saved) setThemeChats(JSON.parse(saved));
-      } catch {}
+      } catch (e) {}
     }
   }, [strategyConfirmed]);
   useEffect(() => {
     if (Object.keys(themeChats).length > 0) {
-      try { localStorage.setItem(`ab3c_theme_chats_${siteId || "default"}`, JSON.stringify(themeChats)); } catch {}
+      try { localStorage.setItem(`ab3c_theme_chats_${siteId || "default"}`, JSON.stringify(themeChats)); } catch (e) {}
     }
   }, [themeChats]);
 
@@ -769,7 +769,7 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   useEffect(() => {
     if (threads.length > 0) {
       const storageKey = `ab3c_threads_${siteId || "default"}`;
-      try { localStorage.setItem(storageKey, JSON.stringify(threads)); } catch {}
+      try { localStorage.setItem(storageKey, JSON.stringify(threads)); } catch (e) {}
     }
   }, [threads]);
 
@@ -777,12 +777,12 @@ const [chatSummaries, setChatSummaries] = useState(() => {
   useEffect(() => {
     if (strategyConfirmed) {
       const key = `ab3c_actions_${siteId || "default"}`;
-      try { const saved = localStorage.getItem(key); if (saved && actions.length === 0) setActions(JSON.parse(saved)); } catch {}
+      try { const saved = localStorage.getItem(key); if (saved && actions.length === 0) setActions(JSON.parse(saved)); } catch (e) {}
     }
   }, [strategyConfirmed]);
   useEffect(() => {
     if (actions.length > 0) {
-      try { localStorage.setItem(`ab3c_actions_${siteId || "default"}`, JSON.stringify(actions)); } catch {}
+      try { localStorage.setItem(`ab3c_actions_${siteId || "default"}`, JSON.stringify(actions)); } catch (e) {}
     }
   }, [actions]);
 
@@ -857,7 +857,7 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
 useEffect(() => {
   try {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
-  } catch {}
+  } catch (e) {}
 }, [chatSummaries]);
   const saveHistory = (inputText, resultData, title, improve = null) => {
   const entry = { 
@@ -876,6 +876,8 @@ useEffect(() => {
   // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
   const confirmStrategy = async () => {
     const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
+    let siteName = "無題のサイト";
+    try { if (siteUrl) siteName = new URL(siteUrl).hostname.replace(/^www\./, ""); } catch (e) {}
     let targetSiteId = siteId;
     if (!targetSiteId && siteUrl) {
       try {
@@ -889,11 +891,11 @@ useEffect(() => {
           targetSiteId = existing.id;
           setSiteId(existing.id);
         }
-      } catch {}
+      } catch (e) {}
     }
     if (!targetSiteId) {
       try {
-        const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: (() => { try { return siteUrl ? new URL(siteUrl).hostname.replace(/^www\./, "") : "無題のサイト"; } catch { return "無題のサイト"; } })(), site_url: siteUrl }) });
+        const createRes = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: siteName, site_url: siteUrl }) });
         const createData = await createRes.json();
         if (createData.error && createData.existingSite) {
           targetSiteId = createData.existingSite.id;
@@ -902,13 +904,13 @@ useEffect(() => {
           targetSiteId = createData.site.id;
           setSiteId(targetSiteId);
         }
-      } catch { alert("保存に失敗しました。"); return; }
+      } catch (e) { alert("保存に失敗しました。"); return; }
     }
     if (targetSiteId) {
       try {
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: (() => { try { return siteUrl ? new URL(siteUrl).hostname.replace(/^www\./, "") : "無題のサイト"; } catch { return "無題のサイト"; } })() }) });
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: siteName }) });
         setStrategyConfirmed(true);
-      } catch { alert("保存に失敗しました。"); }
+      } catch (e) { alert("保存に失敗しました。"); }
     }
   };
 
@@ -931,7 +933,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
           if (existingSite) {
             setSiteId(existingSite.id);
           }
-        } catch {}
+        } catch (e) {}
       }
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -967,7 +969,7 @@ if (tab === "url" && savedText.startsWith("http")) {
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
 notify(savedText);
-    } catch { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
+    } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); }
   };
 
 const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]); };
@@ -1365,7 +1367,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   setHistory(updatedHistory);
   localStorage.setItem("ab3c_history", JSON.stringify(updatedHistory));
 }
-          } catch {
+          } catch (e) {
             alert("エラーが発生しました。");
           } finally {
             setImproveLoading(false);
@@ -1406,7 +1408,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <ThreadChat key={activeChatId} threadId={activeChatId} themeId={activeThemeId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
-            try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
+            try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
           }} />
       ) : (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: C.muted, fontSize: 16, fontFamily: "system-ui, sans-serif" }}>

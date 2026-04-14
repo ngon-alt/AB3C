@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pdftotext -layout \"C:/Users/ngon/projects/AB3C/.claude/worktrees/musing-rosalind/docs/AB3C入門ブック.pdf\" -)",
+      "Bash(pdftotext \"C:/Users/ngon/projects/AB3C/.claude/worktrees/musing-rosalind/docs/AB3C入門ブック.pdf\" -)",
+      "Bash(python -c \"import PyPDF2; print\\('ok'\\)\")",
+      "Bash(python -c \"import pypdf; print\\('ok'\\)\")",
+      "Bash(python -c \"import pdfplumber; print\\('ok'\\)\")",
+      "Bash(pip install:*)",
+      "Bash(python -c ':*)"
+    ]
+  }
+}

@@ -65,6 +65,6 @@ export async function DELETE(req) {
   }
   const sql = neon(process.env.DATABASE_URL);
   await sql`DELETE FROM pro_users WHERE email = ${email}`;
-  try { await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`; } catch {}
+  try { await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`; } catch (e) {}
   return Response.json({ success: true });
 }

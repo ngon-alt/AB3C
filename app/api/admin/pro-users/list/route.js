@@ -20,7 +20,7 @@ export async function GET(req) {
       } else {
         user.plan_label = '無制限';
       }
-    } catch { user.plan_label = '無制限'; }
+    } catch (e) { user.plan_label = '無制限'; }
     return user;
   }));
   return Response.json({ users: usersWithPlan });

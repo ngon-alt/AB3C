@@ -73,7 +73,7 @@ useEffect(() => {
       });
       setMessage(`✓ ${targetEmail} のプランを変更しました`);
       fetchProUsers();
-    } catch { setMessage('エラー: プラン変更に失敗しました'); }
+    } catch (e) { setMessage('エラー: プラン変更に失敗しました'); }
   };
 
   const deleteUser = async (emailToDelete) => {
