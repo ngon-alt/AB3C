@@ -1172,11 +1172,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {/* フェーズ別サイドバーコンテンツ */}
             {phase === "action" ? (
               <>
-                {/* 確定戦略サマリー */}
-                <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>確定戦略</div>
-                  <div style={{ fontSize: 11, color: "#fff", lineHeight: 1.5 }}>{currentResult?.strategy_message?.message?.slice(0, 60) || "（未設定）"}</div>
-                </div>
                 {/* 施策ナビ */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
                   {threads.map(t => (
