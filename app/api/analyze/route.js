@@ -29,18 +29,20 @@ async function fetchWebsite(url) {
 export async function POST(req) {
   const session = await getServerSession(authOptions);
 
-  if (session) {
-    const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Cookie": req.headers.get("cookie") || "",
-      },
-    });
-    const usageData = await usageRes.json();
-    if (usageRes.status === 429) {
-      return NextResponse.json({ error: usageData.error }, { status: 429 });
-    }
+  if (!session) {
+    return NextResponse.json({ error: "分析にはGoogleログインが必要です。右上の「Googleでログイン」からログインしてください。" }, { status: 401 });
+  }
+
+  const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Cookie": req.headers.get("cookie") || "",
+    },
+  });
+  const usageData = await usageRes.json();
+  if (usageRes.status === 429) {
+    return NextResponse.json({ error: usageData.error }, { status: 429 });
   }
 
   const { input, url } = await req.json();
