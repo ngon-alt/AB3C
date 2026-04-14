@@ -20,11 +20,13 @@ export async function POST(req) {
     return Response.json({ error: '認証エラー' }, { status: 401 });
   }
   const sql = neon(process.env.DATABASE_URL);
-  await sql`
-    INSERT INTO pro_users (email, name)
-    VALUES (${email}, ${name})
-    ON CONFLICT (email) DO NOTHING
-  `;
+  if (name) {
+    await sql`
+      INSERT INTO pro_users (email, name)
+      VALUES (${email}, ${name})
+      ON CONFLICT (email) DO NOTHING
+    `;
+  }
 
   // プラン登録（unlimited以外）
   if (plan && plan !== 'unlimited' && PLAN_MAP[plan]) {

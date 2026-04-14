@@ -64,6 +64,18 @@ useEffect(() => {
     setLoading(false);
   };
 
+  const changePlan = async (targetEmail, newPlan) => {
+    try {
+      await fetch('/api/admin/pro-users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret, email: targetEmail, name: '', plan: newPlan }),
+      });
+      setMessage(`✓ ${targetEmail} のプランを変更しました`);
+      fetchProUsers();
+    } catch { setMessage('エラー: プラン変更に失敗しました'); }
+  };
+
   const deleteUser = async (emailToDelete) => {
     if (!confirm(`${emailToDelete} を削除しますか？`)) return;
     const res = await fetch('/api/admin/pro-users', {
@@ -84,7 +96,7 @@ useEffect(() => {
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-          <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.C }}>3C</span>
+          <span style={{ color: C.C }}>戦略大臣</span>
         </div>
         <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>管理者ページ</div>
         <button onClick={() => signIn('google')} style={{ background: C.A, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: '10px 24px' }}>
@@ -106,7 +118,7 @@ useEffect(() => {
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: "'Noto Serif JP', serif" }}>
       <div style={{ borderBottom: `2px solid ${C.ink}`, padding: '20px 32px', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700 }}>
-          <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.C }}>3C</span>
+          <span style={{ color: C.C }}>戦略大臣</span>
           <span style={{ fontSize: 12, color: C.muted, marginLeft: 12 }}>管理者ページ</span>
         </div>
         <a href="/" style={{ fontSize: 12, color: C.muted, textDecoration: 'none' }}>← トップに戻る</a>
@@ -185,12 +197,26 @@ useEffect(() => {
             <div style={{ fontSize: 13, color: C.muted, textAlign: 'center', padding: 20 }}>会員がいません</div>
           ) : (
             proUsers.map((user, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < proUsers.length - 1 ? `1px solid ${C.border}` : 'none' }}>
-                <div>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < proUsers.length - 1 ? `1px solid ${C.border}` : 'none', gap: 12 }}>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: C.muted }}>{user.email}</div>
-                  <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)} {user.plan_label && <span style={{ marginLeft: 8, background: C.A, color: '#fff', padding: '1px 6px', borderRadius: 3 }}>{user.plan_label}</span>}</div>
+                  <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)}</div>
                 </div>
+                <select defaultValue={user.plan_label === '無制限' ? 'unlimited' : `${user.plan_label?.includes('伴走') ? 'support' : 'analysis'}_${user.plan_label?.replace(/[^0-9]/g, '')}`}
+                  onChange={e => changePlan(user.email, e.target.value)}
+                  style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '4px 8px', fontSize: 11 }}>
+                  <option value="unlimited">無制限</option>
+                  <option value="analysis_1">分析1</option>
+                  <option value="analysis_10">分析10</option>
+                  <option value="analysis_100">分析100</option>
+                  <option value="support_1">伴走1</option>
+                  <option value="support_5">伴走5</option>
+                  <option value="support_15">伴走15</option>
+                  <option value="support_30">伴走30</option>
+                  <option value="support_60">伴走60</option>
+                  <option value="support_120">伴走120</option>
+                </select>
                 <button onClick={() => deleteUser(user.email)} style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.red, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 11, padding: '6px 12px' }}>
                   削除
                 </button>
