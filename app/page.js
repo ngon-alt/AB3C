@@ -85,31 +85,57 @@ const SectionLabel = ({ color, letter, jp, en, desc, onChat }) => (
 
 const Divider = () => <div style={{ borderTop: `1px solid ${C.border}`, margin: "32px 0" }} />;
 
+// 2つの分析結果を比較して変更されたパスを返す
+function diffResults(oldR, newR, prefix) {
+  if (!oldR || !newR) return new Set();
+  var changed = new Set();
+  var p = prefix || "";
+  Object.keys(newR).forEach(function(key) {
+    var path = p ? p + "." + key : key;
+    var oldVal = oldR[key];
+    var newVal = newR[key];
+    if (Array.isArray(newVal)) {
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) changed.add(path);
+    } else if (typeof newVal === "object" && newVal !== null) {
+      var sub = diffResults(oldVal || {}, newVal, path);
+      sub.forEach(function(s) { changed.add(s); });
+    } else if (oldVal !== newVal) {
+      changed.add(path);
+    }
+  });
+  return changed;
+}
+
+// ハイライトスタイル
+var HL = { background: "#fff3cd", borderLeft: "3px solid #ffc107", paddingLeft: 8, transition: "background 2s" };
+
 const SubLabel = ({ color, text, onChat }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>{text}{onChat && <ChatBtn onClick={onChat} />}</div>
 );
 
-function ResultView({ d, onChat }) {
+function ResultView({ d, onChat, changedPaths }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
   const qs = (section) => onChat && (() => onChat(`${section}について詳しく教えてください`));
+  var cp = changedPaths || new Set();
+  var hl = function(path) { return cp.has(path) ? HL : {}; };
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} />
         <div style={g2}>
-          <Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")}><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card>
-          <Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")}><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card>
+          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")}><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
+          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")}><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
         </div>
       </div>
       <Divider />
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} />
         <div style={g3}>
-          <Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)}><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.what}</div></Card>
-          <Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_good}</p></Card>
-          <Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.advantage.why_hard_to_copy}</p></Card>
+          <div style={hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)}><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card></div>
+          <div style={hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_good}</p></Card></div>
+          <div style={hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_hard_to_copy}</p></Card></div>
         </div>
       </div>
       <Divider />
@@ -117,14 +143,14 @@ function ResultView({ d, onChat }) {
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} />
         <div style={{ ...g2, marginBottom: 14 }}>
-          <Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.target}</div>
+          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
             <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} />
-          </Card>
-          <Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")}>
+          </Card></div>
+          <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")}>
             <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
-            <p style={{ fontSize: 16, lineHeight: 1.65, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
-          </Card>
+            <p style={{ fontSize: 16, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
+          </Card></div>
         </div>
         {d.three_c.customer.market && (
           <div style={{ marginBottom: 14 }}>
@@ -173,7 +199,7 @@ function ResultView({ d, onChat }) {
         </div>
       </div>
       <Divider />
-      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
+      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px #ffc107" } : {}) }} {...(onChat ? hoverShow : {})}>
         {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
         <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.85, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 16 }}>
@@ -649,6 +675,7 @@ const [trialChats, setTrialChats] = useState(0);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
+const [changedPaths, setChangedPaths] = useState(new Set());
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
@@ -1400,7 +1427,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
 <div id="result-area">
-  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} />
+  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
       ウェブサイト改善レポートを生成中です…
@@ -1549,12 +1576,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     analysisResult={currentResult}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={(newResult, summary) => {
+                      var diff = diffResults(currentResult || {}, newResult);
+                      setChangedPaths(diff);
                       setResult(newResult);
                       setCurrentResult(newResult);
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(prev => [...prev, summary]);
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+                      // 10秒後にハイライトをクリア
+                      setTimeout(function() { setChangedPaths(new Set()); }, 10000);
                     }}
                     onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
