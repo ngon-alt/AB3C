@@ -1219,33 +1219,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 10, padding: "6px 10px" }}>↻ リセット</button>
                 </div>
               </>
-            ) : null}
-
-          </div>
-        )}
-        {/* サイドバー閉じ時の開くボタン */}
-        {!sidebarOpen && (
-          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
-            {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
-          </button>
-        )}
-        {/* 確定履歴パネル（左からスライド） — サイドバー開いている時のみ */}
-        {currentResult && sidebarOpen && (
-          <>
-            {/* 履歴タブ（常に表示） */}
-            <div onClick={function() { setHistoryOpen(!historyOpen); }}
-              style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: 200, zIndex: 200, background: C.phase1, color: "#fff", padding: "16px 8px", borderRadius: "0 8px 8px 0", cursor: "pointer", writingMode: "vertical-rl", fontSize: 14, fontWeight: 700, letterSpacing: "0.15em", boxShadow: "2px 2px 8px rgba(0,0,0,0.2)" }}>
-              {historyOpen ? "◀ 閉" : "履歴 ▶"}
-            </div>
-            {/* 履歴パネル本体 */}
-            {historyOpen && (
-              <div style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: headerHeight || 120, bottom: 0, width: 300, background: "#fff", borderRight: `2px solid ${C.phase1}`, zIndex: 199, overflowY: "auto", boxShadow: "4px 0 16px rgba(0,0,0,0.1)" }}>
-                <div style={{ padding: "14px 16px", borderBottom: `2px solid ${C.phase1}`, background: C.phase1 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>確定履歴</span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginLeft: 8 }}>({confirmHistory.length}件)</span>
-                </div>
+            ) : (
+              <div style={{ flex: 1, overflowY: "auto" }}>
                 {confirmHistory.length === 0 ? (
-                  <div style={{ padding: 20, fontSize: 14, color: C.muted, textAlign: "center", lineHeight: 1.6 }}>
+                  <div style={{ padding: 16, fontSize: 14, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.6 }}>
                     戦略を確定すると<br/>ここに履歴が残ります
                   </div>
                 ) : (
@@ -1259,13 +1236,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
                         setChangedPaths(new Map());
-                        setHistoryOpen(false);
                       }}
-                        style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: isActive ? "#e8f4e8" : "transparent", borderLeft: isActive ? `3px solid ${C.phase1}` : "3px solid transparent" }}>
-                        <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                        <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.5, fontWeight: isActive ? 700 : 400 }}>{(ch.strategyMessage || "").slice(0, 60)}</div>
+                        style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: isActive ? "rgba(255,255,255,0.15)" : "transparent", borderLeft: isActive ? "3px solid #6db3f8" : "3px solid transparent" }}>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
+                        <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                         {ch.chatSummaries && ch.chatSummaries.length > 0 && (
-                          <div style={{ fontSize: 13, color: C.phase1, marginTop: 4 }}>💬 {ch.chatSummaries.length}件反映</div>
+                          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
                         )}
                       </div>
                     );
@@ -1273,7 +1249,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 )}
               </div>
             )}
-          </>
+
+          </div>
+        )}
+        {/* サイドバー閉じ時の開くボタン */}
+        {!sidebarOpen && (
+          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
+            {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
+          </button>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
