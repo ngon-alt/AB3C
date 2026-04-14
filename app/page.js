@@ -418,7 +418,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   };
 
   if (!isPro) return (
-    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.phase1Bg }}>
         <div style={{ textAlign: "center", color: C.muted, fontSize: 16, lineHeight: 1.8, fontFamily: "system-ui, sans-serif" }}>
           <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: C.ink }}>分析チャットを利用するにはログインが必要です</div>
@@ -429,7 +429,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase1Bg }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
@@ -570,7 +570,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: 500, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
           const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
@@ -1504,14 +1504,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 
-{/* 分析チャット（メイン下部） */}
+{/* 分析チャット（画面下部固定） */}
 {phase === "analysis" && currentResult && (
-  <div style={{ borderTop: `3px solid ${C.phase1}`, marginTop: 32 }}>
-    <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.phase1 }}>分析チャット</span>
-      <span style={{ fontSize: 13, color: C.muted }}>— 分析結果について相談・修正できます</span>
+  <div style={{ position: "fixed", bottom: 0, left: sidebarOpen ? 240 : 0, right: 0, zIndex: 300, background: "#fff", borderTop: `3px solid ${C.phase1}`, boxShadow: "0 -4px 16px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", maxHeight: chatExpanded ? "70vh" : 280, transition: "max-height 0.3s" }}>
+    <div style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: 8, background: C.phase1, cursor: "pointer" }} onClick={function() { setChatExpanded(!chatExpanded); }}>
+      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>分析チャット</span>
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>— 分析結果について相談・修正できます</span>
+      <span style={{ marginLeft: "auto", color: "#fff", fontSize: 12 }}>{chatExpanded ? "▼ 縮小" : "▲ 拡大"}</span>
     </div>
-    <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", minHeight: 400 }}>
+    <div style={{ flex: 1, overflow: "hidden" }}>
       <AnalysisChatPanel
         isPro={isPro || chatTickets > 0 || trialChats > 0}
         analysisResult={currentResult}
