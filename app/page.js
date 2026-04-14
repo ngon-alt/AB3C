@@ -676,6 +676,8 @@ const [trialChats, setTrialChats] = useState(0);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Set());
+const [chatWidth, setChatWidth] = useState(500);
+const chatResizing = useRef(false);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
@@ -1120,7 +1122,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       />
 
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? "240px 1fr" : "1fr", flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? `240px 1fr ${chatWidth}px` : "240px 1fr") : (phase !== "input" ? `1fr ${chatWidth}px` : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", minHeight: "calc(100vh - 60px)" }}>
@@ -1195,28 +1197,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             )}
 
             <div style={{ flex: 1, overflowY: "auto" }}>
-              {phase !== "action" && (
-                <>
-                  {/* チャット履歴サマリー */}
-                  <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>チャット履歴</span>
-                  </div>
-                  {chatSummaries.length === 0 ? (
-                    <div style={{ padding: 14, fontSize: 13, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
-                      分析チャットで相談すると<br/>ここに履歴が表示されます
-                    </div>
-                  ) : (
-                    chatSummaries.map(function(s, i) {
-                      return (
-                        <div key={i} style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", fontSize: 13, color: "#fff", lineHeight: 1.5 }}>
-                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, color: "rgba(255,255,255,0.4)", marginBottom: 3 }}>#{i + 1} 反映済み</div>
-                          <div>{typeof s === 'string' ? s : JSON.stringify(s)}</div>
-                        </div>
-                      );
-                    })
-                  )}
-                </>
-              )}
+              {/* サイドバーコンテンツ（フェーズ別に上で表示済み） */}
             </div>
 
             {/* サイドバートグルボタン */}
@@ -1504,38 +1485,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
 
-{/* 分析チャット（画面下部固定） */}
-{phase === "analysis" && currentResult && (
-  <div style={{ position: "fixed", bottom: 0, left: sidebarOpen ? 240 : 0, right: 0, zIndex: 300, background: "#fff", borderTop: `3px solid ${C.phase1}`, boxShadow: "0 -4px 16px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", maxHeight: chatExpanded ? "70vh" : 280, transition: "max-height 0.3s" }}>
-    <div style={{ padding: "8px 16px", display: "flex", alignItems: "center", gap: 8, background: C.phase1, cursor: "pointer" }} onClick={function() { setChatExpanded(!chatExpanded); }}>
-      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>分析チャット</span>
-      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>— 分析結果について相談・修正できます</span>
-      <span style={{ marginLeft: "auto", color: "#fff", fontSize: 12 }}>{chatExpanded ? "▼ 縮小" : "▲ 拡大"}</span>
-    </div>
-    <div style={{ flex: 1, overflow: "hidden" }}>
-      <AnalysisChatPanel
-        isPro={isPro || chatTickets > 0 || trialChats > 0}
-        analysisResult={currentResult}
-        onSendTopic={chatSendTopicRef}
-        onReanalyze={function(newResult, summary) {
-          try {
-            var diff = diffResults(currentResult || {}, newResult);
-            setChangedPaths(diff);
-          } catch (e) { console.error("diff error:", e); }
-          setResult(newResult);
-          setCurrentResult(newResult);
-          setHistoryTitle(newResult?.strategy_message?.message || "");
-          setSelectedHistory(null);
-          if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
-          saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
-          setTimeout(function() { setChangedPaths(new Set()); }, 10000);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }}
-        onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
-      />
-    </div>
-  </div>
-)}
+{/* 分析チャットは右カラムに配置 */}
 
 {/* 伴走フェーズのコンテンツは分析結果ブロックの外に移動済み */}
             </div>
@@ -1587,7 +1537,87 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
 
-        {/* 右カラム廃止: チャットはメイン下部、アクションリストは伴走フェーズ内に統合済み */}
+        {/* 右カラム: チャットパネル（リサイズ可能） */}
+        {phase !== "input" && (
+          <>
+            {/* リサイズハンドル */}
+            <div
+              onMouseDown={function() {
+                chatResizing.current = true;
+                var handleMove = function(e) {
+                  if (!chatResizing.current) return;
+                  var newWidth = window.innerWidth - e.clientX;
+                  if (newWidth >= 350 && newWidth <= 800) setChatWidth(newWidth);
+                };
+                var handleUp = function() { chatResizing.current = false; document.removeEventListener("mousemove", handleMove); document.removeEventListener("mouseup", handleUp); document.body.style.cursor = ""; document.body.style.userSelect = ""; };
+                document.addEventListener("mousemove", handleMove);
+                document.addEventListener("mouseup", handleUp);
+                document.body.style.cursor = "col-resize";
+                document.body.style.userSelect = "none";
+              }}
+              style={{ width: 6, cursor: "col-resize", background: "transparent", position: "relative", zIndex: 101, marginRight: -3, marginLeft: -3 }}
+              onMouseEnter={function(e) { e.currentTarget.style.background = C.phase1; }}
+              onMouseLeave={function(e) { if (!chatResizing.current) e.currentTarget.style.background = "transparent"; }}
+            />
+            <div id="chat-column" style={{ borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
+              {/* チャットヘッダー */}
+              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                  {phase === "action" ? "施策チャット" : "分析チャット"}
+                </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginLeft: 4 }}>
+                  {chatSummaries.length > 0 ? `（${chatSummaries.length}回反映済み）` : ""}
+                </span>
+              </div>
+
+              {/* チャット履歴（開閉式） */}
+              {phase === "analysis" && chatSummaries.length > 0 && (
+                <div style={{ borderBottom: `1px solid ${C.border}`, background: "#f8f6f0" }}>
+                  <div onClick={function() { setChatExpanded(!chatExpanded); }} style={{ padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.muted }}>
+                    <span>{chatExpanded ? "▼" : "▶"}</span>
+                    <span>チャット履歴（{chatSummaries.length}件）</span>
+                  </div>
+                  {chatExpanded && (
+                    <div style={{ padding: "0 14px 8px" }}>
+                      {chatSummaries.map(function(s, i) {
+                        return <div key={i} style={{ fontSize: 12, color: C.ink, padding: "4px 0", borderBottom: i < chatSummaries.length - 1 ? "1px solid " + C.border : "none" }}>#{i + 1} {typeof s === "string" ? s : JSON.stringify(s)}</div>;
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {phase === "analysis" ? (
+                <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+                  <AnalysisChatPanel
+                    isPro={isPro || chatTickets > 0 || trialChats > 0}
+                    analysisResult={currentResult}
+                    onSendTopic={chatSendTopicRef}
+                    onReanalyze={function(newResult, summary) {
+                      try {
+                        var diff = diffResults(currentResult || {}, newResult);
+                        setChangedPaths(diff);
+                      } catch (e) { console.error("diff error:", e); }
+                      setResult(newResult);
+                      setCurrentResult(newResult);
+                      setHistoryTitle(newResult?.strategy_message?.message || "");
+                      setSelectedHistory(null);
+                      if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
+                      saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+                      setTimeout(function() { setChangedPaths(new Set()); }, 10000);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
+                  />
+                </div>
+              ) : (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 14 }}>
+                  施策を選択してください
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>{/* end grid */}
     </div>
   );
