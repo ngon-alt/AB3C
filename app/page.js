@@ -848,6 +848,7 @@ useEffect(() => {
   };
 
   const analyze = async () => {
+    if (!session) { setError("分析にはGoogleログインが必要です。右上の「Googleでログイン」からログインしてください。"); return; }
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
@@ -855,7 +856,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
-      if (data.error) { setError(data.error); return; }
+      if (data.error) { setError(data.error); setLoading(false); return; }
       setResult(data);
 setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
