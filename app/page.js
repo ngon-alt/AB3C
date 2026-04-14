@@ -1200,18 +1200,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     </div>
                   ))}
                 </div>
-                {/* 施策追加・リセット */}
-                <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.15)", display: "flex", gap: 6 }}>
+                {/* 施策追加 */}
+                <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.15)" }}>
                   <button onClick={() => { const label = prompt("施策名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); selectTheme(newThread.id); } }}
-                    style={{ flex: 1, background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>+ 施策</button>
-                  <button onClick={() => {
-                    Object.values(themeChats).flat().forEach(c => localStorage.removeItem(`ab3c_thread_${siteId || "default"}_${c.id}`));
-                    threads.forEach(t => localStorage.removeItem(`ab3c_thread_${siteId || "default"}_${t.id}`));
-                    setThemeChats({});
-                    setActiveThemeId(null);
-                    setActiveChatId(null);
-                  }}
-                    style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>↻ リセット</button>
+                    style={{ width: "100%", background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>+ 施策を追加</button>
                 </div>
               </>
             ) : (
