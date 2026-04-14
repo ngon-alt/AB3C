@@ -800,7 +800,7 @@ const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type
   useEffect(() => {
     try { const saved = localStorage.getItem("ab3c_history"); if (saved) setHistory(JSON.parse(saved)); } catch (e) {}
     try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {}
-    if (Notification.permission === "default") Notification.requestPermission();
+    if (typeof Notification !== "undefined" && Notification.permission === "default") Notification.requestPermission();
     // URLパラメータからsite_idを読み取り
     const params = new URLSearchParams(window.location.search);
     const sid = params.get("site_id");
@@ -910,7 +910,7 @@ useEffect(() => {
   };
 
  const notify = (text) => {
-    if (Notification.permission === "granted") new Notification("戦略大臣 分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification("戦略大臣 分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
   };
 
   const analyze = async () => {
