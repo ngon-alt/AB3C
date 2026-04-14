@@ -669,6 +669,7 @@ const [tab, setTab] = useState("url");
   const [history, setHistory] = useState([]);
   const [selectedHistory, setSelectedHistory] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
@@ -1221,41 +1222,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               </>
             ) : (
-              <>
-                {/* 確定履歴 */}
-                <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)" }}>
-                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>確定履歴</span>
-                </div>
               </>
             )}
 
             <div style={{ flex: 1, overflowY: "auto" }}>
-              {phase !== "action" && confirmHistory.length > 0 && (
-                confirmHistory.slice().reverse().map(function(ch, i) {
-                  return (
-                    <div key={ch.id} onClick={function() {
-                      setCurrentResult(ch.result);
-                      setResult(ch.result);
-                      setHistoryTitle(ch.strategyMessage || "");
-                      if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
-                      if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
-                      setChangedPaths(new Map());
-                    }}
-                      style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: currentResult?.strategy_message?.message === ch.strategyMessage ? "rgba(255,255,255,0.1)" : "transparent", borderLeft: currentResult?.strategy_message?.message === ch.strategyMessage ? "3px solid #6db3f8" : "3px solid transparent" }}>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                      <div style={{ fontSize: 16, color: "#fff", lineHeight: 1.5 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
-                      {ch.chatSummaries && ch.chatSummaries.length > 0 && (
-                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>チャット {ch.chatSummaries.length}件反映</div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-              {phase !== "action" && confirmHistory.length === 0 && (
-                <div style={{ padding: 14, fontSize: 14, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6 }}>
-                  戦略を確定すると<br/>ここに履歴が残ります
-                </div>
-              )}
             </div>
 
             {/* サイドバートグルボタン */}
@@ -1267,6 +1237,52 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         {/* サイドバー閉じ時の開くボタン */}
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
+        )}
+        {/* 確定履歴パネル（左からスライド） */}
+        {phase !== "action" && (
+          <>
+            {/* 履歴タブ（常に表示） */}
+            <div onClick={function() { setHistoryOpen(!historyOpen); }}
+              style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: "50%", transform: "translateY(-50%)", zIndex: 200, background: C.phase1, color: "#fff", padding: "12px 6px", borderRadius: "0 6px 6px 0", cursor: "pointer", writingMode: "vertical-rl", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", boxShadow: "2px 2px 8px rgba(0,0,0,0.15)" }}>
+              {historyOpen ? "◀ 閉じる" : "履歴 ▶"}
+            </div>
+            {/* 履歴パネル本体 */}
+            {historyOpen && (
+              <div style={{ position: "fixed", left: sidebarOpen ? 240 : 0, top: headerHeight, bottom: 0, width: 280, background: "#fff", borderRight: `2px solid ${C.phase1}`, zIndex: 199, overflowY: "auto", boxShadow: "4px 0 16px rgba(0,0,0,0.1)" }}>
+                <div style={{ padding: "14px 16px", borderBottom: `2px solid ${C.phase1}`, background: C.phase1 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>確定履歴</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginLeft: 8 }}>({confirmHistory.length}件)</span>
+                </div>
+                {confirmHistory.length === 0 ? (
+                  <div style={{ padding: 20, fontSize: 14, color: C.muted, textAlign: "center", lineHeight: 1.6 }}>
+                    戦略を確定すると<br/>ここに履歴が残ります
+                  </div>
+                ) : (
+                  confirmHistory.slice().reverse().map(function(ch, i) {
+                    var isActive = currentResult?.strategy_message?.message === ch.strategyMessage;
+                    return (
+                      <div key={ch.id} onClick={function() {
+                        setCurrentResult(ch.result);
+                        setResult(ch.result);
+                        setHistoryTitle(ch.strategyMessage || "");
+                        if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
+                        if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                        setChangedPaths(new Map());
+                        setHistoryOpen(false);
+                      }}
+                        style={{ padding: "12px 16px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: isActive ? "#e8f4e8" : "transparent", borderLeft: isActive ? `3px solid ${C.phase1}` : "3px solid transparent" }}>
+                        <div style={{ fontSize: 12, color: C.muted, marginBottom: 4 }}>#{confirmHistory.length - i} · {ch.date}</div>
+                        <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.5, fontWeight: isActive ? 700 : 400 }}>{(ch.strategyMessage || "").slice(0, 60)}</div>
+                        {ch.chatSummaries && ch.chatSummaries.length > 0 && (
+                          <div style={{ fontSize: 13, color: C.phase1, marginTop: 4 }}>💬 {ch.chatSummaries.length}件反映</div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
           <div style={{ padding: "32px 24px 80px", maxWidth: 900, flex: 1 }}>
