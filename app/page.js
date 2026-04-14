@@ -1151,8 +1151,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteId={siteId}
         phase={phase}
         canAccessBansou={isPro || chatTickets > 0}
-        onSwitchToAnalysis={() => setViewOverride("analysis")}
-        onSwitchToAction={() => { if (strategyConfirmed) setViewOverride(null); }}
+        onSwitchToAnalysis={() => { setViewOverride("analysis"); window.scrollTo(0, 0); }}
+        onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride(null); window.scrollTo(0, 0); } }}
         onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
 
