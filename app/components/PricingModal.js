@@ -107,8 +107,9 @@ export default function PricingModal({ onClose }) {
           }}>
             全プラン 50%OFF
           </div>
-          <div style={{ fontSize: 11, marginTop: 12, opacity: 0.9 }}>
-            ※先行ユーザーは契約期間中、特別価格継続<br/>
+          <div style={{ fontSize: 12, marginTop: 12, opacity: 0.95, lineHeight: 1.7 }}>
+            ※50%OFFは初回の契約期間のみ適用されます<br/>
+            ※更新時は通常価格（定価）となります<br/>
             ※サービス内容の大幅変更時は価格改定の可能性あり
           </div>
         </div>
