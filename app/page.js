@@ -39,7 +39,7 @@ const hoverShow = {
 
 const Card = ({ color, title, children, onChat }) => (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px", position: "relative" }} {...(onChat ? hoverShow : {})}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
     {onChat && <ChatBtn onClick={onChat} abs />}
     {children}
   </div>
@@ -48,7 +48,7 @@ const Card = ({ color, title, children, onChat }) => (
 const UL = ({ items, onChatItem }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => (
-     <li key={i} style={{ fontSize: 18, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
+     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
        {...(onChatItem ? hoverShow : {})}>
         <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{item}</span>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
@@ -61,7 +61,7 @@ const SectionLabel = ({ color, letter, jp, en, desc, onChat }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 34, fontWeight: 700, color, lineHeight: 1, width: 56, flexShrink: 0 }}>{letter}</div>
     <div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700 }}>{jp}</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700 }}>{jp}</div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
       {desc && <div style={{ fontSize: 16, color: C.muted, fontStyle: "italic", marginTop: 3 }}>{desc}</div>}
     </div>
