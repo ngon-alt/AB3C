@@ -33,7 +33,9 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
   }, [session]);
 
   const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
-  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "伴走プランのみ利用可" : "戦略確定後に利用可";
+  // 伴走タブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→伴走プランで利用可
+  const showBansouTip = !canAccessBansou || (canAccessBansou && phase !== "action");
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "伴走プランで利用可" : "戦略確定後に利用可";
 
   const isActive = (key) => {
     if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));
@@ -112,7 +114,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
         <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
         {/* 伴走タブ */}
         <span style={{ position: "relative", display: "inline-flex" }}
-          onMouseEnter={e => { if (!canAccessBansou) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+          onMouseEnter={e => { if (phase !== "action") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
           onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
           <button
             onClick={() => { if (!canAccessBansou) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
@@ -125,7 +127,7 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
             <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             伴走
           </button>
-          {!canAccessBansou && (
+          {phase !== "action" && (
             <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
               {bansouTooltip}
             </div>
@@ -150,15 +152,6 @@ export default function Header({ onShowPricing, currentSiteUrl, phase, onConfirm
               style={{ fontSize: 13, color: C.A, fontFamily: NAV_FONT, textDecoration: "none", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
               {currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
             </a>
-          </div>
-        )}
-        {/* 戦略確定ボタン（右寄せ） */}
-        {onConfirmStrategy && phase === "analysis" && (
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
-            <button onClick={onConfirmStrategy}
-              style={{ background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 13, fontWeight: 700, padding: "8px 20px", whiteSpace: "nowrap", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
-              戦略を確定して伴走へ →
-            </button>
           </div>
         )}
       </nav>

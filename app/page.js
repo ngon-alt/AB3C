@@ -427,8 +427,8 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
         </button>
         {onConfirmStrategy && (
           <button onClick={onConfirmStrategy}
-            style={{ width: "100%", marginTop: 8, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 20px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
-            戦略を確定して伴走へ →
+            style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+            戦略を確定
           </button>
         )}
       </div>
