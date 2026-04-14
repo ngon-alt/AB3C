@@ -1236,7 +1236,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         )}
         {/* サイドバー閉じ時の開くボタン */}
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: 70, zIndex: 100, background: C.ink, border: "none", borderRadius: "0 4px 4px 0", padding: "8px 6px", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: 14 }}>▶</button>
+          <button onClick={() => setSidebarOpen(true)} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 8px", cursor: "pointer", color: "#fff", fontSize: 16, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)" }}>▶</button>
         )}
         {/* 確定履歴パネル（左からスライド） */}
         {currentResult && (
