@@ -77,8 +77,21 @@ ${conversationSummary}
 
     try {
       const text = response.content[0].text;
-      const clean = text.replace(/```json|```/g, "").trim();
-      const newResult = JSON.parse(clean);
+      let clean = text.replace(/```json|```/g, "").trim();
+      // JSON前後のゴミを除去
+      const jsonStart = clean.indexOf('{');
+      if (jsonStart > 0) clean = clean.substring(jsonStart);
+      const jsonEnd = clean.lastIndexOf('}');
+      if (jsonEnd > 0) clean = clean.substring(0, jsonEnd + 1);
+
+      let newResult;
+      try {
+        newResult = JSON.parse(clean);
+      } catch (e1) {
+        // 不正な制御文字を除去して再パース
+        const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
+        newResult = JSON.parse(cleaned2);
+      }
 
       const summaryResponse = await client.messages.create({
         model: "claude-sonnet-4-6",
@@ -92,7 +105,8 @@ ${conversationSummary}
       return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
       console.error("再分析JSONパースエラー:", e);
-      return NextResponse.json({ error: "再分析に失敗しました" }, { status: 500 });
+      console.error("Raw response (first 500):", response?.content?.[0]?.text?.slice(0, 500));
+      return NextResponse.json({ error: "再分析に失敗しました。もう一度お試しください。" }, { status: 500 });
     }
   }
 
