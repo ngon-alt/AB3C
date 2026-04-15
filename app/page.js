@@ -1037,7 +1037,7 @@ useEffect(() => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
-setSiteId(null); setHistory([]); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]);
+setSiteId(null); setHistory([]); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
     setOverlayMessage("AB3C分析中...");
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
@@ -1116,7 +1116,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
