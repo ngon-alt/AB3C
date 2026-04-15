@@ -49,17 +49,24 @@ export default function RootLayout({ children }) {
   body * { visibility: hidden; }
   #result-area, #result-area * { visibility: visible; }
 
-  /* 親コンテナのレイアウトをリセット */
-  body, body > *, body > * > *, body > * > * > * {
-    display: block !important;
+  /* 親コンテナのレイアウトをリセット（#result-areaの全祖先） */
+  html, body, body * {
     position: static !important;
+    overflow: visible !important;
+    grid-template-columns: none !important;
+  }
+  /* #result-area以外の余白・幅をリセット */
+  html, body,
+  body > *, body > * > *, body > * > * > *,
+  body > * > * > * > *, body > * > * > * > * > * {
+    display: block !important;
     width: auto !important;
     max-width: none !important;
     min-width: 0 !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
-    grid-template-columns: none !important;
+    flex: unset !important;
   }
 
   #result-area {

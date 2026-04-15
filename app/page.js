@@ -1045,7 +1045,8 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
         try {
           const sitesRes = await fetch("/api/sites");
           const sitesData = await sitesRes.json();
-          const existingSite = (sitesData.sites || []).find(s => s.site_url === url.trim());
+          const normalizeUrl = u => u?.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+          const existingSite = (sitesData.sites || []).find(s => normalizeUrl(s.site_url) === normalizeUrl(url.trim()));
           if (existingSite) {
             analyzeSiteId = existingSite.id;
             setSiteId(existingSite.id);
