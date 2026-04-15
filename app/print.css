@@ -3,7 +3,8 @@
   body * { visibility: hidden; }
 
   /* 印刷対象を表示 */
-  #result-area, #result-area * { visibility: visible; }
+  #result-area, #result-area *,
+  #improve-area, #improve-area * { visibility: visible; }
 
   /* 背景色を印刷で表示 */
   * {
@@ -60,12 +61,20 @@
 
   /* 改善レポート */
   #improve-area {
-    padding-top: 10mm !important;
+    padding-top: 8mm !important;
     margin-top: 5mm !important;
     border-top: 3px solid #1a1a14;
-    page-break-before: always;
   }
   #improve-area > div { margin-bottom: 6mm !important; }
+  #improve-area div[style*="grid"] {
+    display: block !important;
+    width: 100% !important;
+  }
+  #improve-area div[style*="grid"] > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 3mm !important;
+  }
 
   /* 不要な要素を完全非表示 */
   #sidebar, button, nav, header { display: none !important; }
