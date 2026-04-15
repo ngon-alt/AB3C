@@ -51,6 +51,40 @@ export default function HowtoPage() {
           <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略大臣の全機能と使い方を説明します。</div>
         </div>
 
+        {/* 戦略大臣とは */}
+        <Section title="戦略大臣とは" icon="🏯">
+          <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px 28px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16, lineHeight: 1.7 }}>
+              経営の根本となる「戦略」の立案を支援するAIツールです。
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 10 }}>こんな方のために生まれました</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 20 }}>
+              {[
+                { icon: "👤", label: "経営者", desc: "戦略立案が苦手で、自社の「選ばれる理由」を言語化したい方" },
+                { icon: "💼", label: "コンサルタント", desc: "クライアントの戦略を大量に検討する必要がある方" },
+                { icon: "🎨", label: "デザイナー・クリエイター", desc: "手を動かすのは得意だが、戦略の裏付けがほしい方" },
+                { icon: "📊", label: "営業マン", desc: "クライアントに手軽に戦略を提案したい方" },
+              ].map(function(item, i) {
+                return (
+                  <div key={i} style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 20, marginBottom: 6 }}>{item.icon}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{item.label}</div>
+                    <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.6 }}>{item.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ background: C.highlight, borderRadius: 6, padding: "16px 20px", marginBottom: 16 }}>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+                従来、AIは「答えのない問い」＝戦略のような領域は苦手とされてきました。しかし、<b>AB3C分析</b>というフレームワークを導入することで、高い精度で戦略立案ができるようになりました。
+              </div>
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+              戦略大臣は戦略を立案するだけではありません。戦略を立案した後には<b>「戦略アクション」</b>機能を使って、SEO・SNS・広告・採用・補助金など、たくさんの具体的な施策を企画することができます。
+            </div>
+          </div>
+        </Section>
+
         {/* 全体の流れ */}
         <Section title="全体の流れ" icon="🗺️">
           <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px" }}>
