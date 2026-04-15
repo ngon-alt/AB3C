@@ -1037,10 +1037,11 @@ useEffect(() => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
+setSiteId(null); setHistory([]); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThreadId(null); setThreads([]);
     setOverlayMessage("AB3C分析中...");
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
-      var analyzeSiteId = siteId;
+      var analyzeSiteId = null;
       if (tab === "url" && url.trim()) {
         try {
           const sitesRes = await fetch("/api/sites");
