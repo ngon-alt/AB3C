@@ -26,21 +26,21 @@ export default function PricingModal({ onClose }) {
   };
 
   const supportPricesMonthly = {
-    1:   "price_1TLONuCYHZ66REnU8EQUyAyY",
-    5:   "price_1TLOOECYHZ66REnUiUxRXASh",
-    15:  "price_1TLOQdCYHZ66REnU1Ec7NPPl",
-    30:  "price_1TLOQtCYHZ66REnUHbjU42om",
-    60:  "price_1TLORACYHZ66REnUMWAWZ6As",
-    120: "price_1TLORSCYHZ66REnUiAP23UU2",
+    1:   "price_1TMQJECYHZ66REnUvdtin0z3",
+    5:   "price_1TMQJVCYHZ66REnUYOy5mlL4",
+    15:  "price_1TMQJjCYHZ66REnUmEgb5GGN",
+    30:  "price_1TMQJzCYHZ66REnUtmQuGBR0",
+    60:  "price_1TMQKGCYHZ66REnUAg6NOSOK",
+    120: "price_1TMQKYCYHZ66REnUSM8rKr2n",
   };
 
   const supportPricesAnnual = {
-    1:   "price_1TLOS8CYHZ66REnUaztmyqe7",
-    5:   "price_1TLOSTCYHZ66REnU10zHVTgL",
-    15:  "price_1TLOSoCYHZ66REnUm20yhWGB",
-    30:  "price_1TLOT6CYHZ66REnUzMZqkLFL",
-    60:  "price_1TLOTSCYHZ66REnUIZcOWbfj",
-    120: "price_1TLOTmCYHZ66REnUf3GdNmjf",
+    1:   "price_1TMQKvCYHZ66REnUomf2PJMh",
+    5:   "price_1TMQLDCYHZ66REnU2w53yUAE",
+    15:  "price_1TMQLYCYHZ66REnU9T2AlDh6",
+    30:  "price_1TMQLtCYHZ66REnUpqPhuI24",
+    60:  "price_1TMQMJCYHZ66REnU6KiAhHSz",
+    120: "price_1TMQMZCYHZ66REnULJsbJQy7",
   };
 
   // === 料金データ（正規価格） ===

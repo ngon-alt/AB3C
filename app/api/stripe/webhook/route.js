@@ -10,21 +10,21 @@ const PRICE_PLANS = {
   'price_1TLONFCYHZ66REnUIosdtrFL':  { type: 'analysis', sites: 10,  interval: 'year' },
   'price_1TLONcCYHZ66REnUo7W7QVjD': { type: 'analysis', sites: 100, interval: 'year' },
 
-  // 伴走プラン（月額）
-  'price_1TLONuCYHZ66REnU8EQUyAyY': { type: 'support', sites: 1,   interval: 'month' },
-  'price_1TLOOECYHZ66REnUiUxRXASh':  { type: 'support', sites: 5,   interval: 'month' },
-  'price_1TLOQdCYHZ66REnU1Ec7NPPl':  { type: 'support', sites: 15,  interval: 'month' },
-  'price_1TLOQtCYHZ66REnUHbjU42om':  { type: 'support', sites: 30,  interval: 'month' },
-  'price_1TLORACYHZ66REnUMWAWZ6As':  { type: 'support', sites: 60,  interval: 'month' },
-  'price_1TLORSCYHZ66REnUiAP23UU2':  { type: 'support', sites: 120, interval: 'month' },
+  // サブスクプラン（月額）
+  'price_1TMQJECYHZ66REnUvdtin0z3':  { type: 'support', sites: 1,   interval: 'month' },
+  'price_1TMQJVCYHZ66REnUYOy5mlL4':  { type: 'support', sites: 5,   interval: 'month' },
+  'price_1TMQJjCYHZ66REnUmEgb5GGN':  { type: 'support', sites: 15,  interval: 'month' },
+  'price_1TMQJzCYHZ66REnUtmQuGBR0':  { type: 'support', sites: 30,  interval: 'month' },
+  'price_1TMQKGCYHZ66REnUAg6NOSOK':  { type: 'support', sites: 60,  interval: 'month' },
+  'price_1TMQKYCYHZ66REnUSM8rKr2n':  { type: 'support', sites: 120, interval: 'month' },
 
-  // 伴走プラン（年額＝月額×10）
-  'price_1TLOS8CYHZ66REnUaztmyqe7':  { type: 'support', sites: 1,   interval: 'year' },
-  'price_1TLOSTCYHZ66REnU10zHVTgL':  { type: 'support', sites: 5,   interval: 'year' },
-  'price_1TLOSoCYHZ66REnUm20yhWGB':  { type: 'support', sites: 15,  interval: 'year' },
-  'price_1TLOT6CYHZ66REnUzMZqkLFL':  { type: 'support', sites: 30,  interval: 'year' },
-  'price_1TLOTSCYHZ66REnUIZcOWbfj':  { type: 'support', sites: 60,  interval: 'year' },
-  'price_1TLOTmCYHZ66REnUf3GdNmjf':  { type: 'support', sites: 120, interval: 'year' },
+  // サブスクプラン（年額＝月額×10）
+  'price_1TMQKvCYHZ66REnUomf2PJMh':  { type: 'support', sites: 1,   interval: 'year' },
+  'price_1TMQLDCYHZ66REnU2w53yUAE':  { type: 'support', sites: 5,   interval: 'year' },
+  'price_1TMQLYCYHZ66REnU9T2AlDh6':  { type: 'support', sites: 15,  interval: 'year' },
+  'price_1TMQLtCYHZ66REnUpqPhuI24':  { type: 'support', sites: 30,  interval: 'year' },
+  'price_1TMQMJCYHZ66REnU6KiAhHSz':  { type: 'support', sites: 60,  interval: 'year' },
+  'price_1TMQMZCYHZ66REnULJsbJQy7':  { type: 'support', sites: 120, interval: 'year' },
 };
 
 // チャット回数マッピング：伴走プランは1サイトあたり月100回
