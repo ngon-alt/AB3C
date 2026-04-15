@@ -1064,11 +1064,7 @@ const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
 setLoading(false);
-if (tab === "url" && savedText.startsWith("http")) {
-  setOverlayMessage("ウェブサイト改善レポート生成中...");
-} else {
-  setOverlayMessage(null);
-}
+setOverlayMessage(null);
 
 // 分析結果をDBに保存
 if (tab === "url" && savedText.startsWith("http")) {
