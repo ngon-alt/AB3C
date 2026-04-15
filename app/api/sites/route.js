@@ -159,17 +159,23 @@ export async function PUT(req) {
     const chatJson = chat_history ? JSON.stringify(chat_history) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
+    const siteUrlVal = site_url !== undefined ? site_url : null;
+    const siteNameVal = site_name !== undefined ? site_name : null;
+    const companyVal = company_name !== undefined ? company_name : null;
+    const industryVal = industry !== undefined ? industry : null;
+    const targetVal = target_customer !== undefined ? target_customer : null;
+
     const rows = await sql`
       UPDATE sites SET
-        site_url = COALESCE(${site_url ?? null}, site_url),
-        site_name = COALESCE(${site_name ?? null}, site_name),
-        company_name = COALESCE(${company_name ?? null}, company_name),
-        industry = COALESCE(${industry ?? null}, industry),
-        target_customer = COALESCE(${target_customer ?? null}, target_customer),
-        latest_analysis = CASE WHEN ${analysisJson} IS NOT NULL THEN ${analysisJson}::jsonb ELSE latest_analysis END,
-        strategy_confirmed = CASE WHEN ${confirmed} IS NOT NULL THEN ${confirmed} ELSE strategy_confirmed END,
-        strategy_confirmed_at = CASE WHEN ${confirmed} = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
-        chat_history = CASE WHEN ${chatJson} IS NOT NULL THEN ${chatJson}::jsonb ELSE chat_history END,
+        site_url = COALESCE(${siteUrlVal}::text, site_url),
+        site_name = COALESCE(${siteNameVal}::text, site_name),
+        company_name = COALESCE(${companyVal}::text, company_name),
+        industry = COALESCE(${industryVal}::text, industry),
+        target_customer = COALESCE(${targetVal}::text, target_customer),
+        latest_analysis = CASE WHEN ${analysisJson}::text IS NOT NULL THEN (${analysisJson}::jsonb) ELSE latest_analysis END,
+        strategy_confirmed = CASE WHEN ${confirmed}::boolean IS NOT NULL THEN ${confirmed}::boolean ELSE strategy_confirmed END,
+        strategy_confirmed_at = CASE WHEN ${confirmed}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
+        chat_history = CASE WHEN ${chatJson}::text IS NOT NULL THEN (${chatJson}::jsonb) ELSE chat_history END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *
