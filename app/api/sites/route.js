@@ -110,11 +110,13 @@ export async function POST(req) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
     }
 
-    // URL重複チェック
+    // URL重複チェック（末尾スラッシュ・プロトコルの違いを吸収）
     if (site_url) {
-      const existing = await sql`SELECT id, site_name FROM sites WHERE user_email = ${session.user.email} AND site_url = ${site_url}`;
-      if (existing.length > 0) {
-        return NextResponse.json({ error: `このURLは既に「${existing[0].site_name}」として登録されています。`, existingSite: existing[0] }, { status: 409 });
+      const allSites = await sql`SELECT id, site_name, site_url FROM sites WHERE user_email = ${session.user.email}`;
+      const normalize = u => u?.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+      const existing = allSites.find(s => normalize(s.site_url) === normalize(site_url));
+      if (existing) {
+        return NextResponse.json({ error: `このURLは既に「${existing.site_name}」として登録されています。`, existingSite: existing }, { status: 409 });
       }
     }
 

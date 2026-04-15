@@ -1069,29 +1069,27 @@ if (tab === "url" && savedText.startsWith("http")) {
   setOverlayMessage(null);
 }
 
-// 分析結果をDBにも保存（非同期・ブロックしない）
+// 分析結果をDBに保存
 if (tab === "url" && savedText.startsWith("http")) {
-  (async function() {
-    try {
-      var saveSid = analyzeSiteId;
-      if (!saveSid) {
-        var sn = "無題のサイト";
-        try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
-        var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
-        var cd = await cr.json();
-        if (cd.existingSite) { saveSid = cd.existingSite.id; }
-        else if (cd.site) { saveSid = cd.site.id; }
-      }
-      if (saveSid) {
-        setSiteId(saveSid);
-        var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
-        var putData = await putRes.json();
-        console.log("分析結果DB保存:", putRes.ok ? "成功" : "失敗", putData);
-      } else {
-        console.warn("分析結果DB保存: サイトIDが見つかりません");
-      }
-    } catch (e) { console.error("分析結果DB保存エラー:", e); }
-  })();
+  try {
+    var saveSid = analyzeSiteId;
+    if (!saveSid) {
+      var sn = "無題のサイト";
+      try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
+      var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
+      var cd = await cr.json();
+      if (cd.existingSite) { saveSid = cd.existingSite.id; }
+      else if (cd.site) { saveSid = cd.site.id; }
+    }
+    if (saveSid) {
+      setSiteId(saveSid);
+      var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
+      var putData = await putRes.json();
+      console.log("分析結果DB保存:", putRes.ok ? "成功" : "失敗", putData);
+    } else {
+      console.warn("分析結果DB保存: サイトIDが見つかりません");
+    }
+  } catch (e) { console.error("分析結果DB保存エラー:", e); }
 }
 
 // URL分析の場合、ウェブサイト改善レポートも同時に生成
