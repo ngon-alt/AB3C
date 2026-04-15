@@ -1001,7 +1001,7 @@ useEffect(() => {
     }
     if (targetSiteId) {
       try {
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, site_name: siteName }) });
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true }) });
         setStrategyConfirmed(true);
         // 確定履歴にスナップショットを保存
         try {

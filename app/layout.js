@@ -72,9 +72,16 @@ export default function RootLayout({ children }) {
     box-sizing: border-box;
   }
 
+  /* result-area内の全要素を幅いっぱいに */
+  #result-area *,
+  #improve-area * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   #improve-area {
     position: relative;
-    width: 100%;
+    width: 100% !important;
     padding-top: 10mm;
     margin-top: 5mm;
     border-top: 3px solid #1a1a14;
@@ -86,6 +93,7 @@ export default function RootLayout({ children }) {
   #result-area > div {
     margin-bottom: 8mm !important;
     padding-top: 5mm !important;
+    width: 100% !important;
   }
 
   #improve-area > div {
