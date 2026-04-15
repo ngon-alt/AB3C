@@ -45,81 +45,82 @@ export default function RootLayout({ children }) {
        <meta name="viewport" content="width=1280" />
        <style>{`
          @media print {
+  /* すべて非表示にしてから印刷対象だけ表示 */
   body * { visibility: hidden; }
-  #result-area, #result-area *,
-  #improve-area, #improve-area * { visibility: visible; }
-  
+  #result-area, #result-area * { visibility: visible; }
+
+  /* 親コンテナのレイアウトをリセット */
+  body, body > *, body > * > *, body > * > * > * {
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    grid-template-columns: none !important;
+  }
+
   #result-area {
-    position: absolute;
+    position: absolute !important;
     left: 0;
     top: 0;
-    width: 100%;
-    max-width: 210mm;
-    padding: 15mm;
+    width: 100% !important;
+    max-width: 210mm !important;
+    padding: 10mm 15mm !important;
     box-sizing: border-box;
   }
-  
+
   #improve-area {
     position: relative;
     width: 100%;
-    max-width: 210mm;
-    padding: 15mm;
-    margin-top: 0;
     padding-top: 10mm;
+    margin-top: 5mm;
     border-top: 3px solid #1a1a14;
     page-break-before: always;
     box-sizing: border-box;
   }
-  
-  /* 改善レポート全体を1つのブロックとして扱う */
-  #improve-area {
-    page-break-inside: auto !important;
-  }
-  
-  /* セクション間の余白を追加 */
+
+  /* セクション間の余白 */
   #result-area > div {
     margin-bottom: 8mm !important;
     padding-top: 5mm !important;
   }
-  
-  /* 改善レポート内のセクション */
+
   #improve-area > div {
     margin-bottom: 6mm !important;
     padding-top: 3mm !important;
   }
-  
+
   /* グリッドを縦並びに */
   #result-area [style*="grid"],
   #improve-area [style*="grid"] {
     display: block !important;
   }
-  
-  /* グリッド内の各要素にも余白 */
+
   #result-area [style*="grid"] > div,
   #improve-area [style*="grid"] > div {
     margin-bottom: 4mm !important;
   }
-  
+
   /* 背景色を印刷で表示 */
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
-  
-  /* 改ページ制御 - より緩やかに */
-  #result-area > div { 
-    page-break-inside: avoid; 
-  }
-  
-  #improve-area > div {
-    page-break-inside: auto;
-  }
-  
+
+  /* 改ページ制御 */
+  #result-area > div { page-break-inside: avoid; }
+  #improve-area > div { page-break-inside: auto; }
+  #improve-area { page-break-inside: auto !important; }
+
   /* 不要な要素を非表示 */
   #sidebar { display: none !important; }
   button { display: none !important; }
   nav { display: none !important; }
+  header { display: none !important; }
 }
 /* スマホでもPC表示を維持（最小幅で横スクロール） */
         `}</style>
