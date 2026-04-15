@@ -70,7 +70,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT }}>
                 {session.user?.name}
                 {planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
-              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PRO</span>}
+              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
               </span>
               <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
                 ログアウト
