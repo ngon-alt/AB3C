@@ -135,7 +135,7 @@ export default function HowtoPage() {
           </Card>
           <div style={{ marginTop: 16 }}>
             <Step number="1" title="分析結果を確認・修正" desc="チャットで分析結果を磨き上げ、納得のいく内容にします。" />
-            <Step number="2" title="「戦略を確定」をクリック" desc="分析結果がサイト管理に保存され、伴走タブが有効になります。" />
+            <Step number="2" title="「戦略を確定」をクリック" desc="分析結果がサイト管理に保存され、戦略アクションタブが有効になります。" />
             <Step number="3" title="左サイドバーに確定履歴が残る" desc="確定した戦略の履歴がサイドバーに保存されます。過去の確定内容をクリックで振り返れます。" />
           </div>
         </Section>
@@ -143,7 +143,7 @@ export default function HowtoPage() {
         {/* 戦略アクションフェーズ */}
         <Section title="戦略アクションフェーズ（STEP 2）" icon="🎯">
           <Card title="戦略に基づいて具体的な施策を検討">
-            戦略確定後、伴走タブをクリックすると、10の施策テーマについてAIと相談できます。各施策はAB3C分析結果をベースにしたアドバイスが提供されます。
+            戦略確定後、戦略アクションタブをクリックすると、10の施策テーマについてAIと相談できます。各施策はAB3C分析結果をベースにしたアドバイスが提供されます。
           </Card>
           <div style={{ marginTop: 16, fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>10の施策テーマ</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
@@ -196,14 +196,14 @@ export default function HowtoPage() {
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
                 <li>分析結果 — サイト管理のデータベースとブラウザの両方に保存されます</li>
                 <li>戦略確定履歴 — ブラウザのlocalStorageに保存されます</li>
-                <li>伴走チャット履歴 — ブラウザのlocalStorageに保存されます</li>
+                <li>戦略アクションチャット履歴 — ブラウザのlocalStorageに保存されます</li>
                 <li>サイト管理のサイト一覧 — データベースに保存されます</li>
               </ul>
             </div>
             <div style={{ background: "#fdf0ef", border: "1px solid #f5c6cb", borderRadius: 8, padding: "16px 20px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.red, marginBottom: 8 }}>⚠️ データが消えるケース</div>
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
-                <li><b>ブラウザのキャッシュ・データを消去した場合</b> — 戦略確定履歴、伴走チャット履歴が消えます（分析結果はDBに保存されているため残ります）</li>
+                <li><b>ブラウザのキャッシュ・データを消去した場合</b> — 戦略確定履歴、戦略アクションチャット履歴が消えます（分析結果はDBに保存されているため残ります）</li>
                 <li><b>別のブラウザやデバイスでアクセスした場合</b> — localStorageは共有されないため、チャット履歴は見えません</li>
                 <li><b>シークレットウィンドウで利用した場合</b> — ウィンドウを閉じるとlocalStorageが消えます</li>
                 <li><b>サイト管理でサイトを削除した場合</b> — そのサイトの分析結果・チャット履歴がすべて消えます</li>
@@ -268,7 +268,7 @@ export default function HowtoPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
                 { title: "スポット提案型", price: "3〜5万円/件", desc: "Web制作の受注前にAB3C分析レポートを提案書として活用。競合との違いを言語化した提案で受注率を高める。" },
-                { title: "月次伴走型", price: "月20〜30万円", desc: "毎月戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化。" },
+                { title: "月次サポート型", price: "月20〜30万円", desc: "毎月戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化。" },
                 { title: "複数クライアント管理型", price: "月100〜300万円", desc: "複数の中小企業クライアントをまとめて管理。15サイトプランで15社を同時にサポート。" },
               ].map(function(model, i) {
                 return (

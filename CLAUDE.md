@@ -244,12 +244,14 @@ checkpoints: [{ label, status, comment }]
 3. マルチサイト管理（サイトURL登録・一覧画面・サイト選択→分析画面）
 
 ### セミナー後タスク
+- **ターゲット絞り込み機能（ユーザーモデル別分析）** — 3C分析のCustomerで複数のターゲット種別が出た際、特定のユーザーモデルに絞り込んで再分析する機能。絞り込むと市場規模は小さくなるが、年商10億未満の中小企業には十分な規模であり、戦略が強く成立しやすくなる。ターゲット種別の横に「このユーザーに絞り込む」ボタンを設置し、絞り込んだAB3C分析を再生成するイメージ。
 - **frontend-designプラグイン導入** — Anthropic公式のClaude Codeプラグイン。AIが生成するUIの品質を向上させる。既存のカラールール（赤=Benefit、青=Advantage等）との整合性を確認してから導入すること。GitHub: https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design
 - **Google Ads API（Keyword Planner）統合** — SEOチャットにキーワード検索ボリューム表示。Google Adsアカウント作成済み、開発者トークン申請は未完了
 - **スクロール時のヘッダー高さ変動（ジャンプ）修正**
 - **サブスクプラン新価格のStripe Price ID更新** — 表示価格は更新済み、Stripe側のPrice IDは旧価格のまま
 
 ### 中期タスク
+- **チャット履歴・戦略確定履歴のDB保存** — 現在localStorageのみ。ブラウザ変更・キャッシュクリアで消失する。sitesテーブルのchat_historyカラムは存在するので、定期的にDBに同期する仕組みが必要。戦略確定履歴もDB保存が望ましい。
 - チュートリアルメール実装（Resend、文面確定済み）
 - Resendドメイン認証完了済み（senryaku.ai）
 - ケーススタディギャラリーページ（/examples）の実装
