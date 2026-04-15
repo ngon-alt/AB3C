@@ -1037,7 +1037,7 @@ useEffect(() => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
-setSiteId(null); setHistory([]); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
     setOverlayMessage("AB3C分析中...");
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
@@ -1408,7 +1408,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {currentResult && phase !== "action" && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-  <button onClick={() => { reset(); setSiteId(null); setHistory([]); setPhase("analysis"); window.history.replaceState(null, "", "/"); }} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
+  <button onClick={() => { reset(); setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); setPhase("analysis"); window.history.replaceState(null, "", "/"); }} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
     ← 新規分析
   </button>
   {currentInput && !currentInput.startsWith("http") && (
