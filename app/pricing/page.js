@@ -40,12 +40,12 @@ export default function PricingPage() {
     { sites: 100, annual: 1980000 },
   ];
   const supportPlanDetails = [
-    { sites: 1, monthly: 88000, annual: 880000 },
-    { sites: 5, monthly: 392000, annual: 3920000 },
-    { sites: 15, monthly: 784000, annual: 7840000 },
-    { sites: 30, monthly: 1254000, annual: 12540000 },
-    { sites: 60, monthly: 2006000, annual: 20060000 },
-    { sites: 120, monthly: 3210000, annual: 32100000 },
+    { sites: 1, monthly: 66000, annual: 660000 },
+    { sites: 5, monthly: 165000, annual: 1650000 },
+    { sites: 15, monthly: 330000, annual: 3300000 },
+    { sites: 30, monthly: 495000, annual: 4950000 },
+    { sites: 60, monthly: 792000, annual: 7920000 },
+    { sites: 120, monthly: 1320000, annual: 13200000 },
   ];
 
   const handleCheckout = async (priceId) => {
