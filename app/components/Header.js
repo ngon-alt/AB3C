@@ -181,6 +181,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                     {site.site_url && <div style={{ fontSize: 11, color: C.A }}>{site.site_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</div>}
                   </a>
                 ))}
+                <a href="/dashboard" style={{ display: "block", padding: "10px 14px", fontSize: 13, color: C.A, textDecoration: "none", fontFamily: NAV_FONT, borderBottom: `1px solid ${C.border}`, fontWeight: 600 }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  ＋ サイトを登録
+                </a>
                 <a href="/dashboard" style={{ display: "block", padding: "10px 14px", fontSize: 13, color: C.muted, textDecoration: "none", fontFamily: NAV_FONT, textAlign: "center", fontWeight: 600 }}
                   onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
                   onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
