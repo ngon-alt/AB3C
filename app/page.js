@@ -1425,7 +1425,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
   </button>
   <button
-    onClick={() => { window.print(); }}
+    onClick={() => {
+      var origTitle = document.title;
+      var printName = "AB3C分析";
+      try {
+        if (currentInput?.startsWith("http")) printName = new URL(currentInput).hostname.replace(/^www\./, "");
+      } catch (e) {}
+      if (historyTitle) printName += " — " + historyTitle.slice(0, 60);
+      document.title = printName;
+      window.print();
+      document.title = origTitle;
+    }}
     style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
   >
 🖨️ 印刷・ＰＤＦ保存
