@@ -1056,7 +1056,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
       const body = tab === "url" ? { url } : { input };
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
-      if (data.error) { setError(data.error); setLoading(false); return; }
+      if (data.error) { setError(data.error); setLoading(false); setOverlayMessage(null); return; }
       setResult(data);
 setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
