@@ -238,9 +238,15 @@ checkpoints: [{ label, status, comment }]
 2. テーマ初回アドバイスの動作確認・改善
 3. マルチサイト管理（サイトURL登録・一覧画面・サイト選択→分析画面）
 
+### セミナー後タスク
+- **frontend-designプラグイン導入** — Anthropic公式のClaude Codeプラグイン。AIが生成するUIの品質を向上させる。既存のカラールール（赤=Benefit、青=Advantage等）との整合性を確認してから導入すること。GitHub: https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design
+- **Google Ads API（Keyword Planner）統合** — SEOチャットにキーワード検索ボリューム表示。Google Adsアカウント作成済み、開発者トークン申請は未完了
+- **スクロール時のヘッダー高さ変動（ジャンプ）修正**
+- **サブスクプラン新価格のStripe Price ID更新** — 表示価格は更新済み、Stripe側のPrice IDは旧価格のまま
+
 ### 中期タスク
 - チュートリアルメール実装（Resend、文面確定済み）
-- さくらサーバーDNS設定完了後のResendドメイン認証
+- Resendドメイン認証完了済み（senryaku.ai）
 - ケーススタディギャラリーページ（/examples）の実装
 - セキュリティ脆弱性対応（Next.js 14.2.5、Dependabot alerts含む）
 - コンタクトフォームのメール送信実装
