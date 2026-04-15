@@ -1084,9 +1084,13 @@ if (tab === "url" && savedText.startsWith("http")) {
       }
       if (saveSid) {
         setSiteId(saveSid);
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
+        var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
+        var putData = await putRes.json();
+        console.log("分析結果DB保存:", putRes.ok ? "成功" : "失敗", putData);
+      } else {
+        console.warn("分析結果DB保存: サイトIDが見つかりません");
       }
-    } catch (e) {}
+    } catch (e) { console.error("分析結果DB保存エラー:", e); }
   })();
 }
 
