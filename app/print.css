@@ -76,6 +76,13 @@
     margin-bottom: 3mm !important;
   }
 
+  /* 最後の要素の余白を消して空白ページを防止 */
+  #result-area > div:last-child,
+  #improve-area > div:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
   /* 不要な要素を完全非表示 */
   #sidebar, button, nav, header { display: none !important; }
 }
