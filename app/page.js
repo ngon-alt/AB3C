@@ -1435,8 +1435,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   >
 🖨️ 印刷・ＰＤＦ保存
   </button>
+  {improveLoading && (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", color: C.muted, fontSize: 14, fontFamily: "'Space Mono', monospace" }}>
+      <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #ccc", borderTop: `2px solid ${C.phase1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
+      改善レポート生成中…
+    </div>
+  )}
 </div>
-           
+
 {(currentInput || chatSummaries.length > 0) && (
   <div style={{ background: "#e8e8e8", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
