@@ -461,23 +461,23 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
           rows={3}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
-        {/* 2. チャットに送信 */}
+        {/* 2. チャットに送信（黒：ニュートラルな日常操作） */}
         <button onClick={send} disabled={loading}
-          style={{ width: "100%", marginTop: 8, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
+          style={{ width: "100%", marginTop: 8, background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
           💬 チャットに送信
         </button>
-        {/* 3. この会話内容を分析に反映する */}
+        {/* 3. この会話内容を分析に反映する（ティール：戦略策定フェーズ色） */}
         {messages.length >= 3 && (
           <button onClick={reanalyze} disabled={loading}
-            style={{ width: "100%", marginTop: 10, background: loading ? C.muted : "#7c3aed", border: "none", borderRadius: 6, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, padding: "12px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
-            {loading ? "↻ 再分析中..." : "↻ この会話内容を分析に反映する"}
+            style={{ width: "100%", marginTop: 10, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 6, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, padding: "12px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
+            {loading ? "← 再分析中..." : "← この会話内容を分析に反映する"}
           </button>
         )}
         {/* 4. 戦略を確定 */}
         {onConfirmStrategy && (
           <button onClick={onConfirmStrategy}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
-            🚩 戦略を確定する
+            戦略を確定する →
           </button>
         )}
       </div>
@@ -632,7 +632,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
         <button onClick={send} disabled={loading || !isPro}
-          style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
+          style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
           💬 チャットに送信
         </button>
       </div>
@@ -1453,7 +1453,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           opacity: !canConfirm ? 0.7 : 1,
         }}
       >
-        {strategyConfirmed ? "✅ 戦略確定済み" : "🚩 戦略を確定する"}
+        {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定する →"}
       </button>
     );
   })()}
