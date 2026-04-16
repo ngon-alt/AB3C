@@ -39,9 +39,14 @@ export async function GET() {
       `;
       if (planResult.length > 0) {
         const p = planResult[0];
-        // プラン略称: support → フル(フルプラン), analysis → 診断(戦略診断プラン)
-        const typeLabel = p.plan_type === "support" ? "フル" : "診断";
-        planLabel = `${typeLabel}${p.site_limit}`;
+        // バッジ表示:
+        // - フルプラン: "フル"（1〜120サイトすべて同表示）
+        // - 戦略診断プラン: 1サイトは"診断"、10/100サイトは"診断10"/"診断100"
+        if (p.plan_type === "support") {
+          planLabel = "フル";
+        } else {
+          planLabel = p.site_limit > 1 ? `診断${p.site_limit}` : "診断";
+        }
       }
     } catch (e) {}
 
