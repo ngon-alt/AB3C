@@ -90,20 +90,21 @@ export default function HowtoPage() {
           <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
               {[
-                { label: "サイト登録", icon: "📋", color: C.ink },
+                { label: "URL入力", icon: "🌐", color: C.phase1 },
                 { label: "AB3C分析", icon: "🔍", color: C.phase1 },
+                { label: "サイト改善レポート", icon: "🔧", color: C.phase1 },
                 { label: "チャットで深掘り", icon: "💬", color: C.phase1 },
                 { label: "戦略確定", icon: "✅", color: C.phase1 },
-                { label: "施策検討", icon: "🎯", color: C.phase2 },
-                { label: "アクション実行", icon: "🚀", color: C.phase2 },
+                { label: "戦略アクション", icon: "🎯", color: C.phase2 },
+                { label: "実行", icon: "🚀", color: C.phase2 },
               ].map(function(step, i) {
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 28 }}>{step.icon}</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: step.color, marginTop: 4 }}>{step.label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: step.color, marginTop: 4 }}>{step.label}</div>
                     </div>
-                    {i < 5 && <div style={{ fontSize: 20, color: C.muted }}>→</div>}
+                    {i < 6 && <div style={{ fontSize: 20, color: C.muted }}>→</div>}
                   </div>
                 );
               })}
@@ -111,21 +112,78 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 戦略立案フェーズ */}
-        <Section title="戦略立案フェーズ（STEP 1）" icon="🔍">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 20 }}>
-            <Card title="🌐 URLで分析（既存事業向け）">
-              ウェブサイトのURLを入力するだけで、AIがサイトの内容を読み取り、AB3C分析とウェブサイト改善レポートを自動生成します。
-              <div style={{ marginTop: 10, background: C.highlight, borderRadius: 6, padding: "12px 14px", fontSize: 14 }}>
-                <b>対応できないサイト：</b>楽天・Amazon等のモール型EC、Instagram・Facebook等のSNS、食べログ等の予約サイト
+        {/* 使い方 — 戦略立案フェーズ */}
+        <Section title="使い方 — 戦略立案フェーズ" icon="📖">
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* STEP 1: URL入力・分析 */}
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1, marginBottom: 12 }}>STEP 1 — URLを入力して分析する</div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                すでにウェブサイトをお持ちなら、URLを入力して「分析する」ボタンを押すだけ。ウェブサイトの内容を読み取り、あなたの事業の戦略をAIがアドバイスしてくれます。
               </div>
-            </Card>
-            <Card title="✏️ テキストで入力（新規事業向け）">
-              事業概要を自由に記述して分析できます。まだウェブサイトがない新規事業や、サイトの内容が実態と異なる場合に有効です。テキスト分析ではウェブサイト改善レポートは生成されません。
-            </Card>
-          </div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                同時に<b>ウェブサイト改善レポート</b>も書き出されます。このレポートだけを見るだけでも、サイトの大幅な改善が可能です。
+              </div>
+              <div style={{ background: C.highlight, borderRadius: 6, padding: "12px 16px", fontSize: 14, color: C.ink }}>
+                💡 ウェブサイトがない場合は「テキストで入力」タブから事業概要を自由に記述して分析できます。
+              </div>
+            </div>
 
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>分析結果の見方</div>
+            {/* STEP 2: チャットで深掘り */}
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1, marginBottom: 12 }}>STEP 2 — チャットで戦略を磨き上げる</div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                分析結果を受けて、疑問に思うところをチャットで相談しましょう。「これはどういう意味？」「私としてはこうしたいんだけど、ウェブサイトでは伝わっていないかな」といったことを話し合うことで、よりイメージする戦略にAIが理解を深めていきます。
+              </div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+                そして<b>「この会話内容を分析に反映する」</b>ボタンを押すと、チャットの内容も含めて、より精度の高い戦略分析結果を書き出してくれます。これを繰り返すことで、戦略がどんどん磨かれていきます。
+              </div>
+            </div>
+
+            {/* STEP 3: 戦略確定 */}
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1, marginBottom: 12 }}>STEP 3 — 戦略を確定する</div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+                「この戦略で良い」と思ったら、<b>「戦略を確定」</b>ボタンを押しましょう。戦略が確定したら、それに紐づいて様々な施策を検討できる<b>戦略アクションタブ</b>が有効になります。
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* 使い方 — 戦略アクションフェーズ */}
+        <Section title="使い方 — 戦略アクションフェーズ" icon="🎯">
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 16 }}>
+                戦略アクションタブでは、SEO・SNS・Web広告・採用・補助金など<b>10の項目</b>について、確定した戦略に則った具体的なアクションのアドバイスがもらえます。項目に分類されないアクションについても、新規で追加することが可能です。
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginBottom: 16 }}>
+                {[
+                  { icon: "🔍", label: "SEO対策" }, { icon: "📱", label: "SNS運用" },
+                  { icon: "📣", label: "Web広告" }, { icon: "📍", label: "Googleマップ" },
+                  { icon: "📄", label: "チラシ・DM" }, { icon: "📰", label: "プレスリリース" },
+                  { icon: "🔧", label: "ウェブサイト改善" }, { icon: "👥", label: "採用コンテンツ企画" },
+                  { icon: "📋", label: "補助金申請" }, { icon: "💼", label: "営業資料・提案書" },
+                ].map(function(item, i) {
+                  return (
+                    <div key={i} style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "10px 14px", fontSize: 15, fontWeight: 600 }}>
+                      {item.icon} {item.label}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                アクションについてチャットで話し合い、「これはぜひやりたい」と思うものがあれば、<b>アクションリストに登録</b>していってください。アクションリストが、あなたの経営を改善していくための施策のリストとなります。
+              </div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+                そのリストを持って、担当者に指示を出しましょう。施策を実行していく中で戦略を見直したくなった場合は、改めてサイト分析を行い、戦略を再度確定し直すことができます。
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* 分析結果の見方 */}
+        <Section title="分析結果の見方" icon="📊">
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               { label: "B — Benefit（お客様が求める価値）", color: C.B, desc: "ニーズ（欠乏感・曖昧な欲求）とウォンツ（具体的欲求）の両面から、お客様が本当に求めている価値を分析します。" },
@@ -141,72 +199,6 @@ export default function HowtoPage() {
                 </div>
               );
             })}
-          </div>
-        </Section>
-
-        {/* 分析チャット */}
-        <Section title="分析チャット" icon="💬">
-          <Card title="分析結果をAIと一緒に磨き上げる">
-            分析結果の右側にあるチャットで、AIに質問や修正依頼ができます。
-          </Card>
-          <div style={{ marginTop: 16 }}>
-            <Step number="1" title="質問・修正依頼をする" desc="「ニーズにこういうシーンも追加してほしい」「ターゲットをもっと絞りたい」など、具体的に伝えてください。" />
-            <Step number="2" title="AIが回答する" desc="AB3Cフレームワークの観点からアドバイスが返ってきます。" />
-            <Step number="3" title="「この会話内容を分析に反映する」をクリック" desc="赤いボタンを押すと、チャットでのやり取りが分析結果に反映されます。変更箇所はハイライト表示されます。" />
-          </div>
-          <div style={{ background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 8, padding: "16px 20px", marginTop: 16 }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>💡 ハイライト表示</div>
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.7 }}>
-              反映後、変更された箇所は黄色でハイライトされます。2回目は緑、3回目は青、4回目は赤と色が変わるので、何回修正したかが一目でわかります。
-            </div>
-          </div>
-        </Section>
-
-        {/* 戦略確定 */}
-        <Section title="戦略確定" icon="✅">
-          <Card title="分析結果に納得したら戦略を確定">
-            チャットパネルの一番下にある「戦略を確定」ボタンを押すと、現在の分析結果が確定され、戦略アクションフェーズに進めるようになります。
-          </Card>
-          <div style={{ marginTop: 16 }}>
-            <Step number="1" title="分析結果を確認・修正" desc="チャットで分析結果を磨き上げ、納得のいく内容にします。" />
-            <Step number="2" title="「戦略を確定」をクリック" desc="分析結果がサイト管理に保存され、戦略アクションタブが有効になります。" />
-            <Step number="3" title="左サイドバーに確定履歴が残る" desc="確定した戦略の履歴がサイドバーに保存されます。過去の確定内容をクリックで振り返れます。" />
-          </div>
-        </Section>
-
-        {/* 戦略アクションフェーズ */}
-        <Section title="戦略アクションフェーズ（STEP 2）" icon="🎯">
-          <Card title="戦略に基づいて具体的な施策を検討">
-            戦略確定後、戦略アクションタブをクリックすると、10の施策テーマについてAIと相談できます。各施策はAB3C分析結果をベースにしたアドバイスが提供されます。
-          </Card>
-          <div style={{ marginTop: 16, fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>10の施策テーマ</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
-            {[
-              { icon: "🔍", label: "SEO対策", desc: "キーワード候補・タイトル改善・コンテンツ構成" },
-              { icon: "📱", label: "SNS運用", desc: "プラットフォーム選定・投稿企画・カレンダー" },
-              { icon: "📣", label: "Web広告", desc: "広告種別選定・広告文案・ターゲティング" },
-              { icon: "📍", label: "Googleマップ", desc: "プロフィール改善・口コミ対策・投稿活用" },
-              { icon: "📄", label: "チラシ・DM", desc: "キャッチコピー・構成ラフ・配布戦略" },
-              { icon: "📰", label: "プレスリリース", desc: "ニュース切り口・文案・配信先" },
-              { icon: "🔧", label: "ウェブサイト改善", desc: "コンテンツ・デザイン・構造の改善" },
-              { icon: "👥", label: "採用コンテンツ企画", desc: "ビジョン・強み・キャリアパス提案" },
-              { icon: "📋", label: "補助金申請", desc: "事業計画書の下書き・たたき台" },
-              { icon: "💼", label: "営業資料・提案書", desc: "トーク構成・提案書ドラフト・FAQ" },
-            ].map(function(item, i) {
-              return (
-                <div key={i} style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{item.icon} {item.label}</div>
-                  <div style={{ fontSize: 14, color: C.muted }}>{item.desc}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>施策チャットの使い方</div>
-            <Step number="1" title="左サイドバーから施策を選択" desc="施策をクリックすると「全体アドバイス」が自動生成されます。" />
-            <Step number="2" title="チャットで詳細を詰める" desc="全体アドバイスをベースに、具体的な施策についてAIと会話します。" />
-            <Step number="3" title="サブチャットを作成（オプション）" desc="「+ チャット追加」でテーマ内のサブトピック（例：SEO→「TOPページのSEO」）を作成できます。作成時に概要を入力すると、それに基づいたアドバイスが生成されます。" />
           </div>
         </Section>
 
