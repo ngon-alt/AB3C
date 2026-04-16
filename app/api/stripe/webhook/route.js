@@ -89,8 +89,22 @@ export async function POST(req) {
             created_at TIMESTAMPTZ DEFAULT NOW()
           )
         `;
-        const expiresAt = plan.type === 'analysis' ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() : null;
+        let expiresAt = null;
         const subscriptionId = session.subscription || null;
+        if (plan.type === 'analysis') {
+          // 戦略診断プラン: 1年後に有効期限
+          expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        } else if (subscriptionId) {
+          // フルプラン: Stripeから次回更新日を取得
+          try {
+            const sub = await stripe.subscriptions.retrieve(subscriptionId);
+            if (sub.current_period_end) {
+              expiresAt = new Date(sub.current_period_end * 1000).toISOString();
+            }
+          } catch (e) {
+            console.error('Subscription取得エラー:', e);
+          }
+        }
         await sql`
           INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id, stripe_subscription_id, expires_at)
           VALUES (${email}, ${plan.type}, ${plan.sites}, ${plan.interval}, ${priceId}, ${subscriptionId}, ${expiresAt})
@@ -110,6 +124,43 @@ export async function POST(req) {
       WHERE stripe_subscription_id = ${subscription.id}
     `;
     console.log(`サブスクリプション解約: ${subscription.id}`);
+  }
+
+  // 月次/年次更新（フルプランのチャットチケットを強制リセット）
+  // - billing_reason === 'subscription_create' は初回（checkout.session.completedで処理済）なのでスキップ
+  // - billing_reason === 'subscription_cycle' or 'subscription_update' のみ処理
+  if (event.type === 'invoice.paid') {
+    const invoice = event.data.object;
+    const reason = invoice.billing_reason;
+    const subscriptionId = invoice.subscription;
+    if (subscriptionId && reason !== 'subscription_create') {
+      const sql = neon(process.env.DATABASE_URL);
+      // 該当のuser_planを取得
+      const plans = await sql`
+        SELECT user_email, plan_type, site_limit FROM user_plans
+        WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
+        ORDER BY purchased_at DESC LIMIT 1
+      `;
+      if (plans.length > 0) {
+        const p = plans[0];
+        const newChatCount = getChatCount(p);
+        // 既存のnon-trialチケットを削除して新たに付与（強制リセット）
+        await sql`DELETE FROM tickets WHERE email = ${p.user_email} AND is_trial = FALSE`;
+        await sql`
+          INSERT INTO tickets (email, remaining_chats, is_trial)
+          VALUES (${p.user_email}, ${newChatCount}, FALSE)
+        `;
+        // 次回更新日を記録（Stripe invoice の period_end）
+        if (invoice.lines?.data?.[0]?.period?.end) {
+          const nextRenewalAt = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
+          await sql`
+            UPDATE user_plans SET expires_at = ${nextRenewalAt}
+            WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
+          `;
+        }
+        console.log(`月次更新: ${p.user_email} / ${p.plan_type}${p.site_limit} / チャット${newChatCount}回にリセット`);
+      }
+    }
   }
 
   return Response.json({ received: true });

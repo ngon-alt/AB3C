@@ -21,6 +21,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
   const [planLabel, setPlanLabel] = useState(null);
+  const [planType, setPlanType] = useState(null);
+  const [nextRenewalAt, setNextRenewalAt] = useState(null);
   const [currentPath, setCurrentPath] = useState("/");
   const [sites, setSites] = useState([]);
   const [showSiteDropdown, setShowSiteDropdown] = useState(false);
@@ -30,7 +32,13 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
     if (session?.user?.email) {
       fetch("/api/check-pro")
         .then((r) => r.json())
-        .then((d) => { setIsPro(d.isPro); setChatTickets(d.chatTickets || 0); setPlanLabel(d.planLabel || null); })
+        .then((d) => {
+          setIsPro(d.isPro);
+          setChatTickets(d.chatTickets || 0);
+          setPlanLabel(d.planLabel || null);
+          setPlanType(d.planType || null);
+          setNextRenewalAt(d.nextRenewalAt || null);
+        })
         .catch(() => { setIsPro(false); setChatTickets(0); });
       fetch("/api/sites")
         .then((r) => r.json())
@@ -67,10 +75,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
           {session ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT }}>
+              <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {session.user?.name}
-                {planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
-              {isPro && !planLabel && <span style={{ marginLeft: 6, background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
+                {planLabel && <span style={{ background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
+                {isPro && !planLabel && <span style={{ background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
+                {nextRenewalAt && (
+                  <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>
+                    {planType === "support" ? "次回更新" : "有効期限"}: {new Date(nextRenewalAt).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
+                  </span>
+                )}
               </span>
               <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
                 ログアウト
