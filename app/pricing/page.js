@@ -13,9 +13,9 @@ export default function PricingPage() {
   const [showGrowth, setShowGrowth] = useState(false);
 
   const analysisPrices = {
-    1: "price_1TLOMpCYHZ66REnUpiZhPmSD",
-    10: "price_1TLONFCYHZ66REnUIosdtrFL",
-    100: "price_1TLONcCYHZ66REnUo7W7QVjD",
+    1: "price_1TMoucCYHZ66REnUcvtOwA19",
+    10: "price_1TMov9CYHZ66REnUE9yV6bwO",
+    100: "price_1TMovUCYHZ66REnUdqdw3Jcc",
   };
   const supportPricesMonthly = {
     1: "price_1TMQJECYHZ66REnUvdtin0z3",

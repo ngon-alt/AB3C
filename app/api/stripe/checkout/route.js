@@ -5,11 +5,11 @@ import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// 分析プランのPrice ID（年間ライセンス＝一括払い）
+// スポットプランのPrice ID（年間ライセンス＝一括払い）
 const ANALYSIS_PRICE_IDS = new Set([
-  "price_1TLOMpCYHZ66REnUpiZhPmSD",
-  "price_1TLONFCYHZ66REnUIosdtrFL",
-  "price_1TLONcCYHZ66REnUo7W7QVjD",
+  "price_1TMoucCYHZ66REnUcvtOwA19",
+  "price_1TMov9CYHZ66REnUE9yV6bwO",
+  "price_1TMovUCYHZ66REnUdqdw3Jcc",
 ]);
 
 // キャンペーンクーポンID（TODO: Stripeで作成後に差し替え）

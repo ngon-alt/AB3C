@@ -6,9 +6,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // === 新料金体系 ===
 const PRICE_PLANS = {
   // 分析プラン（年間ライセンス）
-  'price_1TLOMpCYHZ66REnUpiZhPmSD': { type: 'analysis', sites: 1,   interval: 'year' },
-  'price_1TLONFCYHZ66REnUIosdtrFL':  { type: 'analysis', sites: 10,  interval: 'year' },
-  'price_1TLONcCYHZ66REnUo7W7QVjD': { type: 'analysis', sites: 100, interval: 'year' },
+  'price_1TMoucCYHZ66REnUcvtOwA19': { type: 'analysis', sites: 1,   interval: 'year' },
+  'price_1TMov9CYHZ66REnUE9yV6bwO': { type: 'analysis', sites: 10,  interval: 'year' },
+  'price_1TMovUCYHZ66REnUdqdw3Jcc': { type: 'analysis', sites: 100, interval: 'year' },
 
   // サブスクプラン（月額）
   'price_1TMQJECYHZ66REnUvdtin0z3':  { type: 'support', sites: 1,   interval: 'month' },

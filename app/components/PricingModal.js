@@ -20,9 +20,9 @@ export default function PricingModal({ onClose }) {
 
   // === Stripe Price IDs（正規価格で登録・TODO: Stripe作成後に差し替え） ===
   const analysisPrices = {
-    1:   "price_1TLOMpCYHZ66REnUpiZhPmSD",
-    10:  "price_1TLONFCYHZ66REnUIosdtrFL",
-    100: "price_1TLONcCYHZ66REnUo7W7QVjD",
+    1:   "price_1TMoucCYHZ66REnUcvtOwA19",
+    10:  "price_1TMov9CYHZ66REnUE9yV6bwO",
+    100: "price_1TMovUCYHZ66REnUdqdw3Jcc",
   };
 
   const supportPricesMonthly = {
