@@ -10,8 +10,8 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#000000", muted: "#000000", highlight: "#fef3c7",
-  phase1: "#2d6a30", phase1Bg: "#8bb88b",
-  phase2: "#8c5e1a", phase2Bg: "#e4d9c8",
+  phase1: "#0d9488", phase1Bg: "#a7e9e0",
+  phase2: "#ea580c", phase2Bg: "#fed7aa",
 };
 
 const Badge = ({ status }) => {
@@ -1133,7 +1133,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {overlayMessage && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.15)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 40 }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: "24px 36px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", maxWidth: 360, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#8c5e1a" : "#2d6a30"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
+            <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#ea580c" : "#0d9488"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
             <div style={{ textAlign: "left" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a14", marginBottom: 2 }}>{overlayMessage}</div>
               <div style={{ fontSize: 13, color: "#78716c" }}>しばらくお待ちください</div>
@@ -1443,7 +1443,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         disabled={!canConfirm || strategyConfirmed}
         title={!canConfirm ? "フルプランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
         style={{
-          background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.A,
+          background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
           border: "none", borderRadius: 2,
           color: "#fff",
           cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
@@ -1451,7 +1451,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           opacity: !canConfirm ? 0.7 : 1,
         }}
       >
-        {strategyConfirmed ? "✅ 戦略確定済み" : "✅ 戦略を確定"}
+        {strategyConfirmed ? "✅ 戦略確定済み" : "🚩 戦略を確定する"}
       </button>
     );
   })()}

@@ -5,7 +5,7 @@ import Header from "../components/Header";
 const C = {
   bg: "#f5f2eb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#1a1a14", muted: "#78716c", A: "#1a6fd4",
-  phase1: "#2d6a30", phase2: "#8c5e1a",
+  phase1: "#0d9488", phase2: "#ea580c",
 };
 
 const faqs = [
