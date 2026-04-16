@@ -1495,6 +1495,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
 <div id="result-area">
+  <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+  </div>
   <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
