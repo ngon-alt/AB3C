@@ -182,8 +182,20 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 分析結果の見方 */}
-        <Section title="分析結果の見方" icon="📊">
+        {/* サイト管理 */}
+        <Section title="サイト管理" icon="📋">
+          <Card title="複数サイトを一元管理">
+            ヘッダーの「サイト管理」ボタンからダッシュボードにアクセスできます。サイトの追加・名前変更・削除、分析結果の確認ができます。
+          </Card>
+          <div style={{ marginTop: 16 }}>
+            <Step number="1" title="サイトを登録" desc="ダッシュボードの「新規サイト登録」からサイト名やURLを入力して登録します。プランに応じてサイト数の上限があります。" />
+            <Step number="2" title="サイトを切り替え" desc="ヘッダーのプルダウンメニューから分析中のサイトを切り替えられます。" />
+            <Step number="3" title="分析を開く" desc="ダッシュボードのサイトカードから「分析を開く」をクリックすると、保存された分析結果が復元されます。" />
+          </div>
+        </Section>
+
+        {/* AB3C分析結果の見方 */}
+        <Section title="AB3C分析結果の見方" icon="📊">
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               { label: "B — Benefit（お客様が求める価値）", color: C.B, desc: "ニーズ（欠乏感・曖昧な欲求）とウォンツ（具体的欲求）の両面から、お客様が本当に求めている価値を分析します。" },
@@ -202,15 +214,24 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* サイト管理 */}
-        <Section title="サイト管理" icon="📋">
-          <Card title="複数サイトを一元管理">
-            ヘッダーの「サイト管理」ボタンからダッシュボードにアクセスできます。サイトの追加・名前変更・削除、分析結果の確認ができます。
+        {/* ウェブサイト改善レポート */}
+        <Section title="ウェブサイト改善レポート" icon="🔧">
+          <Card title="URL分析時に自動生成">
+            URLで分析を行うと、AB3C分析に加えてウェブサイト改善レポートが自動生成されます。分析結果の下部に表示され、以下の3つの観点から具体的な改善提案が行われます。
           </Card>
-          <div style={{ marginTop: 16 }}>
-            <Step number="1" title="サイトを登録" desc="ダッシュボードの「新規サイト登録」からサイト名やURLを入力して登録します。プランに応じてサイト数の上限があります。" />
-            <Step number="2" title="サイトを切り替え" desc="ヘッダーのプルダウンメニューから分析中のサイトを切り替えられます。" />
-            <Step number="3" title="分析を開く" desc="ダッシュボードのサイトカードから「分析を開く」をクリックすると、保存された分析結果が復元されます。" />
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.A }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.A, marginBottom: 6 }}>追加すべきコンテンツ</div>
+              <div style={{ fontSize: 14, color: C.ink }}>戦略メッセージを伝えるために不足しているページや情報</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.B }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.B, marginBottom: 6 }}>デザイン・ビジュアル改善</div>
+              <div style={{ fontSize: 14, color: C.ink }}>ターゲットに刺さるデザインの方向性</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.C }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 6 }}>サイト構造の改善</div>
+              <div style={{ fontSize: 14, color: C.ink }}>ユーザー導線、CTA配置の最適化</div>
+            </div>
           </div>
         </Section>
 
@@ -242,27 +263,6 @@ export default function HowtoPage() {
                 <li>同じブラウザ・同じデバイスで利用することをお勧めします</li>
                 <li>戦略が固まったら「戦略を確定」を押して、データベースに保存してください</li>
               </ul>
-            </div>
-          </div>
-        </Section>
-
-        {/* ウェブサイト改善レポート */}
-        <Section title="ウェブサイト改善レポート" icon="🔧">
-          <Card title="URL分析時に自動生成">
-            URLで分析を行うと、AB3C分析に加えてウェブサイト改善レポートが自動生成されます。分析結果の下部に表示され、以下の3つの観点から具体的な改善提案が行われます。
-          </Card>
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.A }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.A, marginBottom: 6 }}>追加すべきコンテンツ</div>
-              <div style={{ fontSize: 14, color: C.ink }}>戦略メッセージを伝えるために不足しているページや情報</div>
-            </div>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.B }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.B, marginBottom: 6 }}>デザイン・ビジュアル改善</div>
-              <div style={{ fontSize: 14, color: C.ink }}>ターゲットに刺さるデザインの方向性</div>
-            </div>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.C }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 6 }}>サイト構造の改善</div>
-              <div style={{ fontSize: 14, color: C.ink }}>ユーザー導線、CTA配置の最適化</div>
             </div>
           </div>
         </Section>
