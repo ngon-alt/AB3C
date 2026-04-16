@@ -31,14 +31,18 @@ export async function GET() {
 
     // 契約プラン情報
     let planLabel = null;
+    let planType = null;
+    let nextRenewalAt = null;
     try {
       const planResult = await sql`
-        SELECT plan_type, site_limit FROM user_plans
+        SELECT plan_type, site_limit, expires_at, interval FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
         ORDER BY site_limit DESC LIMIT 1
       `;
       if (planResult.length > 0) {
         const p = planResult[0];
+        planType = p.plan_type;
+        nextRenewalAt = p.expires_at; // フルプラン: 次回課金日 / 戦略診断プラン: 有効期限
         // バッジ表示:
         // - フルプラン: `フル${契約サイト数}` (例: フル5, フル15)
         // - 戦略診断プラン: 1サイトは"診断"、10/100サイトは"診断 ${残り}/${契約数}" (例: 診断 99/100)
@@ -59,7 +63,7 @@ export async function GET() {
       }
     } catch (e) {}
 
-    return Response.json({ isPro, chatTickets, trialChats, planLabel });
+    return Response.json({ isPro, chatTickets, trialChats, planLabel, planType, nextRenewalAt });
   } catch (e) {
     console.error(e);
     return Response.json({ isPro: false, chatTickets: 0, trialChats: 0, planLabel: null });
