@@ -108,15 +108,16 @@ export default function PricingPage() {
               <tr style={{ background: C.ink, color: "#fff" }}>
                 <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>スポットプラン</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>サブスクプラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断プラン</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断・策定・<br/>アクションプラン<br/><span style={{fontSize:11, fontWeight:400}}>（フルプラン）</span></th>
               </tr>
             </thead>
             <tbody>
               {[
                 { feature: "AB3C分析レポート", free: "○（1回）", analysis: "○", growth: "○" },
                 { feature: "ウェブサイト改善レポート", free: "○（1回）", analysis: "○", growth: "○" },
-                { feature: "AIチャット相談", free: "○（1回）", analysis: "○（30回）", growth: "○（月100回/サイト）" },
+                { feature: "AIチャットで戦略を磨く", free: "✕", analysis: "✕", growth: "○（月100回/サイト）" },
+                { feature: "戦略確定・履歴保存", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "SEO対策チャット", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "SNS運用チャット", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "Web広告チャット", free: "✕", analysis: "✕", growth: "○" },
@@ -147,11 +148,11 @@ export default function PricingPage() {
           <div style={{ display: "flex", gap: 2 }}>
             <button onClick={() => { setShowAnalysis(true); setShowGrowth(false); }}
               style={{ flex: 1, background: showAnalysis ? "#bbdefb" : "#e3f2fd", color: showAnalysis ? C.ink : C.muted, border: "none", borderRadius: "6px 6px 0 0", padding: "12px 16px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>
-              スポットプラン（年間ライセンス）
+              戦略診断プラン（年間ライセンス）
             </button>
             <button onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{ flex: 1, background: showGrowth ? "#f8bbd0" : "#fce4ec", color: showGrowth ? C.ink : C.muted, border: "none", borderRadius: "6px 6px 0 0", padding: "12px 16px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>
-              サブスクプラン（月額/年額）
+              戦略診断・策定・アクションプラン（フルプラン・月額/年額）
             </button>
           </div>
 
@@ -160,9 +161,9 @@ export default function PricingPage() {
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
                   現在のWebサイトから戦略と改善点をレポートする機能です。
-                  主にスポット営業等に使う機能です。<br/>
+                  AB3C分析＋ウェブサイト改善レポートを書き出して、PDF・印刷・シェアURLで持ち帰れます。<br/>
                   <strong>年間ライセンス（有効期限1年）</strong>でのご提供です。<br/><br/>
-                  <span style={{ color: C.A, fontWeight: 600 }}>※AIチャット相談が30回利用できます</span>
+                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能はフルプランで利用可能です</span>
                 </div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
                 {analysisPlanDetails.map((plan, i) => (
@@ -192,8 +193,9 @@ export default function PricingPage() {
             {showGrowth && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
-                  伴走しながらサイトを改善していくためのプランです。
+                  <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援するフルプランです。
                   経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
+                  <span style={{ color: C.A, fontWeight: 600 }}>✓ 戦略診断・チャットで戦略を磨く・戦略アクション実行支援</span><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます（1サイトあたり月100回）</span><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ 年額契約＝月額×10（2ヶ月分無料）</span>
                 </div>
@@ -246,8 +248,8 @@ export default function PricingPage() {
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
-              ※ スポットプランは年間ライセンス（有効期限1年）です。<br/>
-              ※ サブスクプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+              ※ 戦略診断プランは年間ライセンス（有効期限1年）です。<br/>
+              ※ フルプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
               {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
               {showGrowth && <>※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}

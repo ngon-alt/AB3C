@@ -48,7 +48,7 @@ export default function AboutPage() {
           </div>
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px", marginBottom: 16 }}>
             <p style={{ fontSize: 15, lineHeight: 2, color: C.muted, marginBottom: 16 }}>
-              AB3C分析は、<a href="https://www.gonweb.co.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>株式会社ゴンウェブイノベーションズ</a>代表・権 成俊が考案した戦略立案フレームワークです。
+              AB3C分析は、<a href="https://www.gonweb.co.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>株式会社ゴンウェブイノベーションズ</a>代表・権 成俊が考案した戦略策定フレームワークです。
             </p>
             <p style={{ fontSize: 15, lineHeight: 2, color: C.muted, marginBottom: 16 }}>
               もともと世界的に有名なコンサルタント・大前研一氏が提唱した<b style={{ color: C.ink }}>3C分析</b>というフレームワークがあります。Customer（顧客）・Competitor（競合）・Company（自社）の3つの視点で事業を分析するもので、モノ不足からモノ余りの時代へと移り変わる中で、競合を意識しなければ価格競争に陥るということを示唆したフレームワークです。
@@ -57,7 +57,7 @@ export default function AboutPage() {
               インターネットの登場によってさらに競争が激化する中、ウェブコンサルタントとして活動する権は、3C分析に<b style={{ color: C.ink }}>Benefit（お客様が求める価値）</b>と<b style={{ color: C.ink }}>Advantage（差別的優位点）</b>という要素を加え、AB3C分析として定義しました。
             </p>
             <p style={{ fontSize: 15, lineHeight: 2, color: C.muted }}>
-              AB3C分析はインターネット超競争時代の戦略立案において、<b style={{ color: C.ink }}>「何が明らかに違うか」を明確にすること</b>を目指しています。インターネットマーケティングに非常に効果的であり、それ以外のあらゆる事業戦略立案にも活用できるフレームワークです。
+              AB3C分析はインターネット超競争時代の戦略策定において、<b style={{ color: C.ink }}>「何が明らかに違うか」を明確にすること</b>を目指しています。インターネットマーケティングに非常に効果的であり、それ以外のあらゆる事業戦略策定にも活用できるフレームワークです。
             </p>
           </div>
         </div>

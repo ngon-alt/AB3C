@@ -36,7 +36,7 @@ export const authOptions = {
         ON CONFLICT (email) DO UPDATE SET name = ${user.name}
       `;
 
-      // 新規ユーザー処理（トライアルチャットは廃止：スポット利用のみ）
+      // 新規ユーザー処理（トライアルチャットは廃止：戦略診断のみのお試し利用）
       if (isNewUser) {
         // 登録完了メール送信
         try {

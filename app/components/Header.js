@@ -40,9 +40,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   }, [session]);
 
   const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
-  // 伴走タブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→サブスクプランで利用可
+  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→フルプランで利用可
   const showBansouTip = !canAccessBansou || (canAccessBansou && phase !== "action");
-  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "サブスクプランで利用可" : "戦略確定後に利用可";
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "フルプランで利用可" : "戦略確定後に利用可";
 
   const isActive = (key) => {
     if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));
@@ -125,7 +125,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
           }}>
           <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
-          戦略立案
+          戦略策定
         </button>
         {/* 矢印 */}
         <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>

@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// スポットプランのPrice ID（年間ライセンス＝一括払い）
+// 戦略診断プランのPrice ID（年間ライセンス＝一括払い）
 const ANALYSIS_PRICE_IDS = new Set([
   "price_1TMoucCYHZ66REnUcvtOwA19",
   "price_1TMov9CYHZ66REnUE9yV6bwO",
@@ -27,7 +27,7 @@ export async function POST(req) {
     console.log('Creating checkout session for priceId:', priceId);
     console.log('User email:', session.user.email);
 
-    // 分析プラン（年間ライセンス）は一括払い、伴走プランはサブスクリプション
+    // 戦略診断プラン（年間ライセンス）は一括払い、フルプランはサブスクリプション
     const isOneTime = ANALYSIS_PRICE_IDS.has(priceId);
 
     const checkoutParams = {

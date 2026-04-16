@@ -266,7 +266,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
             <div style={{ background: "#f0f4ff", borderRadius: 8, padding: "20px 24px", marginBottom: 28 }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.A, marginBottom: 12, letterSpacing: "0.1em" }}>WHAT IS 戦略大臣</div>
               <p style={{ fontSize: 14, lineHeight: 1.9, color: C.ink, margin: "0 0 12px", fontFamily: "system-ui, sans-serif" }}>
-                戦略大臣は、300万円の事業戦略立案サービスをボタン一つで可能にしたツールです。
+                戦略大臣は、300万円の事業戦略策定サービスをボタン一つで可能にしたツールです。
               </p>
               <p style={{ fontSize: 14, lineHeight: 1.9, color: C.ink, margin: "0 0 12px", fontFamily: "system-ui, sans-serif" }}>
                 生成AIに戦略を相談すると都度都度の対処療法的な回答になりがちです。先日はこう言っていたのに今日はこんなふうに言っている——矛盾した回答に戸惑うことがありませんか？
@@ -1344,7 +1344,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <span style={{ fontSize: 24 }}>💰</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>料金とプラン</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>スポットプラン・サブスクプランの詳細</div>
+        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>戦略診断プラン・フルプランの詳細</div>
       </div>
     </a>
     <a href="/faq" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
@@ -1441,7 +1441,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <button
         onClick={canConfirm ? confirmStrategy : null}
         disabled={!canConfirm || strategyConfirmed}
-        title={!canConfirm ? "サブスクプランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+        title={!canConfirm ? "フルプランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
         style={{
           background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.A,
           border: "none", borderRadius: 2,
@@ -1706,16 +1706,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     AIチャットで戦略を磨きませんか？
                   </div>
                   <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
-                    サブスクプランなら、AIと対話しながら<br/>
-                    戦略を何度でも練り直せます。<br/>
+                    <b>戦略診断・策定・アクションプラン</b>（フルプラン）なら、<br/>
+                    AIと対話しながら戦略を何度でも練り直せます。<br/>
                     確定した戦略から具体的なアクション計画も<br/>
                     自動で生成できます。
                   </div>
                   <a href="/pricing" style={{ display: "inline-block", background: C.A, color: "#fff", fontSize: 16, fontWeight: 700, padding: "12px 24px", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace" }}>
-                    サブスクプランを見る →
+                    フルプランを見る →
                   </a>
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
-                    現在のスポット利用では<br/>分析結果のPDF保存・シェアURL発行が可能です
+                    現在の戦略診断プランでは<br/>分析結果のPDF保存・シェアURL発行が可能です
                   </div>
                 </div>
                 )

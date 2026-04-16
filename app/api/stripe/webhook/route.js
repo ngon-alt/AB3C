@@ -5,12 +5,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // === 新料金体系 ===
 const PRICE_PLANS = {
-  // 分析プラン（年間ライセンス）
+  // 戦略診断プラン（年間ライセンス）
   'price_1TMoucCYHZ66REnUcvtOwA19': { type: 'analysis', sites: 1,   interval: 'year' },
   'price_1TMov9CYHZ66REnUE9yV6bwO': { type: 'analysis', sites: 10,  interval: 'year' },
   'price_1TMovUCYHZ66REnUdqdw3Jcc': { type: 'analysis', sites: 100, interval: 'year' },
 
-  // サブスクプラン（月額）
+  // フルプラン（戦略診断・策定・アクションプラン・月額）
   'price_1TMQJECYHZ66REnUvdtin0z3':  { type: 'support', sites: 1,   interval: 'month' },
   'price_1TMQJVCYHZ66REnUYOy5mlL4':  { type: 'support', sites: 5,   interval: 'month' },
   'price_1TMQJjCYHZ66REnUmEgb5GGN':  { type: 'support', sites: 15,  interval: 'month' },
@@ -18,7 +18,7 @@ const PRICE_PLANS = {
   'price_1TMQKGCYHZ66REnUAg6NOSOK':  { type: 'support', sites: 60,  interval: 'month' },
   'price_1TMQKYCYHZ66REnUSM8rKr2n':  { type: 'support', sites: 120, interval: 'month' },
 
-  // サブスクプラン（年額＝月額×10）
+  // フルプラン（戦略診断・策定・アクションプラン・年額＝月額×10）
   'price_1TMQKvCYHZ66REnUomf2PJMh':  { type: 'support', sites: 1,   interval: 'year' },
   'price_1TMQLDCYHZ66REnU2w53yUAE':  { type: 'support', sites: 5,   interval: 'year' },
   'price_1TMQLYCYHZ66REnU9T2AlDh6':  { type: 'support', sites: 15,  interval: 'year' },

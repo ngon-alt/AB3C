@@ -55,12 +55,12 @@ export default function HowtoPage() {
         <Section title="戦略大臣とは" icon="🏯">
           <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px 28px" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16, lineHeight: 1.7 }}>
-              経営の根本となる「戦略」の立案を支援するAIツールです。
+              経営の根本となる「戦略」の策定を支援するAIツールです。
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 10 }}>こんな方のために生まれました</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 20 }}>
               {[
-                { icon: "👤", label: "経営者", desc: "戦略立案が苦手で、自社の「選ばれる理由」を言語化したい方" },
+                { icon: "👤", label: "経営者", desc: "戦略策定が苦手で、自社の「選ばれる理由」を言語化したい方" },
                 { icon: "💼", label: "コンサルタント", desc: "クライアントの戦略を大量に検討する必要がある方" },
                 { icon: "🎨", label: "デザイナー・クリエイター", desc: "手を動かすのは得意だが、戦略の裏付けがほしい方" },
                 { icon: "📊", label: "営業マン", desc: "クライアントに手軽に戦略を提案したい方" },
@@ -76,11 +76,11 @@ export default function HowtoPage() {
             </div>
             <div style={{ background: C.highlight, borderRadius: 6, padding: "16px 20px", marginBottom: 16 }}>
               <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
-                従来、AIは「答えのない問い」＝戦略のような領域は苦手とされてきました。しかし、<b>AB3C分析</b>というフレームワークを導入することで、高い精度で戦略立案ができるようになりました。
+                従来、AIは「答えのない問い」＝戦略のような領域は苦手とされてきました。しかし、<b>AB3C分析</b>というフレームワークを導入することで、高い精度で戦略策定ができるようになりました。
               </div>
             </div>
             <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
-              戦略大臣は戦略を立案するだけではありません。戦略を立案した後には<b>「戦略アクション」</b>機能を使って、SEO・SNS・広告・採用・補助金など、たくさんの具体的な施策を企画することができます。
+              戦略大臣は戦略を策定するだけではありません。戦略を策定した後には<b>「戦略アクション」</b>機能を使って、SEO・SNS・広告・採用・補助金など、たくさんの具体的な施策を企画することができます。
             </div>
           </div>
         </Section>
@@ -112,8 +112,8 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 使い方 — 戦略立案フェーズ */}
-        <Section title="使い方 — 戦略立案フェーズ" icon="📖">
+        {/* 使い方 — 戦略策定フェーズ */}
+        <Section title="使い方 — 戦略策定フェーズ" icon="📖">
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* STEP 1: URL入力・分析 */}
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
@@ -293,7 +293,7 @@ export default function HowtoPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                { title: "スポット提案型", price: "3〜5万円/件", desc: "Web制作の受注前にAB3C分析レポートを提案書として活用。競合との違いを言語化した提案で受注率を高める。" },
+                { title: "戦略診断・提案型", price: "3〜5万円/件", desc: "Web制作の受注前にAB3C戦略診断レポートを提案書として活用。競合との違いを言語化した提案で受注率を高める。" },
                 { title: "月次サポート型", price: "月20〜30万円", desc: "毎月戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化。" },
                 { title: "複数クライアント管理型", price: "月100〜300万円", desc: "複数の中小企業クライアントをまとめて管理。15サイトプランで15社を同時にサポート。" },
               ].map(function(model, i) {

@@ -39,7 +39,8 @@ export async function GET() {
       `;
       if (planResult.length > 0) {
         const p = planResult[0];
-        const typeLabel = p.plan_type === "support" ? "サブスク" : "スポット";
+        // プラン略称: support → フル(フルプラン), analysis → 診断(戦略診断プラン)
+        const typeLabel = p.plan_type === "support" ? "フル" : "診断";
         planLabel = `${typeLabel}${p.site_limit}`;
       }
     } catch (e) {}
