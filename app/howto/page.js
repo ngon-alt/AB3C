@@ -125,7 +125,7 @@ export default function HowtoPage() {
                 同時に<b>ウェブサイト改善レポート</b>も書き出されます。このレポートだけを見るだけでも、サイトの大幅な改善が可能です。
               </div>
               <div style={{ background: C.highlight, borderRadius: 6, padding: "12px 16px", fontSize: 14, color: C.ink }}>
-                💡 ウェブサイトがない場合は「テキストで入力」タブから事業概要を自由に記述して分析できます。
+                💡 新規事業の立案時など、ウェブサイトがない場合は「テキストで入力」タブから事業概要を自由に記述して分析できます。
               </div>
             </div>
 
