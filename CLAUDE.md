@@ -216,11 +216,22 @@ checkpoints: [{ label, status, comment }]
 - `ThreadChat` — 伴走フェーズ用（テーマ別・アクション登録・採用レポート生成・初回自動生成対応）
 
 ## メール実装状況（Resend）
-- 実装済み: 登録完了メール・目的別ウェルカムメール（自社利用/代理店）・3日後フォローメール
-- 文面確定済み（未実装）:
-  - #1 シェアURL(3日後) / #2 アクション相談(5日後) / #3 NotebookLM(8日後)
-  - #4 補助金申請(12日後) / #5 毎日のアクション習慣(25日後)
-- FROM_EMAIL=info@digi-kaku.or.jp、Resendドメイン認証はさくらサーバーDNS設定待ち
+- **実装済み（2025/04/16）**: app/lib/email.js に全9種の関数あり（本文HTML確定済み）
+  - sendRegistrationEmail（登録完了）
+  - sendWelcomeEmail / sendWelcomeEmailAgency（自社/代理店ウェルカム）
+  - sendAnalysisCompleteEmail（分析完了）
+  - sendFollowUpEmail（チュートリアル#1: シェアURL活用、3日後）
+  - sendTutorial2Email（#2: アクション相談、5日後）
+  - sendTutorial3Email（#3: NotebookLM、8日後）
+  - sendTutorial4Email（#4: 補助金申請、12日後）
+  - sendTutorial5Email（#5: 毎日のアクション習慣、25日後）
+- **配信スケジュール（2025/04/16）**: `/api/email/cron-tutorial` で全#1〜#5を一括処理
+  - Vercel Cron で UTC 0:00（JST 9:00）に毎日実行
+  - email_logs テーブルで二重送信防止
+  - 認証: Authorization: Bearer ${CRON_SECRET}（Vercel自動付与）または x-cron-secret
+  - 旧 /api/email/followup は新エンドポイントに転送（後方互換）
+- FROM_EMAIL=info@senryaku.ai（Resendドメイン認証 senryaku.ai 完了済み）
+- TODO: メール本文への画像（スクリーンショット）追加は別途対応
 
 ## 開発予定機能・要件
 

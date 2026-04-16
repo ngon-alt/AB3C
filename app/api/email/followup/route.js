@@ -1,37 +1,25 @@
 import { NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
-import { sendFollowUpEmail } from "@/app/lib/email";
 
-// Vercelのcronジョブまたは外部から叩くエンドポイント
-// 登録から3日経過・まだチャットを使っていないユーザーにフォローメールを送る
+// 旧エンドポイント（チュートリアル#1のみ送信）
+// 新エンドポイント /api/email/cron-tutorial に統合済み（#1〜#5を一括処理）
+// 後方互換のため残しているが、新規連携は cron-tutorial を使用すること
 export async function POST(req) {
-  const secret = req.headers.get("x-cron-secret");
-  if (secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const url = new URL(req.url);
+  const newUrl = url.origin + "/api/email/cron-tutorial";
 
-  const sql = neon(process.env.DATABASE_URL);
+  // 同じヘッダーを引き継いで新エンドポイントへ転送
+  const res = await fetch(newUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-cron-secret": req.headers.get("x-cron-secret") || "",
+    },
+  });
 
-  // 登録から3日経過・チャット未使用ユーザーを取得
-  const users = await sql`
-    SELECT u.email, u.name
-    FROM users u
-    LEFT JOIN tickets t ON u.email = t.email AND t.is_trial = TRUE
-    WHERE u.created_at <= NOW() - INTERVAL '3 days'
-      AND u.created_at >= NOW() - INTERVAL '4 days'
-      AND (t.remaining_chats = 1 OR t.remaining_chats IS NULL)
-      AND u.plan = 'free'
-  `;
-
-  let sent = 0;
-  for (const user of users) {
-    try {
-      await sendFollowUpEmail({ email: user.email, name: user.name });
-      sent++;
-    } catch (e) {
-      console.error(`フォローメール送信エラー: ${user.email}`, e);
-    }
-  }
-
-  return NextResponse.json({ sent, total: users.length });
+  const body = await res.json();
+  return NextResponse.json({
+    deprecated: true,
+    redirected_to: "/api/email/cron-tutorial",
+    ...body,
+  }, { status: res.status });
 }

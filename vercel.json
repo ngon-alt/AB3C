@@ -1,5 +1,10 @@
 {
   "buildCommand": "next build",
   "framework": "nextjs",
-  "crons": []
+  "crons": [
+    {
+      "path": "/api/email/cron-tutorial",
+      "schedule": "0 0 * * *"
+    }
+  ]
 }
