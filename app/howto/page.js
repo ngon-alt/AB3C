@@ -165,8 +165,19 @@ export default function HowtoPage() {
             {/* STEP 3: 戦略確定 */}
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1, marginBottom: 12 }}>STEP 3 — 戦略を確定する</div>
-              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
-                「この戦略で良い」と思ったら、<b>「戦略を確定」</b>ボタンを押しましょう。戦略が確定したら、それに紐づいて様々な施策を検討できる<b>戦略アクションタブ</b>が有効になります。
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                「この戦略で良い」と思ったら、チャットパネルの一番下にある<b style={{ color: C.phase2 }}>オレンジ色の「戦略を確定する →」</b>ボタンを押しましょう。戦略が確定したら、それに紐づいて様々な施策を検討できる<b>戦略アクションタブ</b>が有効になります。
+              </div>
+              <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "8px", textAlign: "center" }}>
+                <img
+                  src="/howto/strategy-confirm-step3.png"
+                  alt="チャットパネル下部のボタン群（チャットに送信・分析に反映・戦略を確定する）"
+                  style={{ maxWidth: "50%", height: "auto", borderRadius: 4 }}
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+                <div style={{ fontSize: 13, color: C.muted, marginTop: 8, fontStyle: "italic" }}>
+                  ↑ 一番下のオレンジ色のボタンが「戦略を確定する」です
+                </div>
               </div>
             </div>
           </div>
