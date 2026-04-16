@@ -1435,6 +1435,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   >
 🖨️ 印刷・ＰＤＦ保存
   </button>
+  {(() => {
+    const canConfirm = isPro || chatTickets > 0;
+    return (
+      <button
+        onClick={canConfirm ? confirmStrategy : null}
+        disabled={!canConfirm || strategyConfirmed}
+        title={!canConfirm ? "サブスクプランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+        style={{
+          background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.A,
+          border: "none", borderRadius: 2,
+          color: "#fff",
+          cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
+          fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+          opacity: !canConfirm ? 0.7 : 1,
+        }}
+      >
+        {strategyConfirmed ? "✅ 戦略確定済み" : "✅ 戦略を確定"}
+      </button>
+    );
+  })()}
   {improveLoading && (
     <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", color: C.muted, fontSize: 14, fontFamily: "'Space Mono', monospace" }}>
       <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #ccc", borderTop: `2px solid ${C.phase1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
@@ -1653,9 +1673,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               )}
 
               {phase === "analysis" ? (
+                (isPro || chatTickets > 0) ? (
                 <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
-                    isPro={isPro || chatTickets > 0 || trialChats > 0}
+                    isPro={isPro || chatTickets > 0}
                     analysisResult={currentResult}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
@@ -1678,6 +1699,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
                 </div>
+                ) : (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", textAlign: "center", overflow: "auto" }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
+                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 12, lineHeight: 1.6 }}>
+                    AIチャットで戦略を磨きませんか？
+                  </div>
+                  <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
+                    サブスクプランなら、AIと対話しながら<br/>
+                    戦略を何度でも練り直せます。<br/>
+                    確定した戦略から具体的なアクション計画も<br/>
+                    自動で生成できます。
+                  </div>
+                  <a href="/pricing" style={{ display: "inline-block", background: C.A, color: "#fff", fontSize: 16, fontWeight: 700, padding: "12px 24px", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace" }}>
+                    サブスクプランを見る →
+                  </a>
+                  <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
+                    現在のスポット利用では<br/>分析結果のPDF保存・シェアURL発行が可能です
+                  </div>
+                </div>
+                )
               ) : phase === "action" ? (
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 16 }}>
                   ← 施策を選択してチャットを開始

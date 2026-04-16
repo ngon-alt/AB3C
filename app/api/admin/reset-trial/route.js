@@ -12,11 +12,8 @@ export async function POST(req) {
   // usage_countをリセット
   await sql`UPDATE users SET usage_count = 0 WHERE email = ${email}`;
 
-  // 既存のトライアルチケットを削除
+  // 既存のトライアルチケットを削除（チャット仕様廃止のため再発行はしない）
   await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = TRUE`;
 
-  // トライアルチケットを再発行
-  await sql`INSERT INTO tickets (email, remaining_chats, is_trial) VALUES (${email}, 1, TRUE)`;
-
-  return Response.json({ success: true, message: `${email} のトライアルをリセットしました` });
+  return Response.json({ success: true, message: `${email} のトライアルをリセットしました（チャットチケットは廃止仕様）` });
 }

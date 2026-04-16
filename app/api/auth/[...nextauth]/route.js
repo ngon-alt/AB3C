@@ -36,12 +36,8 @@ export const authOptions = {
         ON CONFLICT (email) DO UPDATE SET name = ${user.name}
       `;
 
-      // 新規ユーザーにトライアルチケット（チャット1回）を付与
+      // 新規ユーザー処理（トライアルチャットは廃止：スポット利用のみ）
       if (isNewUser) {
-        await sql`
-          INSERT INTO tickets (email, remaining_chats, is_trial)
-          VALUES (${user.email}, 1, TRUE)
-        `;
         // 登録完了メール送信
         try {
           await sendRegistrationEmail({ email: user.email, name: user.name });
