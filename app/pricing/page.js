@@ -36,8 +36,8 @@ export default function PricingPage() {
 
   const analysisPlanDetails = [
     { sites: 1, annual: 44000 },
-    { sites: 10, annual: 396000 },
-    { sites: 100, annual: 1980000 },
+    { sites: 10, annual: 110000 },
+    { sites: 100, annual: 770000 },
   ];
   const supportPlanDetails = [
     { sites: 1, monthly: 66000, annual: 660000 },

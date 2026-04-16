@@ -46,8 +46,8 @@ export default function PricingModal({ onClose }) {
   // === 料金データ（正規価格） ===
   const analysisPlanDetails = [
     { sites: 1,   annual: 44000 },
-    { sites: 10,  annual: 396000 },
-    { sites: 100, annual: 1980000 },
+    { sites: 10,  annual: 110000 },
+    { sites: 100, annual: 770000 },
   ];
 
   const supportPlanDetails = [
