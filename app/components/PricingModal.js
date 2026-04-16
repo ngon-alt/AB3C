@@ -183,7 +183,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              戦略診断プラン（年間ライセンス）
+              戦略診断プラン（有効期限1年）
             </button>
             <button
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
@@ -207,9 +207,12 @@ export default function PricingModal({ onClose }) {
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
                   現在のWebサイトから戦略と改善点をレポートする機能です。
-                  AB3C分析＋ウェブサイト改善レポートを書き出して、PDF・印刷・シェアURLで持ち帰れます。<br/>
-                  <strong>年間ライセンス（有効期限1年）</strong>でのご提供です。<br/><br/>
-                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能はフルプランで利用可能です</span>
+                  AB3C分析＋ウェブサイト改善レポートを書き出して、PDF・印刷・シェアURLで持ち帰れます。<br/><br/>
+                  <strong style={{ color: C.ink }}>📅 有効期限：購入から1年間</strong><br/>
+                  購入したサイト数分の診断を1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/><br/>
+                  <strong style={{ color: C.red }}>⚠️ 診断結果は履歴保存されません</strong><br/>
+                  ブラウザを閉じると結果は消えるため、必ず<strong>PDF保存・シェアURL発行・印刷</strong>のいずれかで持ち帰ってください。<br/><br/>
+                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存はフルプランで利用可能です</span>
                 </div>
 
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
@@ -333,7 +336,8 @@ export default function PricingModal({ onClose }) {
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
-              ※ 戦略診断プランは年間ライセンス（有効期限1年）です。<br/>
+              ※ 戦略診断プランは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
+              ※ 戦略診断プランは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
               ※ フルプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
               ※ チャット上限：1サイトあたり月100回<br/>
               {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}

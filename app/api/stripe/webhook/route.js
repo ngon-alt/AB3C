@@ -5,7 +5,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // === 新料金体系 ===
 const PRICE_PLANS = {
-  // 戦略診断プラン（年間ライセンス）
+  // 戦略診断プラン（有効期限1年・一括払い）
   'price_1TMoucCYHZ66REnUcvtOwA19': { type: 'analysis', sites: 1,   interval: 'year' },
   'price_1TMov9CYHZ66REnUE9yV6bwO': { type: 'analysis', sites: 10,  interval: 'year' },
   'price_1TMovUCYHZ66REnUdqdw3Jcc': { type: 'analysis', sites: 100, interval: 'year' },
