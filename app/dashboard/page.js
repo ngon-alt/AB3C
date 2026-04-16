@@ -303,7 +303,7 @@ export default function DashboardPage() {
             { label: "登録サイト", count: `${sites.length} / ${planLimit}`, color: C.ink },
             { label: "分析済み", count: analyzedSites.length + confirmedSites.length, color: C.B },
             { label: "戦略確定", count: confirmedSites.length, color: C.A },
-            { label: "サイト上限", count: planLimit, color: "#8c5e1a" },
+            { label: "サイト上限", count: planLimit, color: "#ea580c" },
           ].map(({ label, count, color }) => (
             <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 6, padding: "16px 20px", textAlign: "center" }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 32, fontWeight: 700, color }}>{count}</div>

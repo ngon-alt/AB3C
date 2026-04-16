@@ -10,8 +10,8 @@ const C = {
   muted: "#78716c",
   A: "#1a6fd4",
   B: "#FF0000",
-  phase1: "#2d6a30",
-  phase2: "#8c5e1a",
+  phase1: "#0d9488",
+  phase2: "#ea580c",
 };
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";

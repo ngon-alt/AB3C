@@ -5,7 +5,7 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
   ink: "#1a1a14", muted: "#78716c", highlight: "#f0ebe0",
-  phase1: "#2d6a30", phase2: "#8c5e1a",
+  phase1: "#0d9488", phase2: "#ea580c",
 };
 
 function Section({ title, icon, children }) {
