@@ -247,16 +247,24 @@ export default function PricingPage() {
               </div>
             )}
 
-            {/* 注釈 */}
+            {/* 注釈（タブごとに切り替え） */}
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
-              ※ 戦略診断プランは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
-              ※ 戦略診断プランは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
-              ※ フルプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
-              ※ チャット上限：1サイトあたり月100回<br/>
-              {showAnalysis && <>※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
-              {showGrowth && <>※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。</>}
+              {showAnalysis && (
+                <>
+                  ※ 戦略診断プランは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
+                  ※ 戦略診断プランは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
+                  ※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
+                </>
+              )}
+              {showGrowth && (
+                <>
+                  ※ フルプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+                  ※ チャット上限：1サイトあたり月100回<br/>
+                  ※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
+                </>
+              )}
             </div>
           </div>
         </div>
