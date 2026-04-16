@@ -148,7 +148,7 @@ export default function HowtoPage() {
                   <img
                     src="/howto/chat-bubble-step2.png"
                     alt="分析結果の各項目に表示される💬吹き出しアイコン"
-                    style={{ maxWidth: "100%", height: "auto", borderRadius: 4 }}
+                    style={{ maxWidth: "50%", height: "auto", borderRadius: 4 }}
                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 8, fontStyle: "italic" }}>
