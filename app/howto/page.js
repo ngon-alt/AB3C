@@ -135,6 +135,28 @@ export default function HowtoPage() {
               <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
                 分析結果を受けて、疑問に思うところをチャットで相談しましょう。「これはどういう意味？」「私としてはこうしたいんだけど、ウェブサイトでは伝わっていないかな」といったことを話し合うことで、よりイメージする戦略にAIが理解を深めていきます。
               </div>
+
+              {/* 吹き出しアイコンからチャットに送る機能の説明 */}
+              <div style={{ background: C.highlight, borderRadius: 6, padding: "16px 18px", marginBottom: 12 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: C.phase1, marginBottom: 8 }}>
+                  💡 分析結果の各項目から直接チャットへ
+                </div>
+                <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+                  分析結果のセクションや各項目にカーソルを合わせると、右上に <b style={{ color: C.phase1 }}>💬 吹き出しアイコン</b> が表示されます。クリックすると、その項目に関する質問が自動でチャット欄に送られ、AIに直接相談できます。
+                </div>
+                <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "8px", textAlign: "center" }}>
+                  <img
+                    src="/howto/chat-bubble-step2.png"
+                    alt="分析結果の各項目に表示される💬吹き出しアイコン"
+                    style={{ maxWidth: "100%", height: "auto", borderRadius: 4 }}
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                  <div style={{ fontSize: 13, color: C.muted, marginTop: 8, fontStyle: "italic" }}>
+                    ↑ Benefitセクションやニーズの各項目にホバーすると💬アイコンが表示されます
+                  </div>
+                </div>
+              </div>
+
               <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
                 そして<b>「この会話内容を分析に反映する」</b>ボタンを押すと、チャットの内容も含めて、より精度の高い戦略分析結果を書き出してくれます。これを繰り返すことで、戦略がどんどん磨かれていきます。
               </div>
