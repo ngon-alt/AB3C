@@ -273,7 +273,7 @@ export default function PricingModal({ onClose }) {
                         {plan.sites}サイトプラン
                       </div>
                       <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
-                        ¥{perSite(campaign(plan.monthly), plan.sites).toLocaleString()}/サイト/月
+                        ¥{perSite(campaign(plan.annual) / 12, plan.sites).toLocaleString()}/サイト/月（年額時）
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

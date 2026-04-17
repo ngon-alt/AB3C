@@ -86,20 +86,6 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* 無料お試し */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px", marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>無料お試し（1回限り）</div>
-          <div style={{ fontSize: 14, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
-            1アカウント1回限り有効<br/>
-            ・AB3C分析レポート<br/>
-            ・ウェブサイト改善レポート<br/>
-            ・AIチャット相談（1回）
-          </div>
-          <div style={{ fontSize: 13, color: C.muted, fontStyle: "italic", lineHeight: 1.7 }}>
-            まず試してみたい方向け。<br/>
-            <span style={{ color: C.ink, fontStyle: "normal", fontWeight: 600 }}>AB3C分析レポート＋ウェブサイト改善レポートの両方を、クレジットカード不要で無料体験できます。</span>
-          </div>
-        </div>
 
         {/* 機能比較表 */}
         <div style={{ marginBottom: 24, overflowX: "auto" }}>
@@ -207,7 +193,7 @@ export default function PricingPage() {
                   <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>{plan.sites}サイトプラン</div>
-                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(campaign(plan.monthly), plan.sites).toLocaleString()}/サイト/月</div>
+                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(campaign(plan.annual) / 12, plan.sites).toLocaleString()}/サイト/月（年額時）</div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <div>

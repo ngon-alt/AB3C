@@ -167,18 +167,18 @@ useEffect(() => {
               style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '8px 12px', fontSize: 13, outline: 'none' }}
             >
               <option value="unlimited">無制限</option>
-              <optgroup label="分析プラン">
-                <option value="analysis_1">分析 1サイト</option>
-                <option value="analysis_10">分析 10サイト</option>
-                <option value="analysis_100">分析 100サイト</option>
+              <optgroup label="戦略診断プラン">
+                <option value="analysis_1">診断 1サイト</option>
+                <option value="analysis_10">診断 10サイト</option>
+                <option value="analysis_100">診断 100サイト</option>
               </optgroup>
-              <optgroup label="伴走プラン">
-                <option value="support_1">伴走 1サイト</option>
-                <option value="support_5">伴走 5サイト</option>
-                <option value="support_15">伴走 15サイト</option>
-                <option value="support_30">伴走 30サイト</option>
-                <option value="support_60">伴走 60サイト</option>
-                <option value="support_120">伴走 120サイト</option>
+              <optgroup label="フルプラン">
+                <option value="support_1">フル 1サイト</option>
+                <option value="support_5">フル 5サイト</option>
+                <option value="support_15">フル 15サイト</option>
+                <option value="support_30">フル 30サイト</option>
+                <option value="support_60">フル 60サイト</option>
+                <option value="support_120">フル 120サイト</option>
               </optgroup>
             </select>
           </div>

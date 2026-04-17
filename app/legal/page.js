@@ -26,7 +26,7 @@ export default function Legal() {
       <div style={{ flex: 1, padding: "48px 16px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", background: C.surface, boxShadow: "0 4px 6px rgba(0,0,0,0.1)", borderRadius: 8, padding: "48px 32px" }}>
         <h1 className="text-3xl font-bold text-gray-900 mb-6">特定商取引法に基づく表記</h1>
-        <p className="text-sm text-gray-600 mb-8">最終更新日：2026年4月7日</p>
+        <p className="text-sm text-gray-600 mb-8">最終更新日：2026年4月17日</p>
 
         <div className="space-y-8">
           <section className="border-b border-gray-200 pb-6">
@@ -80,44 +80,38 @@ export default function Legal() {
                 <h3 className="font-semibold mb-2">無料プラン</h3>
                 <p>0円（1回限りのお試し）</p>
               </div>
-              
+
               <div>
-                <h3 className="font-semibold mb-2">分析プラン（月額・チャット機能なし）</h3>
+                <h3 className="font-semibold mb-2">戦略診断プラン（有効期限1年・チャット機能なし・ワンショット利用）</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>5サイト：55,000円/月</li>
-                  <li>10サイト：88,000円/月</li>
-                  <li>20サイト：143,000円/月</li>
-                  <li>30サイト：198,000円/月</li>
-                  <li>40サイト：242,000円/月</li>
-                  <li>50サイト：275,000円/月</li>
-                  <li>60サイト：308,000円/月</li>
-                  <li>70サイト：341,000円/月</li>
-                  <li>80サイト：374,000円/月</li>
-                  <li>90サイト：407,000円/月</li>
-                  <li>100サイト：440,000円/月</li>
+                  <li>1サイト：22,000円/年</li>
+                  <li>10サイト：110,000円/年</li>
+                  <li>100サイト：770,000円/年</li>
                 </ul>
+                <p className="text-sm text-gray-600 mt-2">
+                  ※購入から1年間有効。購入したサイト数分の診断を1年以内にご利用いただけます（未使用分は失効）。
+                </p>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">伴走プラン（月額・チャット機能付き）</h3>
+                <h3 className="font-semibold mb-2">戦略診断・策定・アクションプラン（フルプラン・月額/年額・チャット機能付き）</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>5サイト：110,000円/月</li>
-                  <li>10サイト：176,000円/月</li>
-                  <li>20サイト：286,000円/月</li>
-                  <li>30サイト：396,000円/月</li>
-                  <li>40サイト：484,000円/月</li>
-                  <li>50サイト：550,000円/月</li>
-                  <li>60サイト：616,000円/月</li>
-                  <li>70サイト：682,000円/月</li>
-                  <li>80サイト：748,000円/月</li>
-                  <li>90サイト：814,000円/月</li>
-                  <li>100サイト：880,000円/月</li>
+                  <li>1サイト：66,000円/月（年額：660,000円）</li>
+                  <li>5サイト：165,000円/月（年額：1,650,000円）</li>
+                  <li>15サイト：330,000円/月（年額：3,300,000円）</li>
+                  <li>30サイト：495,000円/月（年額：4,950,000円）</li>
+                  <li>60サイト：792,000円/月（年額：7,920,000円）</li>
+                  <li>120サイト：1,320,000円/月（年額：13,200,000円）</li>
                 </ul>
+                <p className="text-sm text-gray-600 mt-2">
+                  ※1サイトあたり月100回までAIチャットをご利用いただけます（サイト数×100回/月）。
+                </p>
               </div>
 
               <p className="text-sm text-gray-600 mt-4">
                 ※上記金額は全て税込表示です。<br />
-                ※年額プランは10ヶ月分の料金で12ヶ月利用可能です（2ヶ月分無料）。
+                ※フルプランの年額は月額×10ヶ月分の料金で12ヶ月ご利用いただけます（2ヶ月分無料）。<br />
+                ※期間限定の50%OFFキャンペーン価格を適用する場合があります（初回契約期間のみ、更新時は定価となります）。
               </p>
             </div>
           </section>
