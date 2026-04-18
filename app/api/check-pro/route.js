@@ -37,7 +37,7 @@ export async function GET() {
       const planResult = await sql`
         SELECT plan_type, site_limit, expires_at, interval FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
-        ORDER BY site_limit DESC LIMIT 1
+        ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC LIMIT 1
       `;
       if (planResult.length > 0) {
         const p = planResult[0];
