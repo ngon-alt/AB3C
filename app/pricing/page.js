@@ -138,7 +138,7 @@ export default function PricingPage() {
             </button>
             <button onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
               style={{ flex: 1, background: showGrowth ? "#f8bbd0" : "#fce4ec", color: showGrowth ? C.ink : C.muted, border: "none", borderRadius: "6px 6px 0 0", padding: "12px 16px", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>
-              戦略診断・策定・アクションプラン（フルプラン・月額/年額）
+              フルプラン（戦略診断・策定・アクション・月額/年額）
             </button>
           </div>
 

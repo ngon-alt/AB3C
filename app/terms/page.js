@@ -68,7 +68,7 @@ export default function Terms() {
                 <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
                   <li><strong>無料お試しプラン</strong>：AB3C分析および改善提案を1回まで利用可能</li>
                   <li><strong>戦略診断プラン</strong>：購入から1年間有効。購入したサイト数分のAB3C分析を利用可能（チャット機能なし・ワンショット利用）</li>
-                  <li><strong>戦略診断・策定・アクションプラン（フルプラン）</strong>：月額制または年額制でAB3C分析およびAIチャット機能を利用可能</li>
+                  <li><strong>フルプラン（戦略診断・策定・アクション）</strong>：月額制または年額制でAB3C分析およびAIチャット機能を利用可能</li>
                 </ul>
               </li>
             </ol>

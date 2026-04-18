@@ -94,7 +94,7 @@ export default function Legal() {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">戦略診断・策定・アクションプラン（フルプラン・月額/年額・チャット機能付き）</h3>
+                <h3 className="font-semibold mb-2">フルプラン（戦略診断・策定・アクション・月額/年額・チャット機能付き）</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   <li>1サイト：66,000円/月（年額：660,000円）</li>
                   <li>5サイト：165,000円/月（年額：1,650,000円）</li>

@@ -1728,7 +1728,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     AIチャットで戦略を磨きませんか？
                   </div>
                   <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
-                    <b>戦略診断・策定・アクションプラン</b>（フルプラン）なら、<br/>
+                    <b>フルプラン</b>（戦略診断・策定・アクション）なら、<br/>
                     AIと対話しながら戦略を何度でも練り直せます。<br/>
                     確定した戦略から具体的なアクション計画も<br/>
                     自動で生成できます。
