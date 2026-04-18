@@ -580,7 +580,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role === "user" || messages.indexOf(m) > 0), userMessage],
+          messages: [...messages, userMessage],
           analysisResult,
           recruitMode: effectiveThemeId === "recruit",
           threadTheme: effectiveThemeId,
