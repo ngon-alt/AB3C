@@ -298,16 +298,16 @@ export default function DashboardPage() {
         </div>
 
         {/* サマリーカード */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
           {[
-            { label: "登録サイト", count: `${sites.length} / ${planLimit}`, color: C.ink },
+            { label: "登録サイト", count: `${sites.length} / ${planLimit}`, sub: "登録数 / 上限", color: C.ink },
             { label: "分析済み", count: analyzedSites.length + confirmedSites.length, color: C.B },
             { label: "戦略確定", count: confirmedSites.length, color: C.A },
-            { label: "サイト上限", count: planLimit, color: "#ea580c" },
-          ].map(({ label, count, color }) => (
+          ].map(({ label, count, sub, color }) => (
             <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 6, padding: "16px 20px", textAlign: "center" }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 32, fontWeight: 700, color }}>{count}</div>
-              <div style={{ fontSize: 14, color: C.muted, fontFamily: FONT }}>{label}</div>
+              {sub && <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>}
+              <div style={{ fontSize: 14, color: C.muted, fontFamily: FONT, marginTop: 4 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -374,7 +374,7 @@ export default function DashboardPage() {
             {/* 未分析 */}
             {pendingSites.length > 0 && (
               <div style={{ marginBottom: 28 }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 12, borderBottom: `2px solid ${C.border}`, paddingBottom: 8 }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: C.ink, marginBottom: 12, borderBottom: `2px solid ${C.ink}`, paddingBottom: 8 }}>
                   未分析 ({pendingSites.length})
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
