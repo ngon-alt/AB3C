@@ -79,6 +79,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 {session.user?.name}
                 {planLabel && <span style={{ background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
                 {isPro && !planLabel && <span style={{ background: C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
+                {!planLabel && !isPro && <span style={{ background: "#78716c", color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無料</span>}
                 {nextRenewalAt && (
                   <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>
                     {planType === "support" ? "次回更新" : "有効期限"}: {new Date(nextRenewalAt).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
