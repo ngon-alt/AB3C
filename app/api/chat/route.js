@@ -220,17 +220,33 @@ ${JSON.stringify(analysisResult, null, 2)}
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: initialAdvice ? 2000 : 1500,
+    max_tokens: initialAdvice ? 6000 : 6000,
     system: systemPrompt,
     tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: messages,
   });
 
   // ツール使用時は content に複数ブロック（text / tool_use / tool_result）が含まれるため、text ブロックを結合
-  const text = response.content
+  let text = response.content
     .filter(b => b.type === "text")
     .map(b => b.text)
     .join("");
+
+  // max_tokens到達で切れた場合は自動で続きを生成して結合
+  if (response.stop_reason === "max_tokens") {
+    try {
+      const continuation = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 6000,
+        system: systemPrompt,
+        messages: [...messages, { role: "assistant", content: text }, { role: "user", content: "続きを書いてください。前の回答の末尾から自然に続くように、途切れた文から再開してください。前置きや「続きです」などの言葉は不要です。" }],
+      });
+      const contText = continuation.content.filter(b => b.type === "text").map(b => b.text).join("");
+      text = text + contText;
+    } catch (e) {
+      console.error("continuation error:", e);
+    }
+  }
 
   return NextResponse.json({ message: text });
 }
