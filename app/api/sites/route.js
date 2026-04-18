@@ -49,15 +49,15 @@ async function ensureTable(sql) {
   }
 }
 
-// ユーザーのサイト上限を取得
+// ユーザーのサイト上限を取得（複数プラン所持時はサイト枠を合算）
 async function getSiteLimit(sql, email) {
   const plans = await sql`
-    SELECT MAX(site_limit) as max_sites FROM user_plans
+    SELECT COALESCE(SUM(site_limit), 0) as total_sites FROM user_plans
     WHERE user_email = ${email} AND status = 'active'
   `;
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
-  // user_plansにプランがあればそちらを優先
-  if (plans[0]?.max_sites) return plans[0].max_sites;
+  // user_plansにプランがあればその合計を優先
+  if (plans[0]?.total_sites > 0) return parseInt(plans[0].total_sites);
   // PRO会員（プランなし）は無制限
   if (proRows.length > 0) return 999;
   return 1; // プランなし = 1サイト（無料）
