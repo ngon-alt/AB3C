@@ -730,7 +730,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
-  // 分析結果・改善レポートが変わったらlocalStorageに自動保存
+  // 分析結果・改善レポートが変わったらlocalStorage/sessionStorageに自動保存
+  // sessionStorage は決済画面(Stripe)から戻った時の復元用
   useEffect(function() {
     if (currentResult && currentInput) {
       try {
@@ -738,9 +739,39 @@ const [chatSummaries, setChatSummaries] = useState([]);
         try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
         var toSave = { result: currentResult, improve: improveResult || existing.improve || null, timestamp: Date.now() };
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
+        // 決済跨ぎ復元用: 最後に見ていた分析結果を保存
+        sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
+          input: currentInput,
+          result: currentResult,
+          improveResult: improveResult || null,
+          timestamp: Date.now(),
+        }));
       } catch (e) {}
     }
   }, [currentResult, improveResult, currentInput]);
+
+  // 決済画面(Stripe)から戻ってきた場合、直前の分析結果を復元
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has("success") || urlParams.has("canceled")) {
+        const saved = sessionStorage.getItem("ab3c_last_analysis");
+        if (saved) {
+          const data = JSON.parse(saved);
+          // 1時間以内の分析結果のみ復元
+          if (data.timestamp && (Date.now() - data.timestamp < 3600000) && data.result && data.input) {
+            setResult(data.result);
+            setCurrentResult(data.result);
+            setCurrentInput(data.input);
+            if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
+            else { setInput(data.input); setTab("text"); }
+            if (data.improveResult) setImproveResult(data.improveResult);
+            if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
+          }
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // タブ切替時にページトップへスクロール
   const mainContentRef = useRef(null);
