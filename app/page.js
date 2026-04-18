@@ -700,6 +700,7 @@ const [tab, setTab] = useState("url");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
   const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
@@ -903,14 +904,36 @@ const [chatSummaries, setChatSummaries] = useState([]);
   };
   const [expandedActionId, setExpandedActionId] = useState(null);
 
-  const shareResult = async (inputText, resultData) => {
-    setSharing(true); setShareUrl("");
+  const copyToClipboard = async (text) => {
     try {
-const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null }) });      const data = await res.json();
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {}
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  };
+
+  const shareResult = async (inputText, resultData) => {
+    setSharing(true); setShareUrl(""); setShareCopied(false);
+    try {
+      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null }) });
+      const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
         setShareUrl(url);
-        navigator.clipboard.writeText(url).catch(() => {});
+        const ok = await copyToClipboard(url);
+        setShareCopied(ok);
       }
     } catch (e) { console.error(e); } finally { setSharing(false); }
   };
@@ -1558,8 +1581,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               }} />
               {shareUrl && (
                 <div style={{ background: "#e8e8e8", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>✓ URLをコピーしました</div>
-                  <div style={{ fontSize: 13, color: C.ink, wordBreak: "break-all" }}>{shareUrl}</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>
+                    {shareCopied ? "✓ URLをコピーしました" : "URLをコピーしてください"}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <div style={{ flex: 1, fontSize: 13, color: C.ink, wordBreak: "break-all" }}>{shareUrl}</div>
+                    <button
+                      onClick={async () => { const ok = await copyToClipboard(shareUrl); setShareCopied(ok); if (!ok) alert("コピーに失敗しました。URLを選択してコピーしてください。"); }}
+                      style={{ background: C.B, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "8px 14px", flexShrink: 0 }}>
+                      {shareCopied ? "コピー済み" : "コピー"}
+                    </button>
+                  </div>
                 </div>
               )}
 <div id="result-area">
