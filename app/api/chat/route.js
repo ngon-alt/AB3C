@@ -220,10 +220,17 @@ ${JSON.stringify(analysisResult, null, 2)}
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: initialAdvice ? 2000 : 1000,
+    max_tokens: initialAdvice ? 2000 : 1500,
     system: systemPrompt,
+    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     messages: messages,
   });
 
-  return NextResponse.json({ message: response.content[0].text });
+  // ツール使用時は content に複数ブロック（text / tool_use / tool_result）が含まれるため、text ブロックを結合
+  const text = response.content
+    .filter(b => b.type === "text")
+    .map(b => b.text)
+    .join("");
+
+  return NextResponse.json({ message: text });
 }
