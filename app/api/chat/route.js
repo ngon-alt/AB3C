@@ -34,10 +34,10 @@ export async function POST(req) {
   `;
   const hasTrial = trialRows.length > 0;
 
-  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice } = await req.json();
+  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice, actionSummary, actionTitle } = await req.json();
 
-  // initialAdvice（テーマ初回自動生成）はチケット消費しない
-  if (!initialAdvice) {
+  // initialAdvice（テーマ初回自動生成）と actionSummary はチケット消費しない
+  if (!initialAdvice && !actionSummary) {
     if (!isPro && !hasTicket && !hasTrial) {
       return NextResponse.json({ error: "チャット機能を利用するにはチケットが必要です" }, { status: 403 });
     }
@@ -49,6 +49,47 @@ export async function POST(req) {
         await sql`UPDATE tickets SET remaining_chats = remaining_chats - 1 WHERE id = ${trialRows[0].id}`;
       }
     }
+  }
+
+  // アクションまとめ生成（会話履歴から構造化された結論を生成）
+  if (actionSummary) {
+    const conversationText = (messages || [])
+      .filter(m => m.role === "user" || m.role === "assistant")
+      .map(m => `${m.role === "user" ? "【ユーザー】" : "【AI】"}${m.content || ""}`)
+      .join("\n\n");
+    const summaryPrompt = `以下は、AB3C戦略分析に基づく施策検討のチャット会話です。この会話の結論として決定したアクション「${actionTitle}」について、実行者が後で見返せるよう構造化してまとめてください。
+
+## 戦略分析結果
+${JSON.stringify(analysisResult, null, 2)}
+
+## チャット会話
+${conversationText}
+
+## 出力形式（プレーンテキスト、マークダウン記法は使わない）
+■ 背景・狙い
+（なぜこのアクションが必要か。戦略のBenefit/Advantageとの紐付けを1-2文で）
+
+■ 具体的な実施内容
+（何を・どのように行うか。会話で出た具体案を箇条書きで3-6項目）
+
+■ 期待効果
+（このアクションで得られる成果を1-2文で）
+
+■ 次のステップ
+（最初に着手すべき具体タスクを1-3項目の箇条書きで）
+
+重要：
+- 上記4セクションのみ出力し、それ以外の前置き・後書きは一切不要
+- マークダウン（**太字**、###見出しなど）は使わずプレーンテキストで
+- 会話にない情報を勝手に補わず、会話で議論された内容をベースにまとめる`;
+
+    const sumRes = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: summaryPrompt }],
+    });
+    const sumText = sumRes.content.filter(b => b.type === "text").map(b => b.text).join("");
+    return NextResponse.json({ summary: sumText });
   }
 
   if (reanalyze) {

@@ -505,6 +505,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [summarizingIdx, setSummarizingIdx] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -625,11 +626,33 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
             </div>
             {actionMatch && onAddAction && !m.actionRegistered && (
               <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 6, marginLeft: 8 }}>
-                <button onClick={() => {
-                  onAddAction(actionMatch[1], displayContent, threadId);
-                  setMessages(prev => prev.map((msg, idx) => idx === i ? { ...msg, actionRegistered: true } : msg));
-                }} style={{ background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontSize: 12, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
-                  ✓ 「{actionMatch[1]}」をアクションに登録
+                <button
+                  disabled={summarizingIdx !== null}
+                  onClick={async () => {
+                    setSummarizingIdx(i);
+                    try {
+                      const convoForApi = messages
+                        .slice(0, i + 1)
+                        .filter(msg => !msg.hidden)
+                        .map(msg => ({ role: msg.role, content: (msg.content || "").replace(/\[ACTION:\s*.+?\]/g, "").trim() }));
+                      const res = await fetch("/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ actionSummary: true, actionTitle: actionMatch[1], messages: convoForApi, analysisResult }),
+                      });
+                      const data = await res.json();
+                      const detail = data.summary && data.summary.trim() ? data.summary : displayContent;
+                      onAddAction(actionMatch[1], detail, threadId);
+                      setMessages(prev => prev.map((msg, idx) => idx === i ? { ...msg, actionRegistered: true } : msg));
+                    } catch (e) {
+                      onAddAction(actionMatch[1], displayContent, threadId);
+                      setMessages(prev => prev.map((msg, idx) => idx === i ? { ...msg, actionRegistered: true } : msg));
+                    } finally {
+                      setSummarizingIdx(null);
+                    }
+                  }}
+                  style={{ background: summarizingIdx === i ? C.muted : C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: summarizingIdx !== null ? "not-allowed" : "pointer", fontSize: 12, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+                  {summarizingIdx === i ? "まとめを生成中..." : `✓ 「${actionMatch[1]}」をアクションに登録`}
                 </button>
               </div>
             )}
