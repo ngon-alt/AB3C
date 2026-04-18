@@ -1154,7 +1154,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#ea580c" : "#0d9488"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
             <div style={{ textAlign: "left" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a14", marginBottom: 2 }}>{overlayMessage}</div>
-              <div style={{ fontSize: 13, color: "#78716c" }}>しばらくお待ちください</div>
+              <div style={{ fontSize: 13, color: "#78716c" }}>2〜3分お待ちください</div>
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
