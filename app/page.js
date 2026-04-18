@@ -1737,7 +1737,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     フルプランを見る →
                   </a>
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
-                    現在の戦略診断プランでは<br/>分析結果のPDF保存・シェアURL発行が可能です
+                    現在のプランでは<br/>分析結果のPDF保存・シェアURL発行が可能です
                   </div>
                 </div>
                 )
