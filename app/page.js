@@ -528,7 +528,8 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
     try {
       const saved = localStorage.getItem(key);
       const parsed = saved ? JSON.parse(saved) : null;
-      if (parsed && parsed.length > 0 && !parsed[0]?.content?.includes("準備中")) {
+      const hasPreparing = parsed && parsed.some(m => typeof m?.content === "string" && m.content.includes("準備中"));
+      if (parsed && parsed.length > 0 && !hasPreparing) {
         setMessages(parsed);
         initialized.current = true;
       } else {
@@ -537,7 +538,10 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
         const userPrompt = isSubChat
           ? `「${effectiveThemeId}」テーマの中で、以下について相談したいです:\n\n${chatDescription}\n\n戦略分析結果をもとに、この内容について具体的なアドバイスをお願いします。`
           : `「${effectiveThemeId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。`;
-        setMessages([{ role: "assistant", content: isSubChat ? `「${chatDescription}」について準備中...` : `「${effectiveThemeId}」のアドバイスを準備中...` }]);
+        setMessages([
+          { role: "user", content: userPrompt, hidden: true },
+          { role: "assistant", content: isSubChat ? `「${chatDescription}」について準備中...` : `「${effectiveThemeId}」のアドバイスを準備中...` }
+        ]);
         setLoading(true);
         fetch("/api/chat", {
           method: "POST",
@@ -551,12 +555,18 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
           }),
         }).then(r => r.json()).then(data => {
           if (!controller.signal.aborted) {
-            setMessages([{ role: "assistant", content: data.message || "このテーマについて相談できます。" }]);
+            setMessages([
+              { role: "user", content: userPrompt, hidden: true },
+              { role: "assistant", content: data.message || "このテーマについて相談できます。" }
+            ]);
             initialized.current = true;
           }
         }).catch(err => {
           if (!controller.signal.aborted) {
-            setMessages([{ role: "assistant", content: "このテーマについて相談できます。何でも聞いてください！" }]);
+            setMessages([
+              { role: "user", content: userPrompt, hidden: true },
+              { role: "assistant", content: "このテーマについて相談できます。何でも聞いてください！" }
+            ]);
             initialized.current = true;
           }
         }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
@@ -580,7 +590,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: [...messages.map(m => ({ role: m.role, content: m.content })), userMessage],
           analysisResult,
           recruitMode: effectiveThemeId === "recruit",
           threadTheme: effectiveThemeId,
@@ -597,6 +607,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
+          if (m.hidden) return null;
           const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
           const displayContent = actionMatch ? m.content.replace(/\[ACTION:\s*.+?\]/g, "").trim() : m.content;
           return (
@@ -631,7 +642,7 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
         <div ref={messagesEndRef} />
       </div>
-      {effectiveThemeId === "recruit" && messages.filter(m => m.role === "user").length >= 3 && onGenerateRecruit && (
+      {effectiveThemeId === "recruit" && messages.filter(m => m.role === "user" && !m.hidden).length >= 3 && onGenerateRecruit && (
         <div style={{ padding: "8px 12px", borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
           <button onClick={() => onGenerateRecruit(messages)} style={{ width: "100%", background: C.phase2, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: "10px" }}>
             📝 採用コンテンツ企画レポートを生成する
@@ -883,6 +894,14 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const addAction = (title, detail, threadId) => {
     setActions(prev => [...prev, { id: Date.now(), title, detail, threadId, createdAt: new Date().toLocaleString("ja-JP") }]);
   };
+  const deleteAction = (id) => {
+    setActions(prev => {
+      const next = prev.filter(a => a.id !== id);
+      try { localStorage.setItem(`ab3c_actions_${siteId || "default"}`, JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  };
+  const [expandedActionId, setExpandedActionId] = useState(null);
 
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl("");
@@ -1701,10 +1720,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               {/* チャットヘッダー */}
               <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
-                  {phase === "action" ? "施策チャット" : "分析チャット"}
+                  {phase === "action" ? `アクションリスト${actions.length > 0 ? `（${actions.length}）` : ""}` : "分析チャット"}
                 </span>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginLeft: 4 }}>
-                  {chatSummaries.length > 0 ? `（${chatSummaries.length}回反映済み）` : ""}
+                  {phase !== "action" && chatSummaries.length > 0 ? `（${chatSummaries.length}回反映済み）` : ""}
                 </span>
               </div>
 
@@ -1773,9 +1792,38 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
                 )
               ) : phase === "action" ? (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 16 }}>
-                  ← 施策を選択してチャットを開始
-                </div>
+                actions.length === 0 ? (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px", textAlign: "center", color: C.muted, fontSize: 14, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}>
+                    <div style={{ fontSize: 36, marginBottom: 12 }}>📋</div>
+                    <div style={{ color: C.ink, fontWeight: 700, marginBottom: 8 }}>まだアクションがありません</div>
+                    <div style={{ fontSize: 13 }}>
+                      チャットでAIが具体的な施策を提案したら<br/>
+                      「✓ アクションに登録」ボタンで<br/>
+                      ここに追加されます
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 8, background: C.phase2Bg }}>
+                    {actions.map(function(a) {
+                      var expanded = expandedActionId === a.id;
+                      return (
+                        <div key={a.id} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "10px 12px", fontFamily: "system-ui, sans-serif" }}>
+                          <div onClick={function() { setExpandedActionId(expanded ? null : a.id); }} style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}>
+                            <span style={{ fontSize: 13, color: C.phase2, marginTop: 2 }}>{expanded ? "▼" : "▶"}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>{a.title}</div>
+                              <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{a.createdAt}</div>
+                            </div>
+                            <button onClick={function(e) { e.stopPropagation(); if (confirm("このアクションを削除しますか？")) deleteAction(a.id); }} style={{ background: "transparent", border: "none", color: C.muted, cursor: "pointer", fontSize: 16, padding: 2, lineHeight: 1 }} title="削除">×</button>
+                          </div>
+                          {expanded && a.detail && (
+                            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}`, fontSize: 13, color: C.ink, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{a.detail}</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
               ) : (
                 <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontSize: 16 }}>
                   分析結果をもとに相談できます
