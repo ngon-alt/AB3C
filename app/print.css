@@ -45,6 +45,15 @@
     width: 100% !important;
     max-width: 100% !important;
     margin-bottom: 6mm !important;
+  }
+
+  /* 黒看板（レポートタイトル）の直後のResultViewが次ページに押し出されないよう、ページ内改ページを許可 */
+  #result-area > div:first-child {
+    page-break-after: avoid;
+  }
+
+  /* ResultView内のカード・セクション単位でのみ改ページを避ける（行内分割はOK） */
+  #result-area > div > div[style*="marginBottom"] {
     page-break-inside: avoid;
   }
 
