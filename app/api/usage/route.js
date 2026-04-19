@@ -46,7 +46,7 @@ export async function POST(req) {
   `;
   if (ticketRows.length > 0) return NextResponse.json({ ok: true });
 
-  // 戦略診断プラン: 残り回数がある限り実行可能（消費は全レポート成功後に /api/analyses/consume で）
+  // 戦略診断チケット: 残り回数がある限り実行可能（消費は全レポート成功後に /api/analyses/consume で）
   const analysisPlanRows = await sql`
     SELECT site_limit, analyses_used FROM user_plans
     WHERE user_email = ${session.user.email}
@@ -62,7 +62,7 @@ export async function POST(req) {
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({
-      error: `戦略診断プランの上限（${p.site_limit}回）に達しました。プランのアップグレードが必要です。`
+      error: `戦略診断チケットの上限（${p.site_limit}回）に達しました。プランのアップグレードが必要です。`
     }, { status: 429 });
   }
 

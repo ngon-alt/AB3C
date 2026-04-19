@@ -48,9 +48,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   }, [session]);
 
   const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
-  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→フルプランで利用可
+  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南プランで利用可
   const showBansouTip = !canAccessBansou || (canAccessBansou && phase !== "action");
-  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "フルプランで利用可" : "戦略確定後に利用可";
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "戦略指南プランで利用可" : "戦略確定後に利用可";
 
   const isActive = (key) => {
     if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));
@@ -77,7 +77,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {session.user?.name}
-                {planLabel && <span style={{ background: planLabel.startsWith("フル") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
+                {planLabel && <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
                 {isPro && !planLabel && <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
                 {!planLabel && !isPro && <span style={{ background: "#fff", color: C.ink, fontSize: 14, padding: "2px 8px", borderRadius: 3, border: `1px solid ${C.border}`, fontFamily: "'Space Mono', monospace" }}>無料</span>}
                 {nextRenewalAt && (

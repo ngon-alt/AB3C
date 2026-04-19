@@ -3,7 +3,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 
-// 戦略診断プラン（plan_type='analysis'）の分析回数を1消費する
+// 戦略診断チケット（plan_type='analysis'）の分析回数を1消費する
 // 全3レポート成功後にクライアントから呼び出される
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -12,7 +12,7 @@ export async function POST(req) {
   try {
     const sql = neon(process.env.DATABASE_URL);
 
-    // 戦略診断プランを持っているか確認
+    // 戦略診断チケットを持っているか確認
     const planRows = await sql`
       SELECT id, site_limit, analyses_used FROM user_plans
       WHERE user_email = ${session.user.email}
@@ -23,7 +23,7 @@ export async function POST(req) {
     `;
 
     if (planRows.length === 0) {
-      // 診断プランを持っていない（フルプラン or 無料）→ 消費処理不要
+      // 診断チケットを持っていない（戦略指南プラン or 無料）→ 消費処理不要
       return NextResponse.json({ ok: true, consumed: false, reason: "not_analysis_plan" });
     }
 
