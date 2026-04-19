@@ -137,7 +137,7 @@ export default function PricingModal({ onClose }) {
                 <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断チケット</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断・策定・<br/>アクションプラン<br/><span style={{fontSize:11, fontWeight:400}}>（戦略指南プラン）</span></th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略指南プラン<br/>（戦略診断・策定・アクション）</th>
               </tr>
             </thead>
             <tbody>
