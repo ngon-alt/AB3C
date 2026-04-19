@@ -1333,9 +1333,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       />
 
 
-      <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? `240px 1fr ${chatWidth}px` : "240px 1fr") : (phase !== "input" ? `1fr ${chatWidth}px` : "1fr"), flex: 1, position: "relative" }}>
-        {/* サイドバー */}
-        {sidebarOpen && (
+      <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? `240px 1fr ${chatWidth}px` : `1fr ${chatWidth}px`), flex: 1, position: "relative" }}>
+        {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
+        {sidebarOpen && phase !== "input" && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1416,9 +1416,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
           </div>
         )}
-        {/* サイドバー閉じ時の開くボタン */}
-        {!sidebarOpen && (
-          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
+        {/* サイドバー閉じ時の開くボタン（input フェーズでは非表示） */}
+        {!sidebarOpen && phase !== "input" && (
+          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
             {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
           </button>
         )}
