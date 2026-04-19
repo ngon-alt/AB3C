@@ -1336,7 +1336,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: sidebarOpen ? (phase !== "input" ? `240px 1fr ${chatWidth}px` : "240px 1fr") : (phase !== "input" ? `1fr ${chatWidth}px` : "1fr"), flex: 1, position: "relative" }}>
         {/* サイドバー */}
         {sidebarOpen && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
+  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 18, fontWeight: 400, color: "#fff" }}>
@@ -1418,7 +1418,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         )}
         {/* サイドバー閉じ時の開くボタン */}
         {!sidebarOpen && (
-          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
+          <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
             {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
           </button>
         )}
@@ -1808,7 +1808,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル（リサイズ可能） */}
         {phase !== "input" && (
-            <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : C.phase1Bg, display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
+            <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : phase === "analysis" ? C.phase1Bg : "#ecebe6", display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
               {/* リサイズハンドル */}
               <div
                 onMouseDown={function() {
@@ -1829,7 +1829,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 onMouseLeave={function(e) { if (!chatResizing.current) e.currentTarget.style.background = "transparent"; }}
               />
               {/* チャットヘッダー */}
-              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : C.phase1, display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
                   {phase === "action" ? `アクションリスト${actions.length > 0 ? `（${actions.length}）` : ""}` : "分析チャット"}
                 </span>
