@@ -59,8 +59,8 @@ ${url || "（URL未指定）"}
 - ターゲット顧客: ${target}
 ${improveDigest}
 
-## AB3C分析結果（抜粋）
-${JSON.stringify(analysisResult, null, 2).slice(0, 1500)}
+## AB3C分析結果（全体）
+${JSON.stringify(analysisResult, null, 2)}
 
 ## 要件
 このサイトがもしこの戦略を最大限活かし、**上記の改善レポートの提案を反映したら**、ファーストビューはこうあるべき、という**理想の完成イメージ**を1枚のHTMLモックとして作ってください。
