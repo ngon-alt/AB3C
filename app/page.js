@@ -1684,7 +1684,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             });
             const data = await res.json();
             if (data.error) {
-              alert(data.error);
+              const debug = data.debug ? `\n\n[debug]\n${JSON.stringify(data.debug, null, 2)}` : "";
+              alert(data.error + debug);
            } else {
   setImproveResult(data);
   // 履歴を更新（改善レポートを含める）
