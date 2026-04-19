@@ -134,10 +134,10 @@ export default function PricingModal({ onClose }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "sans-serif" }}>
             <thead>
               <tr style={{ background: C.ink, color: "#fff" }}>
-                <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断チケット</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略指南プラン<br/>（戦略診断・策定・アクション）</th>
+                <th style={{ padding: "10px 12px", textAlign: "left" }}>機能</th>
+                <th style={{ padding: "10px 12px", textAlign: "center" }}>無料お試し</th>
+                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略診断チケット</th>
+                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略指南プラン<br/>（戦略診断・策定・アクション）</th>
               </tr>
             </thead>
             <tbody>
@@ -161,7 +161,7 @@ export default function PricingModal({ onClose }) {
                 { feature: "契約期間", free: "—", analysis: "購入後1年間", growth: "月額 or 年額" },
               ].map((row, i) => (
                 <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 12px", color: "#000", fontWeight: 600 }}>{row.feature}</td>
+                  <td style={{ padding: "10px 12px", color: "#000" }}>{row.feature}</td>
                   <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.free}</td>
                   <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.analysis}</td>
                   <td style={{ padding: "10px 12px", textAlign: "center", color: "#000", fontWeight: 700 }}>{row.growth}</td>
