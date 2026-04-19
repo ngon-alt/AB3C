@@ -208,12 +208,13 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
             background: C.ink, border: "none", borderRadius: 4,
+            marginBottom: 10,
           }}>
           📋 サイト管理
         </a>
         {/* サイト切替プルダウン */}
         {session && sites.length > 0 && (
-          <div style={{ position: "relative", alignSelf: "center", marginLeft: 4 }}>
+          <div style={{ position: "relative", alignSelf: "center", marginLeft: 4, marginBottom: 10 }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
