@@ -199,12 +199,12 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         </span>
         {/* 区切り */}
         <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "center" }} />
-        {/* サイト管理ボタン */}
+        {/* サイト管理ボタン（サイト未確定のナビゲーションなので黒系で統一） */}
         <a href="/dashboard"
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
-            background: isActive("dashboard") ? "#444" : "#555", border: "none", borderRadius: 4,
+            background: C.ink, border: "none", borderRadius: 4,
           }}>
           📋 サイト管理
         </a>
