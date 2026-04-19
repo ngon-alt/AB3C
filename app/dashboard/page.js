@@ -61,7 +61,7 @@ function SiteCard({ site, onSelect, onDelete, onRename }) {
 
       {/* 日付 */}
       <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace", marginBottom: 12 }}>
-        {new Date(site.updated_at).toLocaleDateString("ja-JP")}
+        {new Date(site.updated_at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
       </div>
 
       {/* アクションリンク */}
