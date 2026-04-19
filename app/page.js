@@ -1190,26 +1190,12 @@ setAnalyzedAt(Date.now());
 setLoading(false);
 setOverlayMessage(null);
 
-// 分析結果をDBに保存
-if (tab === "url" && savedText.startsWith("http")) {
+// 既存サイト（再分析）の場合のみ、AB3C結果を即座にDBに反映
+// 新規サイト作成は全レポート成功後まで遅延（戦略診断プランの枠消費タイミング対応）
+if (tab === "url" && savedText.startsWith("http") && analyzeSiteId) {
   try {
-    var saveSid = analyzeSiteId;
-    if (!saveSid) {
-      var sn = "無題のサイト";
-      try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
-      var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
-      var cd = await cr.json();
-      if (cd.existingSite) { saveSid = cd.existingSite.id; }
-      else if (cd.site) { saveSid = cd.site.id; }
-    }
-    if (saveSid) {
-      setSiteId(saveSid);
-      var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data, analyzed_at: Date.now() }) });
-      var putData = await putRes.json();
-      console.log("分析結果DB保存:", putRes.ok ? "成功" : "失敗", putData);
-    } else {
-      console.warn("分析結果DB保存: サイトIDが見つかりません");
-    }
+    setSiteId(analyzeSiteId);
+    await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: analyzeSiteId, latest_analysis: data, analyzed_at: Date.now() }) });
   } catch (e) { console.error("分析結果DB保存エラー:", e); }
 }
 
@@ -1267,23 +1253,38 @@ if (tab === "url" && savedText.startsWith("http")) {
 
   setOverlayMessage(null);
 
-  // 改善レポート・ビジュアルをサイトDBに追記保存
-  if (tab === "url" && savedText.startsWith("http")) {
-    try {
-      const putSid = analyzeSiteId || siteId;
-      if (putSid) {
-        await fetch("/api/sites", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: putSid,
-            improve_result: improveData && !improveData.error ? improveData : null,
-            visual_mock: visualData && !visualData.error ? visualData : null,
-          }),
-        });
-      }
-    } catch (e) { console.error("改善レポートDB保存エラー:", e); }
-  }
+  // 全レポート完成後にDBへ保存（戦略診断プラン枠の消費確定タイミング）
+  const allReportsSucceeded = data && !data.error
+    && improveData && !improveData.error
+    && visualData && !visualData.error;
+
+  try {
+    let targetSid = analyzeSiteId;
+    if (!targetSid && allReportsSucceeded) {
+      // 新規サイト作成（全レポート成功時のみ＝枠消費確定）
+      var sn = "無題のサイト";
+      try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
+      var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
+      var cd = await cr.json();
+      if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); }
+      else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); }
+      else if (cd.error) { console.error("サイト作成エラー:", cd.error); }
+    }
+    // 既存サイト または 新規サイト作成成功時に全データ保存
+    if (targetSid) {
+      await fetch("/api/sites", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: targetSid,
+          latest_analysis: data,
+          improve_result: improveData && !improveData.error ? improveData : null,
+          visual_mock: visualData && !visualData.error ? visualData : null,
+          analyzed_at: Date.now(),
+        }),
+      });
+    }
+  } catch (e) { console.error("DB保存エラー:", e); }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
