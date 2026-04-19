@@ -135,7 +135,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
             borderBottom: "none",
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
-            marginBottom: phase === "input" ? "-2px" : "0",
+            marginBottom: phase === "input" ? "-6px" : "0",
             position: "relative",
             zIndex: phase === "input" ? 2 : 1,
           }}>
@@ -247,7 +247,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         )}
       </nav>
       {/* フェーズカラーライン */}
-      <div style={{ height: 4, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : C.ink }} />
+      <div style={{ height: 6, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : C.ink }} />
     </div>
   );
 }
