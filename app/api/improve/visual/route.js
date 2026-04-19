@@ -6,7 +6,7 @@ import { neon } from "@neondatabase/serverless";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -33,17 +33,15 @@ export async function POST(req) {
   const advantagePart = analysisResult?.strategy_message?.advantage_part || analysisResult?.advantage?.what || "";
   const target = analysisResult?.three_c?.customer?.target || "";
 
-  // 改善レポートから上位3項目を抽出してビジュアルに反映
-  const extractTop = (arr) => (arr || []).slice(0, 3).map(x => `・${x.title}: ${x.reason?.slice(0, 80) || ""}`).join("\n");
+  // 改善レポートから上位2項目を抽出してビジュアルに反映（簡潔に）
+  const extractTop = (arr) => (arr || []).slice(0, 2).map(x => `・${x.title}`).join("\n");
   const improveDigest = improveResult ? `
-## ウェブサイト改善レポートの要点（このビジュアルに反映してください）
-### 追加すべきコンテンツ（上位3項目）
+## 改善レポートの要点（反映してください）
+追加すべきコンテンツ:
 ${extractTop(improveResult.contents)}
-
-### 改善すべきデザイン・ビジュアル（上位3項目）
+改善すべきデザイン:
 ${extractTop(improveResult.design)}
-
-### サイト構造の改善（上位3項目）
+サイト構造:
 ${extractTop(improveResult.structure)}
 ` : "";
 
@@ -59,8 +57,8 @@ ${url || "（URL未指定）"}
 - ターゲット顧客: ${target}
 ${improveDigest}
 
-## AB3C分析結果（全体）
-${JSON.stringify(analysisResult, null, 2).slice(0, 2500)}
+## AB3C分析結果（抜粋）
+${JSON.stringify(analysisResult, null, 2).slice(0, 1500)}
 
 ## 要件
 このサイトがもしこの戦略を最大限活かし、**上記の改善レポートの提案を反映したら**、ファーストビューはこうあるべき、という**理想の完成イメージ**を1枚のHTMLモックとして作ってください。
@@ -124,7 +122,7 @@ ${JSON.stringify(analysisResult, null, 2).slice(0, 2500)}
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 6000,
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }],
     });
 
