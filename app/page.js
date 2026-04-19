@@ -732,6 +732,8 @@ const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
   const [improveResult, setImproveResult] = useState(null);
+  const [visualMock, setVisualMock] = useState(null);
+  const [visualLoading, setVisualLoading] = useState(false);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
@@ -801,6 +803,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
             if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
             else { setInput(data.input); setTab("text"); }
             if (data.improveResult) setImproveResult(data.improveResult);
+            if (data.visualMock) setVisualMock(data.visualMock);
             if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
           }
         }
@@ -950,7 +953,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl(""); setShareCopied(false);
     try {
-      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null }) });
+      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null, visualMock: visualMock || null }) });
       const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
@@ -1066,14 +1069,15 @@ useEffect(() => {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
   } catch (e) {}
 }, [chatSummaries]);
-  const saveHistory = (inputText, resultData, title, improve = null) => {
-  const entry = { 
-    id: Date.now(), 
-    date: new Date().toLocaleString("ja-JP"), 
-    preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""), 
-    input: inputText, 
+  const saveHistory = (inputText, resultData, title, improve = null, visual = null) => {
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleString("ja-JP"),
+    preview: title || resultData?.strategy_message?.message || inputText.slice(0, 40) + (inputText.length > 40 ? "…" : ""),
+    input: inputText,
     result: resultData,
-    improveResult: improve
+    improveResult: improve,
+    visualMock: visual
   };
   const newHistory = [entry, ...history];
   setHistory(newHistory);
@@ -1150,7 +1154,7 @@ useEffect(() => {
     // ログインチェックはAPI側で実施（sessionの読み込みタイミング問題を回避）
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
 setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
     setOverlayMessage("AB3C分析中...");
     try {
@@ -1203,35 +1207,54 @@ if (tab === "url" && savedText.startsWith("http")) {
   } catch (e) { console.error("分析結果DB保存エラー:", e); }
 }
 
-// URL分析の場合、ウェブサイト改善レポートも同時に生成
+// URL分析の場合、改善レポート（テキスト）と改善ビジュアル（HTMLモック）を並列生成
 let improveData = null;
+let visualData = null;
 if (tab === "url" && savedText.startsWith("http")) {
   setImproveLoading(true);
+  setVisualLoading(true);
   setOverlayMessage("ウェブサイト改善レポート生成中...");
-  try {
-    const improveRes = await fetch("/api/improve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ analysisResult: data, url: savedText }),
-    });
-    improveData = await improveRes.json();
-    if (!improveData.error) {
-      setImproveResult(improveData);
-    }
-  } catch (e) {
-    console.error("改善レポート自動生成エラー:", e);
-  } finally {
+
+  const improvePromise = fetch("/api/improve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ analysisResult: data, url: savedText }),
+  }).then(r => r.json()).then(d => {
+    if (!d.error) setImproveResult(d);
+    else console.error("改善レポート生成エラー:", d.error);
     setImproveLoading(false);
-    setOverlayMessage(null);
-  }
+    return d;
+  }).catch(e => {
+    console.error("改善レポート自動生成エラー:", e);
+    setImproveLoading(false);
+    return { error: String(e?.message || e) };
+  });
+
+  const visualPromise = fetch("/api/improve/visual", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ analysisResult: data, url: savedText }),
+  }).then(r => r.json()).then(d => {
+    if (!d.error) setVisualMock(d);
+    else console.error("改善ビジュアル生成エラー:", d.error);
+    setVisualLoading(false);
+    return d;
+  }).catch(e => {
+    console.error("改善ビジュアル自動生成エラー:", e);
+    setVisualLoading(false);
+    return { error: String(e?.message || e) };
+  });
+
+  [improveData, visualData] = await Promise.all([improvePromise, visualPromise]);
+  setOverlayMessage(null);
 }
 
-saveHistory(savedText, data, data?.strategy_message?.message || "", improveData);
+saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
 notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -1647,6 +1670,32 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }</Card>
         </div>
       ))}
+      {(visualLoading || visualMock) && (
+        <div style={{ marginTop: 40 }}>
+          <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>IMPROVED FIRST-VIEW MOCKUP</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>⭐ 改善後のファーストビュー・イメージ</div>
+          </div>
+          {visualLoading && !visualMock && (
+            <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, background: "#f8f8f6", borderRadius: 6 }}>
+              <span style={{ display: "inline-block", width: 20, height: 20, border: "3px solid #e5e5e0", borderTop: `3px solid ${C.A}`, borderRadius: "50%", animation: "spin 1s linear infinite", marginRight: 12, verticalAlign: "middle" }} />
+              改善ビジュアルを生成中です…
+            </div>
+          )}
+          {visualMock && (
+            <div>
+              <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+                <iframe srcDoc={visualMock.visual_mock_html} style={{ width: "100%", height: 800, border: "none", display: "block" }} sandbox="" title="改善後のファーストビュー" />
+              </div>
+              {visualMock.caption && (
+                <div style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
+                  <b style={{ color: C.A }}>💡 このビジュアルの意図：</b>{visualMock.caption}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )}
 </div>

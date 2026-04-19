@@ -10,9 +10,11 @@ async function ensureTable() {
       input_text TEXT,
       result JSONB NOT NULL,
       improve_result JSONB,
+      visual_mock JSONB,
       created_at TIMESTAMP DEFAULT NOW()
     )
   `;
+  await sql`ALTER TABLE shared_results ADD COLUMN IF NOT EXISTS visual_mock JSONB`;
 }
 
 function generateId() {
@@ -24,12 +26,12 @@ function generateId() {
 
 export async function POST(req) {
   try {
-    const { input, result, improveResult } = await req.json();
+    const { input, result, improveResult, visualMock } = await req.json();
     await ensureTable();
     const id = generateId();
     await sql`
-      INSERT INTO shared_results (id, input_text, result, improve_result)
-      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null})
+      INSERT INTO shared_results (id, input_text, result, improve_result, visual_mock)
+      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null}, ${visualMock ? JSON.stringify(visualMock) : null})
     `;
     return NextResponse.json({ id });
   } catch (e) {
@@ -46,11 +48,12 @@ export async function GET(req) {
     await ensureTable();
     const rows = await sql`SELECT * FROM shared_results WHERE id = ${id}`;
     if (rows.length === 0) return NextResponse.json({ error: "見つかりませんでした。" }, { status: 404 });
-    return NextResponse.json({ 
-      input: rows[0].input_text, 
-      result: rows[0].result, 
+    return NextResponse.json({
+      input: rows[0].input_text,
+      result: rows[0].result,
       improveResult: rows[0].improve_result,
-      created_at: rows[0].created_at 
+      visualMock: rows[0].visual_mock,
+      created_at: rows[0].created_at
     });
   } catch (e) {
     console.error(e);
