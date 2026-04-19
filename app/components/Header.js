@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -121,26 +121,57 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </div>
       </div>
-      {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
+      {/* 下段: メインナビ（新規分析・戦略策定・戦略アクション・サイト管理） */}
       <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
-        {/* 分析タブ */}
+        {/* ⓪ 新規分析タブ */}
         <button onClick={() => {
-          if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
-          else {
-            const params = [];
-            if (currentSiteId) params.push(`site_id=${currentSiteId}`);
-            if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
-            window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
-          }
+          if (onNewAnalysis) { onNewAnalysis(); }
+          else { window.location.href = "/"; }
         }}
           style={{
-            padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: (phase === "analysis" || phase === "input") ? C.phase1 : C.phase1 + "88",
-            color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
+            padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+            background: phase === "input" ? "#fff" : "#f0f0f0",
+            color: phase === "input" ? C.ink : "#888",
+            border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
+            borderBottom: "none",
+            borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
           }}>
-          <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
-          戦略策定
+          <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
+          新規分析
         </button>
+        {/* 矢印 */}
+        <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
+        {/* ① 戦略策定タブ */}
+        <span style={{ position: "relative", display: "inline-flex" }}
+          onMouseEnter={e => { if (phase === "input") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+          onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
+          <button onClick={() => {
+            if (phase === "input") return; // 分析前はクリック不可
+            if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
+            else {
+              const params = [];
+              if (currentSiteId) params.push(`site_id=${currentSiteId}`);
+              if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
+              window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
+            }
+          }}
+            disabled={phase === "input"}
+            style={{
+              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+              background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
+              color: phase === "input" ? "#999" : "#fff",
+              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none",
+              cursor: phase === "input" ? "not-allowed" : "pointer",
+            }}>
+            <span style={{ background: phase === "input" ? "#bbb" : "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: phase === "input" ? "#fff" : "#fff" }}>1</span>
+            戦略策定
+          </button>
+          {phase === "input" && (
+            <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
+              まず新規分析を実行してください
+            </div>
+          )}
+        </span>
         {/* 矢印 */}
         <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
         {/* 戦略アクションタブ */}
