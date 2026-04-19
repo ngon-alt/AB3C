@@ -67,41 +67,44 @@ ${url}
 ## AB3C分析結果
 ${JSON.stringify(analysisResult, null, 2)}
 
-以下のJSON形式のみで返してください：
+以下のJSON形式のみで返してください。
+各セクション5項目、改善効果の高い上位2項目にのみ improved_html を付けます（3・4・5項目目は improved_html は空文字列 "" にしてください）。
+
 {
   "contents": [
-    {"title": "追加すべきコンテンツのタイトル", "reason": "なぜ必要か（戦略との整合性を含む）", "example": "具体的な実装例", "improved_html": "<style>body{margin:0;font-family:system-ui,sans-serif;color:#1a1a14}</style><div>改善後のHTMLモック</div>"},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "<style>...</style><div>...</div>"},
     {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""}
   ],
   "design": [
-    {"title": "改善すべきデザイン・ビジュアルのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例", "improved_html": "..."},
     {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
     {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""}
   ],
   "structure": [
-    {"title": "サイト構造の改善タイトル", "reason": "なぜ必要か", "example": "具体的な実装例", "improved_html": "..."},
     {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
     {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
-    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": ""}
   ]
 }
 
 ## improved_html の生成ルール（重要）
-- 改善案を視覚的に伝えるHTMLモック（iframeで表示します）
-- 完結したHTML/CSS断片（30〜80行程度）
+- 改善案を視覚的に伝えるHTMLモック（iframeで表示）
+- 完結したHTML/CSS断片（**20〜40行以内**、コンパクトに）
 - 外部リソース（画像URL、Webフォント、外部CSS/JS）は使わない
 - CSSは<style>タグでインライン化
 - ダミーテキスト・プレースホルダーでOK（例: 「ここに事例」「お客様の声」など）
-- 色は戦略大臣のカラールールに従う：Benefit=赤(#FF0000)、Advantage=青(#1a6fd4)、本文=黒(#1a1a14)、背景=白 or #f8f8f6
-- フォントは system-ui, sans-serif を基本に（本文18px以上）
+- 色は戦略大臣のカラールール：Benefit=赤(#FF0000)、Advantage=青(#1a6fd4)、本文=黒(#1a1a14)、背景=白 or #f8f8f6
+- フォントは system-ui, sans-serif（本文16px以上）
 - 日本語OK、絵文字は最小限
-- 画像が必要な場合は <div style="background:#e0e0e0;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:#666">画像: 〇〇</div> のようなプレースホルダーで表現
+- 画像は <div style="background:#e0e0e0;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px">画像: 〇〇</div> で表現
+- JSON文字列として埋め込むため、**改行は \\n、二重引用符は \\" でエスケープ**すること
 
 JSONのみ返してください。コードブロック記号(\`\`\`)も不要です。`;
 
