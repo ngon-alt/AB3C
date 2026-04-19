@@ -1326,6 +1326,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteId={siteId}
         phase={phase}
         canAccessBansou={isPro || chatTickets > 0}
+        onNewAnalysis={() => { reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0); }}
         onSwitchToAnalysis={() => { setViewOverride("analysis"); window.scrollTo(0, 0); }}
         onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride(null); window.scrollTo(0, 0); } }}
         onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? confirmStrategy : null}
@@ -1583,9 +1584,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {currentResult && phase !== "action" && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-  <button onClick={() => { reset(); setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); }} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
-    ← 新規分析
-  </button>
   {currentInput && !currentInput.startsWith("http") && (
     <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
       ✏️ このテキストを修正して再分析
