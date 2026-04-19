@@ -136,8 +136,8 @@ export default function PricingModal({ onClose }) {
               <tr style={{ background: C.ink, color: "#fff" }}>
                 <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 700 }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断プラン</th>
-                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断・策定・<br/>アクションプラン<br/><span style={{fontSize:11, fontWeight:400}}>（フルプラン）</span></th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断チケット</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>戦略診断・策定・<br/>アクションプラン<br/><span style={{fontSize:11, fontWeight:400}}>（戦略指南プラン）</span></th>
               </tr>
             </thead>
             <tbody>
@@ -183,7 +183,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              戦略診断プラン（有効期限1年）
+              戦略診断チケット（有効期限1年）
             </button>
             <button
               onClick={() => { setShowAnalysis(false); setShowGrowth(true); }}
@@ -194,7 +194,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              フルプラン（戦略診断・策定・アクション・月額/年額）
+              戦略指南プラン（戦略診断・策定・アクション・月額/年額）
             </button>
           </div>
 
@@ -202,7 +202,7 @@ export default function PricingModal({ onClose }) {
             background: showAnalysis ? "#bbdefb" : "#f8bbd0",
             border: "none", borderRadius: "0 0 6px 6px", padding: "20px"
           }}>
-            {/* ===== 戦略診断プラン ===== */}
+            {/* ===== 戦略診断チケット ===== */}
             {showAnalysis && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
@@ -212,7 +212,7 @@ export default function PricingModal({ onClose }) {
                   購入したサイト数分の診断を1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/><br/>
                   <strong style={{ color: C.red }}>⚠️ 診断結果は履歴保存されません</strong><br/>
                   ブラウザを閉じると結果は消えるため、必ず<strong>PDF保存・シェアURL発行・印刷</strong>のいずれかで持ち帰ってください。<br/><br/>
-                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存はフルプランで利用可能です</span>
+                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存は戦略指南プランで利用可能です</span>
                 </div>
 
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
@@ -254,11 +254,11 @@ export default function PricingModal({ onClose }) {
               </div>
             )}
 
-            {/* ===== フルプラン（戦略診断・策定・アクション） ===== */}
+            {/* ===== 戦略指南プラン（戦略診断・策定・アクション） ===== */}
             {showGrowth && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
-                  <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援するフルプランです。
+                  <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援する戦略指南プランです。
                   経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ 戦略診断・チャットで戦略を磨く・戦略アクション実行支援</span><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます（1サイトあたり月100回）</span><br/>
@@ -338,14 +338,14 @@ export default function PricingModal({ onClose }) {
               <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
               {showAnalysis && (
                 <>
-                  ※ 戦略診断プランは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
-                  ※ 戦略診断プランは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
+                  ※ 戦略診断チケットは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
+                  ※ 戦略診断チケットは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
                   ※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
                 </>
               )}
               {showGrowth && (
                 <>
-                  ※ フルプランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+                  ※ 戦略指南プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
                   ※ チャット上限：1サイトあたり月100回<br/>
                   ※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
                 </>
@@ -395,7 +395,7 @@ export default function PricingModal({ onClose }) {
               <div style={{ background: "#fff8f8", border: `1px solid #ffcccc`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.B, marginBottom: 8, letterSpacing: "0.08em" }}>YOUR COST</div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/年〜</span></div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>戦略診断プラン 1サイト<br />（先行ユーザー50%OFF価格）</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>戦略診断チケット 1サイト<br />（先行ユーザー50%OFF価格）</div>
               </div>
               <div style={{ background: "#f0fff4", border: `1px solid #86efac`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#16a34a", marginBottom: 8, letterSpacing: "0.08em" }}>CLIENT FEE</div>

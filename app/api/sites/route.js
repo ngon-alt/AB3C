@@ -38,6 +38,7 @@ async function ensureTable(sql) {
         user_email VARCHAR(255) NOT NULL,
         plan_type VARCHAR(20) NOT NULL,
         site_limit INTEGER NOT NULL,
+        analyses_used INTEGER DEFAULT 0,
         interval VARCHAR(10) NOT NULL,
         stripe_price_id VARCHAR(255),
         stripe_subscription_id VARCHAR(255),
@@ -47,6 +48,7 @@ async function ensureTable(sql) {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`;
     await sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`;
     tableReady = true;
   } catch (e) {
