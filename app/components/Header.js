@@ -135,6 +135,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
             borderBottom: "none",
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
+            marginBottom: phase === "input" ? "-2px" : "0",
+            position: "relative",
+            zIndex: phase === "input" ? 2 : 1,
           }}>
           <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
           新規分析
@@ -155,15 +158,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
             }
           }}
-            disabled={phase === "input"}
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
               color: phase === "input" ? "#999" : "#fff",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none",
               cursor: phase === "input" ? "not-allowed" : "pointer",
+              opacity: 1,
             }}>
-            <span style={{ background: phase === "input" ? "#bbb" : "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: phase === "input" ? "#fff" : "#fff" }}>1</span>
+            <span style={{ background: phase === "input" ? "#bbb" : "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
           </button>
           {phase === "input" && (
@@ -179,16 +182,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           onMouseEnter={e => { if (phase !== "action") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
           onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
           <button
-            onClick={() => { if (!canAccessBansou || phase === "input") return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
-            disabled={phase === "input" || !canAccessBansou}
+            onClick={() => { if (phase !== "action") return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase2 + "88" : "#ddd",
-              color: phase === "action" ? "#fff" : phase === "analysis" ? "#fff" : "#999",
+              background: phase === "action" ? C.phase2 : "#ddd",
+              color: phase === "action" ? "#fff" : "#999",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: (phase === "input" || !canAccessBansou) ? "not-allowed" : "pointer", border: "none",
+              cursor: phase === "action" ? "pointer" : "not-allowed", border: "none",
+              opacity: 1,
             }}>
-            <span style={{ background: (phase === "action" || phase === "analysis") ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            <span style={{ background: phase === "action" ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
           </button>
           {phase !== "action" && (
