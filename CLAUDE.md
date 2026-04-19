@@ -1,9 +1,9 @@
-# 戦略大臣（AB3C Analyzer）開発ガイド
+# 戦略指南 AI（AB3C Analyzer）開発ガイド
 
 > **必読**: セッション開始時に `docs/AB3C入門ブック.pdf` を必ず読むこと。AB3Cフレームワークの公式解説書であり、分析ロジックの基盤となる知識が記載されている。
 
 ## プロジェクト概要
-「戦略大臣」は、権成俊氏が20年以上のコンサルティング実績から開発したAB3Cフレームワーク（Advantage・Benefit・Customer・Competitor・Company）をSaaS化した戦略策定ツール。非エンジニアながらClaudeと協働開発しており、日本の中小企業に戦略コンサルティング品質の分析を届けることをミッションとしている。
+「戦略指南 AI」は、権成俊氏が20年以上のコンサルティング実績から開発したAB3Cフレームワーク（Advantage・Benefit・Customer・Competitor・Company）をSaaS化した戦略策定ツール。非エンジニアながらClaudeと協働開発しており、日本の中小企業に戦略コンサルティング品質の分析を届けることをミッションとしている。
 
 - **本番URL**: https://senryaku.ai （旧: analyzer.ab3c.jp）
 - **Vercelプロジェクト**: ngon-alts-projects/ab3c-analyzer
@@ -267,7 +267,7 @@ checkpoints: [{ label, status, comment }]
 - **印刷レイアウト修正**: 右余白・空白ページ・幅問題を修正、PDFファイル名にサイト名+戦略メッセージ
 - **新規分析時のリセット強化**: history/threads/localStorageを完全クリア
 - **PROバッジ→「無制限」**に変更
-- **howto/page.js全面見直し**: 「戦略大臣とは」追加、3段階の使い方、AB3C分析結果の見方
+- **howto/page.js全面見直し**: 「戦略指南 AIとは」追加、3段階の使い方、AB3C分析結果の見方
 - **戦略確定ボタンを結果表示エリアに追加**（チャットなしユーザー向けにグレーアウト対応）
 
 ### 未解決バグ（要確認）

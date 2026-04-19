@@ -70,7 +70,7 @@ export default function Legal() {
 
           <section className="border-b border-gray-200 pb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">サービス名称</h2>
-            <p className="text-gray-700">戦略大臣</p>
+            <p className="text-gray-700">戦略指南 AI</p>
           </section>
 
           <section className="border-b border-gray-200 pb-6">

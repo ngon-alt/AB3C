@@ -367,7 +367,7 @@ export default function PricingModal({ onClose }) {
 
           <div style={{ padding: "24px", background: "#fff" }}>
             <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.9, marginBottom: 24, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-              戦略大臣は、<strong>あなたのサービス単価を引き上げるツール</strong>です。<br />
+              戦略指南 AIは、<strong>あなたのサービス単価を引き上げるツール</strong>です。<br />
               従来、同等の戦略分析レポートを手作業で作成すると<strong>月300〜500万円</strong>のコンサルティング費用が必要でした。<br />
               このツールを活用することで、クライアントに<strong>月20〜30万円</strong>で高品質な戦略支援を提供できます。
             </div>

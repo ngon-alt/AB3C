@@ -25,19 +25,19 @@ export default function Terms() {
       
       <div style={{ flex: 1, padding: "48px 16px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", background: C.surface, boxShadow: "0 4px 6px rgba(0,0,0,0.1)", borderRadius: 8, padding: "48px 32px" }}>
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">戦略大臣 利用規約</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">戦略指南 AI 利用規約</h1>
         <p className="text-sm text-gray-600 mb-8">最終更新日：2026年4月7日</p>
 
         <div className="prose prose-lg max-w-none space-y-6">
           <p className="text-gray-700">
-            この利用規約（以下「本規約」といいます）は、一般社団法人デジタル経営革新協会（以下「当協会」といいます）が提供する「戦略大臣」（以下「本サービス」といいます）の利用条件を定めるものです。
+            この利用規約（以下「本規約」といいます）は、一般社団法人デジタル経営革新協会（以下「当協会」といいます）が提供する「戦略指南 AI」（以下「本サービス」といいます）の利用条件を定めるものです。
           </p>
 
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">第1条（定義）</h2>
             <p className="text-gray-700 mb-4">本規約において使用する用語の定義は、以下のとおりとします。</p>
             <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
-              <li><strong>本サービス</strong>：当協会が提供する「戦略大臣」という名称のウェブサイト戦略分析SaaSツール</li>
+              <li><strong>本サービス</strong>：当協会が提供する「戦略指南 AI」という名称のウェブサイト戦略分析SaaSツール</li>
               <li><strong>ユーザー</strong>：本サービスを利用する個人または法人</li>
               <li><strong>登録情報</strong>：ユーザーが本サービスに登録した情報</li>
               <li><strong>分析データ</strong>：ユーザーが本サービスで生成した分析結果およびチャット履歴</li>

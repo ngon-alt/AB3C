@@ -48,11 +48,11 @@ export default function HowtoPage() {
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>初めての方へ — 使い方ガイド</div>
-          <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略大臣の全機能と使い方を説明します。</div>
+          <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略指南 AIの全機能と使い方を説明します。</div>
         </div>
 
-        {/* 戦略大臣とは */}
-        <Section title="戦略大臣とは" icon="🏯">
+        {/* 戦略指南 AIとは */}
+        <Section title="戦略指南 AIとは" icon="🏯">
           <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px 28px" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16, lineHeight: 1.7 }}>
               経営の根本となる「戦略」の策定を支援するAIツールです。
@@ -80,7 +80,7 @@ export default function HowtoPage() {
               </div>
             </div>
             <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
-              戦略大臣は戦略を策定するだけではありません。戦略を策定した後には<b>「戦略アクション」</b>機能を使って、SEO・SNS・広告・採用・補助金など、たくさんの具体的な施策を企画することができます。
+              戦略指南 AIは戦略を策定するだけではありません。戦略を策定した後には<b>「戦略アクション」</b>機能を使って、SEO・SNS・広告・採用・補助金など、たくさんの具体的な施策を企画することができます。
             </div>
           </div>
         </Section>
@@ -322,7 +322,7 @@ export default function HowtoPage() {
           </div>
           <div style={{ padding: "24px", background: "#fff" }}>
             <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 20 }}>
-              戦略大臣を使えば、従来月300〜500万円が必要だった戦略コンサルティングと同等の分析を、月20〜30万円でクライアントに提供できます。
+              戦略指南 AIを使えば、従来月300〜500万円が必要だった戦略コンサルティングと同等の分析を、月20〜30万円でクライアントに提供できます。
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[

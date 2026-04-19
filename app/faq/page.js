@@ -13,8 +13,8 @@ const faqs = [
     category: "サービスについて",
     items: [
       {
-        q: "戦略大臣とは何ですか？",
-        a: "戦略大臣は、AB3Cフレームワークを用いてウェブサイトや事業の「選ばれる理由」を明らかにする戦略策定AIです。URLを入力するだけで、Benefit（お客様が求める価値）、Advantage（差別的優位点）、3C（顧客・競合・自社）の分析をAIが自動生成します。",
+        q: "戦略指南 AIとは何ですか？",
+        a: "戦略指南 AIは、AB3Cフレームワークを用いてウェブサイトや事業の「選ばれる理由」を明らかにする戦略策定AIです。URLを入力するだけで、Benefit（お客様が求める価値）、Advantage（差別的優位点）、3C（顧客・競合・自社）の分析をAIが自動生成します。",
       },
       {
         q: "AB3C分析とは何ですか？",
@@ -142,7 +142,7 @@ export default function FAQPage() {
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <div style={{ marginBottom: 32 }}>
             <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>よくあるご質問</div>
-            <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略大臣についてよく寄せられるご質問をまとめました。</div>
+            <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略指南 AIについてよく寄せられるご質問をまとめました。</div>
           </div>
 
           {faqs.map(function(section, si) {

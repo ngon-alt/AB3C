@@ -11,7 +11,7 @@ export default function AboutPage() {
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <Header />
-    <main style={{ fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
+    <main style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", padding: "40px 20px 100px" }}>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
 
         {/* ページタイトル */}

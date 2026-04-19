@@ -26,7 +26,7 @@ export async function POST(request) {
     // 管理者宛メール送信（後で実装）
     // await sendEmail({
     //   to: 'info@senryaku.ai',
-    //   subject: `【戦略大臣】お問い合わせ: ${category}`,
+    //   subject: `【戦略指南 AI】お問い合わせ: ${category}`,
     //   html: `
     //     <h2>お問い合わせがありました</h2>
     //     <p><strong>お名前:</strong> ${name}</p>

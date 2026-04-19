@@ -18,6 +18,9 @@ async function ensureTable(sql) {
         industry VARCHAR(100),
         target_customer TEXT,
         latest_analysis JSONB,
+        improve_result JSONB,
+        visual_mock JSONB,
+        analyzed_at TIMESTAMPTZ,
         strategy_confirmed BOOLEAN DEFAULT FALSE,
         strategy_confirmed_at TIMESTAMPTZ,
         chat_history JSONB,
@@ -25,6 +28,9 @@ async function ensureTable(sql) {
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_result JSONB`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mock JSONB`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMPTZ`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -140,7 +146,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, strategy_confirmed, chat_history } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -156,6 +162,9 @@ export async function PUT(req) {
     }
 
     const analysisJson = latest_analysis ? JSON.stringify(latest_analysis) : null;
+    const improveJson = improve_result ? JSON.stringify(improve_result) : null;
+    const visualJson = visual_mock ? JSON.stringify(visual_mock) : null;
+    const analyzedAtVal = analyzed_at ? new Date(analyzed_at).toISOString() : null;
     const chatJson = chat_history ? JSON.stringify(chat_history) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
@@ -173,6 +182,9 @@ export async function PUT(req) {
         industry = COALESCE(${industryVal}::text, industry),
         target_customer = COALESCE(${targetVal}::text, target_customer),
         latest_analysis = CASE WHEN ${analysisJson}::text IS NOT NULL THEN (${analysisJson}::jsonb) ELSE latest_analysis END,
+        improve_result = CASE WHEN ${improveJson}::text IS NOT NULL THEN (${improveJson}::jsonb) ELSE improve_result END,
+        visual_mock = CASE WHEN ${visualJson}::text IS NOT NULL THEN (${visualJson}::jsonb) ELSE visual_mock END,
+        analyzed_at = CASE WHEN ${analyzedAtVal}::text IS NOT NULL THEN ${analyzedAtVal}::timestamptz ELSE analyzed_at END,
         strategy_confirmed = CASE WHEN ${confirmed}::boolean IS NOT NULL THEN ${confirmed}::boolean ELSE strategy_confirmed END,
         strategy_confirmed_at = CASE WHEN ${confirmed}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
         chat_history = CASE WHEN ${chatJson}::text IS NOT NULL THEN (${chatJson}::jsonb) ELSE chat_history END,

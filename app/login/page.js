@@ -12,7 +12,7 @@ export default function LoginPage() {
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "48px 40px", maxWidth: 400, width: "100%", textAlign: "center", boxShadow: `4px 4px 0 ${C.border}` }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.04em", marginBottom: 8 }}>
           <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
-          <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "1.5rem", color: C.ink, marginLeft: 8 }}>戦略大臣</span>
+          <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "1.5rem", color: C.ink, marginLeft: 8 }}>戦略指南 AI</span>
         </div>
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 32 }}>「選ばれる理由」を見つけるフレームワーク</div>
         <button

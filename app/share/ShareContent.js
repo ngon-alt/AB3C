@@ -206,7 +206,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
             .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
           }
         `}</style>
-        <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>⭐ 改善後のファーストビュー・イメージ</div>
+        <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>改善後のファーストビュー・イメージ</div>
         <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
           <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
         </div>
