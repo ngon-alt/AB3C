@@ -244,7 +244,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         )}
       </nav>
       {/* フェーズカラーライン */}
-      <div style={{ height: 4, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555" }} />
+      <div style={{ height: 4, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : C.ink }} />
     </div>
   );
 }
