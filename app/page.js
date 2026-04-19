@@ -1253,7 +1253,7 @@ if (tab === "url" && savedText.startsWith("http")) {
 
   setOverlayMessage(null);
 
-  // 全レポート完成後にDBへ保存（戦略診断プラン枠の消費確定タイミング）
+  // 全レポート完成後にDBへ保存（消費確定タイミング）
   const allReportsSucceeded = data && !data.error
     && improveData && !improveData.error
     && visualData && !visualData.error;
@@ -1261,7 +1261,7 @@ if (tab === "url" && savedText.startsWith("http")) {
   try {
     let targetSid = analyzeSiteId;
     if (!targetSid && allReportsSucceeded) {
-      // 新規サイト作成（全レポート成功時のみ＝枠消費確定）
+      // 新規サイト作成（全レポート成功時のみ＝フルプランのスロット消費確定）
       var sn = "無題のサイト";
       try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
       var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
@@ -1283,6 +1283,13 @@ if (tab === "url" && savedText.startsWith("http")) {
           analyzed_at: Date.now(),
         }),
       });
+    }
+    // 戦略診断プランの場合、分析回数を1消費（再分析も含めて毎回）
+    // 全3レポート成功時のみ消費、失敗時は消費しない
+    if (allReportsSucceeded) {
+      try {
+        await fetch("/api/analyses/consume", { method: "POST" });
+      } catch (e) { console.error("診断回数消費エラー:", e); }
     }
   } catch (e) { console.error("DB保存エラー:", e); }
 }
