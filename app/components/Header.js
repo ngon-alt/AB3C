@@ -179,14 +179,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           onMouseEnter={e => { if (phase !== "action") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
           onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
           <button
-            onClick={() => { if (!canAccessBansou) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
+            onClick={() => { if (!canAccessBansou || phase === "input") return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
+            disabled={phase === "input" || !canAccessBansou}
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: phase === "action" ? C.phase2 : canAccessBansou ? "#ccc" : "#ddd",
-              color: canAccessBansou ? "#fff" : "#aaa", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: canAccessBansou ? "pointer" : "default", border: "none",
+              background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase2 + "88" : "#ddd",
+              color: phase === "action" ? "#fff" : phase === "analysis" ? "#fff" : "#999",
+              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
+              cursor: (phase === "input" || !canAccessBansou) ? "not-allowed" : "pointer", border: "none",
             }}>
-            <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            <span style={{ background: (phase === "action" || phase === "analysis") ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
           </button>
           {phase !== "action" && (
@@ -242,7 +244,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         )}
       </nav>
       {/* フェーズカラーライン */}
-      <div style={{ height: 4, background: phase === "action" ? C.phase2 : C.phase1 }} />
+      <div style={{ height: 4, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555" }} />
     </div>
   );
 }
