@@ -130,8 +130,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         }}
           style={{
             padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: phase === "input" ? "#fff" : "#f0f0f0",
-            color: phase === "input" ? C.ink : "#888",
+            background: phase === "input" ? "#fff" : "#ddd",
+            color: phase === "input" ? C.ink : "#999",
             border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
             borderBottom: "none",
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
