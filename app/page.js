@@ -1216,14 +1216,9 @@ if (tab === "url" && savedText.startsWith("http")) {
     improveData = await improveRes.json();
     if (!improveData.error) {
       setImproveResult(improveData);
-    } else {
-      const debug = improveData.debug ? `\n\n[debug]\n${JSON.stringify(improveData.debug, null, 2)}` : "";
-      console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
-      alert(`改善レポート自動生成: ${improveData.error}${debug}`);
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
-    alert(`改善レポート自動生成で通信エラー: ${e?.message || e}`);
   } finally {
     setImproveLoading(false);
     setOverlayMessage(null);
@@ -1639,12 +1634,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
       </div>
-      {improveResult.screenshot_url && (
-        <div style={{ marginBottom: 28, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: 16 }}>
-          <div style={{ fontSize: 14, color: C.muted, marginBottom: 10, fontFamily: "system-ui, sans-serif" }}>現状のサイト（分析対象）</div>
-          <img src={improveResult.screenshot_url} alt="現状サイトキャプチャ" style={{ width: "100%", height: "auto", borderRadius: 4, border: `1px solid ${C.border}`, display: "block" }} loading="lazy" />
-        </div>
-      )}
       {[
         { key: "contents", label: "追加すべきコンテンツ", color: C.A },
         { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
@@ -1658,14 +1647,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
               <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
               <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
-              {item.improved_html && (
-                <details style={{ marginTop: 10 }}>
-                  <summary style={{ cursor: "pointer", fontSize: 14, color: section.color, fontWeight: 700, padding: "6px 0", fontFamily: "system-ui, sans-serif" }}>▼ 改善後のビジュアルモック</summary>
-                  <div style={{ marginTop: 8, border: `2px solid ${section.color}`, borderRadius: 4, overflow: "hidden", background: "#fff" }}>
-                    <iframe srcDoc={item.improved_html} style={{ width: "100%", height: 360, border: "none", display: "block" }} sandbox="" title={`改善モック: ${item.title}`} />
-                  </div>
-                </details>
-              )}
             </div>
           ))
           }</Card>
@@ -1689,8 +1670,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             });
             const data = await res.json();
             if (data.error) {
-              const debug = data.debug ? `\n\n[debug]\n${JSON.stringify(data.debug, null, 2)}` : "";
-              alert(data.error + debug);
+              alert(data.error);
            } else {
   setImproveResult(data);
   // 履歴を更新（改善レポートを含める）

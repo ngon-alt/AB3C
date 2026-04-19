@@ -3,11 +3,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
-import { getScreenshotUrl } from "@/app/lib/urlbox";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-export const maxDuration = 60;
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -15,9 +12,11 @@ export async function POST(req) {
 
   const sql = neon(process.env.DATABASE_URL);
 
+  // プロ会員チェック
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
   const isPro = proRows.length > 0;
 
+  // チケットチェック（トライアル含む）
   const ticketRows = await sql`
     SELECT id, remaining_chats FROM tickets
     WHERE email = ${session.user.email} AND remaining_chats > 0
@@ -31,17 +30,6 @@ export async function POST(req) {
   }
 
   const { analysisResult, url } = await req.json();
-  const isHttpUrl = typeof url === "string" && url.startsWith("http");
-
-  // スクショURL生成（表示用）
-  let screenshotUrl = null;
-  if (isHttpUrl) {
-    try {
-      screenshotUrl = getScreenshotUrl(url);
-    } catch (e) {
-      console.error("Screenshot URL generation failed:", e?.message || e);
-    }
-  }
 
   const prompt = `あなたはウェブサイト改善の専門家です。以下のAB3C分析結果とウェブサイトURLをもとに、具体的な改善提案を行ってください。
 
@@ -78,8 +66,6 @@ ${JSON.stringify(analysisResult, null, 2)}
 
 JSONのみ返してください。`;
 
-  let rawText = "";
-  let stopReason = "";
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -87,26 +73,12 @@ JSONのみ返してください。`;
       messages: [{ role: "user", content: prompt }],
     });
 
-    stopReason = message.stop_reason || "";
-    rawText = message.content.filter(b => b.type === "text").map(b => b.text).join("");
-    const clean = rawText.replace(/```json|```/g, "").trim();
-    const firstBrace = clean.indexOf("{");
-    const lastBrace = clean.lastIndexOf("}");
-    const jsonStr = firstBrace >= 0 && lastBrace > firstBrace ? clean.slice(firstBrace, lastBrace + 1) : clean;
-    const result = JSON.parse(jsonStr);
-    if (screenshotUrl) result.screenshot_url = screenshotUrl;
+    const text = message.content.filter(b => b.type === "text").map(b => b.text).join("");
+    const clean = text.replace(/```json|```/g, "").trim();
+    const result = JSON.parse(clean);
     return NextResponse.json(result);
   } catch (e) {
-    console.error("[improve] error:", e?.message, "stop_reason:", stopReason, "text head:", rawText.slice(0, 500));
-    return NextResponse.json({
-      error: "改善レポートの生成に失敗しました。",
-      debug: {
-        message: String(e?.message || e),
-        stop_reason: stopReason,
-        text_length: rawText.length,
-        text_head: rawText.slice(0, 300),
-        text_tail: rawText.slice(-300),
-      },
-    }, { status: 500 });
+    console.error(e);
+    return NextResponse.json({ error: "改善レポートの生成に失敗しました。" }, { status: 500 });
   }
 }

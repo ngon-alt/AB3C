@@ -180,12 +180,6 @@ export default function ShareContent({ input, result, improveResult, error }) {
 {improveResult && (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px", marginTop: 32 }}>
     <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
-    {improveResult.screenshot_url && (
-      <div style={{ marginBottom: 24, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: 14 }}>
-        <div style={{ fontSize: 13, color: C.muted, marginBottom: 8 }}>現状のサイト（分析対象）</div>
-        <img src={improveResult.screenshot_url} alt="現状サイトキャプチャ" style={{ width: "100%", height: "auto", borderRadius: 4, border: `1px solid ${C.border}`, display: "block" }} loading="lazy" />
-      </div>
-    )}
     {[
       { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
       { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
@@ -198,14 +192,6 @@ export default function ShareContent({ input, result, improveResult, error }) {
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
             <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
             <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
-            {item.improved_html && (
-              <details style={{ marginTop: 10 }}>
-                <summary style={{ cursor: "pointer", fontSize: 13, color: section.color, fontWeight: 700, padding: "4px 0" }}>▼ 改善後のビジュアルモック</summary>
-                <div style={{ marginTop: 6, border: `2px solid ${section.color}`, borderRadius: 4, overflow: "hidden", background: "#fff" }}>
-                  <iframe srcDoc={item.improved_html} style={{ width: "100%", height: 320, border: "none", display: "block" }} sandbox="" title={`改善モック: ${item.title}`} />
-                </div>
-              </details>
-            )}
           </div>
         ))}
       </div>
