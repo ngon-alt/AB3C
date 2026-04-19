@@ -33,7 +33,11 @@ export async function POST(req) {
     return NextResponse.json({ error: "分析にはGoogleログインが必要です。右上の「Googleでログイン」からログインしてください。" }, { status: 401 });
   }
 
-  const usageRes = await fetch(`${process.env.NEXTAUTH_URL}/api/usage`, {
+  // リクエストのホストから URL を組み立てる（preview.senryaku.ai 等のカスタムドメイン対応）
+  const host = req.headers.get("host");
+  const protocol = req.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const baseUrl = host ? `${protocol}://${host}` : process.env.NEXTAUTH_URL;
+  const usageRes = await fetch(`${baseUrl}/api/usage`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
