@@ -1207,6 +1207,7 @@ if (tab === "url" && savedText.startsWith("http")) {
 let improveData = null;
 if (tab === "url" && savedText.startsWith("http")) {
   setImproveLoading(true);
+  setOverlayMessage("ウェブサイト改善レポート生成中...");
   try {
     const improveRes = await fetch("/api/improve", {
       method: "POST",
@@ -1243,10 +1244,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
-{/* ローディングオーバーレイ */}
+{/* ローディングオーバーレイ（改善レポート生成中はスモークなし） */}
       {overlayMessage && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.15)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 40 }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: "24px 36px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", maxWidth: 360, display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: overlayMessage.includes("改善") ? "transparent" : "rgba(0,0,0,0.15)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 40, pointerEvents: overlayMessage.includes("改善") ? "none" : "auto" }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: "24px 36px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", maxWidth: 360, display: "flex", alignItems: "center", gap: 16, pointerEvents: "auto" }}>
             <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#ea580c" : "#0d9488"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
             <div style={{ textAlign: "left" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a14", marginBottom: 2 }}>{overlayMessage}</div>
@@ -1569,12 +1570,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </button>
     );
   })()}
-  {improveLoading && (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 16px", color: C.muted, fontSize: 14, fontFamily: "'Space Mono', monospace" }}>
-      <span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #ccc", borderTop: `2px solid ${C.phase1}`, borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-      改善レポート生成中…
-    </div>
-  )}
 </div>
 
 {(currentInput || chatSummaries.length > 0) && (
