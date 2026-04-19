@@ -46,6 +46,26 @@ export async function POST(req) {
   `;
   if (ticketRows.length > 0) return NextResponse.json({ ok: true });
 
+  // 戦略診断プラン: 残り回数がある限り実行可能（消費は全レポート成功後に /api/analyses/consume で）
+  const analysisPlanRows = await sql`
+    SELECT site_limit, analyses_used FROM user_plans
+    WHERE user_email = ${session.user.email}
+      AND plan_type = 'analysis'
+      AND status = 'active'
+    ORDER BY purchased_at DESC
+    LIMIT 1
+  `;
+  if (analysisPlanRows.length > 0) {
+    const p = analysisPlanRows[0];
+    const used = parseInt(p.analyses_used || 0);
+    if (used < p.site_limit) {
+      return NextResponse.json({ ok: true });
+    }
+    return NextResponse.json({
+      error: `戦略診断プランの上限（${p.site_limit}回）に達しました。プランのアップグレードが必要です。`
+    }, { status: 429 });
+  }
+
   // 無料ユーザーは月1回まで
   const today = new Date().toISOString().split("T")[0];
   const thisMonth = today.slice(0, 7);

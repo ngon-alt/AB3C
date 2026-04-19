@@ -35,7 +35,7 @@ export async function GET() {
     let nextRenewalAt = null;
     try {
       const planResult = await sql`
-        SELECT plan_type, site_limit, expires_at, interval FROM user_plans
+        SELECT plan_type, site_limit, analyses_used, expires_at, interval FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
         ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC LIMIT 1
       `;
@@ -45,20 +45,14 @@ export async function GET() {
         nextRenewalAt = p.expires_at; // フルプラン: 次回課金日 / 戦略診断プラン: 有効期限
         // バッジ表示:
         // - フルプラン: `フル${契約サイト数}` (例: フル5, フル15)
-        // - 戦略診断プラン: 1サイトは"診断"、10/100サイトは"診断 ${残り}/${契約数}" (例: 診断 99/100)
+        // - 戦略診断プラン: 1サイトは"診断 X/1"、10/100サイトは"診断 ${残り}/${契約数}"
+        //   消費カウントは analyses_used (再分析もカウント) に基づく
         if (p.plan_type === "support") {
           planLabel = `フル${p.site_limit}`;
-        } else if (p.site_limit > 1) {
-          // 使用済み件数 = 登録済みサイト数
-          const usedResult = await sql`
-            SELECT COUNT(*) as count FROM sites
-            WHERE user_email = ${session.user.email}
-          `;
-          const used = parseInt(usedResult[0].count);
-          const remaining = Math.max(0, p.site_limit - used);
-          planLabel = `診断 ${remaining}/${p.site_limit}`;
         } else {
-          planLabel = "診断";
+          const used = parseInt(p.analyses_used || 0);
+          const remaining = Math.max(0, p.site_limit - used);
+          planLabel = p.site_limit > 1 ? `診断 ${remaining}/${p.site_limit}` : (remaining > 0 ? "診断" : "診断 0/1");
         }
       }
     } catch (e) {}
