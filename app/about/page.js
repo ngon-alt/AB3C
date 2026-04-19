@@ -78,7 +78,7 @@ export default function AboutPage() {
 
           {/* ニーズとウォンツ */}
           <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px", marginBottom: 16 }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>ニーズとウォンツ</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>ニーズとウォンツ</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 16 }}>
               <div style={{ background: C.surface, borderRadius: 6, padding: "16px 18px", borderLeft: `4px solid ${C.B}` }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, color: C.B, marginBottom: 8 }}>ニーズ（欠乏感）</div>
@@ -96,7 +96,7 @@ export default function AboutPage() {
 
           {/* 戦略キャンバス */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px" }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 12 }}>戦略キャンバス</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 12 }}>戦略キャンバス</div>
             <p style={{ fontSize: 14, lineHeight: 1.8, color: C.muted }}>
               お客様が商品を購入するとき、いくつかの条件を組み合わせて商品を選択しています。これらの条件を比較するのに<b style={{ color: C.ink }}>戦略キャンバス</b>という表現が便利です。お客様が比較しているであろう条件を並べて、自社と競合の程度を比較します。自社の方が有利な条件を見つけ、それを重視しているお客様にターゲットを絞り込むと、選ばれやすくなります。
             </p>
@@ -122,7 +122,7 @@ export default function AboutPage() {
 
           {/* 自社の特徴 Company */}
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px" }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>アドバンテージは自社の強みに根差したものでなければならない</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>アドバンテージは自社の強みに根差したものでなければならない</div>
             <p style={{ fontSize: 14, lineHeight: 1.8, color: C.muted, marginBottom: 16 }}>インターネットの時代にはすぐに他社に真似されてしまいます。そのため、アドバンテージは<b style={{ color: C.ink }}>自社の強みに根差した真似されにくいもの</b>でなければなりません。自社の特徴を掘り下げるとき、3段階で考えます。</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
@@ -133,7 +133,7 @@ export default function AboutPage() {
                 <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 18px", display: "flex", gap: 14 }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, color: C.A, flexShrink: 0, width: 28 }}>{item.num}.</div>
                   <div>
-                    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{item.title}</div>
+                    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{item.title}</div>
                     <p style={{ fontSize: 13, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "24px 28px" }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 12 }}>良いAB3Cの3つの条件</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 12 }}>良いAB3Cの3つの条件</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
               {[
                 { num: "1", label: "わかりやすい", desc: "一言で言える。一目でわかる。" },
@@ -215,7 +215,7 @@ export default function AboutPage() {
               ].map((item, i) => (
                 <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "16px 18px", textAlign: "center" }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.A, marginBottom: 8 }}>{item.num}</div>
-                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.label}</div>
+                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.label}</div>
                   <p style={{ fontSize: 13, color: C.muted }}>{item.desc}</p>
                 </div>
               ))}
@@ -242,7 +242,7 @@ export default function AboutPage() {
               <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px 20px", display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.A, flexShrink: 0, width: 32 }}>{item.num}.</div>
                 <div>
-                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.label}</div>
+                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.label}</div>
                   <p style={{ fontSize: 14, lineHeight: 1.7, color: C.muted }}>{item.desc}</p>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div style={{ background: C.ink, borderRadius: 8, padding: "24px 28px", textAlign: "center" }}>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそくAB3C分析を試してみましょう</div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 12 }}>さっそくAB3C分析を試してみましょう</div>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 20, lineHeight: 1.8 }}>URLを入力するだけで、あなたのビジネスの「選ばれる理由」を分析します。</p>
           <a href="https://senryaku.ai" style={{ display: "inline-block", background: C.A, borderRadius: 4, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "12px 28px", textDecoration: "none" }}>
             ▶ 分析ツールへ
