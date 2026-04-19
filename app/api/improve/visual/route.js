@@ -33,15 +33,17 @@ export async function POST(req) {
   const advantagePart = analysisResult?.strategy_message?.advantage_part || analysisResult?.advantage?.what || "";
   const target = analysisResult?.three_c?.customer?.target || "";
 
-  // 改善レポートから上位2項目を抽出してビジュアルに反映（簡潔に）
-  const extractTop = (arr) => (arr || []).slice(0, 2).map(x => `・${x.title}`).join("\n");
+  // 改善レポートから上位3項目を抽出してビジュアルに反映
+  const extractTop = (arr) => (arr || []).slice(0, 3).map(x => `・${x.title}: ${x.reason?.slice(0, 80) || ""}`).join("\n");
   const improveDigest = improveResult ? `
-## 改善レポートの要点（反映してください）
-追加すべきコンテンツ:
+## ウェブサイト改善レポートの要点（このビジュアルに反映してください）
+### 追加すべきコンテンツ（上位3項目）
 ${extractTop(improveResult.contents)}
-改善すべきデザイン:
+
+### 改善すべきデザイン・ビジュアル（上位3項目）
 ${extractTop(improveResult.design)}
-サイト構造:
+
+### サイト構造の改善（上位3項目）
 ${extractTop(improveResult.structure)}
 ` : "";
 
