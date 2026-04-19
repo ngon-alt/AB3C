@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -182,16 +182,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           onMouseEnter={e => { if (phase !== "action") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
           onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
           <button
-            onClick={() => { if (phase !== "action") return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
+            onClick={() => { if (!strategyConfirmed) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: phase === "action" ? C.phase2 : "#ddd",
-              color: phase === "action" ? "#fff" : "#999",
+              background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "88" : "#ddd",
+              color: (phase === "action" || strategyConfirmed) ? "#fff" : "#999",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: phase === "action" ? "pointer" : "not-allowed", border: "none",
+              cursor: strategyConfirmed ? "pointer" : "not-allowed", border: "none",
               opacity: 1,
             }}>
-            <span style={{ background: phase === "action" ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
+            <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
           </button>
           {phase !== "action" && (
@@ -201,20 +201,20 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           )}
         </span>
         {/* 区切り */}
-        <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "center" }} />
+        <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "flex-end", marginBottom: 10 }} />
         {/* サイト管理ボタン（サイト未確定のナビゲーションなので黒系で統一） */}
         <a href="/dashboard"
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
-            color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "center",
+            color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-end",
             background: C.ink, border: "none", borderRadius: 4,
-            marginBottom: 10,
+            marginBottom: 6,
           }}>
           📋 サイト管理
         </a>
         {/* サイト切替プルダウン */}
         {session && sites.length > 0 && (
-          <div style={{ position: "relative", alignSelf: "center", marginLeft: 4, marginBottom: 10 }}>
+          <div style={{ position: "relative", alignSelf: "flex-end", marginLeft: 4, marginBottom: 6 }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}

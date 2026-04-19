@@ -1333,6 +1333,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteUrl={url?.startsWith("http") ? url : (currentInput?.startsWith("http") ? currentInput : null)}
         currentSiteId={siteId}
         phase={phase}
+        strategyConfirmed={strategyConfirmed}
         canAccessBansou={isPro || chatTickets > 0}
         onNewAnalysis={() => { reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0); }}
         onSwitchToAnalysis={() => { setViewOverride("analysis"); window.scrollTo(0, 0); }}
