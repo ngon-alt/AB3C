@@ -96,7 +96,7 @@ useEffect(() => {
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-          <span style={{ color: C.C }}>戦略大臣</span>
+          <span style={{ color: C.C }}>戦略指南 AI</span>
         </div>
         <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>管理者ページ</div>
         <button onClick={() => signIn('google')} style={{ background: C.A, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: '10px 24px' }}>
@@ -118,7 +118,7 @@ useEffect(() => {
     <div style={{ background: C.bg, minHeight: '100vh', fontFamily: "'Noto Serif JP', serif" }}>
       <div style={{ borderBottom: `2px solid ${C.ink}`, padding: '20px 32px', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700 }}>
-          <span style={{ color: C.C }}>戦略大臣</span>
+          <span style={{ color: C.C }}>戦略指南 AI</span>
           <span style={{ fontSize: 12, color: C.muted, marginLeft: 12 }}>管理者ページ</span>
         </div>
         <a href="/" style={{ fontSize: 12, color: C.muted, textDecoration: 'none' }}>← トップに戻る</a>

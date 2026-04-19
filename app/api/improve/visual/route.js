@@ -83,7 +83,7 @@ ${JSON.stringify(analysisResult, null, 2)}
 - 表示は Shadow DOM でスコープ分離されるため、body や * セレクタを自由に使ってOK（外に漏れません）
 - 高さは固定せずコンテンツに応じて自然に伸びるようにする（iframeではないため）
 - フォント: system-ui, sans-serif（本文16px以上、見出しは大きく）
-- **戦略大臣のカラールール厳守**:
+- **戦略指南 AIのカラールール厳守**:
   - Benefit強調色: 赤 #FF0000
   - Advantage強調色: 青 #1a6fd4
   - 本文: 黒 #1a1a14
