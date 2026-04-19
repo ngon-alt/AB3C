@@ -735,6 +735,9 @@ const [trialChats, setTrialChats] = useState(0);
   const [improveResult, setImproveResult] = useState(null);
   const [visualMock, setVisualMock] = useState(null);
   const [visualLoading, setVisualLoading] = useState(false);
+  const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
+  const [refining, setRefining] = useState(false);
+  const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
@@ -768,46 +771,44 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
-  // 分析結果・改善レポートが変わったらlocalStorage/sessionStorageに自動保存
-  // sessionStorage は決済画面(Stripe)から戻った時の復元用
+  // 分析結果・改善レポート・ビジュアルが変わったらlocalStorage/sessionStorageに自動保存
+  // sessionStorage はページ内遷移後や決済画面からの戻りでの復元用
   useEffect(function() {
     if (currentResult && currentInput) {
       try {
         var existing = {};
         try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
-        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, timestamp: Date.now() };
+        var savedAt = analyzedAt || existing.timestamp || Date.now();
+        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, visual: visualMock || existing.visual || null, timestamp: savedAt };
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
-        // 決済跨ぎ復元用: 最後に見ていた分析結果を保存
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
           result: currentResult,
           improveResult: improveResult || null,
-          timestamp: Date.now(),
+          visualMock: visualMock || null,
+          timestamp: savedAt,
         }));
       } catch (e) {}
     }
-  }, [currentResult, improveResult, currentInput]);
+  }, [currentResult, improveResult, visualMock, currentInput, analyzedAt]);
 
-  // 決済画面(Stripe)から戻ってきた場合、直前の分析結果を復元
+  // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
   useEffect(() => {
     try {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has("success") || urlParams.has("canceled")) {
-        const saved = sessionStorage.getItem("ab3c_last_analysis");
-        if (saved) {
-          const data = JSON.parse(saved);
-          // 1時間以内の分析結果のみ復元
-          if (data.timestamp && (Date.now() - data.timestamp < 3600000) && data.result && data.input) {
-            setResult(data.result);
-            setCurrentResult(data.result);
-            setCurrentInput(data.input);
-            if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
-            else { setInput(data.input); setTab("text"); }
-            if (data.improveResult) setImproveResult(data.improveResult);
-            if (data.visualMock) setVisualMock(data.visualMock);
-            if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
-          }
-        }
+      const saved = sessionStorage.getItem("ab3c_last_analysis");
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      // 24時間以内の分析結果のみ復元
+      if (data.timestamp && (Date.now() - data.timestamp < 24 * 3600 * 1000) && data.result && data.input) {
+        setResult(data.result);
+        setCurrentResult(data.result);
+        setCurrentInput(data.input);
+        setAnalyzedAt(data.timestamp);
+        if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
+        else { setInput(data.input); setTab("text"); }
+        if (data.improveResult) setImproveResult(data.improveResult);
+        if (data.visualMock) setVisualMock(data.visualMock);
+        if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
       }
     } catch (e) {}
   }, []);
@@ -989,6 +990,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
             setResult(site.latest_analysis);
             setCurrentResult(site.latest_analysis);
             setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
+            if (site.improve_result) setImproveResult(site.improve_result);
+            if (site.visual_mock) setVisualMock(site.visual_mock);
+            if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
             if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
             if (site.strategy_confirmed) setStrategyConfirmed(true);
             return; // DB復元成功
@@ -1182,6 +1186,7 @@ setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
 setCurrentInput(savedText);
+setAnalyzedAt(Date.now());
 setLoading(false);
 setOverlayMessage(null);
 
@@ -1199,7 +1204,7 @@ if (tab === "url" && savedText.startsWith("http")) {
     }
     if (saveSid) {
       setSiteId(saveSid);
-      var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data }) });
+      var putRes = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: saveSid, latest_analysis: data, analyzed_at: Date.now() }) });
       var putData = await putRes.json();
       console.log("分析結果DB保存:", putRes.ok ? "成功" : "失敗", putData);
     } else {
@@ -1261,6 +1266,24 @@ if (tab === "url" && savedText.startsWith("http")) {
   }
 
   setOverlayMessage(null);
+
+  // 改善レポート・ビジュアルをサイトDBに追記保存
+  if (tab === "url" && savedText.startsWith("http")) {
+    try {
+      const putSid = analyzeSiteId || siteId;
+      if (putSid) {
+        await fetch("/api/sites", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: putSid,
+            improve_result: improveData && !improveData.error ? improveData : null,
+            visual_mock: visualData && !visualData.error ? visualData : null,
+          }),
+        });
+      }
+    } catch (e) { console.error("改善レポートDB保存エラー:", e); }
+  }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
@@ -1651,8 +1674,18 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               )}
 <div id="result-area">
   <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
-    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+      </div>
+      {analyzedAt && (
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "right" }}>
+          分析日時<br />
+          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.9)" }}>{new Date(analyzedAt).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+        </div>
+      )}
+    </div>
   </div>
   <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
@@ -1696,7 +1729,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           `}</style>
           <div className="visual-mock-banner" style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>IMPROVED FIRST-VIEW MOCKUP</div>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>⭐ 改善後のファーストビュー・イメージ</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>改善後のファーストビュー・イメージ</div>
           </div>
           {visualLoading && !visualMock && (
             <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, background: "#f8f8f6", borderRadius: 6 }}>
