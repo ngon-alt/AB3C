@@ -42,13 +42,13 @@ export async function GET() {
       if (planResult.length > 0) {
         const p = planResult[0];
         planType = p.plan_type;
-        nextRenewalAt = p.expires_at; // フルプラン: 次回課金日 / 戦略診断プラン: 有効期限
+        nextRenewalAt = p.expires_at; // 戦略指南プラン: 次回課金日 / 戦略診断チケット: 有効期限
         // バッジ表示:
-        // - フルプラン: `フル${契約サイト数}` (例: フル5, フル15)
-        // - 戦略診断プラン: 1サイトは"診断 X/1"、10/100サイトは"診断 ${残り}/${契約数}"
+        // - 戦略指南プラン: `指南${契約サイト数}` (例: 指南5, 指南15)
+        // - 戦略診断チケット: 1サイトは"診断 X/1"、10/100サイトは"診断 ${残り}/${契約数}"
         //   消費カウントは analyses_used (再分析もカウント) に基づく
         if (p.plan_type === "support") {
-          planLabel = `フル${p.site_limit}`;
+          planLabel = `指南${p.site_limit}`;
         } else {
           const used = parseInt(p.analyses_used || 0);
           const remaining = Math.max(0, p.site_limit - used);

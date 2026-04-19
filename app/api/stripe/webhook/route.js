@@ -5,12 +5,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // === 新料金体系 ===
 const PRICE_PLANS = {
-  // 戦略診断プラン（有効期限1年・一括払い）
+  // 戦略診断チケット（有効期限1年・一括払い）
   'price_1TMoucCYHZ66REnUcvtOwA19': { type: 'analysis', sites: 1,   interval: 'year' },
   'price_1TMov9CYHZ66REnUE9yV6bwO': { type: 'analysis', sites: 10,  interval: 'year' },
   'price_1TMovUCYHZ66REnUdqdw3Jcc': { type: 'analysis', sites: 100, interval: 'year' },
 
-  // フルプラン（戦略診断・策定・アクションプラン・月額）
+  // 戦略指南プラン（戦略診断・策定・アクションプラン・月額）
   'price_1TMQJECYHZ66REnUvdtin0z3':  { type: 'support', sites: 1,   interval: 'month' },
   'price_1TMQJVCYHZ66REnUYOy5mlL4':  { type: 'support', sites: 5,   interval: 'month' },
   'price_1TMQJjCYHZ66REnUmEgb5GGN':  { type: 'support', sites: 15,  interval: 'month' },
@@ -18,7 +18,7 @@ const PRICE_PLANS = {
   'price_1TMQKGCYHZ66REnUAg6NOSOK':  { type: 'support', sites: 60,  interval: 'month' },
   'price_1TMQKYCYHZ66REnUSM8rKr2n':  { type: 'support', sites: 120, interval: 'month' },
 
-  // フルプラン（戦略診断・策定・アクションプラン・年額＝月額×10）
+  // 戦略指南プラン（戦略診断・策定・アクションプラン・年額＝月額×10）
   'price_1TMQKvCYHZ66REnUomf2PJMh':  { type: 'support', sites: 1,   interval: 'year' },
   'price_1TMQLDCYHZ66REnU2w53yUAE':  { type: 'support', sites: 5,   interval: 'year' },
   'price_1TMQLYCYHZ66REnU9T2AlDh6':  { type: 'support', sites: 15,  interval: 'year' },
@@ -92,10 +92,10 @@ export async function POST(req) {
         let expiresAt = null;
         const subscriptionId = session.subscription || null;
         if (plan.type === 'analysis') {
-          // 戦略診断プラン: 1年後に有効期限
+          // 戦略診断チケット: 1年後に有効期限
           expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
         } else if (subscriptionId) {
-          // フルプラン: Stripeから次回更新日を取得
+          // 戦略指南プラン: Stripeから次回更新日を取得
           try {
             const sub = await stripe.subscriptions.retrieve(subscriptionId);
             if (sub.current_period_end) {
@@ -126,7 +126,7 @@ export async function POST(req) {
     console.log(`サブスクリプション解約: ${subscription.id}`);
   }
 
-  // 月次/年次更新（フルプランのチャットチケットを強制リセット）
+  // 月次/年次更新（戦略指南プランのチャットチケットを強制リセット）
   // - billing_reason === 'subscription_create' は初回（checkout.session.completedで処理済）なのでスキップ
   // - billing_reason === 'subscription_cycle' or 'subscription_update' のみ処理
   if (event.type === 'invoice.paid') {

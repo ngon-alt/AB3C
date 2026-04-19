@@ -1191,7 +1191,7 @@ setLoading(false);
 setOverlayMessage(null);
 
 // 既存サイト（再分析）の場合のみ、AB3C結果を即座にDBに反映
-// 新規サイト作成は全レポート成功後まで遅延（戦略診断プランの枠消費タイミング対応）
+// 新規サイト作成は全レポート成功後まで遅延（戦略診断チケットの枠消費タイミング対応）
 if (tab === "url" && savedText.startsWith("http") && analyzeSiteId) {
   try {
     setSiteId(analyzeSiteId);
@@ -1261,7 +1261,7 @@ if (tab === "url" && savedText.startsWith("http")) {
   try {
     let targetSid = analyzeSiteId;
     if (!targetSid && allReportsSucceeded) {
-      // 新規サイト作成（全レポート成功時のみ＝フルプランのスロット消費確定）
+      // 新規サイト作成（全レポート成功時のみ＝戦略指南プランのスロット消費確定）
       var sn = "無題のサイト";
       try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
       var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
@@ -1284,7 +1284,7 @@ if (tab === "url" && savedText.startsWith("http")) {
         }),
       });
     }
-    // 戦略診断プランの場合、分析回数を1消費（再分析も含めて毎回）
+    // 戦略診断チケットの場合、分析回数を1消費（再分析も含めて毎回）
     // 全3レポート成功時のみ消費、失敗時は消費しない
     if (allReportsSucceeded) {
       try {
@@ -1528,7 +1528,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <span style={{ fontSize: 24 }}>💰</span>
       <div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>料金とプラン</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>戦略診断プラン・フルプランの詳細</div>
+        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>戦略診断チケット・戦略指南プランの詳細</div>
       </div>
     </a>
     <a href="/faq" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
@@ -1622,7 +1622,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <button
         onClick={canConfirm ? confirmStrategy : null}
         disabled={!canConfirm || strategyConfirmed}
-        title={!canConfirm ? "フルプランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+        title={!canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
         style={{
           background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
           border: "none", borderRadius: 2,
@@ -1897,13 +1897,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     AIチャットで戦略を磨きませんか？
                   </div>
                   <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
-                    <b>フルプラン</b>（戦略診断・策定・アクション）なら、<br/>
+                    <b>戦略指南プラン</b>（戦略診断・策定・アクション）なら、<br/>
                     AIと対話しながら戦略を何度でも練り直せます。<br/>
                     確定した戦略から具体的なアクション計画も<br/>
                     自動で生成できます。
                   </div>
                   <a href="/pricing" style={{ display: "inline-block", background: C.A, color: "#fff", fontSize: 16, fontWeight: 700, padding: "12px 24px", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace" }}>
-                    フルプランを見る →
+                    戦略指南プランを見る →
                   </a>
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
                     現在のプランでは<br/>分析結果のPDF保存・シェアURL発行が可能です
