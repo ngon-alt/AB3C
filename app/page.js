@@ -1583,7 +1583,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {currentResult && phase !== "action" && (
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-  <button onClick={() => { reset(); setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); setPhase("analysis"); window.history.replaceState(null, "", "/"); }} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
+  <button onClick={() => { reset(); setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); }} style={{ background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "10px 20px" }}>
     ← 新規分析
   </button>
   {currentInput && !currentInput.startsWith("http") && (
