@@ -1713,47 +1713,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   )}
 </div>
 
-{currentInput?.startsWith("http") && !improveResult && (
-  <div style={{ marginTop: 32 }}>
-    {(
-      <button
-        onClick={async () => {
-          setImproveLoading(true);
-          try {
-            const res = await fetch("/api/improve", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ analysisResult: currentResult, url: currentInput }),
-            });
-            const data = await res.json();
-            if (data.error) {
-              alert(data.error);
-           } else {
-  setImproveResult(data);
-  // 履歴を更新（改善レポートを含める）
-  const updatedHistory = history.map(item => 
-    item.input === currentInput && item.result === currentResult 
-      ? { ...item, improveResult: data }
-      : item
-  );
-  setHistory(updatedHistory);
-  localStorage.setItem("ab3c_history", JSON.stringify(updatedHistory));
-}
-          } catch (e) {
-            alert("エラーが発生しました。");
-          } finally {
-            setImproveLoading(false);
-          }
-        }}
-        disabled={improveLoading}
-        style={{ background: improveLoading ? C.muted : C.A, border: "none", borderRadius: 4, color: "#fff", cursor: improveLoading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "14px 28px" }}
-      >
-        {improveLoading ? "🔧 改善レポート生成中…" : "🔧 ウェブサイト改善レポートを生成する"}
-      </button>
-    )}
-
-  </div>
-)}
 
 {/* 分析チャットは右カラムに配置 */}
 
