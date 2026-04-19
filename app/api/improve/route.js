@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
+import { getScreenshotUrl, fetchScreenshotBase64 } from "@/app/lib/urlbox";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+export const maxDuration = 60;
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -12,11 +15,9 @@ export async function POST(req) {
 
   const sql = neon(process.env.DATABASE_URL);
 
-  // プロ会員チェック
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
   const isPro = proRows.length > 0;
 
-  // チケットチェック（トライアル含む）
   const ticketRows = await sql`
     SELECT id, remaining_chats FROM tickets
     WHERE email = ${session.user.email} AND remaining_chats > 0
@@ -30,8 +31,35 @@ export async function POST(req) {
   }
 
   const { analysisResult, url } = await req.json();
+  const isHttpUrl = typeof url === "string" && url.startsWith("http");
 
-  const prompt = `あなたはウェブサイト改善の専門家です。以下のAB3C分析結果とウェブサイトURLをもとに、具体的な改善提案を行ってください。
+  // スクショ取得（URL分析の場合のみ）
+  let screenshotUrl = null;
+  let imageBlock = null;
+  if (isHttpUrl) {
+    try {
+      screenshotUrl = getScreenshotUrl(url);
+      const shot = await fetchScreenshotBase64(url);
+      imageBlock = {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: shot.mediaType,
+          data: shot.base64,
+        },
+      };
+    } catch (e) {
+      console.error("Screenshot capture failed:", e?.message || e);
+      screenshotUrl = null;
+      imageBlock = null;
+    }
+  }
+
+  const visionNote = imageBlock
+    ? "添付したウェブサイトのスクリーンショットをよく観察し、実際のデザイン・レイアウト・コンテンツに即した具体的な改善提案を行ってください。"
+    : "";
+
+  const prompt = `あなたはウェブサイト改善の専門家です。${visionNote}以下のAB3C分析結果${isHttpUrl ? "とウェブサイトURL" : ""}をもとに、具体的な改善提案を行ってください。
 
 ## 分析対象URL
 ${url}
@@ -42,40 +70,56 @@ ${JSON.stringify(analysisResult, null, 2)}
 以下のJSON形式のみで返してください：
 {
   "contents": [
-    {"title": "追加すべきコンテンツのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."}
+    {"title": "追加すべきコンテンツのタイトル", "reason": "なぜ必要か（戦略との整合性を含む）", "example": "具体的な実装例", "improved_html": "<style>body{margin:0;font-family:system-ui,sans-serif;color:#1a1a14}</style><div>改善後のHTMLモック</div>"},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
   ],
   "design": [
-    {"title": "改善すべきデザイン・ビジュアルのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."}
+    {"title": "改善すべきデザイン・ビジュアルのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
   ],
   "structure": [
-    {"title": "サイト構造の改善タイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."}
+    {"title": "サイト構造の改善タイトル", "reason": "なぜ必要か", "example": "具体的な実装例", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."},
+    {"title": "...", "reason": "...", "example": "...", "improved_html": "..."}
   ]
 }
 
-JSONのみ返してください。`;
+## improved_html の生成ルール（重要）
+- 改善案を視覚的に伝えるHTMLモック（iframeで表示します）
+- 完結したHTML/CSS断片（30〜80行程度）
+- 外部リソース（画像URL、Webフォント、外部CSS/JS）は使わない
+- CSSは<style>タグでインライン化
+- ダミーテキスト・プレースホルダーでOK（例: 「ここに事例」「お客様の声」など）
+- 色は戦略大臣のカラールールに従う：Benefit=赤(#FF0000)、Advantage=青(#1a6fd4)、本文=黒(#1a1a14)、背景=白 or #f8f8f6
+- フォントは system-ui, sans-serif を基本に（本文18px以上）
+- 日本語OK、絵文字は最小限
+- 画像が必要な場合は <div style="background:#e0e0e0;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:#666">画像: 〇〇</div> のようなプレースホルダーで表現
+
+JSONのみ返してください。コードブロック記号(\`\`\`)も不要です。`;
 
   try {
+    const userContent = imageBlock
+      ? [imageBlock, { type: "text", text: prompt }]
+      : prompt;
+
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
-      messages: [{ role: "user", content: prompt }],
+      max_tokens: 16000,
+      messages: [{ role: "user", content: userContent }],
     });
 
     const text = message.content.filter(b => b.type === "text").map(b => b.text).join("");
     const clean = text.replace(/```json|```/g, "").trim();
     const result = JSON.parse(clean);
+    if (screenshotUrl) result.screenshot_url = screenshotUrl;
     return NextResponse.json(result);
   } catch (e) {
     console.error(e);
