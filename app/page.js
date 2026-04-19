@@ -5,6 +5,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Header from "./components/Header";
 import PricingModal from "./components/PricingModal";
+import ShadowMock from "./components/ShadowMock";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
@@ -1705,7 +1706,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {visualMock && (
             <div className="visual-mock-frame">
               <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
-                <iframe srcDoc={visualMock.visual_mock_html} style={{ width: "100%", height: 800, border: "none", display: "block" }} sandbox="" title="改善後のファーストビュー" />
+                <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
               </div>
               {visualMock.caption && (
                 <div style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
