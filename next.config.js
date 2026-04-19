@@ -14,17 +14,6 @@ const nextConfig = {
         destination: 'https://senryaku.ai/:path*',
         permanent: true,
       },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'analyzer.ab3c.jp',
-          },
-        ],
-        destination: 'https://senryaku.ai/:path*',
-        permanent: true,
-      },
     ];
   },
 };
