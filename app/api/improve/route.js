@@ -7,7 +7,7 @@ import { getScreenshotUrl } from "@/app/lib/urlbox";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -51,26 +51,20 @@ ${url}
 ## AB3C分析結果
 ${JSON.stringify(analysisResult, null, 2)}
 
-以下のJSON形式のみで返してください：
+以下のJSON形式のみで返してください（各セクション3項目、改善効果の高いもの順）：
 {
   "contents": [
     {"title": "追加すべきコンテンツのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
     {"title": "...", "reason": "...", "example": "..."},
     {"title": "...", "reason": "...", "example": "..."}
   ],
   "design": [
     {"title": "改善すべきデザイン・ビジュアルのタイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
     {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
     {"title": "...", "reason": "...", "example": "..."}
   ],
   "structure": [
     {"title": "サイト構造の改善タイトル", "reason": "なぜ必要か", "example": "具体的な実装例"},
-    {"title": "...", "reason": "...", "example": "..."},
-    {"title": "...", "reason": "...", "example": "..."},
     {"title": "...", "reason": "...", "example": "..."},
     {"title": "...", "reason": "...", "example": "..."}
   ]
@@ -83,7 +77,7 @@ JSONのみ返してください。`;
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: 5000,
       messages: [{ role: "user", content: prompt }],
     });
 
