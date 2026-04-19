@@ -1216,9 +1216,14 @@ if (tab === "url" && savedText.startsWith("http")) {
     improveData = await improveRes.json();
     if (!improveData.error) {
       setImproveResult(improveData);
+    } else {
+      const debug = improveData.debug ? `\n\n[debug]\n${JSON.stringify(improveData.debug, null, 2)}` : "";
+      console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
+      alert(`改善レポート自動生成: ${improveData.error}${debug}`);
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
+    alert(`改善レポート自動生成で通信エラー: ${e?.message || e}`);
   } finally {
     setImproveLoading(false);
     setOverlayMessage(null);
