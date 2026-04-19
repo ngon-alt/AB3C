@@ -92,6 +92,19 @@ ${JSON.stringify(analysisResult, null, 2).slice(0, 2500)}
   <div style="background:#e8e8e8;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:#666;font-size:14px;border-radius:8px">[ヒーロー画像]</div>
   \`\`\`
 
+## 印刷対応（必須）
+<style>タグの冒頭に以下を必ず含めること（背景色・色を印刷時も保持するため）:
+\`\`\`css
+*, *::before, *::after {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+@media print {
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+\`\`\`
+
 ## 出力形式
 以下のJSONのみ返してください。改行・引用符は \\n \\" でエスケープ:
 
