@@ -1,4 +1,5 @@
 "use client";
+import ShadowMock from "../components/ShadowMock";
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
@@ -49,7 +50,7 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
-export default function ShareContent({ input, result, improveResult, error }) {
+export default function ShareContent({ input, result, improveResult, visualMock, error }) {
   const d = result;
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
@@ -196,6 +197,26 @@ export default function ShareContent({ input, result, improveResult, error }) {
         ))}
       </div>
     ))}
+    {visualMock && (
+      <div className="visual-mock-section" style={{ marginTop: 32, paddingTop: 24, borderTop: `2px solid ${C.border}` }}>
+        <style>{`
+          @media print {
+            .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
+            .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
+            .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
+          }
+        `}</style>
+        <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>⭐ 改善後のファーストビュー・イメージ</div>
+        <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+          <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
+        </div>
+        {visualMock.caption && (
+          <div className="visual-mock-caption" style={{ marginTop: 10, padding: "12px 16px", background: C.highlight, borderLeft: `4px solid ${C.B}`, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
+            <b style={{ color: C.B }}>💡 このビジュアルの意図：</b>{visualMock.caption}
+          </div>
+        )}
+      </div>
+    )}
   </div>
 )}
         <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>

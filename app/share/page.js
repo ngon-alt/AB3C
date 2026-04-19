@@ -10,6 +10,7 @@ export default async function SharePage({ searchParams }) {
   let input = null;
   let result = null;
   let improveResult = null;
+  let visualMock = null;
   let error = "";
 
   if (!id) {
@@ -24,11 +25,12 @@ export default async function SharePage({ searchParams }) {
         input = rows[0].input_text;
         result = typeof rows[0].result === 'string' ? JSON.parse(rows[0].result) : rows[0].result;
         improveResult = rows[0].improve_result ? (typeof rows[0].improve_result === 'string' ? JSON.parse(rows[0].improve_result) : rows[0].improve_result) : null;
+        visualMock = rows[0].visual_mock ? (typeof rows[0].visual_mock === 'string' ? JSON.parse(rows[0].visual_mock) : rows[0].visual_mock) : null;
       }
     } catch (e) {
       error = "データの取得に失敗しました。";
     }
   }
 
-  return <ShareContent input={input} result={result} improveResult={improveResult} error={error} />;
+  return <ShareContent input={input} result={result} improveResult={improveResult} visualMock={visualMock} error={error} />;
 }
