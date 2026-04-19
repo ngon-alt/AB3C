@@ -1684,8 +1684,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         </div>
       ))}
       {(visualLoading || visualMock) && (
-        <div style={{ marginTop: 40 }}>
-          <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
+        <div className="visual-mock-section" style={{ marginTop: 40 }}>
+          <style>{`
+            @media print {
+              .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
+              .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
+              .visual-mock-frame { break-before: avoid-page; page-break-before: avoid; }
+            }
+          `}</style>
+          <div className="visual-mock-banner" style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
             <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>IMPROVED FIRST-VIEW MOCKUP</div>
             <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>⭐ 改善後のファーストビュー・イメージ</div>
           </div>
@@ -1696,7 +1703,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
           )}
           {visualMock && (
-            <div>
+            <div className="visual-mock-frame">
               <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
                 <iframe srcDoc={visualMock.visual_mock_html} style={{ width: "100%", height: 800, border: "none", display: "block" }} sandbox="" title="改善後のファーストビュー" />
               </div>
