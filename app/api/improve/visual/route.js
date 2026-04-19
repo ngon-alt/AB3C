@@ -26,14 +26,28 @@ export async function POST(req) {
     return NextResponse.json({ error: "ビジュアル生成にはプランの購入が必要です" }, { status: 403 });
   }
 
-  const { analysisResult, url } = await req.json();
+  const { analysisResult, improveResult, url } = await req.json();
 
   const strategyMessage = analysisResult?.strategy_message?.message || "";
   const benefitPart = analysisResult?.strategy_message?.benefit_part || analysisResult?.benefit?.core || "";
   const advantagePart = analysisResult?.strategy_message?.advantage_part || analysisResult?.advantage?.what || "";
   const target = analysisResult?.three_c?.customer?.target || "";
 
-  const prompt = `あなたはウェブデザイナーです。以下のAB3C戦略分析を元に、**ウェブサイトのファーストビュー（トップページ最上部）の改善後の完成形**をHTML/CSSで制作してください。
+  // 改善レポートから上位3項目を抽出してビジュアルに反映
+  const extractTop = (arr) => (arr || []).slice(0, 3).map(x => `・${x.title}: ${x.reason?.slice(0, 80) || ""}`).join("\n");
+  const improveDigest = improveResult ? `
+## ウェブサイト改善レポートの要点（このビジュアルに反映してください）
+### 追加すべきコンテンツ（上位3項目）
+${extractTop(improveResult.contents)}
+
+### 改善すべきデザイン・ビジュアル（上位3項目）
+${extractTop(improveResult.design)}
+
+### サイト構造の改善（上位3項目）
+${extractTop(improveResult.structure)}
+` : "";
+
+  const prompt = `あなたはウェブデザイナーです。以下のAB3C戦略分析と改善レポートを元に、**ウェブサイトのファーストビュー（トップページ最上部）の改善後の完成形**をHTML/CSSで制作してください。
 
 ## 対象URL
 ${url || "（URL未指定）"}
@@ -43,12 +57,13 @@ ${url || "（URL未指定）"}
 - Benefit（お客様が得る価値）: ${benefitPart}
 - Advantage（差別化ポイント）: ${advantagePart}
 - ターゲット顧客: ${target}
+${improveDigest}
 
 ## AB3C分析結果（全体）
-${JSON.stringify(analysisResult, null, 2).slice(0, 3000)}
+${JSON.stringify(analysisResult, null, 2).slice(0, 2500)}
 
 ## 要件
-このサイトがもしこの戦略を最大限活かすなら、ファーストビューはこうあるべき、という**理想の完成イメージ**を1枚のHTMLモックとして作ってください。
+このサイトがもしこの戦略を最大限活かし、**上記の改善レポートの提案を反映したら**、ファーストビューはこうあるべき、という**理想の完成イメージ**を1枚のHTMLモックとして作ってください。
 
 必須要素:
 1. **ヒーローエリア**（画面上部）
@@ -56,8 +71,9 @@ ${JSON.stringify(analysisResult, null, 2).slice(0, 3000)}
    - サブコピー（具体的な価値の説明）
    - CTA ボタン（「無料相談」「詳しく見る」等、目立つ位置）
 2. **ビジュアル要素**のプレースホルダー（ヒーロー画像、アイコン等は gray placeholder で表現）
-3. **信頼要素**（実績数値、お客様の声、導入社数など、事業内容に合わせて架空のものでOK）
-4. **下部に3〜4個の価値訴求カード**（Benefit の要素を分解して視覚化）
+3. **信頼要素**（改善レポートで言及された「お客様の声」「実績」「導入数」等を反映、事業内容に合わせて架空の数値でOK）
+4. **下部に3〜4個の価値訴求カード**（Benefit の要素 + 改善レポートで挙がった追加コンテンツ案を視覚化）
+5. **改善レポートの具体的な提案が見える**ように（例: 事例追加の提案があれば事例セクション、比較表の提案があれば比較要素、など）
 
 ## HTML/CSS 制約
 - **完結した HTML 断片**（<html>タグ不要、bodyの中身だけ）

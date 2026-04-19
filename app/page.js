@@ -1207,45 +1207,58 @@ if (tab === "url" && savedText.startsWith("http")) {
   } catch (e) { console.error("分析結果DB保存エラー:", e); }
 }
 
-// URL分析の場合、改善レポート（テキスト）と改善ビジュアル（HTMLモック）を並列生成
+// URL分析の場合、改善レポート（テキスト）→改善ビジュアル（HTMLモック）を順次生成
+// ビジュアルは改善レポートの具体的な提案を反映させるため、テキスト完了後に生成
 let improveData = null;
 let visualData = null;
 if (tab === "url" && savedText.startsWith("http")) {
   setImproveLoading(true);
-  setVisualLoading(true);
   setOverlayMessage("ウェブサイト改善レポート生成中...");
 
-  const improvePromise = fetch("/api/improve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ analysisResult: data, url: savedText }),
-  }).then(r => r.json()).then(d => {
-    if (!d.error) setImproveResult(d);
-    else console.error("改善レポート生成エラー:", d.error);
-    setImproveLoading(false);
-    return d;
-  }).catch(e => {
+  // Step 1: 改善レポート（テキスト）を先に生成
+  try {
+    const improveRes = await fetch("/api/improve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysisResult: data, url: savedText }),
+    });
+    improveData = await improveRes.json();
+    if (!improveData.error) {
+      setImproveResult(improveData);
+    } else {
+      console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
+    }
+  } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
+    improveData = { error: String(e?.message || e) };
+  } finally {
     setImproveLoading(false);
-    return { error: String(e?.message || e) };
-  });
+  }
 
-  const visualPromise = fetch("/api/improve/visual", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ analysisResult: data, url: savedText }),
-  }).then(r => r.json()).then(d => {
-    if (!d.error) setVisualMock(d);
-    else console.error("改善ビジュアル生成エラー:", d.error);
-    setVisualLoading(false);
-    return d;
-  }).catch(e => {
-    console.error("改善ビジュアル自動生成エラー:", e);
-    setVisualLoading(false);
-    return { error: String(e?.message || e) };
-  });
+  // Step 2: 改善レポートをもとにビジュアル生成
+  if (improveData && !improveData.error) {
+    setVisualLoading(true);
+    setOverlayMessage("改善ビジュアル生成中...");
+    try {
+      const visualRes = await fetch("/api/improve/visual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysisResult: data, improveResult: improveData, url: savedText }),
+      });
+      visualData = await visualRes.json();
+      if (!visualData.error) {
+        setVisualMock(visualData);
+      } else {
+        console.error("改善ビジュアル生成エラー:", visualData.error, visualData.debug);
+      }
+    } catch (e) {
+      console.error("改善ビジュアル自動生成エラー:", e);
+      visualData = { error: String(e?.message || e) };
+    } finally {
+      setVisualLoading(false);
+    }
+  }
 
-  [improveData, visualData] = await Promise.all([improvePromise, visualPromise]);
   setOverlayMessage(null);
 }
 
