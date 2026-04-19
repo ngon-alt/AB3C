@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -121,9 +121,24 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </div>
       </div>
-      {/* 下段: メインナビ（分析タブ・伴走タブ・サイト管理 + サイトURL） */}
+      {/* 下段: メインナビ（新規分析・戦略策定・戦略アクション・サイト管理） */}
       <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
-        {/* 分析タブ */}
+        {/* ⓪ 新規分析タブ */}
+        <button onClick={() => {
+          if (onNewAnalysis) { onNewAnalysis(); }
+          else { window.location.href = "/"; }
+        }}
+          style={{
+            padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+            background: phase === "input" ? C.ink : "#888",
+            color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
+          }}>
+          <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
+          新規分析
+        </button>
+        {/* 矢印 */}
+        <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
+        {/* ① 戦略策定タブ */}
         <button onClick={() => {
           if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
           else {
@@ -135,7 +150,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         }}
           style={{
             padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: (phase === "analysis" || phase === "input") ? C.phase1 : C.phase1 + "88",
+            background: phase === "analysis" ? C.phase1 : C.phase1 + "88",
             color: "#fff", borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none", cursor: "pointer",
           }}>
           <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>1</span>
