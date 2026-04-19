@@ -161,12 +161,12 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             style={{
               padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
-              color: phase === "input" ? "#999" : "#fff",
+              color: (phase === "analysis" || phase === "action") ? "#fff" : "#999",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none",
               cursor: phase === "input" ? "not-allowed" : "pointer",
               opacity: 1,
             }}>
-            <span style={{ background: phase === "input" ? "#bbb" : "rgba(255,255,255,0.25)", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
+            <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
           </button>
           {phase === "input" && (
