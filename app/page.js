@@ -1691,6 +1691,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
               .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
               .visual-mock-frame { break-before: avoid-page; page-break-before: avoid; }
+              .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
             }
           `}</style>
           <div className="visual-mock-banner" style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
@@ -1709,7 +1710,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
               </div>
               {visualMock.caption && (
-                <div style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
+                <div className="visual-mock-caption" style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
                   <b style={{ color: C.A }}>💡 このビジュアルの意図：</b>{visualMock.caption}
                 </div>
               )}

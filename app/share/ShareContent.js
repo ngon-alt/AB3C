@@ -203,6 +203,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
           @media print {
             .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
             .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
+            .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
           }
         `}</style>
         <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>⭐ 改善後のファーストビュー・イメージ</div>
@@ -210,7 +211,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
           <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
         </div>
         {visualMock.caption && (
-          <div style={{ marginTop: 10, padding: "12px 16px", background: C.highlight, borderLeft: `4px solid ${C.B}`, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
+          <div className="visual-mock-caption" style={{ marginTop: 10, padding: "12px 16px", background: C.highlight, borderLeft: `4px solid ${C.B}`, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
             <b style={{ color: C.B }}>💡 このビジュアルの意図：</b>{visualMock.caption}
           </div>
         )}
