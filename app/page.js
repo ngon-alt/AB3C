@@ -102,20 +102,26 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-const UL = ({ items, onChatItem, checkable, checkedIndexes, onToggle }) => (
+function UL({ items, onChatItem, checkable, checkedIndexes, onToggle }) {
+  const [hoveredIdx, setHoveredIdx] = useState(-1);
+  return (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => {
       const isChecked = !checkable || (checkedIndexes || []).includes(i);
+      const isHovered = checkable && hoveredIdx === i;
       return (
-     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 0" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.4 : 1, transition: "opacity 0.2s" }}
+     <li key={i}
+       onMouseEnter={() => setHoveredIdx(i)}
+       onMouseLeave={() => setHoveredIdx(-1)}
+       style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
        {...(onChatItem ? hoverShow : {})}>
-        <label style={{ display: "flex", alignItems: "flex-start", gap: 8, flex: 1, cursor: checkable ? "pointer" : "default" }}>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, cursor: checkable ? "pointer" : "default" }}>
           {checkable && (
             <input
               type="checkbox"
               checked={isChecked}
               onChange={() => onToggle && onToggle(i)}
-              style={{ marginTop: 4, width: 18, height: 18, cursor: "pointer", flexShrink: 0, accentColor: C.A }}
+              style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
             />
           )}
           {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
@@ -126,7 +132,8 @@ const UL = ({ items, onChatItem, checkable, checkedIndexes, onToggle }) => (
       );
     })}
   </ul>
-);
+  );
+}
 
 const SectionLabel = ({ color, letter, jp, en, desc, onChat, help }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
@@ -195,8 +202,8 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
         <div style={g2}>
-          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。"><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.needs} onToggle={onRefineToggle && ((i) => onRefineToggle("needs", i))} /></Card></div>
-          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.wants} onToggle={onRefineToggle && ((i) => onRefineToggle("wants", i))} /></Card></div>
+          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。"><UL items={d.benefit.needs} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.needs} onToggle={onRefineToggle && ((i) => onRefineToggle("needs", i))} /></Card></div>
+          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.wants} onToggle={onRefineToggle && ((i) => onRefineToggle("wants", i))} /></Card></div>
         </div>
       </div>
       <Divider />
