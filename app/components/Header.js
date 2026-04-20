@@ -148,10 +148,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         })()}
         <span style={{ color: "#bbb", fontSize: 14, padding: "0 2px" }}>→</span>
 
-        {/* ① 戦略策定 */}
+        {/* ① 戦略策定 — currentSiteId があれば「そのサイトの戦略策定に戻る」経路として常に enabled */}
         {(() => {
           const active = phase === "analysis";
-          const enabled = phase !== "input";
+          const enabled = phase !== "input" || !!currentSiteId;
           return (
             <span style={{ position: "relative", display: "inline-flex" }}
               onMouseEnter={e => { if (!enabled) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
