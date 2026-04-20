@@ -688,6 +688,12 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      {/* 補助金テーマの常設免責表示 */}
+      {effectiveThemeId === "subsidy" && (
+        <div style={{ flexShrink: 0, background: "#fffbe5", borderBottom: "1px solid #f0d98a", padding: "8px 12px", fontSize: 11, lineHeight: 1.6, color: "#1a1a14", fontFamily: "system-ui, sans-serif" }}>
+          <strong>⚠️ 構想整理・記入のヒント提供のみ</strong>　本サービスは申請書の作成代行を行うものではありません。最終的な記載内容はご自身でご確認ください。申請書類の作成代行が必要な場合は行政書士等の専門家へ。
+        </div>
+      )}
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
           if (m.hidden) return null;
@@ -1818,7 +1824,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         {[
           { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
 { icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけで事業戦略の改善提案スライド資料が作成できます。" },
-          { icon: "📝", title: "補助金・事業計画書", desc: "AB3Cで整理した戦略を補助金申請書や事業計画書にそのまま活用できます。" },
+          { icon: "📝", title: "補助金・事業計画の構想整理", desc: "AB3Cで整理した戦略を、補助金申請や事業計画を検討する際の構想整理・記入のヒントとしてご活用いただけます。" },
 
         ].map((item, i) => (
           <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px" }}>
