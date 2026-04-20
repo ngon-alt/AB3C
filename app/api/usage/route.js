@@ -19,7 +19,7 @@ export async function GET(req) {
   return NextResponse.json({
     isPro,
     usageCount: user.usage_count,
-    monthlyLimit: isPro ? Infinity : 1,
+    lifetimeLimit: isPro ? Infinity : 1,
   });
 }
 
@@ -66,17 +66,13 @@ export async function POST(req) {
     }, { status: 429 });
   }
 
-  // 無料ユーザーは月1回まで
+  // 無料ユーザーは1アカウントにつき永久1回のみ（月次リセットなし）
   const today = new Date().toISOString().split("T")[0];
-  const thisMonth = today.slice(0, 7);
-  const resetMonth = (user.usage_reset_date?.toISOString?.()?.split("T")[0] || today).slice(0, 7);
-
-  let usageCount = user.usage_count || 0;
-  if (thisMonth !== resetMonth) usageCount = 0;
+  const usageCount = user.usage_count || 0;
 
   if (usageCount >= 1) {
     return NextResponse.json({
-      error: "無料プランの月1回の利用上限に達しました。チケットを購入してください。"
+      error: "無料お試しは1回のみご利用いただけます。引き続きご利用いただくには、戦略診断チケットまたは戦略指南プランをご購入ください。"
     }, { status: 429 });
   }
 

@@ -183,6 +183,13 @@ export async function POST(req) {
           INSERT INTO tickets (email, remaining_chats, is_trial)
           VALUES (${p.user_email}, ${newChatCount}, FALSE)
         `;
+        // 月次サイト登録カウンタをリセット（戦略指南プランのみ該当）
+        await sql`
+          UPDATE user_plans SET
+            monthly_registrations_used = 0,
+            monthly_registrations_reset_at = NOW()
+          WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
+        `;
         // 次回更新日を記録（Stripe invoice の period_end）
         if (invoice.lines?.data?.[0]?.period?.end) {
           const nextRenewalAt = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
@@ -191,7 +198,7 @@ export async function POST(req) {
             WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
           `;
         }
-        console.log(`月次更新: ${p.user_email} / ${p.plan_type}${p.site_limit} / チャット${newChatCount}回にリセット`);
+        console.log(`月次更新: ${p.user_email} / ${p.plan_type}${p.site_limit} / チャット${newChatCount}回・サイト登録カウンタをリセット`);
       }
     }
   }

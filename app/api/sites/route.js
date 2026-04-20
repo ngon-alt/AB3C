@@ -49,6 +49,20 @@ async function ensureTable(sql) {
       )
     `;
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`;
+    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_used INTEGER DEFAULT 0`;
+    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_reset_at TIMESTAMPTZ`;
+    // 既存の戦略指南プラン契約者に対する初回バックフィル:
+    // 既に登録済みのサイト数分を「月次登録済み」としてカウントし、
+    // 月初からの登録猶予が過剰に付与されないようにする。
+    // monthly_registrations_reset_at が NULL のプランにのみ適用（＝未バックフィル）。
+    await sql`
+      UPDATE user_plans SET
+        monthly_registrations_used = COALESCE((
+          SELECT COUNT(*) FROM sites WHERE sites.user_email = user_plans.user_email
+        ), 0),
+        monthly_registrations_reset_at = NOW()
+      WHERE plan_type = 'support' AND status = 'active' AND monthly_registrations_reset_at IS NULL
+    `;
     await sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`;
     tableReady = true;
   } catch (e) {
@@ -71,6 +85,28 @@ async function getSiteLimit(sql, email) {
   return 1; // プランなし = 1サイト（無料）
 }
 
+// 戦略指南プラン契約者の月次登録上限情報を取得
+// - 対象: 戦略指南プラン（type='support'）のみ。戦略診断チケットは対象外。
+// - 上限: 契約サイト数 × 3（初期登録1 + 月2回までの入れ替え）
+async function getMonthlyRegistrationInfo(sql, email) {
+  const plans = await sql`
+    SELECT id, site_limit, COALESCE(monthly_registrations_used, 0) as used
+    FROM user_plans
+    WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+    ORDER BY purchased_at ASC
+  `;
+  if (plans.length === 0) return { isSupport: false, limit: 0, used: 0, plans: [] };
+  const totalSiteLimit = plans.reduce((s, p) => s + parseInt(p.site_limit || 0), 0);
+  const totalUsed = plans.reduce((s, p) => s + parseInt(p.used || 0), 0);
+  return {
+    isSupport: true,
+    limit: totalSiteLimit * 3,
+    used: totalUsed,
+    remaining: Math.max(0, totalSiteLimit * 3 - totalUsed),
+    plans,
+  };
+}
+
 // GET: ユーザーのサイト一覧取得
 export async function GET(req) {
   try {
@@ -86,8 +122,15 @@ export async function GET(req) {
       ORDER BY updated_at DESC
     `;
     const planLimit = await getSiteLimit(sql, session.user.email);
+    const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
 
-    return NextResponse.json({ sites, planLimit });
+    return NextResponse.json({
+      sites,
+      planLimit,
+      monthlyRegistrationLimit: monthly.isSupport ? monthly.limit : null,
+      monthlyRegistrationUsed: monthly.isSupport ? monthly.used : null,
+      monthlyRegistrationRemaining: monthly.isSupport ? monthly.remaining : null,
+    });
   } catch (e) {
     console.error("GET /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });
@@ -118,6 +161,16 @@ export async function POST(req) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
     }
 
+    // 月次登録上限チェック（戦略指南プラン契約者のみ: 契約サイト数 × 3）
+    const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
+    if (monthly.isSupport && monthly.used >= monthly.limit) {
+      return NextResponse.json({
+        error: `今月のサイト登録上限（${monthly.limit}サイト）に達しました。1サイト枠につき月3サイト（初期登録1＋入れ替え2回）まで登録可能です。来月の更新までお待ちください。`,
+        monthlyLimit: monthly.limit,
+        monthlyUsed: monthly.used,
+      }, { status: 403 });
+    }
+
     // URL重複チェック（末尾スラッシュ・プロトコルの違いを吸収）
     if (site_url) {
       const allSites = await sql`SELECT id, site_name, site_url FROM sites WHERE user_email = ${session.user.email}`;
@@ -133,6 +186,15 @@ export async function POST(req) {
       VALUES (${session.user.email}, ${site_url || null}, ${site_name}, ${company_name || null}, ${industry || null}, ${target_customer || null})
       RETURNING *
     `;
+
+    // 戦略指南プラン契約者は月次登録カウンタを +1（購入日が古いプランから消費）
+    if (monthly.isSupport && monthly.plans.length > 0) {
+      const targetPlan = monthly.plans.find(p => parseInt(p.used || 0) < parseInt(p.site_limit || 0) * 3) || monthly.plans[0];
+      await sql`
+        UPDATE user_plans SET monthly_registrations_used = COALESCE(monthly_registrations_used, 0) + 1
+        WHERE id = ${targetPlan.id}
+      `;
+    }
 
     return NextResponse.json({ site: rows[0] }, { status: 201 });
   } catch (e) {
