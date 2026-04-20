@@ -61,11 +61,11 @@ function HelpTip({ text }) {
       {hover && (
         <span
           style={{
-            position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
+            position: "absolute", top: "calc(100% + 6px)", left: "0",
             background: "#1a1a14", color: "#fff",
             fontSize: 13, lineHeight: 1.7, fontWeight: 400,
             padding: "10px 14px", borderRadius: 4,
-            width: 320, maxWidth: "80vw",
+            width: 300, maxWidth: "min(60vw, 360px)",
             zIndex: 500, boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
             fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
             textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
