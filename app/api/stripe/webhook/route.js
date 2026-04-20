@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
+import { sendPaymentNotificationEmail } from '@/app/lib/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -112,6 +113,38 @@ export async function POST(req) {
       }
 
       console.log(`決済完了: ${email} / プラン: ${plan?.type || 'unknown'} / ${plan?.sites || 0}サイト / チャット${chatCount}回 / priceId: ${priceId}`);
+
+      // 運営向け決済通知メール（info@digi-kaku.or.jp）
+      try {
+        // ユーザー名・利用目的をusersテーブルから取得
+        let buyerName = null;
+        let purpose = null;
+        try {
+          const rows = await sql`SELECT name, purpose FROM users WHERE email = ${email} LIMIT 1`;
+          if (rows.length > 0) {
+            buyerName = rows[0].name;
+            purpose = rows[0].purpose;
+          }
+        } catch (e) {
+          console.error('決済通知: ユーザー情報取得エラー:', e);
+        }
+        // 実際の決済額（クーポン適用後）— Stripeは最小通貨単位（円は1=1円）
+        const amountJpy = typeof session.amount_total === 'number' ? session.amount_total : null;
+        await sendPaymentNotificationEmail({
+          buyerEmail: email,
+          buyerName,
+          purpose,
+          planType: plan?.type,
+          siteLimit: plan?.sites,
+          interval: plan?.interval,
+          amountJpy,
+          priceId,
+          stripeSessionId: session.id,
+        });
+      } catch (e) {
+        console.error('決済通知メール送信エラー:', e);
+        // 通知失敗でも webhook 自体は成功扱いにする（決済処理は既に完了しているため）
+      }
     }
   }
 

@@ -56,3 +56,47 @@ export async function sendTutorial4Email({ email, name }) {
 export async function sendTutorial5Email({ email, name }) {
   return sendEmail(email, '毎朝5分、戦略指南 AIと話す習慣を作りましょう。', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、ご登録から約1ヶ月が経ちました。一つ、新しい習慣を提案させてください。</p><div style="background:#f0f4ff;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:16px;font-weight:bold;color:#1a6fd4;margin:0 0 12px">毎朝5分、その日やることをチャットに話しかけてください。</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今日の午後、新規クライアントに初回提案をします」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今週中に採用ページを更新する予定です」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 16px">「今月中にWebサイトのトップページを修正したいです」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">それだけで、戦略指南 AIが「その取り組みに戦略をどう反映させるか」を一緒に考えてくれます。</p></div><p style="font-size:16px;line-height:1.8;color:#1a1a14">明日の朝、まず一つ話しかけてみてください。</p><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">チャットを開く →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
 }
+
+// 決済完了時に運営（info@digi-kaku.or.jp）へ通知するメール
+// 決裁者プロフィール・選択メニュー・金額を含む
+export async function sendPaymentNotificationEmail({
+  buyerEmail,
+  buyerName,
+  purpose,       // 'self' | 'agency' | null
+  planType,      // 'analysis' | 'support'
+  siteLimit,     // 1 / 5 / 10 / 15 / 30 / 60 / 100 / 120
+  interval,      // 'month' | 'year'
+  amountJpy,     // 実際の決済額（円）
+  priceId,
+  stripeSessionId,
+}) {
+  const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
+
+  const planLabel =
+    planType === 'analysis' ? '戦略診断チケット（1年）' :
+    planType === 'support'  ? `戦略指南プラン（${interval === 'year' ? '年額' : '月額'}）` :
+    '不明プラン';
+  const purposeLabel = purpose === 'self' ? '自社利用' : purpose === 'agency' ? 'クライアント提供（代理店）' : '未回答';
+  const amountStr = typeof amountJpy === 'number' ? `¥${amountJpy.toLocaleString('ja-JP')}` : '—';
+  const subject = `【戦略指南 AI／決済通知】${planLabel} ${siteLimit}サイト ${amountStr} — ${buyerEmail}`;
+
+  const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px">戦略指南 AI — 決済完了通知</div>
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">新しい決済が完了しました。以下の内容を確認してください。</p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:24px">
+      <tr><td style="padding:8px 12px;background:#f5f2eb;width:160px;font-weight:bold">プラン</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${planLabel}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">サイト数</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${siteLimit}サイト</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">決済金額</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;font-weight:bold;color:#1a6fd4">${amountStr}（税込・クーポン適用後）</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">決裁者メール</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0"><a href="mailto:${buyerEmail}" style="color:#1a6fd4">${buyerEmail}</a></td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">決裁者氏名</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${buyerName || '—'}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">利用目的</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${purposeLabel}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">Stripe Price ID</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;font-family:monospace;font-size:12px">${priceId || '—'}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">Stripe Session ID</td><td style="padding:8px 12px;font-family:monospace;font-size:12px">${stripeSessionId || '—'}</td></tr>
+    </table>
+
+    <p style="font-size:12px;color:#78716c;margin-top:24px">このメールは Stripe webhook により自動送信されています。</p>
+  </div>`;
+
+  return sendEmail(NOTIFY_TO, subject, html);
+}
