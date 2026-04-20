@@ -1,5 +1,6 @@
 "use client";
 import ShadowMock from "../components/ShadowMock";
+import Footer from "../components/Footer";
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
@@ -56,6 +57,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
 
   return (
+    <>
     <main style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
         <div style={{ borderBottom: `2px solid ${C.ink}`, paddingBottom: 20, marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
@@ -219,14 +221,9 @@ export default function ShareContent({ input, result, improveResult, visualMock,
     )}
   </div>
 )}
-        <footer style={{ textAlign: "center", marginTop: 60, paddingTop: 20, borderTop: `1px solid ${C.border}`, color: C.muted, fontSize: 11 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 8 }}>
-            <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
-            <span style={{ fontSize: 12, color: C.ink }}>一般社団法人デジタル経営革新協会</span>
-          </div>
-          <div>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted }}>ab3c.jp</a> · Powered by Claude AI</div>
-        </footer>
       </div>
     </main>
+    <Footer />
+    </>
   );
 }

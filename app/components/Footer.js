@@ -1,4 +1,4 @@
-// Updated: 2025-04-07
+// Updated: 2026-04-20
 const C = {
   surface: "#ffffff",
   border: "#e5e5e0",
@@ -14,13 +14,17 @@ export default function Footer() {
           <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 32 }} />
           <span style={{ fontSize: 16, color: C.ink, fontWeight: 600 }}>一般社団法人デジタル経営革新協会</span>
         </div>
-        <div style={{ marginBottom: 8, fontSize: 16 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
+        <div style={{ marginBottom: 12, fontSize: 16 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", fontSize: 16 }}>
-          <a href="/terms" style={{ color: C.muted, textDecoration: "none" }}>利用規約</a>
+          <a href="/contact" style={{ color: C.muted, textDecoration: "underline" }}>お問い合わせ</a>
           <span style={{ color: C.border }}>|</span>
-          <a href="/privacy" style={{ color: C.muted, textDecoration: "none" }}>プライバシーポリシー</a>
+          <a href="/contact?type=bug" style={{ color: C.muted, textDecoration: "underline" }}>🐛 バグ報告</a>
           <span style={{ color: C.border }}>|</span>
-          <a href="/legal" style={{ color: C.muted, textDecoration: "none" }}>特定商取引法</a>
+          <a href="/terms" style={{ color: C.muted, textDecoration: "underline" }}>利用規約</a>
+          <span style={{ color: C.border }}>|</span>
+          <a href="/privacy" style={{ color: C.muted, textDecoration: "underline" }}>プライバシーポリシー</a>
+          <span style={{ color: C.border }}>|</span>
+          <a href="/legal" style={{ color: C.muted, textDecoration: "underline" }}>特定商取引法</a>
         </div>
       </div>
     </footer>
