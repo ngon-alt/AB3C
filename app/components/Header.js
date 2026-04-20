@@ -140,7 +140,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
             position: "relative",
             zIndex: phase === "input" ? 2 : 1,
-            boxShadow: phase === "input" ? "0 6px 0 2px #fff" : "none",
+            boxShadow: phase === "input" ? "0 2px 0 #fff" : "none",
           }}>
           <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
           新規分析
@@ -171,7 +171,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               opacity: 1,
               position: "relative",
               zIndex: phase === "analysis" ? 2 : 1,
-              boxShadow: phase === "analysis" ? `0 6px 0 2px ${C.phase1}` : "none",
+              boxShadow: phase === "analysis" ? "0 2px 0 #fff" : "none",
             }}>
             <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
@@ -200,7 +200,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               opacity: 1,
               position: "relative",
               zIndex: phase === "action" ? 2 : 1,
-              boxShadow: phase === "action" ? `0 6px 0 2px ${C.phase2}` : "none",
+              boxShadow: phase === "action" ? "0 2px 0 #fff" : "none",
             }}>
             <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
@@ -259,7 +259,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         )}
       </nav>
       {/* フェーズカラーライン */}
-      <div style={{ height: 6, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : C.ink }} />
+      <div style={{ height: 2, background: C.border }} />
     </div>
   );
 }
