@@ -18,61 +18,52 @@ export default async function Image() {
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "serif",
-          padding: 80,
+          padding: 60,
         }}
       >
-        {/* 上部: AB3C のカラフルロゴ風 */}
+        {/* 上部: AB3Cカラーアクセント */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            fontSize: 80,
+            fontSize: 60,
             fontWeight: 700,
             letterSpacing: "-0.02em",
-            marginBottom: 48,
+            marginBottom: 32,
           }}
         >
           <span style={{ color: "#1a6fd4" }}>A</span>
           <span style={{ color: "#FF0000" }}>B</span>
           <span style={{ color: "#1a1a14" }}>3C</span>
+          <span style={{ color: "#888", fontSize: 28, fontFamily: "monospace", marginLeft: 16 }}>framework</span>
         </div>
 
-        {/* メインタイトル */}
+        {/* メインタイトル: 戦略指南 AI を最大サイズで */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 16,
             fontWeight: 900,
             color: "#1a1a14",
-            marginBottom: 24,
+            letterSpacing: "-0.02em",
           }}
         >
-          <span style={{ fontSize: 140, lineHeight: 1 }}>戦略指南</span>
-          <span style={{ fontSize: 100, lineHeight: 1, fontFamily: "monospace" }}>AI</span>
+          <span style={{ fontSize: 200, lineHeight: 1 }}>戦略指南</span>
+          <span style={{ fontSize: 160, lineHeight: 1, fontFamily: "monospace", marginLeft: 12 }}>AI</span>
         </div>
 
-        {/* サブタイトル */}
-        <div
-          style={{
-            fontSize: 28,
-            color: "#555",
-            fontFamily: "monospace",
-            letterSpacing: "0.08em",
-            marginBottom: 32,
-          }}
-        >
-          on AB3C framework
+        {/* アンダーライン */}
+        <div style={{ display: "flex", marginTop: 36, marginBottom: 32 }}>
+          <div style={{ width: 320, height: 4, background: "#1a1a14" }} />
         </div>
 
         {/* キャッチコピー */}
         <div
           style={{
-            fontSize: 36,
+            fontSize: 40,
             color: "#1a1a14",
             fontWeight: 400,
-            borderTop: "2px solid #1a1a14",
-            paddingTop: 24,
+            letterSpacing: "0.05em",
           }}
         >
           選ばれる理由を言語化する 戦略策定AI
