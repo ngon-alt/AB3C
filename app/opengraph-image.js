@@ -147,21 +147,20 @@ export default async function Image() {
             <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20 }}>AI</span>
           </div>
 
-          {/* サブタイトル: on AB3C */}
+          {/* サブタイトル: on AB3C — on は小さめ、AB3C は大きめ、全て中央揃え */}
           <div
             style={{
               display: "flex",
-              alignItems: "baseline",
-              fontSize: 64,
-              letterSpacing: "0.05em",
+              alignItems: "center",
               marginTop: 28,
               fontWeight: 700,
+              letterSpacing: "0.05em",
             }}
           >
-            <span style={{ color: "#555" }}>on </span>
-            <span style={{ color: "#1a6fd4" }}>A</span>
-            <span style={{ color: "#FF0000" }}>B</span>
-            <span style={{ color: "#1a1a14" }}>3C</span>
+            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500 }}>on</span>
+            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1 }}>A</span>
+            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1 }}>B</span>
+            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1 }}>3C</span>
           </div>
 
           {/* アンダーライン */}
