@@ -1735,9 +1735,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             onClick={unconfirmStrategy}
             title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
             style={{
-              background: "#fff", border: `1px solid ${C.muted}`, borderRadius: 2,
-              color: C.muted, cursor: "pointer",
-              fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px",
+              background: C.B, border: "none", borderRadius: 2,
+              color: "#fff", cursor: "pointer",
+              fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
             }}
           >
             ↺ 戦略を解除
@@ -1898,9 +1898,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             onClick={unconfirmStrategy}
             title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
             style={{
-              background: "rgba(255,255,255,0.9)", border: "none", borderRadius: 4,
-              color: C.ink, cursor: "pointer",
-              fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "8px 14px",
+              background: C.B, border: "none", borderRadius: 2,
+              color: "#fff", cursor: "pointer",
+              fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
               flexShrink: 0, whiteSpace: "nowrap",
             }}
           >
