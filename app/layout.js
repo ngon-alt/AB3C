@@ -33,7 +33,7 @@ export const metadata = {
     locale: "ja_JP",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
     description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI",
   },
