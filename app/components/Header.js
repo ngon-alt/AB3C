@@ -66,8 +66,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略指南 AI</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>
-              on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span> framework
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(12px, 2.5vw, 18px)", color: C.muted, marginLeft: 8 }}>
+              on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
             </span>
           </div>
           <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
