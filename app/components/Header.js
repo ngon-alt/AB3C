@@ -66,7 +66,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略指南 AI</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(12px, 2.5vw, 18px)", color: C.muted, marginLeft: 8 }}>
+            <span style={{ fontFamily: NAV_FONT, fontSize: "clamp(14px, 2.5vw, 20px)", color: C.muted, marginLeft: 10, fontWeight: 600, letterSpacing: "0.05em" }}>
               on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
             </span>
           </div>
@@ -124,111 +124,117 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </div>
       </div>
-      {/* 下段: メインナビ（新規分析・戦略策定・戦略アクション・サイト管理） */}
-      <nav style={{ padding: "0 24px", display: "flex", alignItems: "flex-end", background: "#fff" }}>
-        {/* ⓪ 新規分析タブ */}
-        <button onClick={() => {
-          if (onNewAnalysis) { onNewAnalysis(); }
-          else { window.location.href = "/"; }
-        }}
-          title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
-          style={{
-            padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-            background: phase === "input" ? "#fff" : "#ddd",
-            color: phase === "input" ? C.ink : "#999",
-            border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
-            borderBottom: "none",
-            borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
-            position: "relative",
-            zIndex: phase === "input" ? 2 : 1,
-            boxShadow: phase === "input" ? "0 2px 0 #fff" : "none",
-          }}>
-          <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
-          新規分析
-        </button>
-        {/* 矢印 */}
-        <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
-        {/* ① 戦略策定タブ */}
-        <span style={{ position: "relative", display: "inline-flex" }}
-          onMouseEnter={e => { if (phase === "input") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
-          onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
-          <button onClick={() => {
-            if (phase === "input") return; // 分析前はクリック不可
-            if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
-            else {
-              const params = [];
-              if (currentSiteId) params.push(`site_id=${currentSiteId}`);
-              if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
-              window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
-            }
-          }}
-            style={{
-              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
-              color: (phase === "analysis" || phase === "action") ? "#fff" : "#999",
-              border: "2px solid transparent", borderBottom: "none",
-              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: phase === "input" ? "not-allowed" : "pointer",
-              opacity: 1,
-              position: "relative",
-              zIndex: phase === "analysis" ? 2 : 1,
-              boxShadow: phase === "analysis" ? "0 2px 0 #fff" : "none",
-            }}>
-            <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
-            戦略策定
-          </button>
-          {phase === "input" && (
-            <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
-              まず新規分析を実行してください
-            </div>
-          )}
-        </span>
-        {/* 矢印 */}
-        <div style={{ display: "flex", alignItems: "center", padding: "0 8px 10px", color: "#999", fontSize: 14 }}>→</div>
-        {/* 戦略アクションタブ */}
-        <span style={{ position: "relative", display: "inline-flex" }}
-          onMouseEnter={e => { if (phase !== "action") { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
-          onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
-          <button
-            onClick={() => { if (!strategyConfirmed) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
-            style={{
-              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
-              background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "88" : "#ddd",
-              color: (phase === "action" || strategyConfirmed) ? "#fff" : "#999",
-              border: "2px solid transparent", borderBottom: "none",
-              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: strategyConfirmed ? "pointer" : "not-allowed",
-              opacity: 1,
-              position: "relative",
-              zIndex: phase === "action" ? 2 : 1,
-              boxShadow: phase === "action" ? "0 2px 0 #fff" : "none",
-            }}>
-            <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
-            戦略アクション
-          </button>
-          {phase !== "action" && (
-            <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
-              {bansouTooltip}
-            </div>
-          )}
-        </span>
+      {/* 下段: メインナビ（ピル型ステッパー） */}
+      <nav style={{ padding: "12px 24px 14px", display: "flex", alignItems: "center", gap: 6, background: "#fff", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
+        {/* ⓪ 新規分析 */}
+        {(() => {
+          const active = phase === "input";
+          return (
+            <button onClick={() => { if (onNewAnalysis) onNewAnalysis(); else window.location.href = "/"; }}
+              title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
+              style={{
+                padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
+                background: active ? C.ink : "#f0f0ec",
+                color: active ? "#fff" : "#666",
+                border: active ? `2px solid ${C.ink}` : `2px solid transparent`,
+                borderRadius: 999,
+                display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
+              }}>
+              <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
+              新規分析
+            </button>
+          );
+        })()}
+        <span style={{ color: "#bbb", fontSize: 14, padding: "0 2px" }}>→</span>
+
+        {/* ① 戦略策定 */}
+        {(() => {
+          const active = phase === "analysis";
+          const enabled = phase !== "input";
+          return (
+            <span style={{ position: "relative", display: "inline-flex" }}
+              onMouseEnter={e => { if (!enabled) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+              onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
+              <button onClick={() => {
+                if (!enabled) return;
+                if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
+                else {
+                  const params = [];
+                  if (currentSiteId) params.push(`site_id=${currentSiteId}`);
+                  if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
+                  window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
+                }
+              }}
+                style={{
+                  padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
+                  background: active ? C.phase1 : enabled ? "#d8eeeb" : "#f0f0ec",
+                  color: active ? "#fff" : enabled ? C.phase1 : "#999",
+                  border: active ? `2px solid ${C.phase1}` : `2px solid transparent`,
+                  borderRadius: 999,
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  cursor: enabled ? "pointer" : "not-allowed",
+                }}>
+                <span style={{ background: active ? "rgba(255,255,255,0.25)" : enabled ? C.phase1 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>1</span>
+                戦略策定
+              </button>
+              {!enabled && (
+                <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
+                  まず新規分析を実行してください
+                </div>
+              )}
+            </span>
+          );
+        })()}
+        <span style={{ color: "#bbb", fontSize: 14, padding: "0 2px" }}>→</span>
+
+        {/* ② 戦略アクション */}
+        {(() => {
+          const active = phase === "action";
+          const enabled = strategyConfirmed;
+          return (
+            <span style={{ position: "relative", display: "inline-flex" }}
+              onMouseEnter={e => { if (!active) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
+              onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
+              <button onClick={() => { if (!enabled) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
+                style={{
+                  padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
+                  background: active ? C.phase2 : enabled ? "#fde4cc" : "#f0f0ec",
+                  color: active ? "#fff" : enabled ? C.phase2 : "#999",
+                  border: active ? `2px solid ${C.phase2}` : `2px solid transparent`,
+                  borderRadius: 999,
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  cursor: enabled ? "pointer" : "not-allowed",
+                }}>
+                <span style={{ background: active ? "rgba(255,255,255,0.25)" : enabled ? C.phase2 : "#bbb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>2</span>
+                戦略アクション
+              </button>
+              {!active && (
+                <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
+                  {bansouTooltip}
+                </div>
+              )}
+            </span>
+          );
+        })()}
+
         {/* 区切り */}
-        <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "flex-end", marginBottom: 10 }} />
-        {/* サイト管理ボタン（タブと同じトップ位置に合わせるため height を 28px に） */}
+        <div style={{ width: 1, height: 24, background: C.border, margin: "0 10px" }} />
+
+        {/* サイト管理ボタン */}
         <a href="/dashboard"
           style={{
-            padding: "5px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
-            color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-end",
-            background: C.ink, border: "2px solid transparent", borderRadius: 4,
-            marginBottom: 6,
+            padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
+            color: "#fff", display: "inline-flex", alignItems: "center", gap: 6,
+            background: C.ink, border: "2px solid transparent", borderRadius: 999,
           }}>
           📋 サイト管理
         </a>
+
         {/* サイト切替プルダウン */}
         {session && sites.length > 0 && (
-          <div style={{ position: "relative", alignSelf: "flex-end", marginLeft: 4, marginBottom: 6 }}>
+          <div style={{ position: "relative" }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 999, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink, fontWeight: 600 }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
               <span style={{ fontSize: 12, color: C.ink }}>▼</span>
             </button>
@@ -259,8 +265,6 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         )}
       </nav>
-      {/* タブ下線（アクティブタブの box-shadow: 0 2px 0 #fff で該当タブ位置だけ白抜けする） */}
-      <div style={{ height: 2, background: C.ink }} />
     </div>
   );
 }
