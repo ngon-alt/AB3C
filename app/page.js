@@ -61,11 +61,11 @@ function HelpTip({ text }) {
       {hover && (
         <span
           style={{
-            position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
+            position: "absolute", top: "calc(100% + 6px)", left: "0",
             background: "#1a1a14", color: "#fff",
             fontSize: 13, lineHeight: 1.7, fontWeight: 400,
             padding: "10px 14px", borderRadius: 4,
-            width: 320, maxWidth: "80vw",
+            width: 300, maxWidth: "min(60vw, 360px)",
             zIndex: 500, boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
             fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
             textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
@@ -102,17 +102,38 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-const UL = ({ items, onChatItem }) => (
+function UL({ items, onChatItem, checkable, checkedIndexes, onToggle }) {
+  const [hoveredIdx, setHoveredIdx] = useState(-1);
+  return (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-    {items.map((item, i) => (
-     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
+    {items.map((item, i) => {
+      const isChecked = !checkable || (checkedIndexes || []).includes(i);
+      const isHovered = checkable && hoveredIdx === i;
+      return (
+     <li key={i}
+       onMouseEnter={() => setHoveredIdx(i)}
+       onMouseLeave={() => setHoveredIdx(-1)}
+       style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
        {...(onChatItem ? hoverShow : {})}>
-        <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{linkify(item)}</span>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, cursor: checkable ? "pointer" : "default" }}>
+          {checkable && (
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => onToggle && onToggle(i)}
+              style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+            />
+          )}
+          {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
+          <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
+        </label>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
-    ))}
+      );
+    })}
   </ul>
-);
+  );
+}
 
 const SectionLabel = ({ color, letter, jp, en, desc, onChat, help }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
@@ -169,7 +190,7 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-function ResultView({ d, onChat, changedPaths }) {
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -181,8 +202,8 @@ function ResultView({ d, onChat, changedPaths }) {
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
         <div style={g2}>
-          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。"><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
-          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
+          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。"><UL items={d.benefit.needs} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.needs} onToggle={onRefineToggle && ((i) => onRefineToggle("needs", i))} /></Card></div>
+          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.wants} onToggle={onRefineToggle && ((i) => onRefineToggle("wants", i))} /></Card></div>
         </div>
       </div>
       <Divider />
@@ -199,9 +220,9 @@ function ResultView({ d, onChat, changedPaths }) {
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
         <div style={{ ...g2, marginBottom: 14 }}>
-          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。誰に向けて事業を展開するかを一言で。">
+          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。">
             <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
-            <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} />
+            <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.profile} onToggle={onRefineToggle && ((i) => onRefineToggle("profile", i))} />
           </Card></div>
           <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")} help="ターゲットが『ニーズ段階』（欠乏感・曖昧）か『ウォンツ段階』（具体的欲求）か。切り捨てたお客様（戦略的に対象外とした層）も明確化します。">
             <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
@@ -418,7 +439,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
 
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: "assistant", content: "分析結果をもとに相談できます。どんなことでも聞いてください！" }]);
+      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
     }
   }, []);
 
@@ -513,7 +534,18 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
               maxWidth: "80%", lineHeight: 1.7,
               fontFamily: "system-ui, sans-serif",
               whiteSpace: "pre-wrap",
-            }}>{m.content}</div>
+            }}>{m.content.includes("[[CHAT_ICON]]")
+              ? m.content.split("[[CHAT_ICON]]").map((part, idx, arr) => (
+                  <span key={idx}>
+                    {part}
+                    {idx < arr.length - 1 && (
+                      <span style={{ display: "inline-flex", verticalAlign: "middle", background: C.phase1, width: 20, height: 20, borderRadius: 4, alignItems: "center", justifyContent: "center", margin: "0 2px" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+                      </span>
+                    )}
+                  </span>
+                ))
+              : m.content}</div>
           </div>
         ))}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
@@ -786,6 +818,7 @@ const [trialChats, setTrialChats] = useState(0);
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
   const [refining, setRefining] = useState(false);
+  const [refineToast, setRefineToast] = useState(false);
   const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
@@ -1127,6 +1160,26 @@ useEffect(() => {
   } catch (e) { setConfirmHistory([]); }
 }, [siteId]);
 
+// currentResult が変わったら refineSelection を初期化（ニーズ等の項目が変わった時のみ）
+// 絞り込み再分析時は origNeeds/Wants/Profile を保持するためリセットしない
+const prevItemsKeyRef = useRef(null);
+useEffect(() => {
+  if (!currentResult) { setRefineSelection({ needs: [], wants: [], profile: [] }); prevItemsKeyRef.current = null; return; }
+  const key = JSON.stringify({
+    n: currentResult.benefit?.needs || [],
+    w: currentResult.benefit?.wants || [],
+    p: currentResult.three_c?.customer?.profile || [],
+  });
+  if (prevItemsKeyRef.current !== key) {
+    setRefineSelection({
+      needs: (currentResult.benefit?.needs || []).map((_, i) => i),
+      wants: (currentResult.benefit?.wants || []).map((_, i) => i),
+      profile: (currentResult.three_c?.customer?.profile || []).map((_, i) => i),
+    });
+    prevItemsKeyRef.current = key;
+  }
+}, [currentResult]);
+
 useEffect(() => {
   try {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
@@ -1206,6 +1259,81 @@ useEffect(() => {
           setConfirmHistory(existing2);
         } catch (e) {}
       } catch (e) { alert("保存に失敗しました。"); }
+    }
+  };
+
+  // 絞り込み再分析（選択項目だけにフォーカスした戦略を再生成）
+  const refineAnalyze = async () => {
+    if (!currentResult || refining) return;
+    const origNeeds = currentResult.benefit?.needs || [];
+    const origWants = currentResult.benefit?.wants || [];
+    const origProfile = currentResult.three_c?.customer?.profile || [];
+    const selectedNeeds = origNeeds.filter((_, i) => refineSelection.needs.includes(i));
+    const selectedWants = origWants.filter((_, i) => refineSelection.wants.includes(i));
+    const selectedProfile = origProfile.filter((_, i) => refineSelection.profile.includes(i));
+
+    if (selectedNeeds.length === 0 || selectedWants.length === 0) {
+      alert("ニーズとウォンツは最低1つは残してください。");
+      return;
+    }
+
+    setRefining(true);
+    setOverlayMessage("選んだ条件で再分析中...");
+    try {
+      const payload = {
+        refineFrom: currentResult,
+        refineSelection: {
+          needs: selectedNeeds,
+          wants: selectedWants,
+          profile: selectedProfile,
+          target: currentResult.three_c?.customer?.target,
+        },
+      };
+      if (currentInput?.startsWith("http")) payload.url = currentInput;
+      else payload.input = currentInput;
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+      // 元のニーズ・ウォンツ・プロフィール一覧は保持（取り消し線表示のため）
+      // ユーザーが後でチェックを戻して再分析できるように、選択可能な項目は常に元のまま
+      const merged = {
+        ...data,
+        benefit: {
+          ...data.benefit,
+          needs: origNeeds,
+          wants: origWants,
+        },
+        three_c: {
+          ...data.three_c,
+          customer: {
+            ...data.three_c?.customer,
+            profile: origProfile,
+            target: data.three_c?.customer?.target ?? currentResult.three_c?.customer?.target,
+          },
+        },
+      };
+      try {
+        const diff = diffResults(currentResult || {}, merged);
+        setChangedPaths(prev => {
+          const next = new Map(prev);
+          diff.forEach(path => next.set(path, (next.get(path) || 0) + 1));
+          return next;
+        });
+      } catch (e) { console.error("diff error:", e); }
+      setCurrentResult(merged);
+      setResult(merged);
+      setAnalyzedAt(Date.now());
+      setHistoryTitle(merged?.strategy_message?.message || "");
+    } catch (e) {
+      alert("再分析に失敗しました: " + (e?.message || e));
+    } finally {
+      setRefining(false);
+      setOverlayMessage(null);
     }
   };
 
@@ -1299,6 +1427,7 @@ let improveData = null;
 let visualData = null;
 if (tab === "url" && savedText.startsWith("http")) {
   setImproveLoading(true);
+  setVisualLoading(true); // ビジュアルも同時にローディング開始（改善レポートと同時表示のため）
   setOverlayMessage("ウェブサイト改善レポート生成中...");
 
   // Step 1: 改善レポート（テキスト）を先に生成
@@ -1313,17 +1442,18 @@ if (tab === "url" && savedText.startsWith("http")) {
       setImproveResult(improveData);
     } else {
       console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
+      setVisualLoading(false); // 改善レポート失敗時はビジュアルも走らないのでクリア
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
     improveData = { error: String(e?.message || e) };
+    setVisualLoading(false);
   } finally {
     setImproveLoading(false);
   }
 
   // Step 2: 改善レポートをもとにビジュアル生成
   if (improveData && !improveData.error) {
-    setVisualLoading(true);
     setOverlayMessage("改善ビジュアル生成中...");
     try {
       const visualRes = await fetch("/api/improve/visual", {
@@ -1417,6 +1547,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
           </div>
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+      {/* 絞り込み再分析ボタン案内トースト（チェックを外した直後に上に出ていることを通知） */}
+      {refineToast && (
+        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.A, color: "#fff", padding: "14px 24px", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.25)", zIndex: 9998, fontSize: 15, fontWeight: 700, fontFamily: "system-ui, sans-serif", display: "flex", alignItems: "center", gap: 10, animation: "refineToastSlide 0.25s ease-out" }}>
+          <span style={{ fontSize: 20 }}>⬆</span>
+          <span>上の「選んだ条件で再分析」ボタンをクリックして戦略を研ぎ澄ませましょう</span>
+          <style>{`@keyframes refineToastSlide { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }`}</style>
         </div>
       )}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
@@ -1803,7 +1941,56 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       )}
     </div>
   </div>
-  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} />
+  {(() => {
+    const needsLen = currentResult.benefit?.needs?.length ?? 0;
+    const wantsLen = currentResult.benefit?.wants?.length ?? 0;
+    const profileLen = currentResult.three_c?.customer?.profile?.length ?? 0;
+    const isPending = !strategyConfirmed && (
+      (refineSelection.needs?.length ?? 0) < needsLen ||
+      (refineSelection.wants?.length ?? 0) < wantsLen ||
+      (refineSelection.profile?.length ?? 0) < profileLen
+    );
+    if (!isPending) return null;
+    return (
+      <div style={{ background: "#fff3cd", border: `2px solid ${C.A}`, borderRadius: 6, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 15, color: C.ink, fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>
+          <b>🎯 ターゲットを絞り込みました</b><br />
+          <span style={{ fontSize: 13, color: C.muted }}>選んだ条件で再分析すると、より鋭い戦略メッセージに研ぎ澄ませます。</span>
+        </div>
+        <button
+          onClick={refineAnalyze}
+          disabled={refining}
+          style={{
+            background: refining ? C.muted : C.A, border: "none", borderRadius: 4,
+            color: "#fff", cursor: refining ? "not-allowed" : "pointer",
+            fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {refining ? "再分析中…" : "🎯 選んだ条件で再分析"}
+        </button>
+      </div>
+    );
+  })()}
+  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={strategyConfirmed ? null : (key, i) => {
+    setRefineSelection(prev => {
+      const list = prev[key] || [];
+      const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
+      const newSel = { ...prev, [key]: next };
+      // いずれかの項目が外された状態になったら、上のボタンを案内するトースト表示
+      const origNeeds = currentResult?.benefit?.needs?.length ?? 0;
+      const origWants = currentResult?.benefit?.wants?.length ?? 0;
+      const origProfile = currentResult?.three_c?.customer?.profile?.length ?? 0;
+      const pending = (newSel.needs?.length ?? 0) < origNeeds
+        || (newSel.wants?.length ?? 0) < origWants
+        || (newSel.profile?.length ?? 0) < origProfile;
+      if (pending) {
+        setRefineToast(true);
+        setTimeout(() => setRefineToast(false), 2800);
+      }
+      return newSel;
+    });
+  }} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
       ウェブサイト改善レポートを生成中です…
@@ -1815,26 +2002,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
       </div>
-      {[
-        { key: "contents", label: "追加すべきコンテンツ", color: C.A },
-        { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
-        { key: "structure", label: "サイト構造の改善", color: C.C },
-      ].map(section => (
-        <div key={section.key} style={{ marginBottom: 28 }}>
-          <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
-          {improveResult[section.key]?.map((item, i) => (
-            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
-              <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
-              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
-              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
-            </div>
-          ))
-          }</Card>
-        </div>
-      ))}
       {(visualLoading || visualMock) && (
-        <div className="visual-mock-section" style={{ marginTop: 40 }}>
+        <div className="visual-mock-section" style={{ marginBottom: 32 }}>
           <style>{`
             @media print {
               .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
@@ -1867,6 +2036,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
         </div>
       )}
+      {[
+        { key: "contents", label: "追加すべきコンテンツ", color: C.A },
+        { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
+        { key: "structure", label: "サイト構造の改善", color: C.C },
+      ].map(section => (
+        <div key={section.key} style={{ marginBottom: 28 }}>
+          <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
+          {improveResult[section.key]?.map((item, i) => (
+            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
+              <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
+              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
+            </div>
+          ))
+          }</Card>
+        </div>
+      ))}
     </div>
   )}
 </div>

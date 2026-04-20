@@ -66,8 +66,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略指南 AI</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>
-              on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span> framework
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(12px, 2.5vw, 18px)", color: C.muted, marginLeft: 8 }}>
+              on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
             </span>
           </div>
           <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
@@ -140,7 +140,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
             position: "relative",
             zIndex: phase === "input" ? 2 : 1,
-            boxShadow: phase === "input" ? "0 6px 0 2px #fff" : "none",
+            boxShadow: phase === "input" ? "0 2px 0 #fff" : "none",
           }}>
           <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
           新規分析
@@ -171,7 +171,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               opacity: 1,
               position: "relative",
               zIndex: phase === "analysis" ? 2 : 1,
-              boxShadow: phase === "analysis" ? `0 6px 0 2px ${C.phase1}` : "none",
+              boxShadow: phase === "analysis" ? "0 2px 0 #fff" : "none",
             }}>
             <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
@@ -200,7 +200,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               opacity: 1,
               position: "relative",
               zIndex: phase === "action" ? 2 : 1,
-              boxShadow: phase === "action" ? `0 6px 0 2px ${C.phase2}` : "none",
+              boxShadow: phase === "action" ? "0 2px 0 #fff" : "none",
             }}>
             <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
@@ -213,10 +213,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         </span>
         {/* 区切り */}
         <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "flex-end", marginBottom: 10 }} />
-        {/* サイト管理ボタン（サイト未確定のナビゲーションなので黒系で統一） */}
+        {/* サイト管理ボタン（タブと同じトップ位置に合わせるため height を 28px に） */}
         <a href="/dashboard"
           style={{
-            padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
+            padding: "5px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-end",
             background: C.ink, border: "2px solid transparent", borderRadius: 4,
             marginBottom: 6,
@@ -227,7 +227,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         {session && sites.length > 0 && (
           <div style={{ position: "relative", alignSelf: "flex-end", marginLeft: 4, marginBottom: 6 }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
               <span style={{ fontSize: 12, color: C.ink }}>▼</span>
             </button>
@@ -259,7 +259,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         )}
       </nav>
       {/* フェーズカラーライン */}
-      <div style={{ height: 6, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : C.ink }} />
+      <div style={{ height: 2, background: C.border }} />
     </div>
   );
 }
