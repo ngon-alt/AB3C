@@ -825,6 +825,7 @@ const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
 const [chatWidth, setChatWidth] = useState(500);
+const [chatMinimized, setChatMinimized] = useState(false);
 const chatResizing = useRef(false);
 const [confirmHistory, setConfirmHistory] = useState([]);
 const [improveLoading, setImproveLoading] = useState(false);
@@ -865,6 +866,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
+          siteId: siteId || null,
           result: currentResult,
           improveResult: improveResult || null,
           visualMock: visualMock || null,
@@ -875,23 +877,35 @@ const [chatSummaries, setChatSummaries] = useState([]);
   }, [currentResult, improveResult, visualMock, currentInput, analyzedAt]);
 
   // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
+  // URLパラメータに site_id / url がある場合は、それと一致する場合のみ復元（別サイトのデータ復元バグ防止）
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const urlParam = params.get("url");
+      const sidParam = params.get("site_id");
       const saved = sessionStorage.getItem("ab3c_last_analysis");
       if (!saved) return;
       const data = JSON.parse(saved);
       // 24時間以内の分析結果のみ復元
-      if (data.timestamp && (Date.now() - data.timestamp < 24 * 3600 * 1000) && data.result && data.input) {
-        setResult(data.result);
-        setCurrentResult(data.result);
-        setCurrentInput(data.input);
-        setAnalyzedAt(data.timestamp);
-        if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
-        else { setInput(data.input); setTab("text"); }
-        if (data.improveResult) setImproveResult(data.improveResult);
-        if (data.visualMock) setVisualMock(data.visualMock);
-        if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
+      if (!data.timestamp || Date.now() - data.timestamp >= 24 * 3600 * 1000) return;
+      if (!data.result || !data.input) return;
+      // URLパラメータがある場合、sessionStorage の input と一致するかチェック
+      // 不一致ならその URL の新しい分析として扱うため、復元しない
+      if (urlParam) {
+        const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+        if (norm(data.input) !== norm(urlParam)) return;
+      } else if (sidParam && data.siteId && data.siteId !== sidParam) {
+        return;
       }
+      setResult(data.result);
+      setCurrentResult(data.result);
+      setCurrentInput(data.input);
+      setAnalyzedAt(data.timestamp);
+      if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
+      else { setInput(data.input); setTab("text"); }
+      if (data.improveResult) setImproveResult(data.improveResult);
+      if (data.visualMock) setVisualMock(data.visualMock);
+      if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
     } catch (e) {}
   }, []);
 
@@ -1051,6 +1065,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
   useEffect(() => {
     try { const saved = localStorage.getItem("ab3c_history"); if (saved) setHistory(JSON.parse(saved)); } catch (e) {}
     try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {}
+    try { const cm = localStorage.getItem("ab3c_chat_minimized"); if (cm === "1") setChatMinimized(true); } catch (e) {}
     if (typeof Notification !== "undefined" && Notification.permission === "default") Notification.requestPermission();
     // URLパラメータからsite_idを読み取り
     const params = new URLSearchParams(window.location.search);
@@ -1574,7 +1589,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       />
 
 
-      <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? `240px 1fr ${chatWidth}px` : `1fr ${chatWidth}px`), flex: 1, position: "relative" }}>
+      <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
         {sidebarOpen && phase !== "input" && (
   <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
@@ -2129,8 +2144,19 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
 
+        {/* 右カラム最小化時の復元ボタン */}
+        {phase !== "input" && chatMinimized && (
+          <button
+            onClick={function() { setChatMinimized(false); try { localStorage.removeItem("ab3c_chat_minimized"); } catch (e) {} }}
+            style={{ position: "fixed", right: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "6px 0 0 6px", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "-2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}
+            title={phase === "action" ? "アクションリストを開く" : "分析チャットを開く"}
+          >
+            ◀ {phase === "action" ? "アクション" : "チャット"}を開く
+          </button>
+        )}
+
         {/* 右カラム: チャットパネル（リサイズ可能） */}
-        {phase !== "input" && (
+        {phase !== "input" && !chatMinimized && (
             <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : phase === "analysis" ? C.phase1Bg : "#ecebe6", display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
               {/* リサイズハンドル */}
               <div
@@ -2159,6 +2185,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginLeft: 4 }}>
                   {phase !== "action" && chatSummaries.length > 0 ? `（${chatSummaries.length}回反映済み）` : ""}
                 </span>
+                <button
+                  onClick={function() { setChatMinimized(true); try { localStorage.setItem("ab3c_chat_minimized", "1"); } catch (e) {} }}
+                  style={{ marginLeft: "auto", background: "transparent", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 700, padding: "3px 10px", lineHeight: 1, fontFamily: "system-ui, sans-serif", flexShrink: 0 }}
+                  title={phase === "action" ? "アクションリストを閉じる" : "チャットを閉じる"}
+                >
+                  ▶ 閉じる
+                </button>
               </div>
 
               {/* チャット履歴（開閉式） */}
