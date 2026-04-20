@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
@@ -18,7 +18,7 @@ const C = {
   B: "#FF0000",
 };
 
-export default function Contact() {
+function ContactInner() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const initialCategory = searchParams?.get('type') === 'bug'
@@ -270,5 +270,14 @@ export default function Contact() {
 
       <Footer />
     </div>
+  );
+}
+
+// useSearchParams() は Suspense 境界が必要（Next.js 14 prerender 要件）
+export default function Contact() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: C.bg }} />}>
+      <ContactInner />
+    </Suspense>
   );
 }
