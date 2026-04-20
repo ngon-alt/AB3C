@@ -1373,6 +1373,7 @@ let improveData = null;
 let visualData = null;
 if (tab === "url" && savedText.startsWith("http")) {
   setImproveLoading(true);
+  setVisualLoading(true); // ビジュアルも同時にローディング開始（改善レポートと同時表示のため）
   setOverlayMessage("ウェブサイト改善レポート生成中...");
 
   // Step 1: 改善レポート（テキスト）を先に生成
@@ -1387,17 +1388,18 @@ if (tab === "url" && savedText.startsWith("http")) {
       setImproveResult(improveData);
     } else {
       console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
+      setVisualLoading(false); // 改善レポート失敗時はビジュアルも走らないのでクリア
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
     improveData = { error: String(e?.message || e) };
+    setVisualLoading(false);
   } finally {
     setImproveLoading(false);
   }
 
   // Step 2: 改善レポートをもとにビジュアル生成
   if (improveData && !improveData.error) {
-    setVisualLoading(true);
     setOverlayMessage("改善ビジュアル生成中...");
     try {
       const visualRes = await fetch("/api/improve/visual", {
@@ -1926,26 +1928,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
       </div>
-      {[
-        { key: "contents", label: "追加すべきコンテンツ", color: C.A },
-        { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
-        { key: "structure", label: "サイト構造の改善", color: C.C },
-      ].map(section => (
-        <div key={section.key} style={{ marginBottom: 28 }}>
-          <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
-          {improveResult[section.key]?.map((item, i) => (
-            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
-              <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
-              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
-              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
-            </div>
-          ))
-          }</Card>
-        </div>
-      ))}
       {(visualLoading || visualMock) && (
-        <div className="visual-mock-section" style={{ marginTop: 40 }}>
+        <div className="visual-mock-section" style={{ marginBottom: 32 }}>
           <style>{`
             @media print {
               .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
@@ -1978,6 +1962,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
         </div>
       )}
+      {[
+        { key: "contents", label: "追加すべきコンテンツ", color: C.A },
+        { key: "design", label: "改善すべきデザイン・ビジュアル", color: C.B },
+        { key: "structure", label: "サイト構造の改善", color: C.C },
+      ].map(section => (
+        <div key={section.key} style={{ marginBottom: 28 }}>
+          <Card color={section.color} title={section.label} onChat={() => chatSendTopicRef.current?.(`ウェブサイト改善レポートの「${section.label}」について詳しく教えてください`)}>
+          {improveResult[section.key]?.map((item, i) => (
+            <div key={i} style={{ background: "#f8f8f6", border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px", marginBottom: 10, position: "relative" }} {...hoverShow}>
+              <ChatBtn onClick={() => chatSendTopicRef.current?.(`改善レポート「${item.title?.slice(0,30)}」について詳しく教えてください`)} abs />
+              <div style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 16, color: C.muted, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>実装例：</b>{item.example}</div>
+            </div>
+          ))
+          }</Card>
+        </div>
+      ))}
     </div>
   )}
 </div>
