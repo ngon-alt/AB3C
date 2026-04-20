@@ -1278,7 +1278,14 @@ useEffect(() => {
       });
       const data = await res.json();
       if (data.error) { alert(data.error); return; }
-      setChangedPaths(diffResults(currentResult, data));
+      try {
+        const diff = diffResults(currentResult || {}, data);
+        setChangedPaths(prev => {
+          const next = new Map(prev);
+          diff.forEach(path => next.set(path, (next.get(path) || 0) + 1));
+          return next;
+        });
+      } catch (e) { console.error("diff error:", e); }
       setCurrentResult(data);
       setResult(data);
       setAnalyzedAt(Date.now());
