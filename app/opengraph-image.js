@@ -1,8 +1,6 @@
 import { ImageResponse } from "next/og";
 
-// edge runtime から nodejs に変更（edge で Google Fonts 取得が失敗して
-// 0 バイトレスポンスが返る問題の対策）
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const alt = "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -52,104 +50,118 @@ async function loadJpSansFont() {
   }
 }
 
-export default async function Image() {
-  // 明朝とサンセリフを並列取得。明朝が取れなければサンセリフでもOK
-  const [jpSerif, jpSans] = await Promise.all([loadJpSerifFont(), loadJpSansFont()]);
-  const titleFont = jpSerif ? "NotoSerifJP" : "NotoSansJP";
-  const bodyFont = jpSerif ? "NotoSerifJP" : "NotoSansJP";
-
-  const fonts = [];
-  if (jpSerif) fonts.push({ name: "NotoSerifJP", data: jpSerif, weight: 900, style: "normal" });
-  if (jpSans) fonts.push({ name: "NotoSansJP", data: jpSans, weight: 700, style: "normal" });
-
-  // 日本語フォントが1つも取れなかった場合は、英字のみのフォールバック画像を返す
-  if (fonts.length === 0) {
-    return new ImageResponse(
-      (
-        <div style={{ width: "100%", height: "100%", background: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 60 }}>
-          <div style={{ display: "flex", alignItems: "baseline", fontSize: 180, fontWeight: 900, color: "#1a1a14", letterSpacing: "-0.02em", fontFamily: "monospace" }}>
-            <span style={{ color: "#1a6fd4" }}>A</span>
-            <span style={{ color: "#FF0000" }}>B</span>
-            <span style={{ color: "#1a1a14" }}>3C</span>
-            <span style={{ fontSize: 100, marginLeft: 20 }}>AI</span>
-          </div>
-          <div style={{ fontSize: 48, color: "#555", marginTop: 24, fontFamily: "monospace", fontWeight: 700 }}>
-            SENRYAKU.AI
-          </div>
-        </div>
-      ),
-      { ...size }
-    );
-  }
-
+// 英字のみのフォールバック画像（日本語フォントが全て失敗したとき）
+function renderFallbackImage() {
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          background: "#ffffff",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 60,
-        }}
-      >
-        {/* メインタイトル: 戦略指南 は明朝（取れなければサンセリフ）、AI はモノスペース */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            fontWeight: 900,
-            color: "#1a1a14",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          <span style={{ fontSize: 200, lineHeight: 1, fontFamily: titleFont }}>戦略指南</span>
-          <span style={{ fontSize: 160, lineHeight: 1, fontFamily: "monospace", marginLeft: 12 }}>AI</span>
-        </div>
-
-        {/* サブタイトル: on AB3C（A=青, B=赤, 3C=黒） */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            fontSize: 72,
-            fontFamily: "monospace",
-            letterSpacing: "0.05em",
-            marginTop: 24,
-            fontWeight: 700,
-          }}
-        >
-          <span style={{ color: "#555" }}>on </span>
+      <div style={{ width: "100%", height: "100%", background: "#ffffff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 60 }}>
+        <div style={{ display: "flex", alignItems: "baseline", fontSize: 180, fontWeight: 900, letterSpacing: "-0.02em", fontFamily: "monospace" }}>
           <span style={{ color: "#1a6fd4" }}>A</span>
           <span style={{ color: "#FF0000" }}>B</span>
           <span style={{ color: "#1a1a14" }}>3C</span>
+          <span style={{ fontSize: 100, marginLeft: 20, color: "#1a1a14" }}>AI</span>
         </div>
-
-        {/* アンダーライン（中央360px） */}
-        <div style={{ display: "flex", marginTop: 40, marginBottom: 40 }}>
-          <div style={{ width: 360, height: 4, background: "#1a1a14" }} />
+        <div style={{ fontSize: 56, color: "#555", marginTop: 24, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.1em" }}>
+          SENRYAKU.AI
         </div>
-
-        {/* キャッチコピー（明朝、取れなければサンセリフ） */}
-        <div
-          style={{
-            fontSize: 40,
-            color: "#1a1a14",
-            fontWeight: jpSerif ? 400 : 700,
-            letterSpacing: "0.05em",
-            fontFamily: bodyFont,
-          }}
-        >
-          選ばれる理由を言語化する 戦略策定AI
+        <div style={{ fontSize: 32, color: "#888", marginTop: 40, fontFamily: "monospace" }}>
+          Strategy Framework AI
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts,
-    }
+    { ...size }
   );
+}
+
+export default async function Image() {
+  try {
+    // 明朝とサンセリフを並列取得。明朝が取れなければサンセリフでもOK
+    const [jpSerif, jpSans] = await Promise.all([loadJpSerifFont(), loadJpSansFont()]);
+    const titleFont = jpSerif ? "NotoSerifJP" : "NotoSansJP";
+    const bodyFont = jpSerif ? "NotoSerifJP" : "NotoSansJP";
+
+    const fonts = [];
+    if (jpSerif) fonts.push({ name: "NotoSerifJP", data: jpSerif, weight: 900, style: "normal" });
+    if (jpSans) fonts.push({ name: "NotoSansJP", data: jpSans, weight: 700, style: "normal" });
+
+    // 日本語フォントが1つも取れなかった場合、英字のみの画像を返す
+    if (fonts.length === 0) {
+      return renderFallbackImage();
+    }
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 60,
+          }}
+        >
+          {/* メインタイトル */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              fontWeight: 900,
+              color: "#1a1a14",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            <span style={{ fontSize: 200, lineHeight: 1, fontFamily: titleFont }}>戦略指南</span>
+            <span style={{ fontSize: 160, lineHeight: 1, fontFamily: "monospace", marginLeft: 12 }}>AI</span>
+          </div>
+
+          {/* サブタイトル: on AB3C */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              fontSize: 72,
+              fontFamily: "monospace",
+              letterSpacing: "0.05em",
+              marginTop: 24,
+              fontWeight: 700,
+            }}
+          >
+            <span style={{ color: "#555" }}>on </span>
+            <span style={{ color: "#1a6fd4" }}>A</span>
+            <span style={{ color: "#FF0000" }}>B</span>
+            <span style={{ color: "#1a1a14" }}>3C</span>
+          </div>
+
+          {/* アンダーライン */}
+          <div style={{ display: "flex", marginTop: 40, marginBottom: 40 }}>
+            <div style={{ width: 360, height: 4, background: "#1a1a14" }} />
+          </div>
+
+          {/* キャッチコピー */}
+          <div
+            style={{
+              fontSize: 40,
+              color: "#1a1a14",
+              fontWeight: jpSerif ? 400 : 700,
+              letterSpacing: "0.05em",
+              fontFamily: bodyFont,
+            }}
+          >
+            選ばれる理由を言語化する 戦略策定AI
+          </div>
+        </div>
+      ),
+      {
+        ...size,
+        fonts,
+      }
+    );
+  } catch (e) {
+    // どんなエラーが起きても必ず画像を返す（0バイトレスポンスを回避）
+    console.error("OGP画像生成エラー:", e?.message || e);
+    return renderFallbackImage();
+  }
 }
