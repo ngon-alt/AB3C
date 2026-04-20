@@ -130,15 +130,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         }}
           title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
           style={{
-            padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+            padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
             background: phase === "input" ? "#fff" : "#ddd",
             color: phase === "input" ? C.ink : "#999",
             border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
             borderBottom: "none",
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
-            marginBottom: phase === "input" ? "-6px" : "0",
             position: "relative",
             zIndex: phase === "input" ? 2 : 1,
+            boxShadow: phase === "input" ? "0 6px 0 #fff" : "none",
           }}>
           <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
           新規分析
