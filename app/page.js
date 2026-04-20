@@ -439,7 +439,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
 
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: "assistant", content: "分析結果をもとに相談できます。どんなことでも聞いてください！" }]);
+      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある 💬 アイコンをクリックすると、その項目についての質問を送れます。" }]);
     }
   }, []);
 
