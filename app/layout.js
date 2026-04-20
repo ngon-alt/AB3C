@@ -25,11 +25,11 @@ const ebGaramond = EB_Garamond({
 // preview URL を参照してしまい Facebook / X が画像を取得できない）
 export const metadata = {
   metadataBase: new URL("https://senryaku.ai"),
-  title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+  title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
   description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
   keywords: "AB3C分析, 戦略策定, AI, 選ばれる理由, 差別化, コンサルティング, 中小企業, ウェブ戦略, 事業戦略, 採用戦略, 補助金申請",
   openGraph: {
-    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
     description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
     url: "https://senryaku.ai",
     siteName: "戦略指南 AI",
@@ -47,7 +47,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
     description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
     images: ["/opengraph-image"],
   },
