@@ -54,12 +54,12 @@ export default async function Image() {
           <span style={{ fontSize: 160, lineHeight: 1, fontFamily: "monospace", marginLeft: 12 }}>AI</span>
         </div>
 
-        {/* サブタイトル: on AB3C framework（A=青, B=赤, 3C=黒） */}
+        {/* サブタイトル: on AB3C（A=青, B=赤, 3C=黒） */}
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            fontSize: 56,
+            fontSize: 72,
             fontFamily: "monospace",
             letterSpacing: "0.05em",
             marginTop: 24,
@@ -70,7 +70,6 @@ export default async function Image() {
           <span style={{ color: "#1a6fd4" }}>A</span>
           <span style={{ color: "#FF0000" }}>B</span>
           <span style={{ color: "#1a1a14" }}>3C</span>
-          <span style={{ color: "#555" }}> framework</span>
         </div>
 
         {/* アンダーライン（中央360px） */}
