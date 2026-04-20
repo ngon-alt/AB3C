@@ -17,28 +17,10 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "serif",
           padding: 60,
         }}
       >
-        {/* 上部: AB3Cカラーアクセント */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            fontSize: 60,
-            fontWeight: 700,
-            letterSpacing: "-0.02em",
-            marginBottom: 32,
-          }}
-        >
-          <span style={{ color: "#1a6fd4" }}>A</span>
-          <span style={{ color: "#FF0000" }}>B</span>
-          <span style={{ color: "#1a1a14" }}>3C</span>
-          <span style={{ color: "#888", fontSize: 28, fontFamily: "monospace", marginLeft: 16 }}>framework</span>
-        </div>
-
-        {/* メインタイトル: 戦略指南 AI を最大サイズで */}
+        {/* メインタイトル: 戦略指南 AI を最大サイズで（戦略指南は明朝） */}
         <div
           style={{
             display: "flex",
@@ -48,13 +30,32 @@ export default async function Image() {
             letterSpacing: "-0.02em",
           }}
         >
-          <span style={{ fontSize: 200, lineHeight: 1 }}>戦略指南</span>
+          <span style={{ fontSize: 200, lineHeight: 1, fontFamily: "'Noto Serif JP', serif" }}>戦略指南</span>
           <span style={{ fontSize: 160, lineHeight: 1, fontFamily: "monospace", marginLeft: 12 }}>AI</span>
         </div>
 
-        {/* アンダーライン */}
-        <div style={{ display: "flex", marginTop: 36, marginBottom: 32 }}>
-          <div style={{ width: 320, height: 4, background: "#1a1a14" }} />
+        {/* サブタイトル: on AB3C framework（ABはカラー） */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            fontSize: 56,
+            fontFamily: "monospace",
+            letterSpacing: "0.05em",
+            marginTop: 24,
+            fontWeight: 700,
+          }}
+        >
+          <span style={{ color: "#555" }}>on </span>
+          <span style={{ color: "#1a6fd4" }}>A</span>
+          <span style={{ color: "#FF0000" }}>B</span>
+          <span style={{ color: "#1a1a14" }}>3C</span>
+          <span style={{ color: "#555" }}> framework</span>
+        </div>
+
+        {/* アンダーライン（中央に1/3幅） */}
+        <div style={{ display: "flex", marginTop: 40, marginBottom: 40 }}>
+          <div style={{ width: 360, height: 4, background: "#1a1a14" }} />
         </div>
 
         {/* キャッチコピー */}
@@ -64,6 +65,7 @@ export default async function Image() {
             color: "#1a1a14",
             fontWeight: 400,
             letterSpacing: "0.05em",
+            fontFamily: "'Noto Serif JP', serif",
           }}
         >
           選ばれる理由を言語化する 戦略策定AI
