@@ -16,7 +16,7 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -148,10 +148,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         })()}
         <span style={{ color: "#bbb", fontSize: 14, padding: "0 2px" }}>→</span>
 
-        {/* ① 戦略策定 — currentSiteId があれば「そのサイトの戦略策定に戻る」経路として常に enabled */}
+        {/* ① 戦略策定 — 現在のサイト or 「前のサイト」(previousSiteId) があれば常に enabled */}
         {(() => {
           const active = phase === "analysis";
-          const enabled = phase !== "input" || !!currentSiteId;
+          // 現在分析中 or 現在のサイトIDあり or ⓪を押す前のサイトIDあり
+          const enabled = phase !== "input" || !!currentSiteId || !!previousSiteId;
           return (
             <span style={{ position: "relative", display: "inline-flex" }}
               onMouseEnter={e => { if (!enabled) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
@@ -160,9 +161,12 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 if (!enabled) return;
                 if (onSwitchToAnalysis) { onSwitchToAnalysis(); }
                 else {
+                  // フォールバック: 直接URL遷移（currentSiteId → previousSiteId の順で拾う）
+                  const sid = currentSiteId || previousSiteId;
+                  const surl = currentSiteUrl || previousSiteUrl;
                   const params = [];
-                  if (currentSiteId) params.push(`site_id=${currentSiteId}`);
-                  if (currentSiteUrl) params.push(`url=${encodeURIComponent(currentSiteUrl)}`);
+                  if (sid) params.push(`site_id=${sid}`);
+                  if (surl) params.push(`url=${encodeURIComponent(surl)}`);
                   window.location.href = params.length > 0 ? `/?${params.join("&")}` : "/";
                 }
               }}

@@ -837,6 +837,9 @@ const chatResizing = useRef(false);
 const [confirmHistory, setConfirmHistory] = useState([]);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
+// ⓪新規分析クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
+const [previousSiteId, setPreviousSiteId] = useState(null);
+const [previousSiteUrl, setPreviousSiteUrl] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
 const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
@@ -1589,8 +1592,28 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         phase={phase}
         strategyConfirmed={strategyConfirmed}
         canAccessBansou={isPro || chatTickets > 0}
-        onNewAnalysis={() => { reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0); }}
-        onSwitchToAnalysis={() => { setViewOverride("analysis"); window.scrollTo(0, 0); }}
+        previousSiteId={previousSiteId}
+        previousSiteUrl={previousSiteUrl}
+        onNewAnalysis={() => {
+          // 「戻る先」として現在のサイトIDを保存（①戦略策定タブから復帰できるように）
+          if (siteId) {
+            setPreviousSiteId(siteId);
+            const urlSnapshot = currentInput?.startsWith("http") ? currentInput : (url?.startsWith("http") ? url : null);
+            if (urlSnapshot) setPreviousSiteUrl(urlSnapshot);
+          }
+          reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
+        }}
+        onSwitchToAnalysis={() => {
+          // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」の previousSite へ遷移
+          if (currentResult) {
+            setViewOverride("analysis");
+            window.scrollTo(0, 0);
+          } else if (previousSiteId) {
+            const params = [`site_id=${previousSiteId}`];
+            if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
+            window.location.href = `/?${params.join("&")}`;
+          }
+        }}
         onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride(null); window.scrollTo(0, 0); } }}
         onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
