@@ -160,12 +160,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             }
           }}
             style={{
-              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
               color: (phase === "analysis" || phase === "action") ? "#fff" : "#999",
-              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none",
+              border: "2px solid transparent", borderBottom: "none",
+              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
               cursor: phase === "input" ? "not-allowed" : "pointer",
               opacity: 1,
+              position: "relative",
+              zIndex: phase === "analysis" ? 2 : 1,
+              boxShadow: phase === "analysis" ? `0 6px 0 ${C.phase1}` : "none",
             }}>
             <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
@@ -185,12 +189,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           <button
             onClick={() => { if (!strategyConfirmed) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
             style={{
-              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "88" : "#ddd",
               color: (phase === "action" || strategyConfirmed) ? "#fff" : "#999",
+              border: "2px solid transparent", borderBottom: "none",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: strategyConfirmed ? "pointer" : "not-allowed", border: "none",
+              cursor: strategyConfirmed ? "pointer" : "not-allowed",
               opacity: 1,
+              position: "relative",
+              zIndex: phase === "action" ? 2 : 1,
+              boxShadow: phase === "action" ? `0 6px 0 ${C.phase2}` : "none",
             }}>
             <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
