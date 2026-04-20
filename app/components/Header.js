@@ -128,6 +128,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           if (onNewAnalysis) { onNewAnalysis(); }
           else { window.location.href = "/"; }
         }}
+          title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
           style={{
             padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
             background: phase === "input" ? "#fff" : "#ddd",
