@@ -259,8 +259,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         )}
       </nav>
-      {/* フェーズカラーライン */}
-      <div style={{ height: 2, background: C.border }} />
+      {/* タブ下線（アクティブタブの box-shadow: 0 2px 0 #fff で該当タブ位置だけ白抜けする） */}
+      <div style={{ height: 2, background: C.ink }} />
     </div>
   );
 }
