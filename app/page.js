@@ -2140,6 +2140,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
             <div style={{ marginBottom: 8, fontSize: 16 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
             <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", fontSize: 16 }}>
+              <a href="/contact" style={{ color: C.muted, textDecoration: "underline" }}>お問い合わせ</a>
+              <span style={{ color: C.border }}>|</span>
+              <a href="/contact?type=bug" style={{ color: C.muted, textDecoration: "underline" }}>バグ報告</a>
+              <span style={{ color: C.border }}>|</span>
               <a href="/terms" style={{ color: C.muted, textDecoration: "underline" }}>利用規約</a>
               <span style={{ color: C.border }}>|</span>
               <a href="/privacy" style={{ color: C.muted, textDecoration: "underline" }}>プライバシーポリシー</a>

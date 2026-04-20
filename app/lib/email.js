@@ -7,18 +7,30 @@ const resend = process.env.RESEND_API_KEY
 const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME = '戦略指南 AI';
 
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, options = {}) {
   if (!resend) {
     console.log('📧 [メール送信スキップ] Resend API キー未設定');
     return { success: true, skipped: true };
   }
   try {
-    const data = await resend.emails.send({ from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html });
+    const payload = { from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html };
+    if (options.replyTo) payload.reply_to = options.replyTo;
+    const data = await resend.emails.send(payload);
     return { success: true, data };
   } catch (error) {
     console.error('メール送信エラー:', error);
     return { success: false, error };
   }
+}
+
+// HTML エスケープ（お問い合わせフォームのユーザー入力用）
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 export async function sendRegistrationEmail({ email, name }) {
@@ -99,4 +111,77 @@ export async function sendPaymentNotificationEmail({
   </div>`;
 
   return sendEmail(NOTIFY_TO, subject, html);
+}
+
+// お問い合わせ受付時、運営（info@digi-kaku.or.jp）へ通知するメール
+// Reply-To に送信者のメールを設定してあるので、そのまま返信できる
+export async function sendContactNotificationEmail({
+  name,
+  email,
+  company,
+  category,
+  message,
+  pageUrl,      // ユーザーが送信時にいたページ
+  userAgent,    // ブラウザ情報（バグ報告の手がかり）
+  loggedInEmail,// NextAuthセッションのメール（フォーム入力と違う場合あり）
+}) {
+  const NOTIFY_TO = process.env.CONTACT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
+  const isBug = /バグ|不具合|エラー|動かな|表示され/.test(String(category || '') + ' ' + String(message || ''));
+  const prefix = isBug ? '【バグ報告】' : '【お問い合わせ】';
+  const subject = `${prefix}[${category || 'その他'}] ${name || '名前未入力'} — 戦略指南 AI`;
+
+  const html = `<div style="font-family:sans-serif;max-width:720px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px">戦略指南 AI — ${isBug ? 'バグ報告' : 'お問い合わせ'}受付</div>
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">フォームからの送信がありました。このメールに<strong>返信するとそのまま送信者へ返信できます</strong>。</p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:24px">
+      <tr><td style="padding:8px 12px;background:#f5f2eb;width:160px;font-weight:bold;vertical-align:top">種別</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0"><strong style="color:${isBug ? '#dc2626' : '#1a6fd4'}">${esc(category)}</strong></td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold;vertical-align:top">お名前</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${esc(name)}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold;vertical-align:top">メール</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0"><a href="mailto:${esc(email)}" style="color:#1a6fd4">${esc(email)}</a></td></tr>
+      ${loggedInEmail && loggedInEmail !== email ? `<tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold;vertical-align:top">ログイン中のメール</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;color:#78716c">${esc(loggedInEmail)}</td></tr>` : ''}
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold;vertical-align:top">会社名</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${esc(company) || '—'}</td></tr>
+    </table>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:13px;font-weight:bold;color:#1a1a14;margin-bottom:8px">お問い合わせ内容</div>
+      <div style="background:#fafaf7;border:1px solid #e5e5e0;border-radius:6px;padding:16px 20px;font-size:14px;line-height:1.8;white-space:pre-wrap;word-wrap:break-word">${esc(message)}</div>
+    </div>
+
+    ${(pageUrl || userAgent) ? `
+    <div style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:bold;color:#78716c;margin-bottom:6px">環境情報（バグ報告の手がかり）</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;color:#555">
+        ${pageUrl ? `<tr><td style="padding:4px 8px;font-weight:bold;width:120px;vertical-align:top">送信時URL</td><td style="padding:4px 8px;word-break:break-all"><a href="${esc(pageUrl)}" style="color:#1a6fd4">${esc(pageUrl)}</a></td></tr>` : ''}
+        ${userAgent ? `<tr><td style="padding:4px 8px;font-weight:bold;vertical-align:top">User-Agent</td><td style="padding:4px 8px;word-break:break-all;font-family:monospace">${esc(userAgent)}</td></tr>` : ''}
+      </table>
+    </div>
+    ` : ''}
+
+    <p style="font-size:12px;color:#78716c;margin-top:24px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは <a href="https://senryaku.ai/contact" style="color:#78716c">/contact</a> フォームから自動送信されています。</p>
+  </div>`;
+
+  // replyTo にユーザーのメールを設定 → 返信するとユーザーに届く
+  return sendEmail(NOTIFY_TO, subject, html, { replyTo: email });
+}
+
+// お問い合わせ送信者への受付確認（自動返信）
+export async function sendContactAutoReplyEmail({ name, email, category, message }) {
+  const subject = '【戦略指南 AI】お問い合わせを受け付けました';
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px;color:#1a1a14">
+    <div style="font-size:24px;font-weight:bold;margin-bottom:24px">戦略指南 AI</div>
+    <p style="font-size:16px;line-height:1.8">${esc(name) || 'お客様'}さん、お問い合わせいただきありがとうございます。</p>
+    <p style="font-size:16px;line-height:1.8">以下の内容で受け付けました。担当者より<strong>2営業日以内</strong>にご返信いたします。今しばらくお待ちください。</p>
+
+    <div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:24px 0">
+      <div style="font-size:13px;color:#78716c;margin-bottom:8px">受付内容</div>
+      <div style="font-size:14px;line-height:1.8;margin-bottom:12px"><strong>種別：</strong>${esc(category)}</div>
+      <div style="font-size:14px;line-height:1.8;white-space:pre-wrap;word-wrap:break-word;border-top:1px solid #e5e5e0;padding-top:12px">${esc(message)}</div>
+    </div>
+
+    <p style="font-size:14px;line-height:1.8;color:#555">もしこのメールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
+
+    <p style="font-size:12px;color:#78716c;margin-top:40px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは自動送信されています。ご返信の必要はありません。お急ぎの場合は <a href="mailto:info@senryaku.ai" style="color:#78716c">info@senryaku.ai</a> まで直接ご連絡ください。<br><br>一般社団法人デジタル経営革新協会</p>
+  </div>`;
+
+  return sendEmail(email, subject, html);
 }

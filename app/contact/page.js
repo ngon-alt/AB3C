@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import PricingModal from '../components/PricingModal';
 
@@ -16,34 +18,69 @@ const C = {
 };
 
 export default function Contact() {
+  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams?.get('type') === 'bug'
+    ? 'バグ報告・不具合'
+    : '100サイト以上のプラン希望';
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    category: '100サイト以上のプラン希望',
+    category: initialCategory,
     message: ''
   });
   const [status, setStatus] = useState(''); // 'sending', 'success', 'error'
+  const [errorMsg, setErrorMsg] = useState('');
   const [showPricing, setShowPricing] = useState(false);
+
+  // ログイン済みならメール・名前を自動記入
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || session.user.name || '',
+        email: prev.email || session.user.email || '',
+      }));
+    }
+  }, [session]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('sending');
+    setErrorMsg('');
+
+    // バグ報告の手がかりとして環境情報を付加
+    const payload = {
+      ...formData,
+      pageUrl: typeof window !== 'undefined' ? document.referrer || window.location.href : '',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    };
 
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
         setStatus('success');
-        setFormData({ name: '', email: '', company: '', category: '100サイト以上のプラン希望', message: '' });
+        setFormData({
+          name: session?.user?.name || '',
+          email: session?.user?.email || '',
+          company: '',
+          category: initialCategory,
+          message: ''
+        });
       } else {
+        const data = await response.json().catch(() => ({}));
+        setErrorMsg(data.error || '送信に失敗しました。時間をおいて再度お試しください。');
         setStatus('error');
       }
     } catch (error) {
+      setErrorMsg('通信エラーが発生しました。時間をおいて再度お試しください。');
       setStatus('error');
     }
   };
@@ -67,9 +104,16 @@ export default function Contact() {
           {/* ページタイトル */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <h1 style={{ fontSize: 32, fontWeight: 700, color: C.ink, marginBottom: 8 }}>お問い合わせ</h1>
-            <p style={{ color: C.muted, lineHeight: 1.6 }}>
-              100サイト以上のプランをご希望の方、その他ご質問がございましたらお気軽にお問い合わせください。
+            <p style={{ color: C.muted, lineHeight: 1.7 }}>
+              バグ報告・不具合のご連絡、サービスに関するご質問、<br />
+              大規模プランのご相談など、お気軽にお寄せください。
             </p>
+            {initialCategory === 'バグ報告・不具合' && (
+              <div style={{ marginTop: 16, background: "#fffbe5", border: "1px solid #f0d98a", borderRadius: 6, padding: "12px 16px", fontSize: 13, lineHeight: 1.7, color: C.ink, textAlign: "left" }}>
+                <strong>バグ報告ありがとうございます。</strong><br />
+                不具合の発生状況（どの画面で、どの操作をしたか、どんな表示になったか）を具体的にご記入いただけると、修正までの時間が大幅に短縮されます。スクリーンショットがあれば、直接メール（info@senryaku.ai）に添付してお送りください。
+              </div>
+            )}
           </div>
 
           {/* フォーム */}
@@ -149,11 +193,13 @@ export default function Contact() {
                     required
                     style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, boxSizing: "border-box" }}
                   >
-                    <option value="100サイト以上のプラン希望">100サイト以上のプラン希望</option>
+                    <option value="バグ報告・不具合">🐛 バグ報告・不具合</option>
+                    <option value="機能要望">💡 機能要望・改善提案</option>
                     <option value="サービス内容について">サービス内容について</option>
                     <option value="費用と決済について">費用と決済について</option>
                     <option value="分析結果についてのコンサルティング希望">分析結果についてのコンサルティング希望</option>
-                    <option value="技術的な問題">技術的な問題</option>
+                    <option value="税理士の紹介希望">税理士の紹介希望</option>
+                    <option value="100サイト以上のプラン希望">100サイト以上のプラン希望</option>
                     <option value="その他">その他</option>
                   </select>
                 </div>
@@ -168,16 +214,23 @@ export default function Contact() {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    rows="6"
-                    style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, resize: "none", boxSizing: "border-box" }}
-                    placeholder="お問い合わせ内容をご記入ください"
+                    rows="8"
+                    style={{ width: "100%", padding: "12px 16px", border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 14, resize: "vertical", boxSizing: "border-box", fontFamily: "inherit", lineHeight: 1.6 }}
+                    placeholder={formData.category === 'バグ報告・不具合'
+                      ? `【どの画面で】例：戦略アクションタブの「補助金申請」\n【どの操作で】例：分析結果を開いた直後に「アクションに登録」ボタンを押した\n【どうなったか】例：エラー画面が出て戻れなくなった\n【期待した動作】例：アクションリストに追加されるはず\n※可能なら発生日時・スクリーンショットも（画像は info@senryaku.ai に別途送付）`
+                      : 'お問い合わせ内容をご記入ください'}
                   />
+                  {formData.category === 'バグ報告・不具合' && (
+                    <p style={{ fontSize: 12, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+                      送信時の URL と User-Agent（ブラウザ情報）は、バグ再現の手がかりとして自動的に添付されます。
+                    </p>
+                  )}
                 </div>
 
                 {/* エラーメッセージ */}
                 {status === 'error' && (
                   <div style={{ marginBottom: 24, padding: 16, background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 6, color: "#b91c1c" }}>
-                    送信に失敗しました。時間をおいて再度お試しください。
+                    {errorMsg || '送信に失敗しました。時間をおいて再度お試しください。'}
                   </div>
                 )}
 
