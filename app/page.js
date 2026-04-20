@@ -583,8 +583,9 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     </div>
   );
 }
-function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId }) {
+function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId }) {
   const effectiveThemeId = themeId || threadId;
+  const displayThemeName = themeLabel || effectiveThemeId;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -620,11 +621,11 @@ function ThreadChat({ threadId, themeId, chatDescription, analysisResult, isPro,
         // 初回アドバイス生成（全体アドバイス or サブチャット概要ベース）
         const isSubChat = !!chatDescription;
         const userPrompt = isSubChat
-          ? `「${effectiveThemeId}」テーマの中で、以下について相談したいです:\n\n${chatDescription}\n\n戦略分析結果をもとに、この内容について具体的なアドバイスをお願いします。`
-          : `「${effectiveThemeId}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。`;
+          ? `「${displayThemeName}」テーマの中で、以下について相談したいです:\n\n${chatDescription}\n\n戦略分析結果をもとに、この内容について具体的なアドバイスをお願いします。`
+          : `「${displayThemeName}」テーマの初回アドバイスをお願いします。戦略分析結果をもとに、このテーマで最初に取り組むべきことを具体的に提案してください。`;
         setMessages([
           { role: "user", content: userPrompt, hidden: true },
-          { role: "assistant", content: isSubChat ? `「${chatDescription}」について準備中...` : `「${effectiveThemeId}」のアドバイスを準備中...` }
+          { role: "assistant", content: isSubChat ? `「${chatDescription}」について準備中...` : `「${displayThemeName}」のアドバイスを準備中...` }
         ]);
         setLoading(true);
         fetch("/api/chat", {
@@ -2057,9 +2058,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
             }
           `}</style>
-          <div className="visual-mock-banner" style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>IMPROVED FIRST-VIEW MOCKUP</div>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>改善後のファーストビュー・イメージ</div>
+          <div className="visual-mock-banner" style={{ borderLeft: `4px solid ${C.ink}`, padding: "6px 14px", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", color: C.muted, marginBottom: 2 }}>IMPROVED FIRST-VIEW MOCKUP</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink }}>改善後のファーストビュー・イメージ</div>
           </div>
           {visualLoading && !visualMock && (
             <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, background: "#f8f8f6", borderRadius: 6 }}>
@@ -2144,7 +2145,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeChatId ? (
-        <ThreadChat key={siteId + "_" + activeChatId} threadId={activeChatId} themeId={activeThemeId} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+        <ThreadChat key={siteId + "_" + activeChatId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
