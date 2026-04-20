@@ -38,9 +38,51 @@ const hoverShow = {
   onMouseLeave: (e) => { const b = e.currentTarget.querySelector(":scope > .chat-btn"); if (b) b.style.display = "none"; },
 };
 
-const Card = ({ color, title, children, onChat }) => (
+// 見出し横のヘルプアイコン（? をホバーするとフロート説明表示）
+function HelpTip({ text }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      style={{ position: "relative", display: "inline-flex", marginLeft: 6, verticalAlign: "middle" }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <span
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 18, height: 18, borderRadius: "50%",
+          background: "#aaa", color: "#fff",
+          fontSize: 11, fontWeight: 700,
+          cursor: "help", userSelect: "none",
+          fontFamily: "system-ui, sans-serif",
+        }}
+        aria-label="説明を表示"
+      >?</span>
+      {hover && (
+        <span
+          style={{
+            position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)",
+            background: "#1a1a14", color: "#fff",
+            fontSize: 13, lineHeight: 1.7, fontWeight: 400,
+            padding: "10px 14px", borderRadius: 4,
+            width: 320, maxWidth: "80vw",
+            zIndex: 500, boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+            fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
+            textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
+            pointerEvents: "none",
+          }}
+        >{text}</span>
+      )}
+    </span>
+  );
+}
+
+const Card = ({ color, title, children, onChat, help }) => (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px", position: "relative" }} {...(onChat ? hoverShow : {})}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12 }}>{title}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+      <span>{title}</span>
+      {help && <HelpTip text={help} />}
+    </div>
     {onChat && <ChatBtn onClick={onChat} abs />}
     {children}
   </div>
@@ -72,11 +114,14 @@ const UL = ({ items, onChatItem }) => (
   </ul>
 );
 
-const SectionLabel = ({ color, letter, jp, en, desc, onChat }) => (
+const SectionLabel = ({ color, letter, jp, en, desc, onChat, help }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: `2px solid ${C.border}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 34, fontWeight: 700, color, lineHeight: 1, width: 56, flexShrink: 0 }}>{letter}</div>
     <div>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700 }}>{jp}</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+        <span>{jp}</span>
+        {help && <HelpTip text={help} />}
+      </div>
       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: 3 }}>{en}</div>
       {desc && <div style={{ fontSize: 14, color: C.muted, marginTop: 3 }}>{desc}</div>}
     </div>
@@ -116,8 +161,12 @@ var HL_COLORS = [
   { background: "#e2d9f3", borderLeft: "3px solid #6f42c1", paddingLeft: 8 }, // 5回目+: 紫
 ];
 
-const SubLabel = ({ color, text, onChat }) => (
-  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>{text}{onChat && <ChatBtn onClick={onChat} />}</div>
+const SubLabel = ({ color, text, onChat, help }) => (
+  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>
+    <span>{text}</span>
+    {help && <HelpTip text={help} />}
+    {onChat && <ChatBtn onClick={onChat} />}
+  </div>
 );
 
 function ResultView({ d, onChat, changedPaths }) {
@@ -130,38 +179,38 @@ function ResultView({ d, onChat, changedPaths }) {
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
-        <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} />
+        <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
         <div style={g2}>
-          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")}><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
-          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")}><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
+          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。"><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
+          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
         </div>
       </div>
       <Divider />
       <div style={{ marginBottom: 28 }}>
-        <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} />
+        <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
         <div style={g3}>
-          <div style={hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)}><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card></div>
-          <div style={hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_good}</p></Card></div>
-          <div style={hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)}><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_hard_to_copy}</p></Card></div>
+          <div style={hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)} help="差別的優位点の内容を一言で表現したもの。"><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card></div>
+          <div style={hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_good}</p></Card></div>
+          <div style={hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)} help="自社の強みに根差し、競合が簡単には模倣できない理由を示します。"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_hard_to_copy}</p></Card></div>
         </div>
       </div>
       <Divider />
       <div style={{ marginBottom: 28 }}>
-        <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} />
-        <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} />
+        <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
+        <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
         <div style={{ ...g2, marginBottom: 14 }}>
-          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)}>
+          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。誰に向けて事業を展開するかを一言で。">
             <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
             <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} />
           </Card></div>
-          <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")}>
+          <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")} help="ターゲットが『ニーズ段階』（欠乏感・曖昧）か『ウォンツ段階』（具体的欲求）か。切り捨てたお客様（戦略的に対象外とした層）も明確化します。">
             <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
             <p style={{ fontSize: 16, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
           </Card></div>
         </div>
         {d.three_c.customer.market && (
           <div style={{ marginBottom: 14 }}>
-            <Card color={C.C} title="市場規模" onChat={qs("市場規模")}>
+            <Card color={C.C} title="市場規模" onChat={qs("市場規模")} help="SAM（獲得可能な最大市場）・SOM（実際に狙える市場）・成長率/トレンドから事業機会を定量化。中小企業は SOM が年商規模を上回れば十分成立します。">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
@@ -191,13 +240,13 @@ function ResultView({ d, onChat, changedPaths }) {
         )}
         <div style={g2}>
           <div>
-            <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} />
+            <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} help="直接競合（同業）だけでなく、同じニーズを満たす異業種競合も含めて検討。『お客様がどれと比較するか』の視点で洗い出します。" />
             <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")}>
               <UL items={[...d.three_c.competitor.direct, ...d.three_c.competitor.indirect.map(i => `↳ ${i}`)]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} />
             </Card>
           </div>
           <div>
-            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} />
+            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="自社の具体的強み・その強みを生む構造的特徴・経営者の価値観/パッションの3層で掘り下げます。価値観の違いが最も真似されにくい。" />
             <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")}>
               <UL items={d.three_c.company.strength} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} />
               <p style={{ fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>構造：{d.three_c.company.structure}</p>
@@ -1832,14 +1881,32 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
     {/* 戦略メッセージ */}
-    <div style={{ padding: "20px 24px", background: C.phase1, flexShrink: 0 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>戦略メッセージ = Benefit + Advantage</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 8 }}>
-        {currentResult?.strategy_message?.message || ""}
-      </div>
-      <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontFamily: "system-ui, sans-serif", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 8 }}>
-        <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
-        <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
+    <div style={{ padding: "20px 24px", background: C.phase1, flexShrink: 0, position: "relative" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>戦略メッセージ = Benefit + Advantage</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 8 }}>
+            {currentResult?.strategy_message?.message || ""}
+          </div>
+          <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontFamily: "system-ui, sans-serif", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 8 }}>
+            <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
+            <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
+          </div>
+        </div>
+        {strategyConfirmed && (
+          <button
+            onClick={unconfirmStrategy}
+            title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
+            style={{
+              background: "rgba(255,255,255,0.9)", border: "none", borderRadius: 4,
+              color: C.ink, cursor: "pointer",
+              fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "8px 14px",
+              flexShrink: 0, whiteSpace: "nowrap",
+            }}
+          >
+            ↺ 戦略を解除
+          </button>
+        )}
       </div>
     </div>
     {/* チャット */}
