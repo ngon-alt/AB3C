@@ -439,7 +439,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
 
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある 💬 アイコンをクリックすると、その項目についての質問を送れます。" }]);
+      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
     }
   }, []);
 
@@ -534,7 +534,18 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
               maxWidth: "80%", lineHeight: 1.7,
               fontFamily: "system-ui, sans-serif",
               whiteSpace: "pre-wrap",
-            }}>{m.content}</div>
+            }}>{m.content.includes("[[CHAT_ICON]]")
+              ? m.content.split("[[CHAT_ICON]]").map((part, idx, arr) => (
+                  <span key={idx}>
+                    {part}
+                    {idx < arr.length - 1 && (
+                      <span style={{ display: "inline-flex", verticalAlign: "middle", background: C.phase1, width: 20, height: 20, borderRadius: 4, alignItems: "center", justifyContent: "center", margin: "0 2px" }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+                      </span>
+                    )}
+                  </span>
+                ))
+              : m.content}</div>
           </div>
         ))}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
