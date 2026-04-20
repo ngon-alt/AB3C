@@ -1149,14 +1149,24 @@ useEffect(() => {
   } catch (e) { setConfirmHistory([]); }
 }, [siteId]);
 
-// currentResult が変わったら refineSelection を初期化（全項目選択状態に）
+// currentResult が変わったら refineSelection を初期化（ニーズ等の項目が変わった時のみ）
+// 絞り込み再分析時は origNeeds/Wants/Profile を保持するためリセットしない
+const prevItemsKeyRef = useRef(null);
 useEffect(() => {
-  if (!currentResult) { setRefineSelection({ needs: [], wants: [], profile: [] }); return; }
-  setRefineSelection({
-    needs: (currentResult.benefit?.needs || []).map((_, i) => i),
-    wants: (currentResult.benefit?.wants || []).map((_, i) => i),
-    profile: (currentResult.three_c?.customer?.profile || []).map((_, i) => i),
+  if (!currentResult) { setRefineSelection({ needs: [], wants: [], profile: [] }); prevItemsKeyRef.current = null; return; }
+  const key = JSON.stringify({
+    n: currentResult.benefit?.needs || [],
+    w: currentResult.benefit?.wants || [],
+    p: currentResult.three_c?.customer?.profile || [],
   });
+  if (prevItemsKeyRef.current !== key) {
+    setRefineSelection({
+      needs: (currentResult.benefit?.needs || []).map((_, i) => i),
+      wants: (currentResult.benefit?.wants || []).map((_, i) => i),
+      profile: (currentResult.three_c?.customer?.profile || []).map((_, i) => i),
+    });
+    prevItemsKeyRef.current = key;
+  }
 }, [currentResult]);
 
 useEffect(() => {
@@ -1278,18 +1288,36 @@ useEffect(() => {
       });
       const data = await res.json();
       if (data.error) { alert(data.error); return; }
+      // 元のニーズ・ウォンツ・プロフィール一覧は保持（取り消し線表示のため）
+      // ユーザーが後でチェックを戻して再分析できるように、選択可能な項目は常に元のまま
+      const merged = {
+        ...data,
+        benefit: {
+          ...data.benefit,
+          needs: origNeeds,
+          wants: origWants,
+        },
+        three_c: {
+          ...data.three_c,
+          customer: {
+            ...data.three_c?.customer,
+            profile: origProfile,
+            target: data.three_c?.customer?.target ?? currentResult.three_c?.customer?.target,
+          },
+        },
+      };
       try {
-        const diff = diffResults(currentResult || {}, data);
+        const diff = diffResults(currentResult || {}, merged);
         setChangedPaths(prev => {
           const next = new Map(prev);
           diff.forEach(path => next.set(path, (next.get(path) || 0) + 1));
           return next;
         });
       } catch (e) { console.error("diff error:", e); }
-      setCurrentResult(data);
-      setResult(data);
+      setCurrentResult(merged);
+      setResult(merged);
       setAnalyzedAt(Date.now());
-      setHistoryTitle(data?.strategy_message?.message || "");
+      setHistoryTitle(merged?.strategy_message?.message || "");
     } catch (e) {
       alert("再分析に失敗しました: " + (e?.message || e));
     } finally {
