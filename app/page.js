@@ -102,15 +102,29 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-const UL = ({ items, onChatItem }) => (
+const UL = ({ items, onChatItem, checkable, checkedIndexes, onToggle }) => (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-    {items.map((item, i) => (
-     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4 }}
+    {items.map((item, i) => {
+      const isChecked = !checkable || (checkedIndexes || []).includes(i);
+      return (
+     <li key={i} style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 0" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.4 : 1, transition: "opacity 0.2s" }}
        {...(onChatItem ? hoverShow : {})}>
-        <span><span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>{linkify(item)}</span>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 8, flex: 1, cursor: checkable ? "pointer" : "default" }}>
+          {checkable && (
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={() => onToggle && onToggle(i)}
+              style={{ marginTop: 4, width: 18, height: 18, cursor: "pointer", flexShrink: 0, accentColor: C.A }}
+            />
+          )}
+          {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
+          <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
+        </label>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
-    ))}
+      );
+    })}
   </ul>
 );
 
@@ -169,7 +183,7 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-function ResultView({ d, onChat, changedPaths }) {
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -181,8 +195,8 @@ function ResultView({ d, onChat, changedPaths }) {
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
         <div style={g2}>
-          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。"><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
-          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} /></Card></div>
+          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。"><UL items={d.benefit.needs.map(i => `📌 ${i}`)} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.replace("📌 ","").slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.needs} onToggle={onRefineToggle && ((i) => onRefineToggle("needs", i))} /></Card></div>
+          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants.map(i => `🎯 ${i}`)} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.replace("🎯 ","").slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.wants} onToggle={onRefineToggle && ((i) => onRefineToggle("wants", i))} /></Card></div>
         </div>
       </div>
       <Divider />
@@ -199,9 +213,9 @@ function ResultView({ d, onChat, changedPaths }) {
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
         <div style={{ ...g2, marginBottom: 14 }}>
-          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。誰に向けて事業を展開するかを一言で。">
+          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。">
             <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
-            <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} />
+            <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.profile} onToggle={onRefineToggle && ((i) => onRefineToggle("profile", i))} />
           </Card></div>
           <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")} help="ターゲットが『ニーズ段階』（欠乏感・曖昧）か『ウォンツ段階』（具体的欲求）か。切り捨てたお客様（戦略的に対象外とした層）も明確化します。">
             <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
@@ -1127,6 +1141,16 @@ useEffect(() => {
   } catch (e) { setConfirmHistory([]); }
 }, [siteId]);
 
+// currentResult が変わったら refineSelection を初期化（全項目選択状態に）
+useEffect(() => {
+  if (!currentResult) { setRefineSelection({ needs: [], wants: [], profile: [] }); return; }
+  setRefineSelection({
+    needs: (currentResult.benefit?.needs || []).map((_, i) => i),
+    wants: (currentResult.benefit?.wants || []).map((_, i) => i),
+    profile: (currentResult.three_c?.customer?.profile || []).map((_, i) => i),
+  });
+}, [currentResult]);
+
 useEffect(() => {
   try {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
@@ -1206,6 +1230,56 @@ useEffect(() => {
           setConfirmHistory(existing2);
         } catch (e) {}
       } catch (e) { alert("保存に失敗しました。"); }
+    }
+  };
+
+  // 絞り込み再分析（選択項目だけにフォーカスした戦略を再生成）
+  const refineAnalyze = async () => {
+    if (!currentResult || refining) return;
+    const origNeeds = currentResult.benefit?.needs || [];
+    const origWants = currentResult.benefit?.wants || [];
+    const origProfile = currentResult.three_c?.customer?.profile || [];
+    const selectedNeeds = origNeeds.filter((_, i) => refineSelection.needs.includes(i));
+    const selectedWants = origWants.filter((_, i) => refineSelection.wants.includes(i));
+    const selectedProfile = origProfile.filter((_, i) => refineSelection.profile.includes(i));
+
+    if (selectedNeeds.length === 0 || selectedWants.length === 0) {
+      alert("ニーズとウォンツは最低1つは残してください。");
+      return;
+    }
+
+    setRefining(true);
+    setOverlayMessage("選んだ条件で再分析中...");
+    try {
+      const payload = {
+        refineFrom: currentResult,
+        refineSelection: {
+          needs: selectedNeeds,
+          wants: selectedWants,
+          profile: selectedProfile,
+          target: currentResult.three_c?.customer?.target,
+        },
+      };
+      if (currentInput?.startsWith("http")) payload.url = currentInput;
+      else payload.input = currentInput;
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+      setChangedPaths(diffResults(currentResult, data));
+      setCurrentResult(data);
+      setResult(data);
+      setAnalyzedAt(Date.now());
+      setHistoryTitle(data?.strategy_message?.message || "");
+    } catch (e) {
+      alert("再分析に失敗しました: " + (e?.message || e));
+    } finally {
+      setRefining(false);
+      setOverlayMessage(null);
     }
   };
 
@@ -1803,7 +1877,44 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       )}
     </div>
   </div>
-  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} />
+  {(() => {
+    const needsLen = currentResult.benefit?.needs?.length ?? 0;
+    const wantsLen = currentResult.benefit?.wants?.length ?? 0;
+    const profileLen = currentResult.three_c?.customer?.profile?.length ?? 0;
+    const isPending = !strategyConfirmed && (
+      (refineSelection.needs?.length ?? 0) < needsLen ||
+      (refineSelection.wants?.length ?? 0) < wantsLen ||
+      (refineSelection.profile?.length ?? 0) < profileLen
+    );
+    if (!isPending) return null;
+    return (
+      <div style={{ background: "#fff3cd", border: `2px solid ${C.A}`, borderRadius: 6, padding: "14px 18px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ fontSize: 15, color: C.ink, fontFamily: "system-ui, sans-serif", lineHeight: 1.6 }}>
+          <b>🎯 ターゲットを絞り込みました</b><br />
+          <span style={{ fontSize: 13, color: C.muted }}>選んだ条件で再分析すると、より鋭い戦略メッセージに研ぎ澄ませます。</span>
+        </div>
+        <button
+          onClick={refineAnalyze}
+          disabled={refining}
+          style={{
+            background: refining ? C.muted : C.A, border: "none", borderRadius: 4,
+            color: "#fff", cursor: refining ? "not-allowed" : "pointer",
+            fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {refining ? "再分析中…" : "🎯 選んだ条件で再分析"}
+        </button>
+      </div>
+    );
+  })()}
+  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={strategyConfirmed ? null : (key, i) => {
+    setRefineSelection(prev => {
+      const list = prev[key] || [];
+      const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
+      return { ...prev, [key]: next };
+    });
+  }} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
       ウェブサイト改善レポートを生成中です…
