@@ -144,10 +144,13 @@ export default async function Image() {
             }}
           >
             <span style={{ fontSize: 180, lineHeight: 1, fontFamily: titleFontName, fontWeight: 900 }}>戦略指南</span>
-            <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20 }}>AI</span>
+            <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20, fontFamily: "monospace" }}>AI</span>
           </div>
 
-          {/* サブタイトル: on AB3C — on は小さめ、AB3C は大きめ、全て中央揃え */}
+          {/* サブタイトル: on AB3C — AB3C 4文字を同じフォント(monospace)で揃える
+              ※ NotoSansJP サブセットに "A" "I" が含まれているため、それを使うと
+                 「A」だけ別メトリクスで描画されて位置がずれる。
+                 monospace 明示で Satori の内蔵フォントに統一する。 */}
           <div
             style={{
               display: "flex",
@@ -157,10 +160,10 @@ export default async function Image() {
               letterSpacing: "0.05em",
             }}
           >
-            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500 }}>on</span>
-            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1 }}>A</span>
-            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1 }}>B</span>
-            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1 }}>3C</span>
+            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500, fontFamily: "monospace" }}>on</span>
+            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>A</span>
+            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>B</span>
+            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>3C</span>
           </div>
 
           {/* アンダーライン */}
