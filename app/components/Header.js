@@ -66,7 +66,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "clamp(20px, 4vw, 36px)", color: C.ink }}>戦略指南 AI</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>on AB3C framework</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: "clamp(10px, 2vw, 14px)", color: C.muted, marginLeft: 8 }}>
+              on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span> framework
+            </span>
           </div>
           <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
             選ばれる理由を言語化する 戦略策定AI
@@ -128,16 +130,17 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           if (onNewAnalysis) { onNewAnalysis(); }
           else { window.location.href = "/"; }
         }}
+          title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
           style={{
-            padding: "10px 18px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+            padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
             background: phase === "input" ? "#fff" : "#ddd",
             color: phase === "input" ? C.ink : "#999",
             border: phase === "input" ? `2px solid ${C.ink}` : "2px solid transparent",
             borderBottom: "none",
             borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, cursor: "pointer",
-            marginBottom: phase === "input" ? "-6px" : "0",
             position: "relative",
             zIndex: phase === "input" ? 2 : 1,
+            boxShadow: phase === "input" ? "0 6px 0 2px #fff" : "none",
           }}>
           <span style={{ background: phase === "input" ? C.ink : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>0</span>
           新規分析
@@ -159,12 +162,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             }
           }}
             style={{
-              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "analysis" ? C.phase1 : phase === "action" ? C.phase1 + "88" : "#ddd",
               color: (phase === "analysis" || phase === "action") ? "#fff" : "#999",
-              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6, border: "none",
+              border: "2px solid transparent", borderBottom: "none",
+              borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
               cursor: phase === "input" ? "not-allowed" : "pointer",
               opacity: 1,
+              position: "relative",
+              zIndex: phase === "analysis" ? 2 : 1,
+              boxShadow: phase === "analysis" ? `0 6px 0 2px ${C.phase1}` : "none",
             }}>
             <span style={{ background: (phase === "analysis" || phase === "action") ? "rgba(255,255,255,0.25)" : "#bbb", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0, color: "#fff" }}>1</span>
             戦略策定
@@ -184,12 +191,16 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           <button
             onClick={() => { if (!strategyConfirmed) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
             style={{
-              padding: "10px 20px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
+              padding: "8px 18px 10px", fontSize: 14, fontFamily: "'Space Mono', monospace", textDecoration: "none", whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.05em",
               background: phase === "action" ? C.phase2 : strategyConfirmed ? C.phase2 + "88" : "#ddd",
               color: (phase === "action" || strategyConfirmed) ? "#fff" : "#999",
+              border: "2px solid transparent", borderBottom: "none",
               borderRadius: "6px 6px 0 0", display: "flex", alignItems: "center", gap: 6,
-              cursor: strategyConfirmed ? "pointer" : "not-allowed", border: "none",
+              cursor: strategyConfirmed ? "pointer" : "not-allowed",
               opacity: 1,
+              position: "relative",
+              zIndex: phase === "action" ? 2 : 1,
+              boxShadow: phase === "action" ? `0 6px 0 2px ${C.phase2}` : "none",
             }}>
             <span style={{ background: (phase === "action" || strategyConfirmed) ? "rgba(255,255,255,0.25)" : "#bbb", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, flexShrink: 0 }}>2</span>
             戦略アクション
@@ -207,7 +218,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-end",
-            background: C.ink, border: "none", borderRadius: 4,
+            background: C.ink, border: "2px solid transparent", borderRadius: 4,
             marginBottom: 6,
           }}>
           📋 サイト管理

@@ -21,21 +21,21 @@ const ebGaramond = EB_Garamond({
 });
 
 export const metadata = {
-  title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
-  description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI。ウェブサイトのURLを入力するだけで、Benefit・Advantage・3C分析をAIが自動生成。中小企業の戦略コンサルティングをAIで民主化。",
-  keywords: "AB3C分析, 戦略策定, AI, 選ばれる理由, 差別化, コンサルティング, 中小企業, ウェブ戦略",
+  title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+  description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
+  keywords: "AB3C分析, 戦略策定, AI, 選ばれる理由, 差別化, コンサルティング, 中小企業, ウェブ戦略, 事業戦略, 採用戦略, 補助金申請",
   openGraph: {
-    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
-    description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI",
+    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+    description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
     url: "https://senryaku.ai",
     siteName: "戦略指南 AI",
     type: "website",
     locale: "ja_JP",
   },
   twitter: {
-    card: "summary",
-    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI",
-    description: "AB3Cフレームワークで「選ばれる理由」を明らかにする戦略策定AI",
+    card: "summary_large_image",
+    title: "戦略指南 AI — 選ばれる理由を言語化する戦略策定AI | AB3Cフレームワークで事業戦略・ウェブ戦略を一気通貫",
+    description: "ウェブサイトのURLを入力するだけでAB3C分析を自動生成。Benefit・Advantage・3C（顧客・競合・自社）から『なぜ選ばれるのか』を言語化し、事業戦略・ウェブ戦略・採用・補助金申請まで一貫支援する中小企業向けAIツール。",
   },
 };
 
