@@ -1069,6 +1069,15 @@ const [chatSummaries, setChatSummaries] = useState([]);
   }
 }, [session]);
   
+// siteId が変わったら confirmHistory を再読み込み（別サイト表示時のスタレ防止）
+useEffect(() => {
+  if (!siteId) { setConfirmHistory([]); return; }
+  try {
+    const chData = localStorage.getItem("ab3c_confirmations_" + siteId);
+    setConfirmHistory(chData ? JSON.parse(chData) : []);
+  } catch (e) { setConfirmHistory([]); }
+}, [siteId]);
+
 useEffect(() => {
   try {
     localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
@@ -1151,6 +1160,29 @@ useEffect(() => {
     }
   };
 
+  // 戦略の確定を解除（確定履歴は保持、フェーズだけ analysis に戻す）
+  const unconfirmStrategy = async () => {
+    const ok = confirm(
+      "戦略の確定を解除しますか？\n\n" +
+      "・確定履歴（サイドバー）は保持されます\n" +
+      "・戦略策定タブに戻って内容を練り直せます\n" +
+      "・解除後、再度確定することも可能です"
+    );
+    if (!ok) return;
+    try {
+      if (siteId) {
+        await fetch("/api/sites", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: siteId, strategy_confirmed: false }),
+        });
+      }
+      setStrategyConfirmed(false);
+      setViewOverride("analysis"); // フェーズを①に戻す
+      window.scrollTo(0, 0);
+    } catch (e) { alert("解除に失敗しました。"); }
+  };
+
  const notify = (text) => {
     if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification("戦略指南 AI 分析完了", { body: text.slice(0, 60), icon: "https://ab3c.jp/img/common/logo.svg" });
   };
@@ -1159,8 +1191,21 @@ useEffect(() => {
     // ログインチェックはAPI側で実施（sessionの読み込みタイミング問題を回避）
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
+
+    // 戦略確定済みの状態で再分析しようとしている場合、警告を出す
+    if (strategyConfirmed && currentResult) {
+      const ok = confirm(
+        "このサイトは戦略確定済みです。\n" +
+        "再分析しても過去の確定履歴（サイドバー）は保持されますが、\n" +
+        "現在表示中の分析結果は新しい内容で上書きされ、確定状態も解除されます。\n\n" +
+        "続けて再分析しますか？"
+      );
+      if (!ok) return;
+    }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
-setSiteId(null); setHistory([]); localStorage.removeItem("ab3c_history"); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+// 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
+setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+// 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
       // URL分析時: 既存サイトがあれば自動紐付け
@@ -1620,21 +1665,36 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   {(() => {
     const canConfirm = isPro || chatTickets > 0;
     return (
-      <button
-        onClick={canConfirm ? confirmStrategy : null}
-        disabled={!canConfirm || strategyConfirmed}
-        title={!canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
-        style={{
-          background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
-          border: "none", borderRadius: 2,
-          color: "#fff",
-          cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
-          fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
-          opacity: !canConfirm ? 0.7 : 1,
-        }}
-      >
-        {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定する →"}
-      </button>
+      <>
+        <button
+          onClick={canConfirm ? confirmStrategy : null}
+          disabled={!canConfirm || strategyConfirmed}
+          title={!canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+          style={{
+            background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
+            border: "none", borderRadius: 2,
+            color: "#fff",
+            cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
+            fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+            opacity: !canConfirm ? 0.7 : 1,
+          }}
+        >
+          {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定する →"}
+        </button>
+        {strategyConfirmed && (
+          <button
+            onClick={unconfirmStrategy}
+            title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
+            style={{
+              background: "#fff", border: `1px solid ${C.muted}`, borderRadius: 2,
+              color: C.muted, cursor: "pointer",
+              fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px",
+            }}
+          >
+            ↺ 戦略を解除
+          </button>
+        )}
+      </>
     );
   })()}
 </div>
