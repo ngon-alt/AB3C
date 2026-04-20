@@ -213,10 +213,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         </span>
         {/* 区切り */}
         <div style={{ width: 1, height: 24, background: C.border, margin: "0 16px", alignSelf: "flex-end", marginBottom: 10 }} />
-        {/* サイト管理ボタン（サイト未確定のナビゲーションなので黒系で統一） */}
+        {/* サイト管理ボタン（タブと同じトップ位置に合わせるため height を 28px に） */}
         <a href="/dashboard"
           style={{
-            padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
+            padding: "5px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-end",
             background: C.ink, border: "2px solid transparent", borderRadius: 4,
             marginBottom: 6,
@@ -227,7 +227,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         {session && sites.length > 0 && (
           <div style={{ position: "relative", alignSelf: "flex-end", marginLeft: 4, marginBottom: 6 }}>
             <button onClick={() => setShowSiteDropdown(!showSiteDropdown)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fff", border: `2px solid ${C.ink}`, borderRadius: 4, cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink }}>
               {currentSiteUrl ? currentSiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "サイトを選択"}
               <span style={{ fontSize: 12, color: C.ink }}>▼</span>
             </button>
