@@ -807,6 +807,7 @@ const [trialChats, setTrialChats] = useState(0);
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
   const [refining, setRefining] = useState(false);
+  const [refineToast, setRefineToast] = useState(false);
   const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
@@ -1502,6 +1503,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
+      {/* 絞り込み再分析ボタン案内トースト（チェックを外した直後に上に出ていることを通知） */}
+      {refineToast && (
+        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.A, color: "#fff", padding: "14px 24px", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.25)", zIndex: 9998, fontSize: 15, fontWeight: 700, fontFamily: "system-ui, sans-serif", display: "flex", alignItems: "center", gap: 10, animation: "refineToastSlide 0.25s ease-out" }}>
+          <span style={{ fontSize: 20 }}>⬆</span>
+          <span>上の「選んだ条件で再分析」ボタンをクリックして戦略を研ぎ澄ませましょう</span>
+          <style>{`@keyframes refineToastSlide { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }`}</style>
+        </div>
+      )}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
 
@@ -1921,7 +1930,19 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
-      return { ...prev, [key]: next };
+      const newSel = { ...prev, [key]: next };
+      // いずれかの項目が外された状態になったら、上のボタンを案内するトースト表示
+      const origNeeds = currentResult?.benefit?.needs?.length ?? 0;
+      const origWants = currentResult?.benefit?.wants?.length ?? 0;
+      const origProfile = currentResult?.three_c?.customer?.profile?.length ?? 0;
+      const pending = (newSel.needs?.length ?? 0) < origNeeds
+        || (newSel.wants?.length ?? 0) < origWants
+        || (newSel.profile?.length ?? 0) < origProfile;
+      if (pending) {
+        setRefineToast(true);
+        setTimeout(() => setRefineToast(false), 2800);
+      }
+      return newSel;
     });
   }} />
   {currentInput?.startsWith("http") && improveLoading && !improveResult && (
