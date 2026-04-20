@@ -98,7 +98,10 @@ export default async function Image() {
   try {
     // 「戦略指南 AI」と「選ばれる理由を言語化する戦略策定AI」の漢字・かな
     const titleText = "戦略指南";
-    const captionText = "選ばれる理由を言語化する戦略策定AI";
+    // サブセットから Latin を除く: 「A」が NotoSansJP に含まれると「B3C」と
+    // 別フォントで描画されて位置がズレるため、Latin はすべて Inter(Satori 内蔵)
+    // にフォールバックさせる
+    const captionText = "選ばれる理由を言語化する戦略策定";
 
     // タイトルは明朝(Noto Serif JP 900)、キャプションはサンセリフ(Noto Sans JP 400)
     // さらに明朝が取れないときのフォールバック用に Noto Sans JP 900 も並列取得
@@ -144,7 +147,7 @@ export default async function Image() {
             }}
           >
             <span style={{ fontSize: 180, lineHeight: 1, fontFamily: titleFontName, fontWeight: 900 }}>戦略指南</span>
-            <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20, fontFamily: "monospace" }}>AI</span>
+            <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20 }}>AI</span>
           </div>
 
           {/* サブタイトル: on AB3C — AB3C 4文字を同じフォント(monospace)で揃える
@@ -160,10 +163,10 @@ export default async function Image() {
               letterSpacing: "0.05em",
             }}
           >
-            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500, fontFamily: "monospace" }}>on</span>
-            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>A</span>
-            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>B</span>
-            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1, fontFamily: "monospace" }}>3C</span>
+            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500 }}>on</span>
+            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1 }}>A</span>
+            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1 }}>B</span>
+            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1 }}>3C</span>
           </div>
 
           {/* アンダーライン */}
