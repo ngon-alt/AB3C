@@ -865,6 +865,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
+          siteId: siteId || null,
           result: currentResult,
           improveResult: improveResult || null,
           visualMock: visualMock || null,
@@ -875,23 +876,35 @@ const [chatSummaries, setChatSummaries] = useState([]);
   }, [currentResult, improveResult, visualMock, currentInput, analyzedAt]);
 
   // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
+  // URLパラメータに site_id / url がある場合は、それと一致する場合のみ復元（別サイトのデータ復元バグ防止）
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const urlParam = params.get("url");
+      const sidParam = params.get("site_id");
       const saved = sessionStorage.getItem("ab3c_last_analysis");
       if (!saved) return;
       const data = JSON.parse(saved);
       // 24時間以内の分析結果のみ復元
-      if (data.timestamp && (Date.now() - data.timestamp < 24 * 3600 * 1000) && data.result && data.input) {
-        setResult(data.result);
-        setCurrentResult(data.result);
-        setCurrentInput(data.input);
-        setAnalyzedAt(data.timestamp);
-        if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
-        else { setInput(data.input); setTab("text"); }
-        if (data.improveResult) setImproveResult(data.improveResult);
-        if (data.visualMock) setVisualMock(data.visualMock);
-        if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
+      if (!data.timestamp || Date.now() - data.timestamp >= 24 * 3600 * 1000) return;
+      if (!data.result || !data.input) return;
+      // URLパラメータがある場合、sessionStorage の input と一致するかチェック
+      // 不一致ならその URL の新しい分析として扱うため、復元しない
+      if (urlParam) {
+        const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+        if (norm(data.input) !== norm(urlParam)) return;
+      } else if (sidParam && data.siteId && data.siteId !== sidParam) {
+        return;
       }
+      setResult(data.result);
+      setCurrentResult(data.result);
+      setCurrentInput(data.input);
+      setAnalyzedAt(data.timestamp);
+      if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
+      else { setInput(data.input); setTab("text"); }
+      if (data.improveResult) setImproveResult(data.improveResult);
+      if (data.visualMock) setVisualMock(data.visualMock);
+      if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
     } catch (e) {}
   }, []);
 
