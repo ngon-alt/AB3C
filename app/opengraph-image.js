@@ -163,10 +163,10 @@ export default async function Image() {
               letterSpacing: "0.05em",
             }}
           >
-            <span style={{ color: "#555", fontSize: 40, lineHeight: 1, marginRight: 18, fontWeight: 500 }}>on</span>
-            <span style={{ color: "#1a6fd4", fontSize: 64, lineHeight: 1 }}>A</span>
-            <span style={{ color: "#FF0000", fontSize: 64, lineHeight: 1 }}>B</span>
-            <span style={{ color: "#1a1a14", fontSize: 64, lineHeight: 1 }}>3C</span>
+            <span style={{ color: "#555", fontSize: 64, lineHeight: 1, marginRight: 24, fontWeight: 500 }}>on</span>
+            <span style={{ color: "#1a6fd4", fontSize: 102, lineHeight: 1 }}>A</span>
+            <span style={{ color: "#FF0000", fontSize: 102, lineHeight: 1 }}>B</span>
+            <span style={{ color: "#1a1a14", fontSize: 102, lineHeight: 1 }}>3C</span>
           </div>
 
           {/* アンダーライン */}
