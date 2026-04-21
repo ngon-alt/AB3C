@@ -813,6 +813,7 @@ const [tab, setTab] = useState("url");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
+  const [shareExpiresAt, setShareExpiresAt] = useState("");
   const [shareCopied, setShareCopied] = useState(false);
   const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
@@ -1060,13 +1061,14 @@ const [chatSummaries, setChatSummaries] = useState([]);
   };
 
   const shareResult = async (inputText, resultData) => {
-    setSharing(true); setShareUrl(""); setShareCopied(false);
+    setSharing(true); setShareUrl(""); setShareExpiresAt(""); setShareCopied(false);
     try {
       const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null, visualMock: visualMock || null }) });
       const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
         setShareUrl(url);
+        if (data.expires_at) setShareExpiresAt(data.expires_at);
         const ok = await copyToClipboard(url);
         setShareCopied(ok);
       }
@@ -1972,6 +1974,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       {shareCopied ? "コピー済み" : "コピー"}
                     </button>
                   </div>
+                  {shareExpiresAt && (
+                    <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.6 }}>
+                      閲覧期限: <strong>{new Date(shareExpiresAt).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}</strong>（発行から1年間）
+                    </div>
+                  )}
                 </div>
               )}
 <div id="result-area">

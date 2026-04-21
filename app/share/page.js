@@ -12,6 +12,7 @@ export default async function SharePage({ searchParams }) {
   let improveResult = null;
   let visualMock = null;
   let error = "";
+  let expiredAt = null;
 
   if (!id) {
     error = "IDが指定されていません。";
@@ -22,15 +23,22 @@ export default async function SharePage({ searchParams }) {
       if (rows.length === 0) {
         error = "データが見つかりませんでした。";
       } else {
-        input = rows[0].input_text;
-        result = typeof rows[0].result === 'string' ? JSON.parse(rows[0].result) : rows[0].result;
-        improveResult = rows[0].improve_result ? (typeof rows[0].improve_result === 'string' ? JSON.parse(rows[0].improve_result) : rows[0].improve_result) : null;
-        visualMock = rows[0].visual_mock ? (typeof rows[0].visual_mock === 'string' ? JSON.parse(rows[0].visual_mock) : rows[0].visual_mock) : null;
+        const row = rows[0];
+        // 閲覧期限チェック（expires_at がNULLのレガシー扱いは従来どおり表示）
+        if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
+          error = "このシェアURLは閲覧期限（発行から1年）が切れています。";
+          expiredAt = row.expires_at;
+        } else {
+          input = row.input_text;
+          result = typeof row.result === 'string' ? JSON.parse(row.result) : row.result;
+          improveResult = row.improve_result ? (typeof row.improve_result === 'string' ? JSON.parse(row.improve_result) : row.improve_result) : null;
+          visualMock = row.visual_mock ? (typeof row.visual_mock === 'string' ? JSON.parse(row.visual_mock) : row.visual_mock) : null;
+        }
       }
     } catch (e) {
       error = "データの取得に失敗しました。";
     }
   }
 
-  return <ShareContent input={input} result={result} improveResult={improveResult} visualMock={visualMock} error={error} />;
+  return <ShareContent input={input} result={result} improveResult={improveResult} visualMock={visualMock} error={error} expiredAt={expiredAt} />;
 }

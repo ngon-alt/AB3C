@@ -51,7 +51,7 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
-export default function ShareContent({ input, result, improveResult, visualMock, error }) {
+export default function ShareContent({ input, result, improveResult, visualMock, error, expiredAt }) {
   const d = result;
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
@@ -76,7 +76,25 @@ export default function ShareContent({ input, result, improveResult, visualMock,
           </a>
         </div>
 
-        {error && <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "16px 20px", color: C.red }}>{error}</div>}
+        {error && (
+          <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "20px 24px", color: C.ink, borderRadius: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.red, marginBottom: 8 }}>{expiredAt ? "🕒 閲覧期限が切れています" : "⚠️ 表示できません"}</div>
+            <div style={{ fontSize: 14, lineHeight: 1.8, marginBottom: expiredAt ? 12 : 0 }}>{error}</div>
+            {expiredAt && (
+              <>
+                <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>
+                  期限日: {new Date(expiredAt).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                </div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.8 }}>
+                  新しく分析を実行してシェアURLを発行するか、戦略指南プランで履歴保存された結果をダッシュボードから呼び出してください。
+                </div>
+                <a href="https://senryaku.ai" style={{ display: "inline-block", marginTop: 12, background: "#1a6fd4", color: "#fff", textDecoration: "none", padding: "10px 20px", borderRadius: 4, fontSize: 14, fontWeight: 700 }}>
+                  新しく分析する →
+                </a>
+              </>
+            )}
+          </div>
+        )}
 
         {d && (
           <div>
