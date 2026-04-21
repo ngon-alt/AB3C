@@ -80,7 +80,7 @@ export default function BugReportFloat() {
       {/* 印刷時は非表示 */}
       <style>{`@media print { .bug-report-float { display: none !important; } }`}</style>
 
-      <div className="bug-report-float" style={{ position: "fixed", right: 20, bottom: 20, zIndex: 9999 }}>
+      <div className="bug-report-float" style={{ position: "fixed", left: 20, bottom: 20, zIndex: 9999 }}>
         {!open ? (
           <button
             onClick={() => setOpen(true)}
