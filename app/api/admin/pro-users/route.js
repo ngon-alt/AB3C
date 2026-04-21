@@ -1,4 +1,5 @@
 import { neon } from '@neondatabase/serverless';
+import { sendPlanDowngradeEmail } from '@/app/lib/email';
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
@@ -46,6 +47,14 @@ export async function POST(req) {
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
+
+    // 切り替え前の support プラン site_limit 最大値（ダウングレード判定用）
+    const preChangeSupport = await sql`
+      SELECT site_limit FROM user_plans
+      WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+    `;
+    const preChangeMaxSupport = Math.max(0, ...preChangeSupport.map(r => parseInt(r.site_limit || 0)));
+
     // 既存プランを無効化
     await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`;
     // 新規プラン登録
@@ -53,6 +62,42 @@ export async function POST(req) {
       INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id)
       VALUES (${email}, ${p.type}, ${p.sites}, 'admin', 'admin_manual')
     `;
+
+    // 切り替え後の support プラン site_limit（新プランが support でない場合は 0）
+    const newSupportLimit = p.type === 'support' ? parseInt(p.sites) : 0;
+
+    // ダウングレード判定: 旧 support 上限 > 新 support 上限 の場合のみ超過サイトを削除
+    if (preChangeMaxSupport > newSupportLimit) {
+      // 新しい N 件は残し、それより古い分を削除（ORDER BY DESC OFFSET N で古い方を取得）
+      const sitesToDelete = await sql`
+        SELECT id, site_name, site_url FROM sites
+        WHERE user_email = ${email}
+        ORDER BY created_at DESC
+        OFFSET ${newSupportLimit}
+      `;
+      if (sitesToDelete.length > 0) {
+        const ids = sitesToDelete.map(s => s.id);
+        await sql`DELETE FROM sites WHERE id = ANY(${ids})`;
+        console.log(`管理画面プラン切替によるダウングレード: ${email} / ${preChangeMaxSupport} → ${newSupportLimit} / ${sitesToDelete.length}サイト削除`);
+        // ダウングレード通知メール（対象ユーザーへ）
+        try {
+          let userName = null;
+          try {
+            const nameRows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
+            if (nameRows.length > 0) userName = nameRows[0].name;
+          } catch (e) {}
+          await sendPlanDowngradeEmail({
+            email,
+            name: userName,
+            deletedSites: sitesToDelete,
+            oldLimit: preChangeMaxSupport,
+            newLimit: newSupportLimit,
+          });
+        } catch (e) {
+          console.error('管理画面ダウングレード通知メール送信エラー:', e);
+        }
+      }
+    }
   }
 
   return Response.json({ success: true });

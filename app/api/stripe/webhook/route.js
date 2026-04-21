@@ -93,11 +93,13 @@ export async function POST(req) {
           // ダウングレード判定: 旧プランの最大 site_limit が新プランを上回る場合のみ
           const oldMaxLimit = Math.max(0, ...existingSupport.map(p => parseInt(p.site_limit || 0)));
           if (oldMaxLimit > plan.sites) {
-            // 古いサイトから削除（created_at ASC）、新プランの枠内だけ残す
+            // 新しい N 件は残し、それより古い分を削除する
+            // ORDER BY created_at DESC で新しい順に並べ、OFFSET plan.sites で新しい N 件をスキップ
+            // → 残ったのが削除対象（古い方）
             const sitesToDelete = await sql`
               SELECT id, site_name, site_url FROM sites
               WHERE user_email = ${email}
-              ORDER BY created_at ASC
+              ORDER BY created_at DESC
               OFFSET ${plan.sites}
             `;
             if (sitesToDelete.length > 0) {
