@@ -87,14 +87,21 @@ export default function BugReportFloat() {
             aria-label="バグ報告"
             style={{
               width: 56, height: 56, borderRadius: "50%",
-              background: C.phase1, color: "#fff", border: "none",
+              background: "#ffffff", color: C.ink,
+              border: `2px solid ${C.border}`,
               cursor: "pointer", fontSize: 24,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.28), 0 2px 6px rgba(0,0,0,0.16)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "transform 0.15s",
+              transition: "transform 0.15s, box-shadow 0.15s",
             }}
-            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"}
-            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "scale(1.08)";
+              e.currentTarget.style.boxShadow = "0 10px 24px rgba(0,0,0,0.32), 0 3px 8px rgba(0,0,0,0.2)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 6px 18px rgba(0,0,0,0.28), 0 2px 6px rgba(0,0,0,0.16)";
+            }}
             title="バグ報告・不具合のご連絡"
           >🐛</button>
         ) : (
