@@ -238,6 +238,49 @@ export async function sendContactNotificationEmail({
   return sendEmail(NOTIFY_TO, subject, html, { replyTo: email, attachments });
 }
 
+// 戦略指南プランのダウングレードに伴い、古いサイトを自動削除した旨を通知
+//  - email: 通知先（契約者本人）
+//  - deletedSites: [{ site_name, site_url }, ...]
+//  - oldLimit / newLimit: 旧サイト上限 / 新サイト上限
+export async function sendPlanDowngradeEmail({ email, name, deletedSites, oldLimit, newLimit }) {
+  const count = deletedSites?.length || 0;
+  const subject = `【戦略指南 AI】プラン変更に伴い ${count} サイトを削除しました`;
+  const listItems = (deletedSites || []).map(s => {
+    const label = s.site_name || s.site_url || '(無題のサイト)';
+    const url = s.site_url ? ` — ${esc(s.site_url)}` : '';
+    return `<li style="margin-bottom:4px">${esc(label)}${url}</li>`;
+  }).join('');
+  const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:40px 20px;color:#1a1a14">
+    <div style="font-size:24px;font-weight:bold;margin-bottom:24px">戦略指南 AI</div>
+    <p style="font-size:16px;line-height:1.8">${esc(name) || 'お客様'}さん、戦略指南プランの変更を承りました。</p>
+
+    <div style="background:#fff3cd;border-left:4px solid #dc2626;border-radius:6px;padding:16px 20px;margin:24px 0">
+      <p style="font-size:14px;font-weight:bold;color:#dc2626;margin:0 0 8px">⚠️ サイトの自動削除について</p>
+      <p style="font-size:14px;line-height:1.7;color:#1a1a14;margin:0">
+        サイト登録上限が <strong>${oldLimit} → ${newLimit}</strong> に変更されたため、
+        古いご登録順に <strong>${count} サイト</strong> を削除しました。
+      </p>
+    </div>
+
+    <div style="background:#fafaf7;border:1px solid #e5e5e0;border-radius:6px;padding:16px 20px;margin-bottom:24px">
+      <div style="font-size:13px;font-weight:bold;color:#1a1a14;margin-bottom:10px">削除されたサイト（${count}件）</div>
+      <ul style="font-size:14px;line-height:1.7;color:#1a1a14;margin:0;padding-left:20px">
+        ${listItems}
+      </ul>
+    </div>
+
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 12px">
+      もし別のサイトを残したかった場合は、大変お手数ですが運営までご連絡ください。
+      削除されたサイトの分析結果・チャット履歴・戦略確定データもあわせて削除されています。
+    </p>
+
+    <a href="https://senryaku.ai/contact?type=bug" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:12px 24px;border-radius:4px;font-size:14px;font-weight:bold;margin-top:8px">お問い合わせはこちら →</a>
+
+    <p style="font-size:12px;color:#78716c;margin-top:40px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは戦略指南プランのダウングレード処理に伴い自動送信されています。</p>
+  </div>`;
+  return sendEmail(email, subject, html);
+}
+
 // お問い合わせ送信者への受付確認（自動返信）
 export async function sendContactAutoReplyEmail({ name, email, category, message, attachments }) {
   const subject = '【戦略指南 AI】お問い合わせを受け付けました';

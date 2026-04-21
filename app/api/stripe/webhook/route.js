@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-import { sendPaymentNotificationEmail } from '@/app/lib/email';
+import { sendPaymentNotificationEmail, sendPlanDowngradeEmail } from '@/app/lib/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -57,6 +57,69 @@ export async function POST(req) {
       const sql = neon(process.env.DATABASE_URL);
       const plan = PRICE_PLANS[priceId];
       const chatCount = getChatCount(plan);
+
+      // === 戦略指南プラン置き換え処理 ===
+      // 新規購入が support タイプの場合、既存 active な support プランを
+      //   ・Stripe の subscription をキャンセル
+      //   ・DB で status='replaced' にマーク
+      //   ・ダウングレードなら古いサイトを自動削除（keep newest N）
+      //   ・指南プランに紐づく既存チケットも一旦削除（下の INSERT で新数量に再発行）
+      // 診断チケット（analysis）は合算仕様のため対象外。
+      let planReplacement = null;
+      if (plan?.type === 'support') {
+        const existingSupport = await sql`
+          SELECT id, stripe_subscription_id, stripe_price_id, site_limit
+          FROM user_plans
+          WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+        `;
+        if (existingSupport.length > 0) {
+          // Stripe の旧サブスクをキャンセル（admin 経由のものはスキップ）
+          for (const ep of existingSupport) {
+            if (ep.stripe_subscription_id && ep.stripe_price_id !== 'admin_manual') {
+              try {
+                await stripe.subscriptions.cancel(ep.stripe_subscription_id);
+              } catch (e) {
+                console.error('Stripe subscription cancel error:', e);
+              }
+            }
+          }
+          // DB でまとめて 'replaced' に
+          await sql`
+            UPDATE user_plans SET status = 'replaced'
+            WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+          `;
+          // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
+          await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
+          // ダウングレード判定: 旧プランの最大 site_limit が新プランを上回る場合のみ
+          const oldMaxLimit = Math.max(0, ...existingSupport.map(p => parseInt(p.site_limit || 0)));
+          if (oldMaxLimit > plan.sites) {
+            // 古いサイトから削除（created_at ASC）、新プランの枠内だけ残す
+            const sitesToDelete = await sql`
+              SELECT id, site_name, site_url FROM sites
+              WHERE user_email = ${email}
+              ORDER BY created_at ASC
+              OFFSET ${plan.sites}
+            `;
+            if (sitesToDelete.length > 0) {
+              const ids = sitesToDelete.map(s => s.id);
+              await sql`DELETE FROM sites WHERE id = ANY(${ids})`;
+              console.log(`ダウングレードにより ${sitesToDelete.length} サイトを削除: ${email} / ${oldMaxLimit} → ${plan.sites}`);
+              planReplacement = {
+                isDowngrade: true,
+                oldLimit: oldMaxLimit,
+                newLimit: plan.sites,
+                deletedSites: sitesToDelete,
+              };
+            }
+          } else {
+            planReplacement = {
+              isDowngrade: false,
+              oldLimit: oldMaxLimit,
+              newLimit: plan.sites,
+            };
+          }
+        }
+      }
 
       // チケット付与
       await sql`
@@ -144,6 +207,26 @@ export async function POST(req) {
       } catch (e) {
         console.error('決済通知メール送信エラー:', e);
         // 通知失敗でも webhook 自体は成功扱いにする（決済処理は既に完了しているため）
+      }
+
+      // ダウングレードによりサイトが削除された場合、ユーザーに通知
+      if (planReplacement?.isDowngrade && planReplacement.deletedSites?.length > 0) {
+        try {
+          let buyerName = null;
+          try {
+            const rows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
+            if (rows.length > 0) buyerName = rows[0].name;
+          } catch (e) {}
+          await sendPlanDowngradeEmail({
+            email,
+            name: buyerName,
+            deletedSites: planReplacement.deletedSites,
+            oldLimit: planReplacement.oldLimit,
+            newLimit: planReplacement.newLimit,
+          });
+        } catch (e) {
+          console.error('ダウングレード通知メール送信エラー:', e);
+        }
       }
     }
   }
