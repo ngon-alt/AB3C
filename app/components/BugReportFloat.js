@@ -269,9 +269,12 @@ export default function BugReportFloat() {
                   />
 
                   {/* 画像添付 */}
-                  <div style={{ marginTop: 10 }}>
-                    <label style={{ fontSize: 12, color: C.muted, display: "block", marginBottom: 6 }}>
-                      画像添付（任意・最大{MAX_ATTACHMENTS}枚・自動で圧縮されます）
+                  <div style={{ marginTop: 14 }}>
+                    <label style={{ fontSize: 14, color: C.ink, fontWeight: 700, display: "block", marginBottom: 6 }}>
+                      画像添付
+                      <span style={{ fontSize: 11, color: C.muted, fontWeight: 400, marginLeft: 6 }}>
+                        （任意・最大{MAX_ATTACHMENTS}枚・自動で圧縮されます）
+                      </span>
                     </label>
                     {attachments.length > 0 && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
@@ -304,13 +307,23 @@ export default function BugReportFloat() {
                         onClick={() => fileInputRef.current?.click()}
                         disabled={compressing || status === "sending"}
                         style={{
-                          background: "transparent", border: `1px dashed ${C.border}`,
-                          borderRadius: 4, padding: "6px 10px", fontSize: 12,
-                          color: C.muted, cursor: compressing ? "not-allowed" : "pointer",
+                          width: "100%", boxSizing: "border-box",
+                          background: "#e8f7f5",
+                          border: `2px dashed ${C.phase1}`,
+                          borderRadius: 6,
+                          padding: "14px 16px",
+                          fontSize: 14, fontWeight: 700,
+                          color: C.phase1,
+                          cursor: compressing ? "not-allowed" : "pointer",
                           fontFamily: FONT,
+                          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                          transition: "background 0.15s",
                         }}
+                        onMouseEnter={e => { if (!compressing) e.currentTarget.style.background = "#d5efec"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "#e8f7f5"; }}
                       >
-                        {compressing ? "圧縮中…" : `📎 画像を追加（${attachments.length}/${MAX_ATTACHMENTS}）`}
+                        <span style={{ fontSize: 20, lineHeight: 1 }}>📎</span>
+                        <span>{compressing ? "圧縮中…" : `画像を選択（${attachments.length}/${MAX_ATTACHMENTS}）`}</span>
                       </button>
                     )}
                     <input
