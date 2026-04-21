@@ -16,13 +16,50 @@ const C = {
   phase2: "#ea580c", phase2Bg: "#fed7aa",
 };
 
-const Badge = ({ status }) => {
+// チェックポイントの判定アイコン。
+// onClick を渡すとクリック可能なボタンとして描画され、ホバー時に円形背景＋拡大で
+// 「これは飾りではなく押せる」と一目でわかるインタラクションを提供する。
+const Badge = ({ status, onClick, title }) => {
   const map = { ok: { icon: "✅", label: "OK" }, warn: { icon: "⚠️", label: "注意" }, ng: { icon: "❌", label: "NG" } };
-  const { icon } = map[status] || map.warn;
+  const { icon, label } = map[status] || map.warn;
+  if (!onClick) {
+    return (
+      <span style={{ fontSize: 24, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+    );
+  }
   return (
-    <span style={{ fontSize: 24, flexShrink: 0, lineHeight: 1 }}>
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      title={title || "クリックで改善方法をチャットで相談"}
+      aria-label={`${label}: ${title || "改善方法をチャットで相談"}`}
+      style={{
+        width: 42, height: 42, flexShrink: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        fontSize: 22, lineHeight: 1, padding: 0,
+        background: "#f8f8f6",
+        border: `2px dashed ${C.border}`,
+        borderRadius: "50%",
+        cursor: "pointer",
+        transition: "transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease",
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = "#fff";
+        e.currentTarget.style.borderColor = C.phase1;
+        e.currentTarget.style.borderStyle = "solid";
+        e.currentTarget.style.transform = "scale(1.1)";
+        e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,148,136,0.25)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = "#f8f8f6";
+        e.currentTarget.style.borderColor = C.border;
+        e.currentTarget.style.borderStyle = "dashed";
+        e.currentTarget.style.transform = "scale(1)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
       {icon}
-    </span>
+    </button>
   );
 };
 
@@ -289,8 +326,12 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }
 {onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
     {d.checkpoints.map((cp, i) => (
-      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6, position: "relative" }} {...(onChat ? hoverShow : {})}>
-        <Badge status={cp.status} />
+      <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", lineHeight: 1.6, position: "relative" }} {...(onChat ? hoverShow : {})}>
+        <Badge
+          status={cp.status}
+          onClick={onChat ? () => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`) : null}
+          title={onChat ? `「${cp.label}」の改善方法をチャットで相談` : null}
+        />
         <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 16 }}>{cp.comment}</span></div>
         {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)} abs />}
       </div>
@@ -2088,8 +2129,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント（現状採点）</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {currentResult.checkpoints.map((cp, i) => (
-              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
-                <Badge status={cp.status} />
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", lineHeight: 1.6 }}>
+                <Badge
+                  status={cp.status}
+                  onClick={() => chatSendTopicRef.current?.(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)}
+                  title={`「${cp.label}」の改善方法をチャットで相談`}
+                />
                 <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
                   <b>{cp.label}</b><br />
                   <span style={{ color: C.ink, fontSize: 16 }}>{cp.comment}</span>
