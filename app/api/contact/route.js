@@ -3,10 +3,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { sendContactNotificationEmail, sendContactAutoReplyEmail } from '@/app/lib/email';
 
+// 添付画像の上限（フロント側の圧縮ロジックと整合）
+const MAX_ATTACHMENTS = 4;
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024; // 圧縮後1枚あたり最大5MB
+const MAX_TOTAL_ATTACHMENT_BYTES = 15 * 1024 * 1024; // 合計15MB（Resendの上限40MB以下に抑える）
+const ALLOWED_CONTENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, company, category, message, pageUrl, userAgent } = body;
+    const { name, email, company, category, message, pageUrl, userAgent, attachments: rawAttachments } = body;
 
     // バリデーション
     if (!name || !email || !message) {
@@ -32,6 +38,39 @@ export async function POST(request) {
       );
     }
 
+    // 添付画像の検証と整形
+    let attachments;
+    if (Array.isArray(rawAttachments) && rawAttachments.length > 0) {
+      if (rawAttachments.length > MAX_ATTACHMENTS) {
+        return NextResponse.json({ error: `添付画像は最大${MAX_ATTACHMENTS}枚までです` }, { status: 400 });
+      }
+      let totalBytes = 0;
+      const cleaned = [];
+      for (const a of rawAttachments) {
+        if (!a || typeof a.content !== 'string' || !a.contentType) {
+          return NextResponse.json({ error: '添付画像の形式が不正です' }, { status: 400 });
+        }
+        if (!ALLOWED_CONTENT_TYPES.has(String(a.contentType))) {
+          return NextResponse.json({ error: '画像形式のみ添付可能です（JPEG / PNG / WebP / GIF）' }, { status: 400 });
+        }
+        // base64サイズ → 実バイト数の概算（base64は4/3倍に膨らむ）
+        const approxBytes = Math.floor(a.content.length * 0.75);
+        if (approxBytes > MAX_ATTACHMENT_SIZE_BYTES) {
+          return NextResponse.json({ error: `1枚あたり${Math.floor(MAX_ATTACHMENT_SIZE_BYTES / 1024 / 1024)}MB以下にしてください` }, { status: 400 });
+        }
+        totalBytes += approxBytes;
+        cleaned.push({
+          filename: String(a.filename || 'attachment.jpg').slice(0, 100),
+          content: a.content,
+          contentType: a.contentType,
+        });
+      }
+      if (totalBytes > MAX_TOTAL_ATTACHMENT_BYTES) {
+        return NextResponse.json({ error: `添付画像の合計サイズが大きすぎます（${Math.floor(MAX_TOTAL_ATTACHMENT_BYTES / 1024 / 1024)}MBまで）` }, { status: 400 });
+      }
+      attachments = cleaned;
+    }
+
     // ログイン中のユーザー情報を取得（フォームと違う場合に運営側で照合できるように）
     let loggedInEmail = null;
     try {
@@ -55,6 +94,7 @@ export async function POST(request) {
       pageUrl,
       userAgent,
       loggedInEmail,
+      attachments,
     });
     if (!notifyResult.success) {
       console.error('通知メール送信失敗:', notifyResult.error);

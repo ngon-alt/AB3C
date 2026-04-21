@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
@@ -18,6 +18,54 @@ const C = {
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
+const MAX_ATTACHMENTS = 4;
+const MAX_LONG_EDGE = 1600; // 圧縮後の最大ロング辺（px）
+const JPEG_QUALITY = 0.82;
+
+// ファイルをcanvasで圧縮し { name, dataUrl (base64 w/ prefix), contentType, bytes } を返す
+async function compressImage(file) {
+  // GIFは動画になりうるので圧縮せずそのまま扱う（サイズオーバーなら弾く）
+  if (file.type === "image/gif") {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+    return { name: file.name, dataUrl, contentType: "image/gif", bytes: file.size };
+  }
+
+  const img = await new Promise((resolve, reject) => {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = URL.createObjectURL(file);
+  });
+
+  const { naturalWidth: w, naturalHeight: h } = img;
+  const scale = Math.min(1, MAX_LONG_EDGE / Math.max(w, h));
+  const targetW = Math.round(w * scale);
+  const targetH = Math.round(h * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, targetW, targetH);
+  URL.revokeObjectURL(img.src);
+
+  // JPEGに統一（透過情報が失われるがサイズ優先）
+  const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+  const bytes = Math.floor((dataUrl.length - "data:image/jpeg;base64,".length) * 0.75);
+  const baseName = file.name.replace(/\.[^.]+$/, "");
+  return {
+    name: `${baseName}.jpg`,
+    dataUrl,
+    contentType: "image/jpeg",
+    bytes,
+  };
+}
+
 export default function BugReportFloat() {
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -26,10 +74,46 @@ export default function BugReportFloat() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(""); // '', 'sending', 'success', 'error'
   const [errorMsg, setErrorMsg] = useState("");
+  const [attachments, setAttachments] = useState([]); // [{name, dataUrl, contentType, bytes}]
+  const [compressing, setCompressing] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (session?.user?.email) setEmail(session.user.email);
   }, [session]);
+
+  const handleFileChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const slots = MAX_ATTACHMENTS - attachments.length;
+    if (slots <= 0) {
+      setErrorMsg(`添付は最大${MAX_ATTACHMENTS}枚までです`);
+      return;
+    }
+    setErrorMsg("");
+    setCompressing(true);
+    try {
+      const toProcess = files.slice(0, slots);
+      const results = [];
+      for (const f of toProcess) {
+        if (!f.type.startsWith("image/")) continue;
+        try {
+          const compressed = await compressImage(f);
+          results.push(compressed);
+        } catch (err) {
+          console.error("圧縮失敗:", err);
+        }
+      }
+      setAttachments(prev => [...prev, ...results]);
+    } finally {
+      setCompressing(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (idx) => {
+    setAttachments(prev => prev.filter((_, i) => i !== idx));
+  };
 
   // 表示しないページ（フォーム画面・印刷プレビュー・管理系）
   const hideOn = ["/contact", "/admin"];
@@ -47,6 +131,12 @@ export default function BugReportFloat() {
     setStatus("sending");
     setErrorMsg("");
     try {
+      // 添付画像をAPI向けに整形（data URL のプレフィックスを剥がした純粋なbase64文字列）
+      const apiAttachments = attachments.map(a => {
+        const comma = a.dataUrl.indexOf(",");
+        const base64 = comma >= 0 ? a.dataUrl.slice(comma + 1) : a.dataUrl;
+        return { filename: a.name, content: base64, contentType: a.contentType };
+      });
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,11 +148,13 @@ export default function BugReportFloat() {
           message,
           pageUrl: typeof window !== "undefined" ? window.location.href : "",
           userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+          attachments: apiAttachments,
         }),
       });
       if (res.ok) {
         setStatus("success");
         setMessage("");
+        setAttachments([]);
         setTimeout(() => { setStatus(""); setOpen(false); }, 3500);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -175,6 +267,61 @@ export default function BugReportFloat() {
                       resize: "vertical", outline: "none",
                     }}
                   />
+
+                  {/* 画像添付 */}
+                  <div style={{ marginTop: 10 }}>
+                    <label style={{ fontSize: 12, color: C.muted, display: "block", marginBottom: 6 }}>
+                      画像添付（任意・最大{MAX_ATTACHMENTS}枚・自動で圧縮されます）
+                    </label>
+                    {attachments.length > 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 }}>
+                        {attachments.map((a, idx) => (
+                          <div key={idx} style={{
+                            position: "relative", width: 64, height: 64, borderRadius: 4,
+                            border: `1px solid ${C.border}`, overflow: "hidden",
+                            background: `url(${a.dataUrl}) center/cover no-repeat`,
+                          }} title={`${a.name} (${Math.round(a.bytes / 1024)}KB)`}>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(idx)}
+                              aria-label="削除"
+                              style={{
+                                position: "absolute", top: 2, right: 2,
+                                width: 18, height: 18, borderRadius: "50%",
+                                background: "rgba(0,0,0,0.65)", color: "#fff",
+                                border: "none", cursor: "pointer",
+                                fontSize: 12, lineHeight: 1, padding: 0,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                              }}
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {attachments.length < MAX_ATTACHMENTS && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={compressing || status === "sending"}
+                        style={{
+                          background: "transparent", border: `1px dashed ${C.border}`,
+                          borderRadius: 4, padding: "6px 10px", fontSize: 12,
+                          color: C.muted, cursor: compressing ? "not-allowed" : "pointer",
+                          fontFamily: FONT,
+                        }}
+                      >
+                        {compressing ? "圧縮中…" : `📎 画像を追加（${attachments.length}/${MAX_ATTACHMENTS}）`}
+                      </button>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                    />
+                  </div>
 
                   {errorMsg && (
                     <div style={{ fontSize: 12, color: C.B, marginTop: 8 }}>{errorMsg}</div>

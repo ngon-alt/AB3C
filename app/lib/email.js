@@ -15,6 +15,7 @@ async function sendEmail(to, subject, html, options = {}) {
   try {
     const payload = { from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html };
     if (options.replyTo) payload.reply_to = options.replyTo;
+    if (options.attachments && options.attachments.length > 0) payload.attachments = options.attachments;
     const data = await resend.emails.send(payload);
     return { success: true, data };
   } catch (error) {
@@ -124,6 +125,7 @@ export async function sendContactNotificationEmail({
   pageUrl,      // ユーザーが送信時にいたページ
   userAgent,    // ブラウザ情報（バグ報告の手がかり）
   loggedInEmail,// NextAuthセッションのメール（フォーム入力と違う場合あり）
+  attachments,  // [{ filename, content (base64 string without data:prefix), contentType }]
 }) {
   const NOTIFY_TO = process.env.CONTACT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
   const isBug = /バグ|不具合|エラー|動かな|表示され/.test(String(category || '') + ' ' + String(message || ''));
@@ -157,11 +159,19 @@ export async function sendContactNotificationEmail({
     </div>
     ` : ''}
 
+    ${(attachments && attachments.length > 0) ? `
+    <div style="margin-bottom:24px">
+      <div style="font-size:12px;font-weight:bold;color:#78716c;margin-bottom:6px">添付画像（${attachments.length}枚）</div>
+      <div style="font-size:12px;color:#555;line-height:1.8">${attachments.map(a => `・${esc(a.filename)}`).join('<br>')}</div>
+      <p style="font-size:11px;color:#78716c;margin-top:6px">※ メールの添付ファイルとしてご確認ください。</p>
+    </div>
+    ` : ''}
+
     <p style="font-size:12px;color:#78716c;margin-top:24px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは <a href="https://senryaku.ai/contact" style="color:#78716c">/contact</a> フォームから自動送信されています。</p>
   </div>`;
 
   // replyTo にユーザーのメールを設定 → 返信するとユーザーに届く
-  return sendEmail(NOTIFY_TO, subject, html, { replyTo: email });
+  return sendEmail(NOTIFY_TO, subject, html, { replyTo: email, attachments });
 }
 
 // お問い合わせ送信者への受付確認（自動返信）
