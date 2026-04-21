@@ -822,6 +822,9 @@ const [showWelcome, setShowWelcome] = useState(false);
 const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
+// 選択中プラン（ヘッダーのプラン切り替えと連動）
+const [activePlans, setActivePlans] = useState([]);
+const [activePlanId, setActivePlanId] = useState(null);
   const [improveResult, setImproveResult] = useState(null);
   const [visualMock, setVisualMock] = useState(null);
   const [visualLoading, setVisualLoading] = useState(false);
@@ -1175,9 +1178,31 @@ const [chatSummaries, setChatSummaries] = useState([]);
         setIsPro(data.isPro);
         setChatTickets(data.chatTickets || 0);
         setTrialChats(data.trialChats || 0);
+        setActivePlans(Array.isArray(data.activePlans) ? data.activePlans : []);
       });
   }
+  // プラン切り替えイベントを監視
+  try {
+    const stored = localStorage.getItem("ab3c_active_plan_id");
+    if (stored) setActivePlanId(stored);
+  } catch (e) {}
+  const onPlanChange = () => {
+    try {
+      const id = localStorage.getItem("ab3c_active_plan_id");
+      setActivePlanId(id || null);
+    } catch (e) {}
+  };
+  window.addEventListener("ab3c-plan-changed", onPlanChange);
+  return () => window.removeEventListener("ab3c-plan-changed", onPlanChange);
 }, [session]);
+
+  // 選択中プランの planType 導出。プランがなければ null（無料 or PRO のみ）
+  const currentActivePlan = (activePlans.length > 0)
+    ? (activePlans.find(p => p.id === activePlanId) || activePlans[0])
+    : null;
+  const activePlanType = currentActivePlan?.planType || null;
+  // 選択中プランが analysis（診断チケット）なら戦略確定等の指南プラン機能を非表示に
+  const isDiagnosisActive = activePlanType === 'analysis';
   
 // siteId が変わったら confirmHistory を再読み込み（別サイト表示時のスタレ防止）
 useEffect(() => {
@@ -1596,7 +1621,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteId={siteId}
         phase={phase}
         strategyConfirmed={strategyConfirmed}
-        canAccessBansou={isPro || chatTickets > 0}
+        canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0)}
         previousSiteId={previousSiteId}
         previousSiteUrl={previousSiteUrl}
         onNewAnalysis={() => {
@@ -1620,7 +1645,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }
         }}
         onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride(null); window.scrollTo(0, 0); } }}
-        onConfirmStrategy={currentResult && (isPro || chatTickets > 0) ? confirmStrategy : null}
+        onConfirmStrategy={currentResult && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
 
 
@@ -1900,13 +1925,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 🖨️ 印刷・ＰＤＦ保存
   </button>
   {(() => {
-    const canConfirm = isPro || chatTickets > 0;
+    const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
     return (
       <>
         <button
           onClick={canConfirm ? confirmStrategy : null}
           disabled={!canConfirm || strategyConfirmed}
-          title={!canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+          title={isDiagnosisActive ? "戦略診断チケットでは戦略確定はご利用いただけません" : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
           style={{
             background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
             border: "none", borderRadius: 2,
@@ -2285,7 +2310,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    onConfirmStrategy={(isPro || chatTickets > 0) ? confirmStrategy : null}
+                    onConfirmStrategy={!isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
                 </div>
                 ) : (
