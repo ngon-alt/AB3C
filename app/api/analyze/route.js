@@ -1,10 +1,31 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { neon } from "@neondatabase/serverless";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { sendAnalysisCompleteEmail } from "@/app/lib/email";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// ユーザーの契約プラン種別を判定（メール分岐用）
+//  - 'support'  : 戦略指南プラン or PRO（分析結果が履歴保存される）
+//  - 'diagnosis': 戦略診断チケット or 無料トライアル（履歴保存されないため持ち帰り必須）
+async function resolveUserPlanKind(email) {
+  if (!email) return 'diagnosis';
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const [proRows, planRows] = await Promise.all([
+      sql`SELECT email FROM pro_users WHERE email = ${email} LIMIT 1`,
+      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' ORDER BY purchased_at DESC LIMIT 1`,
+    ]);
+    if (planRows.length > 0 && planRows[0].plan_type === 'support') return 'support';
+    if (proRows.length > 0) return 'support'; // PRO直接登録ユーザーもsupport扱い
+    return 'diagnosis';
+  } catch (e) {
+    console.error('プラン判定エラー:', e);
+    return 'diagnosis'; // 判定失敗時は持ち帰りを促す側に倒す
+  }
+}
 
 async function fetchWebsite(url) {
   try {
@@ -206,10 +227,12 @@ if (jsonEnd > 0) {
 
 try {
   const result = JSON.parse(clean);
-  // 分析完了メール送信（初回のみ・エラーでも止めない）
+  // 分析完了メール送信（プラン種別で文面を分岐・エラーでも止めない）
   try {
     if (session?.user?.email) {
-      sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name }).catch(() => {});
+      resolveUserPlanKind(session.user.email).then(planKind =>
+        sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind })
+      ).catch(() => {});
     }
   } catch (e) {}
   return NextResponse.json(result);

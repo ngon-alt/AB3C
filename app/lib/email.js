@@ -60,8 +60,48 @@ export async function sendWelcomeEmailAgency({ email, name }) {
   return sendEmail(email, '毎月20万円〜の伴走支援が提供できます', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、ありがとうございます。クライアント提供でご登録いただきました。</p><p style="font-size:16px;line-height:1.8;color:#1a1a14">戦略指南 AIによって戦略を立案し、この戦略にもとづいたマーケティング支援を提供することで、<strong>毎月20万円〜の伴走支援サービス</strong>を提供できます。</p><hr style="border:none;border-top:1px solid #e5e5e0;margin:32px 0"><p style="font-size:15px;font-weight:bold;color:#1a1a14;margin-bottom:20px">あなたがクライアントに提供できること：</p><div style="background:#f0f4ff;border-radius:8px;padding:20px 24px;margin-bottom:16px"><p style="font-size:13px;font-weight:bold;color:#1a6fd4;margin:0 0 8px">① 戦略策定フェーズ</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">クライアントのWebサイトをAB3C分析し、「選ばれる理由」を言語化します。出てきたレポートがそのまま提案書になります。</p></div><div style="background:#f0fff4;border-radius:8px;padding:20px 24px;margin-bottom:32px"><p style="font-size:13px;font-weight:bold;color:#16a34a;margin:0 0 8px">② 戦略アクションフェーズ</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">固めた戦略をぶらさずに、Web改善・営業・採用・補助金申請など、あらゆる施策に展開します。毎月AIチャットでクライアントの経営相談に伴走することで、継続契約が自然に生まれます。</p></div><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin-bottom:24px">あなた自身のサイト、またはクライアントのWebサイトURLを入力して、AB3C分析を実行してください。レポートを見れば、提案のイメージが一気につかめます。</p><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">さっそく分析してみる →</a><p style="font-size:14px;color:#78716c;margin-top:32px;line-height:1.8;border-top:1px solid #e5e5e0;padding-top:24px">次回のメールでは「クライアントへの具体的な提案の仕方」をお伝えします。</p><p style="font-size:12px;color:#78716c">一般社団法人デジタル経営革新協会</p></div>`);
 }
 
-export async function sendAnalysisCompleteEmail({ email, name }) {
-  return sendEmail(email, '【戦略指南 AI】分析が完了しました。次のステップへ', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、AB3C分析が完了しました。</p><div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:14px;font-weight:bold;color:#1a1a14;margin:0 0 12px">分析結果を活用する3つの方法</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">① AIチャットで「競合との違い」をさらに深掘りする</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">② Webサイト改善レポートを生成して具体的な改善点を確認する</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ シェアURLを発行して社内・クライアントと共有する</p></div><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析結果を見る →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
+// 分析完了通知メール
+//  - planKind = 'support'  : 戦略指南プラン / PRO（ダッシュボードに履歴保存される）
+//  - planKind = 'diagnosis': 戦略診断チケット / 無料トライアル（履歴保存なし＝持ち帰り必須）
+export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis' }) {
+  if (planKind === 'support') {
+    // 指南プラン向け: ダッシュボードから履歴を再表示できる導線
+    return sendEmail(email, '【戦略指南 AI】分析が完了しました。次のステップへ', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、AB3C分析が完了しました。</p><p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">分析結果は<strong>サイト管理画面に自動保存</strong>されています。いつでもダッシュボードから呼び出せます。</p><div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:14px;font-weight:bold;color:#1a1a14;margin:0 0 12px">分析結果を活用する3つの方法</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">① AIチャットで「競合との違い」をさらに深掘りする</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">② Webサイト改善レポートで具体的な改善点を確認する</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ 戦略を確定して「戦略アクション」で施策を検討する</p></div><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析結果を見る →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
+  }
+
+  // 戦略診断チケット / 無料トライアル向け: 持ち帰りを強く促す
+  const subject = '【戦略指南 AI】分析が完了しました。結果の持ち帰りをお忘れなく';
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px">
+    <div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div>
+    <p style="font-size:16px;line-height:1.8;color:#1a1a14">${esc(name)||'お客様'}さん、AB3C分析が完了しました。</p>
+
+    <div style="background:#fff3cd;border-left:4px solid #dc2626;border-radius:6px;padding:16px 20px;margin:24px 0">
+      <p style="font-size:14px;font-weight:bold;color:#dc2626;margin:0 0 8px">⚠️ 重要：分析結果の持ち帰りをお願いします</p>
+      <p style="font-size:14px;line-height:1.7;color:#1a1a14;margin:0">戦略診断チケット・無料トライアルでは、<strong>分析結果はブラウザを閉じると消えてしまいます</strong>。必ず以下のいずれかの方法で保存してください。</p>
+    </div>
+
+    <div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:24px 0">
+      <p style="font-size:14px;font-weight:bold;color:#1a1a14;margin:0 0 12px">📥 持ち帰り方法（3つ）</p>
+      <p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">① 分析画面の <strong>「シェアURL発行」</strong> ボタン → 発行されたURLをブックマーク・メモに保存</p>
+      <p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">② 分析画面の <strong>「印刷」</strong> ボタン → ダイアログで「PDFとして保存」を選択</p>
+      <p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ ブラウザのメニューから印刷 → PDF保存</p>
+    </div>
+
+    <a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析画面を開く →</a>
+
+    <hr style="border:none;border-top:1px solid #e5e5e0;margin:32px 0">
+
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 12px">継続的に戦略を磨きたい場合は <strong>戦略指南プラン</strong> もご検討ください。</p>
+    <ul style="font-size:13px;line-height:1.8;color:#555;margin:0 0 16px;padding-left:20px">
+      <li>分析結果・戦略確定履歴がダッシュボードに保存</li>
+      <li>AIチャットで戦略を磨ける（月100回/サイト）</li>
+      <li>10施策テーマでアクションを検討できる</li>
+    </ul>
+    <a href="https://senryaku.ai/pricing" style="display:inline-block;color:#1a6fd4;text-decoration:underline;font-size:14px">戦略指南プランの詳細を見る →</a>
+
+    <p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p>
+  </div>`;
+  return sendEmail(email, subject, html);
 }
 
 export async function sendFollowUpEmail({ email, name }) {
