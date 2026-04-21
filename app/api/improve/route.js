@@ -16,7 +16,7 @@ export async function POST(req) {
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
   const isPro = proRows.length > 0;
 
-  // チケットチェック（トライアル含む）
+  // チャットチケットチェック（指南プラン契約者等）
   const ticketRows = await sql`
     SELECT id, remaining_chats FROM tickets
     WHERE email = ${session.user.email} AND remaining_chats > 0
@@ -25,7 +25,19 @@ export async function POST(req) {
   `;
   const hasTicket = ticketRows.length > 0;
 
-  if (!isPro && !hasTicket) {
+  // 戦略診断チケット保有チェック（analysis プラン）
+  const analysisPlanRows = await sql`
+    SELECT id FROM user_plans
+    WHERE user_email = ${session.user.email} AND plan_type = 'analysis' AND status = 'active'
+    LIMIT 1
+  `;
+  const hasAnalysisPlan = analysisPlanRows.length > 0;
+
+  // 無料トライアル中（初回の1回）のユーザーも改善レポート生成を許可
+  const userRows = await sql`SELECT usage_count FROM users WHERE email = ${session.user.email}`;
+  const isTrialActive = userRows.length > 0 && parseInt(userRows[0].usage_count || 0) >= 1;
+
+  if (!isPro && !hasTicket && !hasAnalysisPlan && !isTrialActive) {
     return NextResponse.json({ error: "改善レポートの利用にはプランの購入が必要です" }, { status: 403 });
   }
 

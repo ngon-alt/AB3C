@@ -17,12 +17,25 @@ export async function POST(req) {
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${session.user.email}`;
   const isPro = proRows.length > 0;
 
+  // チャットチケット（指南プラン由来）
   const ticketRows = await sql`
     SELECT id FROM tickets WHERE email = ${session.user.email} AND remaining_chats > 0 LIMIT 1
   `;
   const hasTicket = ticketRows.length > 0;
 
-  if (!isPro && !hasTicket) {
+  // 戦略診断チケット保有チェック
+  const analysisPlanRows = await sql`
+    SELECT id FROM user_plans
+    WHERE user_email = ${session.user.email} AND plan_type = 'analysis' AND status = 'active'
+    LIMIT 1
+  `;
+  const hasAnalysisPlan = analysisPlanRows.length > 0;
+
+  // 無料トライアル中のユーザー（1回使用済みで他のプランなし）にも許可
+  const userRows = await sql`SELECT usage_count FROM users WHERE email = ${session.user.email}`;
+  const isTrialActive = userRows.length > 0 && parseInt(userRows[0].usage_count || 0) >= 1;
+
+  if (!isPro && !hasTicket && !hasAnalysisPlan && !isTrialActive) {
     return NextResponse.json({ error: "ビジュアル生成にはプランの購入が必要です" }, { status: 403 });
   }
 
