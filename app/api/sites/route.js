@@ -71,18 +71,19 @@ async function ensureTable(sql) {
   }
 }
 
-// ユーザーのサイト上限を取得（複数プラン所持時はサイト枠を合算）
+// ユーザーのサイト登録上限を取得
+//  - 戦略指南プラン（support）の site_limit が登録可能サイト数の上限
+//  - 戦略診断チケット（analysis）は「回数チケット」のためサイトスロットにはカウントしない
+//  - PRO会員は無制限
 async function getSiteLimit(sql, email) {
-  const plans = await sql`
+  const supportPlans = await sql`
     SELECT COALESCE(SUM(site_limit), 0) as total_sites FROM user_plans
-    WHERE user_email = ${email} AND status = 'active'
+    WHERE user_email = ${email} AND status = 'active' AND plan_type = 'support'
   `;
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
-  // user_plansにプランがあればその合計を優先
-  if (plans[0]?.total_sites > 0) return parseInt(plans[0].total_sites);
-  // PRO会員（プランなし）は無制限
+  if (supportPlans[0]?.total_sites > 0) return parseInt(supportPlans[0].total_sites);
   if (proRows.length > 0) return 999;
-  return 1; // プランなし = 1サイト（無料）
+  return 1; // 支援プランなし = 1サイト（無料 or 診断のみ）
 }
 
 // 戦略指南プラン契約者の月次登録上限情報を取得

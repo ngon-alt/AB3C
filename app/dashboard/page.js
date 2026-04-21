@@ -492,6 +492,15 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* プラン上限超過の警告（過去の大きいプランから縮小ダウングレードした場合の legacy データ向け） */}
+        {sites.length > planLimit && (
+          <div style={{ background: "#fdf0ef", borderLeft: "3px solid #c0392b", padding: "12px 16px", fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 24, fontFamily: FONT, borderRadius: 4 }}>
+            <b style={{ color: "#c0392b" }}>⚠️ 現在のプランの上限を超えるサイトが登録されています</b><br />
+            現在のご契約上限: <b>{planLimit}サイト</b> / 登録済: <b>{sites.length}サイト</b>
+            <span style={{ color: C.muted }}>（過去の大きいプランから変更された際の legacy データが残っている可能性があります。不要なサイトを削除してください。）</span>
+          </div>
+        )}
+
         {error && (
           <div style={{ background: "#fdf0ef", borderLeft: `3px solid #c0392b`, padding: "10px 14px", fontSize: 14, color: "#c0392b", marginBottom: 20 }}>{error}</div>
         )}
