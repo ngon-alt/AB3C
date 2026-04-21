@@ -19,8 +19,8 @@ const C = {
 const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
 const MAX_ATTACHMENTS = 4;
-const MAX_LONG_EDGE = 1600; // 圧縮後の最大ロング辺（px）
-const JPEG_QUALITY = 0.82;
+const MAX_LONG_EDGE = 1280; // 圧縮後の最大ロング辺（px）— Vercel/Resend ペイロード上限に配慮
+const JPEG_QUALITY = 0.75;
 
 // ファイルをcanvasで圧縮し { name, dataUrl (base64 w/ prefix), contentType, bytes } を返す
 async function compressImage(file) {

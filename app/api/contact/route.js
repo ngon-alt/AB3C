@@ -97,9 +97,15 @@ export async function POST(request) {
       attachments,
     });
     if (!notifyResult.success) {
-      console.error('通知メール送信失敗:', notifyResult.error);
+      const err = notifyResult.error || {};
+      // Resendのerrorオブジェクトは { name, message, statusCode } 形式。ユーザー向けに短く整形
+      const errSummary = err.message || err.name || (typeof err === 'string' ? err : JSON.stringify(err).slice(0, 200));
+      console.error('通知メール送信失敗:', err);
       return NextResponse.json(
-        { error: '送信処理で問題が発生しました。時間をおいて再度お試しください。' },
+        {
+          error: `送信処理で問題が発生しました: ${errSummary}`,
+          code: err.statusCode || err.name || null,
+        },
         { status: 500 }
       );
     }

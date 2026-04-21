@@ -16,12 +16,14 @@ async function sendEmail(to, subject, html, options = {}) {
     const payload = { from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html };
     if (options.replyTo) payload.reply_to = options.replyTo;
     if (options.attachments && options.attachments.length > 0) {
-      // Resend SDKは content が Buffer の場合に実ファイルとして扱う。
-      // base64文字列のまま渡すとテキストコンテンツとみなされ添付されないため、必ず Buffer 化する。
+      // Resend SDK v6 の Attachment 型:
+      //   content: Buffer | string（Bufferならバイナリ、stringはテキストとして扱われる）
+      //   content_type: string（snake_case。SDK v4+ で仕様変更）
+      // base64文字列を渡すとテキストコンテンツ扱いになるため必ず Buffer 化する。
       payload.attachments = options.attachments.map(a => ({
         filename: a.filename,
         content: typeof a.content === 'string' ? Buffer.from(a.content, 'base64') : a.content,
-        contentType: a.contentType,
+        content_type: a.contentType,
       }));
     }
     const result = await resend.emails.send(payload);
