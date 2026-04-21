@@ -262,7 +262,7 @@ export default function DashboardPage() {
     const site = sites.find(s => s.id === id);
     const baseMsg = `「${site?.site_name || "このサイト"}」を削除しますか？\n分析結果・チャット履歴も全て削除されます。`;
     const warning = isSupport
-      ? `\n\n⚠️ 戦略指南プランのご注意\n削除しても今月のサイト登録枠は戻りません。\n新しいサイトを登録する場合は、今月の残り${monthlyRegRemaining}回の登録枠を消費します。`
+      ? `\n\n⚠️ 戦略指南プランのご注意\nサイトを削除しても、その枠に新しいサイトを無制限に追加できるわけではありません。次回のご契約更新日まで、新規登録が制限される場合があります。`
       : "";
     if (!confirm(baseMsg + warning)) return;
     try {
@@ -463,16 +463,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* サマリーカード */}
-        <div style={{ display: "grid", gridTemplateColumns: isSupport ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
+        {/* サマリーカード（入替え枠は内部ロジックとしてのみ保持し、UI表示はしない） */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
           {[
             { label: "登録サイト", count: `${sites.length} / ${planLimit}`, sub: "登録数 / 上限", color: C.ink },
-            ...(isSupport ? [{
-              label: "今月の登録枠",
-              count: `${monthlyRegRemaining} / ${monthlyRegLimit}`,
-              sub: "残り / 月間上限",
-              color: "#0d9488",
-            }] : []),
             { label: "分析済み", count: analyzedSites.length + confirmedSites.length, color: C.B },
             { label: "戦略確定", count: confirmedSites.length, color: C.A },
           ].map(({ label, count, sub, color }) => (
@@ -483,14 +477,6 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-
-        {/* 戦略指南プラン契約者向け: 月次サイト登録ルールの案内 */}
-        {isSupport && (
-          <div style={{ background: "#e8f7f5", borderLeft: "3px solid #0d9488", padding: "12px 16px", fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 24, fontFamily: FONT, borderRadius: 4 }}>
-            <b>📌 サイト登録ルール</b>: 1サイト枠につき月3回まで入替え可能です（初期登録1＋入れ替え2回）。
-            <span style={{ color: C.muted }}>サイトを削除しても登録枠は戻りません。カウンタは次回のご契約更新日にリセットされます。</span>
-          </div>
-        )}
 
         {/* プラン上限超過の警告（過去の大きいプランから縮小ダウングレードした場合の legacy データ向け） */}
         {sites.length > planLimit && (

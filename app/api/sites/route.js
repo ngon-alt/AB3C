@@ -88,7 +88,7 @@ async function getSiteLimit(sql, email) {
 
 // 戦略指南プラン契約者の月次登録上限情報を取得
 // - 対象: 戦略指南プラン（type='support'）のみ。戦略診断チケットは対象外。
-// - 上限: 契約サイト数 × 3（初期登録1 + 月2回までの入れ替え）
+// - 上限: 契約サイト数 × 2（初期登録1 + 月1回までの入れ替え）
 async function getMonthlyRegistrationInfo(sql, email) {
   const plans = await sql`
     SELECT id, site_limit, COALESCE(monthly_registrations_used, 0) as used
@@ -101,9 +101,9 @@ async function getMonthlyRegistrationInfo(sql, email) {
   const totalUsed = plans.reduce((s, p) => s + parseInt(p.used || 0), 0);
   return {
     isSupport: true,
-    limit: totalSiteLimit * 3,
+    limit: totalSiteLimit * 2,
     used: totalUsed,
-    remaining: Math.max(0, totalSiteLimit * 3 - totalUsed),
+    remaining: Math.max(0, totalSiteLimit * 2 - totalUsed),
     plans,
   };
 }
@@ -166,7 +166,7 @@ export async function POST(req) {
     const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
     if (monthly.isSupport && monthly.used >= monthly.limit) {
       return NextResponse.json({
-        error: `今月のサイト登録上限（${monthly.limit}サイト）に達しました。1サイト枠につき月3サイト（初期登録1＋入れ替え2回）まで登録可能です。来月の更新までお待ちください。`,
+        error: `今月のサイト登録上限に達しました。次回のご契約更新日以降、新しいサイトを登録できます。`,
         monthlyLimit: monthly.limit,
         monthlyUsed: monthly.used,
       }, { status: 403 });

@@ -182,7 +182,7 @@ export default function PricingModal({ onClose }) {
               {[
                 { feature: "AB3C分析レポート", free: "○（1回限り）", analysis: "○", growth: "○" },
                 { feature: "ウェブサイト改善レポート", free: "○（1回限り）", analysis: "○", growth: "○" },
-                { feature: "サイト登録可能数", free: "1サイト", analysis: "契約サイト数まで", growth: "1サイト枠あたり月3サイトまで入れ替え可" },
+                { feature: "サイト登録可能数", free: "1サイト", analysis: "契約サイト数まで", growth: "契約サイト数まで" },
                 { feature: "AIチャットで戦略を磨く", free: "✕", analysis: "✕", growth: "○（月100回/サイト）" },
                 { feature: "戦略確定・履歴保存", free: "✕", analysis: "✕", growth: "○" },
                 { feature: "SEO対策チャット", free: "✕", analysis: "✕", growth: "○" },
