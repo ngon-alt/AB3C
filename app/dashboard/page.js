@@ -487,7 +487,7 @@ export default function DashboardPage() {
         {/* 戦略指南プラン契約者向け: 月次サイト登録ルールの案内 */}
         {isSupport && (
           <div style={{ background: "#e8f7f5", borderLeft: "3px solid #0d9488", padding: "12px 16px", fontSize: 13, color: C.ink, lineHeight: 1.7, marginBottom: 24, fontFamily: FONT, borderRadius: 4 }}>
-            <b>📌 サイト登録ルール</b>: 1サイト枠につき月3サイトまで登録可能です（初期登録1＋月2回まで入れ替え可）。
+            <b>📌 サイト登録ルール</b>: 1サイト枠につき月3回まで入替え可能です（初期登録1＋入れ替え2回）。
             <span style={{ color: C.muted }}>サイトを削除しても登録枠は戻りません。カウンタは次回のご契約更新日にリセットされます。</span>
           </div>
         )}
