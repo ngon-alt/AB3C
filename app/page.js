@@ -1426,6 +1426,8 @@ setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirm
         } catch (e) {}
       }
       const body = tab === "url" ? { url } : { input };
+      // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
+      if (analyzeSiteId) body.siteId = analyzeSiteId;
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.error) { setError(data.error); setLoading(false); setOverlayMessage(null); return; }

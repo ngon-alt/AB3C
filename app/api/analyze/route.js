@@ -70,7 +70,8 @@ export async function POST(req) {
     return NextResponse.json({ error: usageData.error }, { status: 429 });
   }
 
-  const { input, url, refineFrom, refineSelection } = await req.json();
+  const body = await req.json();
+  const { input, url, refineFrom, refineSelection } = body;
 
   let analysisTarget = "";
   let useWebSearch = false;
@@ -230,8 +231,10 @@ try {
   // 分析完了メール送信（プラン種別で文面を分岐・エラーでも止めない）
   try {
     if (session?.user?.email) {
+      // フロントから siteId が渡されていれば、メール内のリンクを直接その分析結果ページに飛ばす
+      const siteId = body?.siteId || null;
       resolveUserPlanKind(session.user.email).then(planKind =>
-        sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind })
+        sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind, siteId })
       ).catch(() => {});
     }
   } catch (e) {}

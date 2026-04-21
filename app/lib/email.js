@@ -68,10 +68,15 @@ export async function sendWelcomeEmailAgency({ email, name }) {
 // 分析完了通知メール
 //  - planKind = 'support'  : 戦略指南プラン / PRO（ダッシュボードに履歴保存される）
 //  - planKind = 'diagnosis': 戦略診断チケット / 無料トライアル（履歴保存なし＝持ち帰り必須）
-export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis' }) {
+//  - siteId                : 既存サイト再分析時のサイトID（指南プランの場合、メール内リンクを分析結果ページに直接飛ばすのに使用）
+export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis', siteId = null }) {
   if (planKind === 'support') {
-    // 指南プラン向け: ダッシュボードから履歴を再表示できる導線
-    return sendEmail(email, '【戦略指南 AI】分析が完了しました。次のステップへ', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、AB3C分析が完了しました。</p><p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">分析結果は<strong>サイト管理画面に自動保存</strong>されています。いつでもダッシュボードから呼び出せます。</p><div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:14px;font-weight:bold;color:#1a1a14;margin:0 0 12px">分析結果を活用する3つの方法</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">① AIチャットで「競合との違い」をさらに深掘りする</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">② Webサイト改善レポートで具体的な改善点を確認する</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ 戦略を確定して「戦略アクション」で施策を検討する</p></div><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析結果を見る →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
+    // 指南プラン向け: siteId があれば当該分析ページ、なければダッシュボードへ
+    const targetUrl = siteId
+      ? `https://senryaku.ai/?site_id=${encodeURIComponent(siteId)}`
+      : 'https://senryaku.ai/dashboard';
+    const ctaLabel = siteId ? '分析結果を開く →' : 'サイト一覧を見る →';
+    return sendEmail(email, '【戦略指南 AI】分析が完了しました。次のステップへ', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${esc(name)||'お客様'}さん、AB3C分析が完了しました。</p><p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">分析結果は<strong>サイト管理画面に自動保存</strong>されています。いつでも呼び出せます。</p><div style="background:#f5f2eb;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:14px;font-weight:bold;color:#1a1a14;margin:0 0 12px">分析結果を活用する3つの方法</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">① AIチャットで「競合との違い」をさらに深掘りする</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0 0 8px">② Webサイト改善レポートで具体的な改善点を確認する</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ 戦略を確定して「戦略アクション」で施策を検討する</p></div><a href="${targetUrl}" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">${ctaLabel}</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
   }
 
   // 戦略診断チケット / 無料トライアル向け: 持ち帰りを強く促す
