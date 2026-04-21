@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -49,7 +49,41 @@ export default function PricingPage() {
     { sites: 120, monthly: 1320000, annual: 13200000 },
   ];
 
+  // ログインユーザーの現在の契約プランタイプ（逆プラン購入時の確認用）
+  const [activePlans, setActivePlans] = useState([]);
+  useEffect(() => {
+    fetch('/api/check-pro')
+      .then(r => r.json())
+      .then(d => setActivePlans(Array.isArray(d.activePlans) ? d.activePlans : []))
+      .catch(() => {});
+  }, []);
+
+  // priceId から plan type を判定
+  const resolvePlanType = (priceId) => {
+    if (Object.values(analysisPrices).includes(priceId)) return 'analysis';
+    if (Object.values(supportPricesMonthly).includes(priceId)) return 'support';
+    if (Object.values(supportPricesAnnual).includes(priceId)) return 'support';
+    return null;
+  };
+
+  const planKindLabel = (t) => t === 'support' ? '戦略指南プラン' : t === 'analysis' ? '戦略診断チケット' : '';
+
   const handleCheckout = async (priceId) => {
+    const buyingType = resolvePlanType(priceId);
+    // 逆プランを既に所持している場合は追加購入確認を出す
+    if (buyingType) {
+      const oppositePlans = activePlans.filter(p => p.planType && p.planType !== buyingType);
+      if (oppositePlans.length > 0) {
+        const oppositeLabel = planKindLabel(oppositePlans[0].planType);
+        const buyingLabel = planKindLabel(buyingType);
+        const ok = confirm(
+          `すでに${oppositeLabel}をご契約中です。\n` +
+          `追加で${buyingLabel}をご契約されますか？\n\n` +
+          `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
+        );
+        if (!ok) return;
+      }
+    }
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',

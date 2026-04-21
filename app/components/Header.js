@@ -16,28 +16,33 @@ const C = {
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
+const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
+
 export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
-  const [planLabel, setPlanLabel] = useState(null);
-  const [planType, setPlanType] = useState(null);
-  const [nextRenewalAt, setNextRenewalAt] = useState(null);
+  const [activePlans, setActivePlans] = useState([]); // check-pro が返す全 active プラン
+  const [activePlanId, setActivePlanId] = useState(null); // localStorage で選択中のプラン ID
   const [currentPath, setCurrentPath] = useState("/");
   const [sites, setSites] = useState([]);
   const [showSiteDropdown, setShowSiteDropdown] = useState(false);
+  const [showPlanDropdown, setShowPlanDropdown] = useState(false);
 
   useEffect(() => {
     setCurrentPath(window.location.pathname + window.location.search);
+    // 選択中プラン ID を localStorage から読み取り
+    try {
+      const stored = localStorage.getItem(ACTIVE_PLAN_STORAGE_KEY);
+      if (stored) setActivePlanId(stored);
+    } catch (e) {}
     if (session?.user?.email) {
       fetch("/api/check-pro")
         .then((r) => r.json())
         .then((d) => {
           setIsPro(d.isPro);
           setChatTickets(d.chatTickets || 0);
-          setPlanLabel(d.planLabel || null);
-          setPlanType(d.planType || null);
-          setNextRenewalAt(d.nextRenewalAt || null);
+          setActivePlans(Array.isArray(d.activePlans) ? d.activePlans : []);
         })
         .catch(() => { setIsPro(false); setChatTickets(0); });
       fetch("/api/sites")
@@ -46,6 +51,23 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         .catch(() => {});
     }
   }, [session]);
+
+  // 選択中プラン: localStorage の ID と activePlans を突き合わせ。無効なら先頭にフォールバック
+  const currentPlan = (activePlans.length > 0)
+    ? (activePlans.find(p => p.id === activePlanId) || activePlans[0])
+    : null;
+  const planLabel = currentPlan?.planLabel || null;
+  const planType = currentPlan?.planType || null;
+  const nextRenewalAt = currentPlan?.expiresAt || null;
+  const hasMultiplePlans = activePlans.length >= 2;
+
+  const handleSelectPlan = (planId) => {
+    setActivePlanId(planId);
+    try { localStorage.setItem(ACTIVE_PLAN_STORAGE_KEY, planId); } catch (e) {}
+    setShowPlanDropdown(false);
+    // 他コンポーネントに通知して再描画させる
+    try { window.dispatchEvent(new Event("ab3c-plan-changed")); } catch (e) {}
+  };
 
   const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
   // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南プランで利用可
@@ -79,7 +101,42 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {session.user?.name}
-                {planLabel && <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>}
+                {planLabel && !hasMultiplePlans && (
+                  <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>
+                )}
+                {planLabel && hasMultiplePlans && (
+                  <span style={{ position: "relative" }}>
+                    <button
+                      onClick={() => setShowPlanDropdown(!showPlanDropdown)}
+                      title="プランを切り替える"
+                      style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px 2px 10px", borderRadius: 3, fontFamily: "'Space Mono', monospace", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                    >
+                      {planLabel}<span style={{ fontSize: 10 }}>▼</span>
+                    </button>
+                    {showPlanDropdown && (
+                      <div
+                        onMouseLeave={() => setShowPlanDropdown(false)}
+                        style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 400, minWidth: 220, overflow: "hidden" }}
+                      >
+                        <div style={{ padding: "8px 12px", fontSize: 11, color: C.muted, fontFamily: NAV_FONT, borderBottom: `1px solid ${C.border}`, background: "#fafaf7" }}>
+                          利用するプランを選択
+                        </div>
+                        {activePlans.map(p => (
+                          <div
+                            key={p.id}
+                            onClick={() => handleSelectPlan(p.id)}
+                            style={{ padding: "10px 14px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 14, color: C.ink, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, background: p.id === currentPlan?.id ? "#e8f7f5" : "transparent" }}
+                            onMouseEnter={e => { if (p.id !== currentPlan?.id) e.currentTarget.style.background = "#f5f5f0"; }}
+                            onMouseLeave={e => { if (p.id !== currentPlan?.id) e.currentTarget.style.background = "transparent"; }}
+                          >
+                            <span style={{ background: p.planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 12, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{p.planLabel}</span>
+                            {p.id === currentPlan?.id && <span style={{ fontSize: 12, color: C.phase1, fontWeight: 700 }}>✓ 選択中</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </span>
+                )}
                 {isPro && !planLabel && <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
                 {!planLabel && !isPro && <span style={{ background: "#fff", color: C.ink, fontSize: 14, padding: "2px 8px", borderRadius: 3, border: `1px solid ${C.border}`, fontFamily: "'Space Mono', monospace" }}>無料</span>}
                 {nextRenewalAt && (

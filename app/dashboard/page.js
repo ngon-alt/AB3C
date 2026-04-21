@@ -178,6 +178,8 @@ function NewSiteForm({ onCreated, onCancel }) {
   );
 }
 
+const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [sites, setSites] = useState([]);
@@ -188,10 +190,57 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  // プラン情報とシェアURL一覧（診断チケットユーザー向け）
+  const [activePlans, setActivePlans] = useState([]);
+  const [activePlanId, setActivePlanId] = useState(null);
+  const [shares, setShares] = useState([]);
+  const [sharesLoading, setSharesLoading] = useState(false);
 
   useEffect(() => {
-    if (session) fetchSites();
+    if (session) {
+      fetchSites();
+      fetchPlans();
+    }
+    // プラン切り替えイベントをリッスン
+    const onPlanChange = () => {
+      try {
+        const id = localStorage.getItem(ACTIVE_PLAN_STORAGE_KEY);
+        if (id) setActivePlanId(id);
+      } catch (e) {}
+    };
+    window.addEventListener("ab3c-plan-changed", onPlanChange);
+    return () => window.removeEventListener("ab3c-plan-changed", onPlanChange);
   }, [session]);
+
+  const fetchPlans = async () => {
+    try {
+      const res = await fetch("/api/check-pro");
+      const data = await res.json();
+      setActivePlans(Array.isArray(data.activePlans) ? data.activePlans : []);
+    } catch (e) {}
+    try {
+      const stored = localStorage.getItem(ACTIVE_PLAN_STORAGE_KEY);
+      if (stored) setActivePlanId(stored);
+    } catch (e) {}
+  };
+
+  // 選択中プラン
+  const currentPlan = (activePlans.length > 0)
+    ? (activePlans.find(p => p.id === activePlanId) || activePlans[0])
+    : null;
+  const isDiagnosisMode = currentPlan?.planType === 'analysis';
+
+  // 診断モード時はシェアURL一覧を取得
+  useEffect(() => {
+    if (session && isDiagnosisMode) {
+      setSharesLoading(true);
+      fetch("/api/share/list")
+        .then(r => r.json())
+        .then(d => setShares(d.shares || []))
+        .catch(() => {})
+        .finally(() => setSharesLoading(false));
+    }
+  }, [session, isDiagnosisMode]);
 
   const fetchSites = async () => {
     setLoading(true);
@@ -273,6 +322,105 @@ export default function DashboardPage() {
   const confirmedSites = sites.filter(s => s.strategy_confirmed);
   const analyzedSites = sites.filter(s => s.latest_analysis && !s.strategy_confirmed);
   const pendingSites = sites.filter(s => !s.latest_analysis);
+
+  // 診断チケットユーザー向けダッシュボード（シェアURL一覧）
+  if (isDiagnosisMode) {
+    const validShares = shares.filter(s => !s.expired);
+    const expiredShares = shares.filter(s => s.expired);
+    return (
+      <div style={{ minHeight: "100vh", background: C.bg }}>
+        <Header />
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>ダッシュボード</div>
+            <div style={{ fontSize: 15, color: C.muted, marginTop: 6, fontFamily: FONT }}>
+              {session.user?.name} さんが発行したシェアURL一覧（戦略診断チケット）
+            </div>
+          </div>
+
+          <div style={{ background: "#fff9e6", borderLeft: `3px solid ${C.highlight}`, padding: "14px 18px", fontSize: 13, color: C.ink, lineHeight: 1.8, marginBottom: 24, fontFamily: FONT, borderRadius: 4 }}>
+            <b>📌 戦略診断チケットについて</b><br />
+            戦略診断チケットでは、分析結果はダッシュボードに保存されません。代わりに、
+            <strong>発行したシェアURL（発行から1年間有効）</strong> から結果を閲覧できます。
+            期限が切れる前に PDF 保存や印刷での持ち帰りもご検討ください。
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
+            {[
+              { label: "発行済みURL", count: shares.length, color: C.ink },
+              { label: "有効", count: validShares.length, color: C.phase1 || "#0d9488" },
+              { label: "期限切れ", count: expiredShares.length, color: C.muted },
+            ].map(({ label, count, color }) => (
+              <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 6, padding: "16px 20px", textAlign: "center" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 32, fontWeight: 700, color }}>{count}</div>
+                <div style={{ fontSize: 14, color: C.muted, fontFamily: FONT, marginTop: 4 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <a href="/" style={{
+              background: C.ink, border: "none", borderRadius: 4, color: "#fff",
+              textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", display: "inline-block",
+            }}>
+              + 新しい分析を始める
+            </a>
+          </div>
+
+          {sharesLoading ? (
+            <div style={{ textAlign: "center", padding: 40, color: C.muted, fontSize: 15 }}>読み込み中...</div>
+          ) : shares.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 60, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8 }}>
+              <div style={{ fontSize: 40, marginBottom: 16 }}>🔗</div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 10 }}>
+                まだシェアURLを発行していません
+              </div>
+              <div style={{ fontSize: 15, color: C.muted, marginBottom: 20, fontFamily: FONT }}>
+                分析画面で「シェアURL発行」ボタンを押すと、ここに一覧が表示されます。
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {shares.map(sh => (
+                <div key={sh.id} style={{
+                  background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6,
+                  padding: "14px 18px", opacity: sh.expired ? 0.6 : 1,
+                  borderLeft: sh.expired ? `4px solid ${C.muted}` : `4px solid ${C.A}`,
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, color: C.ink, fontWeight: 600, fontFamily: FONT, marginBottom: 4, wordBreak: "break-all" }}>
+                        {sh.input || "(テキスト入力による分析)"}
+                      </div>
+                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+                        発行: {new Date(sh.created_at).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                        {sh.expires_at && (
+                          <span style={{ marginLeft: 12 }}>
+                            期限: {new Date(sh.expires_at).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                      {sh.expired ? (
+                        <span style={{ background: "#e8e8e8", color: C.muted, fontSize: 12, padding: "4px 10px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>期限切れ</span>
+                      ) : (
+                        <a href={`/share?id=${sh.id}`} target="_blank" rel="noopener noreferrer" style={{
+                          background: C.A, color: "#fff", textDecoration: "none", fontSize: 12, padding: "6px 14px", borderRadius: 3, fontFamily: "'Space Mono', monospace", fontWeight: 700,
+                        }}>
+                          開く →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg }}>

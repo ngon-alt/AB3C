@@ -1,5 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const sql = neon(process.env.DATABASE_URL);
 
@@ -24,6 +26,9 @@ async function ensureTable() {
       SET expires_at = created_at + INTERVAL '1 year'
       WHERE expires_at IS NULL
   `;
+  // 発行者メールを記録（診断ユーザーのシェア一覧ダッシュボード用）
+  await sql`ALTER TABLE shared_results ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_shared_results_user_email ON shared_results(user_email)`;
   ensured = true;
 }
 
@@ -38,13 +43,19 @@ export async function POST(req) {
   try {
     const { input, result, improveResult, visualMock } = await req.json();
     await ensureTable();
+    // 発行者メールを取得（未ログインはNULL許容）
+    let userEmail = null;
+    try {
+      const session = await getServerSession(authOptions);
+      userEmail = session?.user?.email || null;
+    } catch (e) {}
     const id = generateId();
     // 閲覧期限: 発行から1年後
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     await sql`
-      INSERT INTO shared_results (id, input_text, result, improve_result, visual_mock, expires_at)
-      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null}, ${visualMock ? JSON.stringify(visualMock) : null}, ${expiresAt.toISOString()})
+      INSERT INTO shared_results (id, input_text, result, improve_result, visual_mock, expires_at, user_email)
+      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null}, ${visualMock ? JSON.stringify(visualMock) : null}, ${expiresAt.toISOString()}, ${userEmail})
     `;
     return NextResponse.json({ id, expires_at: expiresAt.toISOString() });
   } catch (e) {

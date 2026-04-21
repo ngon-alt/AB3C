@@ -29,35 +29,46 @@ export async function GET() {
     `;
     const trialChats = parseInt(trialResult[0].total);
 
-    // 契約プラン情報
+    // 契約プラン情報（複数 active な場合に備えて全件取得し、表示向けに整形）
     let planLabel = null;
     let planType = null;
     let nextRenewalAt = null;
+    let activePlans = []; // [{ id, planType, planLabel, expiresAt, ... }]
     try {
       const planResult = await sql`
-        SELECT plan_type, site_limit, analyses_used, expires_at, interval FROM user_plans
+        SELECT id, plan_type, site_limit, analyses_used, expires_at, interval FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
-        ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC LIMIT 1
+        ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC
       `;
-      if (planResult.length > 0) {
-        const p = planResult[0];
-        planType = p.plan_type;
-        nextRenewalAt = p.expires_at; // 戦略指南プラン: 次回課金日 / 戦略診断チケット: 有効期限
-        // バッジ表示:
-        // - 戦略指南プラン: `指南${契約サイト数}` (例: 指南5, 指南15)
-        // - 戦略診断チケット: 1サイトは"診断 X/1"、10/100サイトは"診断 ${残り}/${契約数}"
-        //   消費カウントは analyses_used (再分析もカウント) に基づく
-        if (p.plan_type === "support") {
-          planLabel = `指南${p.site_limit}`;
+      // それぞれを planLabel 付きで整形
+      activePlans = planResult.map(p => {
+        let label;
+        if (p.plan_type === 'support') {
+          label = `指南${p.site_limit}`;
         } else {
           const used = parseInt(p.analyses_used || 0);
           const remaining = Math.max(0, p.site_limit - used);
-          planLabel = p.site_limit > 1 ? `診断 ${remaining}/${p.site_limit}` : (remaining > 0 ? "診断" : "診断 0/1");
+          label = p.site_limit > 1 ? `診断 ${remaining}/${p.site_limit}` : (remaining > 0 ? '診断' : '診断 0/1');
         }
+        return {
+          id: p.id,
+          planType: p.plan_type,
+          planLabel: label,
+          siteLimit: p.site_limit,
+          expiresAt: p.expires_at,
+          interval: p.interval,
+        };
+      });
+      // 既存仕様の「単一プラン」表示: 先頭（support 優先、次点 site_limit 降順）
+      if (activePlans.length > 0) {
+        const first = activePlans[0];
+        planType = first.planType;
+        planLabel = first.planLabel;
+        nextRenewalAt = first.expiresAt;
       }
     } catch (e) {}
 
-    return Response.json({ isPro, chatTickets, trialChats, planLabel, planType, nextRenewalAt });
+    return Response.json({ isPro, chatTickets, trialChats, planLabel, planType, nextRenewalAt, activePlans });
   } catch (e) {
     console.error(e);
     return Response.json({ isPro: false, chatTickets: 0, trialChats: 0, planLabel: null });
