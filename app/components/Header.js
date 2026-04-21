@@ -189,7 +189,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           const PHASE0 = "#64748b"; // slate-500 系: 中立で「まだ選択前」を表現
           return (
             <button onClick={() => { if (onNewAnalysis) onNewAnalysis(); else window.location.href = "/"; }}
-              title="別のURLで新規に分析します（過去の戦略確定履歴は保持されます）"
+              title="URL or テキスト入力から戦略診断を実行します（戦略診断チケットはこのステップのみが対象です）"
               style={{
                 padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
                 background: active ? PHASE0 : "#e2e8f0",
@@ -199,7 +199,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
               }}>
               <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#94a3b8", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
-              新規分析
+              戦略診断
             </button>
           );
         })()}
