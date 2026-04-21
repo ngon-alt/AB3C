@@ -81,18 +81,26 @@ export default function PricingModal({ onClose }) {
       alert("このプランは準備中です。まもなくご利用いただけます。");
       return;
     }
-    // 逆プラン保有時の確認
+    // 既存契約がある場合、現在のご契約と購入後の挙動を明示して確認
     const buyingType = resolvePlanType(priceId);
-    if (buyingType) {
-      const oppositePlans = activePlans.filter(p => p.planType && p.planType !== buyingType);
-      if (oppositePlans.length > 0) {
-        const ok = confirm(
-          `すでに${planKindLabel(oppositePlans[0].planType)}をご契約中です。\n` +
-          `追加で${planKindLabel(buyingType)}をご契約されますか？\n\n` +
-          `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
-        );
-        if (!ok) return;
+    if (buyingType && activePlans.length > 0) {
+      const existing = activePlans.map(p => p.planLabel).join('・');
+      const buyingLabel = planKindLabel(buyingType);
+      let note = '';
+      if (buyingType === 'analysis') {
+        const hasAnalysis = activePlans.some(p => p.planType === 'analysis');
+        if (hasAnalysis) note = '※既存の戦略診断チケットの残り回数と購入分が合算されます。';
+      } else {
+        const hasSupport = activePlans.some(p => p.planType === 'support');
+        if (hasSupport) note = '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。';
       }
+      const ok = confirm(
+        `現在のご契約: ${existing}\n\n` +
+        `追加で${buyingLabel}をご契約されますか？\n\n` +
+        (note ? note + '\n\n' : '') +
+        `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
+      );
+      if (!ok) return;
     }
     try {
       const res = await fetch('/api/stripe/checkout', {

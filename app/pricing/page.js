@@ -70,19 +70,25 @@ export default function PricingPage() {
 
   const handleCheckout = async (priceId) => {
     const buyingType = resolvePlanType(priceId);
-    // 逆プランを既に所持している場合は追加購入確認を出す
-    if (buyingType) {
-      const oppositePlans = activePlans.filter(p => p.planType && p.planType !== buyingType);
-      if (oppositePlans.length > 0) {
-        const oppositeLabel = planKindLabel(oppositePlans[0].planType);
-        const buyingLabel = planKindLabel(buyingType);
-        const ok = confirm(
-          `すでに${oppositeLabel}をご契約中です。\n` +
-          `追加で${buyingLabel}をご契約されますか？\n\n` +
-          `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
-        );
-        if (!ok) return;
+    // 既に何らかの契約がある場合、現在の契約内容と購入後の挙動を明示して確認
+    if (buyingType && activePlans.length > 0) {
+      const existing = activePlans.map(p => p.planLabel).join('・');
+      const buyingLabel = planKindLabel(buyingType);
+      let note = '';
+      if (buyingType === 'analysis') {
+        const hasAnalysis = activePlans.some(p => p.planType === 'analysis');
+        if (hasAnalysis) note = '※既存の戦略診断チケットの残り回数と購入分が合算されます。';
+      } else {
+        const hasSupport = activePlans.some(p => p.planType === 'support');
+        if (hasSupport) note = '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。';
       }
+      const ok = confirm(
+        `現在のご契約: ${existing}\n\n` +
+        `追加で${buyingLabel}をご契約されますか？\n\n` +
+        (note ? note + '\n\n' : '') +
+        `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
+      );
+      if (!ok) return;
     }
     try {
       const res = await fetch('/api/stripe/checkout', {
