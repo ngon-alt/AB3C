@@ -12,8 +12,9 @@ async function sendEmail(to, subject, html, options = {}) {
     console.log('📧 [メール送信スキップ] Resend API キー未設定');
     return { success: true, skipped: true };
   }
+  const fromHeader = `${FROM_NAME} <${FROM}>`;
   try {
-    const payload = { from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html };
+    const payload = { from: fromHeader, to: [to], subject, html };
     if (options.replyTo) payload.reply_to = options.replyTo;
     if (options.attachments && options.attachments.length > 0) {
       // Resend SDK v6 の Attachment 型:
@@ -29,14 +30,16 @@ async function sendEmail(to, subject, html, options = {}) {
     const result = await resend.emails.send(payload);
     // Resend SDK は成功時に { data: { id }, error: null } を、失敗時に { data: null, error: {...} } を返す
     if (result?.error) {
-      console.error('📧 メール送信失敗:', { to, subject, error: result.error });
-      return { success: false, error: result.error };
+      console.error('📧 メール送信失敗:', { from: fromHeader, to, subject, error: result.error });
+      // デバッグ用に使われた from を error に乗せる
+      const errWithCtx = typeof result.error === 'object' ? { ...result.error, _from: fromHeader } : { message: String(result.error), _from: fromHeader };
+      return { success: false, error: errWithCtx };
     }
-    console.log('📧 メール送信成功:', { to, subject, id: result?.data?.id, attachmentsCount: options.attachments?.length || 0 });
+    console.log('📧 メール送信成功:', { from: fromHeader, to, subject, id: result?.data?.id, attachmentsCount: options.attachments?.length || 0 });
     return { success: true, data: result };
   } catch (error) {
-    console.error('📧 メール送信例外:', { to, subject, error });
-    return { success: false, error };
+    console.error('📧 メール送信例外:', { from: fromHeader, to, subject, error });
+    return { success: false, error: { message: error?.message || String(error), _from: fromHeader } };
   }
 }
 

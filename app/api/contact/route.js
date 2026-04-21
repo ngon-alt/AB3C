@@ -100,10 +100,11 @@ export async function POST(request) {
       const err = notifyResult.error || {};
       // Resendのerrorオブジェクトは { name, message, statusCode } 形式。ユーザー向けに短く整形
       const errSummary = err.message || err.name || (typeof err === 'string' ? err : JSON.stringify(err).slice(0, 200));
+      const fromCtx = err._from ? `（from: ${err._from}）` : '';
       console.error('通知メール送信失敗:', err);
       return NextResponse.json(
         {
-          error: `送信処理で問題が発生しました: ${errSummary}`,
+          error: `送信処理で問題が発生しました: ${errSummary}${fromCtx}`,
           code: err.statusCode || err.name || null,
         },
         { status: 500 }
