@@ -455,9 +455,9 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
               <button onClick={onClose} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 24px", color: "#fff" }}>
                 {purpose === "agency" ? "分析を始める" : "さっそく使ってみる"}
               </button>
-              <button onClick={() => { onClose(); onShowPricing(); }} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "12px 24px", color: C.muted }}>
+              <a href="/pricing" onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "12px 24px", color: C.muted, display: "inline-block" }}>
                 プランを見る
-              </button>
+              </a>
             </div>
           </div>
         )}

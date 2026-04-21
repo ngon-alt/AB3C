@@ -115,20 +115,30 @@ export default function PricingPage() {
     if (buyingType && activePlans.length > 0) {
       const existing = activePlans.map(p => p.planLabel).join('・');
       const buyingLabel = planKindLabel(buyingType);
-      let note = '';
+      const hasSupport = activePlans.some(p => p.planType === 'support');
+      const hasAnalysis = activePlans.some(p => p.planType === 'analysis');
+      const lines = [
+        `現在のご契約: ${existing}`,
+        '',
+        `追加で${buyingLabel}をご契約されますか？`,
+      ];
       if (buyingType === 'analysis') {
-        const hasAnalysis = activePlans.some(p => p.planType === 'analysis');
-        if (hasAnalysis) note = '※既存の戦略診断チケットの残り回数と購入分が合算されます。';
+        if (hasAnalysis) {
+          lines.push('', '※既存の戦略診断チケットの残り回数と今回の購入分は合算されます。');
+        }
+        if (hasSupport) {
+          lines.push('', '※戦略指南プランは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+        }
       } else {
-        const hasSupport = activePlans.some(p => p.planType === 'support');
-        if (hasSupport) note = '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。';
+        // 支援プラン（指南）購入
+        if (hasSupport) {
+          lines.push('', '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。');
+        }
+        if (hasAnalysis) {
+          lines.push('', '※戦略診断チケットは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで新しい戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+        }
       }
-      const ok = confirm(
-        `現在のご契約: ${existing}\n\n` +
-        `追加で${buyingLabel}をご契約されますか？\n\n` +
-        (note ? note + '\n\n' : '') +
-        `ご契約後は、ヘッダーのプラン切り替えメニューで利用するプランを切り替えられます。`
-      );
+      const ok = confirm(lines.join('\n'));
       if (!ok) return;
     }
     try {
@@ -220,8 +230,8 @@ export default function PricingPage() {
             戦略診断チケット <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（有効期限1年）</span>
           </div>
           <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
-            現在のWebサイトから戦略と改善点をレポートする機能です。
-            AB3C分析＋ウェブサイト改善レポートを書き出して、PDF・印刷・シェアURLで持ち帰れます。<br/><br/>
+            見込み客への新規提案にお使いいただくプランです。
+            AB3C分析＋ウェブサイト改善レポートを書き出して、PDF・印刷・シェアURLで持ち帰ることができます。<br/><br/>
             <strong style={{ color: C.ink }}>📅 有効期限：購入から1年間</strong><br/>
             購入したサイト数分の診断を1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/><br/>
             <strong style={{ color: C.red }}>⚠️ 診断結果は履歴保存されません</strong><br/>
