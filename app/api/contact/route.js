@@ -105,8 +105,9 @@ export async function POST(request) {
     }
 
     // ② 送信者へ自動返信（失敗してもユーザー側は成功扱い）
+    // 添付は再送付せず、ファイル名一覧のみで「何を送ったか」を確認できるようにする
     try {
-      await sendContactAutoReplyEmail({ name, email, category, message });
+      await sendContactAutoReplyEmail({ name, email, category, message, attachments });
     } catch (e) {
       console.error('自動返信メール送信エラー（無視）:', e);
     }

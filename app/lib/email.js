@@ -15,11 +15,25 @@ async function sendEmail(to, subject, html, options = {}) {
   try {
     const payload = { from: `${FROM_NAME} <${FROM}>`, to: [to], subject, html };
     if (options.replyTo) payload.reply_to = options.replyTo;
-    if (options.attachments && options.attachments.length > 0) payload.attachments = options.attachments;
-    const data = await resend.emails.send(payload);
-    return { success: true, data };
+    if (options.attachments && options.attachments.length > 0) {
+      // Resend SDKは content が Buffer の場合に実ファイルとして扱う。
+      // base64文字列のまま渡すとテキストコンテンツとみなされ添付されないため、必ず Buffer 化する。
+      payload.attachments = options.attachments.map(a => ({
+        filename: a.filename,
+        content: typeof a.content === 'string' ? Buffer.from(a.content, 'base64') : a.content,
+        contentType: a.contentType,
+      }));
+    }
+    const result = await resend.emails.send(payload);
+    // Resend SDK は成功時に { data: { id }, error: null } を、失敗時に { data: null, error: {...} } を返す
+    if (result?.error) {
+      console.error('📧 メール送信失敗:', { to, subject, error: result.error });
+      return { success: false, error: result.error };
+    }
+    console.log('📧 メール送信成功:', { to, subject, id: result?.data?.id, attachmentsCount: options.attachments?.length || 0 });
+    return { success: true, data: result };
   } catch (error) {
-    console.error('メール送信エラー:', error);
+    console.error('📧 メール送信例外:', { to, subject, error });
     return { success: false, error };
   }
 }
@@ -175,8 +189,11 @@ export async function sendContactNotificationEmail({
 }
 
 // お問い合わせ送信者への受付確認（自動返信）
-export async function sendContactAutoReplyEmail({ name, email, category, message }) {
+export async function sendContactAutoReplyEmail({ name, email, category, message, attachments }) {
   const subject = '【戦略指南 AI】お問い合わせを受け付けました';
+  const attachmentSummary = (attachments && attachments.length > 0)
+    ? `<div style="font-size:13px;line-height:1.8;border-top:1px solid #e5e5e0;padding-top:12px;margin-top:12px"><strong>添付画像：</strong>${attachments.length}枚<br>${attachments.map(a => `・${esc(a.filename)}`).join('<br>')}</div>`
+    : '';
   const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px;color:#1a1a14">
     <div style="font-size:24px;font-weight:bold;margin-bottom:24px">戦略指南 AI</div>
     <p style="font-size:16px;line-height:1.8">${esc(name) || 'お客様'}さん、お問い合わせいただきありがとうございます。</p>
@@ -186,6 +203,7 @@ export async function sendContactAutoReplyEmail({ name, email, category, message
       <div style="font-size:13px;color:#78716c;margin-bottom:8px">受付内容</div>
       <div style="font-size:14px;line-height:1.8;margin-bottom:12px"><strong>種別：</strong>${esc(category)}</div>
       <div style="font-size:14px;line-height:1.8;white-space:pre-wrap;word-wrap:break-word;border-top:1px solid #e5e5e0;padding-top:12px">${esc(message)}</div>
+      ${attachmentSummary}
     </div>
 
     <p style="font-size:14px;line-height:1.8;color:#555">もしこのメールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
