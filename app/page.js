@@ -2057,6 +2057,29 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
       </div>
+      {/* AB3C 5つのチェックポイント（改善レポート内にも再掲。現状採点を可視化して改善意欲を喚起） */}
+      {currentResult?.checkpoints && currentResult.checkpoints.length > 0 && (
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント（現状採点）</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {currentResult.checkpoints.map((cp, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", lineHeight: 1.6 }}>
+                <Badge status={cp.status} />
+                <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                  <b>{cp.label}</b><br />
+                  <span style={{ color: C.ink, fontSize: 16 }}>{cp.comment}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
+            {(() => {
+              const score = currentResult.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
+              return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, color: C.ink }}>AB3Cスコア：{score} / 10</span>;
+            })()}
+          </div>
+        </div>
+      )}
       {(visualLoading || visualMock) && (
         <div className="visual-mock-section" style={{ marginBottom: 32 }}>
           <style>{`

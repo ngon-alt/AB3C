@@ -201,6 +201,27 @@ export default function ShareContent({ input, result, improveResult, visualMock,
 {improveResult && (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px", marginTop: 32 }}>
     <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
+    {d?.checkpoints && d.checkpoints.length > 0 && (
+      <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px 20px", marginBottom: 24 }}>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 12 }}>AB3C 5つのチェックポイント（現状採点）</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {d.checkpoints.map((cp, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", lineHeight: 1.6 }}>
+              <Badge status={cp.status} />
+              <div style={{ flex: 1, fontSize: 13 }}>
+                <b>{cp.label}</b><br />
+                <span style={{ color: C.muted }}>{cp.comment}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, color: C.ink }}>
+            AB3Cスコア：{d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0)} / 10
+          </span>
+        </div>
+      </div>
+    )}
     {[
       { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
       { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
