@@ -137,7 +137,7 @@ ${JSON.stringify(analysisResult, null, 2)}
   try {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 4000,
+      max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     });
 

@@ -1573,15 +1573,19 @@ if (tab === "url" && savedText.startsWith("http")) {
 
   setOverlayMessage(null);
 
-  // 全レポート完成後にDBへ保存（消費確定タイミング）
-  const allReportsSucceeded = data && !data.error
-    && improveData && !improveData.error
+  // サイト作成/保存の条件: AB3C分析＋改善レポートが成功していれば十分（ビジュアルは任意）
+  // 失敗した場合もユーザーが分析結果を失わないよう、ビジュアル単独の失敗は許容する
+  const coreReportsSucceeded = data && !data.error
+    && improveData && !improveData.error;
+  // チケット消費の条件: 全レポート（AB3C＋改善＋ビジュアル）成功時のみ
+  // ユーザーがビジュアル失敗でチケットを消費してしまうのを防ぐ
+  const allReportsSucceeded = coreReportsSucceeded
     && visualData && !visualData.error;
 
   try {
     let targetSid = analyzeSiteId;
-    if (!targetSid && allReportsSucceeded) {
-      // 新規サイト作成（全レポート成功時のみ＝戦略指南プランのスロット消費確定）
+    if (!targetSid && coreReportsSucceeded) {
+      // 新規サイト作成（AB3C＋改善レポート成功時）
       var sn = "無題のサイト";
       try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
       var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
