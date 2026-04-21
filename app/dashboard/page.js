@@ -363,7 +363,7 @@ export default function DashboardPage() {
               background: C.ink, border: "none", borderRadius: 4, color: "#fff",
               textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", display: "inline-block",
             }}>
-              + 新しい分析を始める
+              + 新規戦略診断を始める
             </a>
           </div>
 

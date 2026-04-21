@@ -453,7 +453,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button onClick={onClose} style={{ background: C.A, border: "none", borderRadius: 4, cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "12px 24px", color: "#fff" }}>
-                {purpose === "agency" ? "分析を始める" : "さっそく使ってみる"}
+                {purpose === "agency" ? "戦略診断を始める" : "さっそく使ってみる"}
               </button>
               <a href="/pricing" onClick={onClose} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, padding: "12px 24px", color: C.muted, display: "inline-block" }}>
                 プランを見る
@@ -883,7 +883,7 @@ const chatResizing = useRef(false);
 const [confirmHistory, setConfirmHistory] = useState([]);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
-// ⓪新規分析クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
+// ⓪新規戦略診断クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
 const [previousSiteId, setPreviousSiteId] = useState(null);
 const [previousSiteUrl, setPreviousSiteUrl] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);

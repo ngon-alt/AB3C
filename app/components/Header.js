@@ -183,13 +183,13 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
       </div>
       {/* 下段: メインナビ（ピル型ステッパー） */}
       <nav style={{ padding: "12px 24px 14px", display: "flex", alignItems: "center", gap: 6, background: "#fff", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
-        {/* ⓪ 新規分析 — 「入口」のニュートラルなスレート色（Benefit赤/Advantage青/teal/orangeと衝突しない） */}
+        {/* ⓪ 新規戦略診断 — 「入口」のニュートラルなスレート色（Benefit赤/Advantage青/teal/orangeと衝突しない） */}
         {(() => {
           const active = phase === "input";
           const PHASE0 = "#64748b"; // slate-500 系: 中立で「まだ選択前」を表現
           return (
             <button onClick={() => { if (onNewAnalysis) onNewAnalysis(); else window.location.href = "/"; }}
-              title="URL or テキスト入力から戦略診断を実行します（戦略診断チケットはこのステップのみが対象です）"
+              title="URL or テキスト入力から新規に戦略診断を実行します（戦略診断チケットはこのステップのみが対象です）"
               style={{
                 padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
                 background: active ? PHASE0 : "#e2e8f0",
@@ -199,7 +199,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
               }}>
               <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#94a3b8", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
-              戦略診断
+              新規戦略診断
             </button>
           );
         })()}
@@ -241,7 +241,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               </button>
               {!enabled && (
                 <div className="nav-tip" style={{ display: "none", position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.ink, color: "#fff", fontSize: 12, padding: "8px 12px", borderRadius: 4, whiteSpace: "nowrap", zIndex: 300, boxShadow: "0 4px 12px rgba(0,0,0,0.2)", fontFamily: NAV_FONT }}>
-                  まず新規分析を実行してください
+                  まず新規戦略診断を実行してください
                 </div>
               )}
             </span>
