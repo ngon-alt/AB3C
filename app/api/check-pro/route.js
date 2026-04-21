@@ -30,36 +30,58 @@ export async function GET() {
     const trialChats = parseInt(trialResult[0].total);
 
     // 契約プラン情報（複数 active な場合に備えて全件取得し、表示向けに整形）
+    // 【診断チケット】複数購入分を合算して「診断 残り合計/総合計」として 1 つのエントリに集約
+    // 【戦略指南プラン】それぞれ独立したエントリ（Step 2 で一本化予定）
     let planLabel = null;
     let planType = null;
     let nextRenewalAt = null;
     let activePlans = []; // [{ id, planType, planLabel, expiresAt, ... }]
     try {
       const planResult = await sql`
-        SELECT id, plan_type, site_limit, analyses_used, expires_at, interval FROM user_plans
+        SELECT id, plan_type, site_limit, analyses_used, expires_at, interval, purchased_at FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
         ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC
       `;
-      // それぞれを planLabel 付きで整形
-      activePlans = planResult.map(p => {
-        let label;
-        if (p.plan_type === 'support') {
-          label = `指南${p.site_limit}`;
-        } else {
-          const used = parseInt(p.analyses_used || 0);
-          const remaining = Math.max(0, p.site_limit - used);
-          label = p.site_limit > 1 ? `診断 ${remaining}/${p.site_limit}` : (remaining > 0 ? '診断' : '診断 0/1');
-        }
-        return {
-          id: p.id,
-          planType: p.plan_type,
-          planLabel: label,
-          siteLimit: p.site_limit,
-          expiresAt: p.expires_at,
-          interval: p.interval,
+      // 支援プランはそのまま、診断プランは集約
+      const supportRows = planResult.filter(p => p.plan_type === 'support');
+      const analysisRows = planResult.filter(p => p.plan_type === 'analysis');
+
+      // 指南プラン（支援）— 個別エントリ
+      const supportEntries = supportRows.map(p => ({
+        id: p.id,
+        planType: p.plan_type,
+        planLabel: `指南${p.site_limit}`,
+        siteLimit: p.site_limit,
+        expiresAt: p.expires_at,
+        interval: p.interval,
+      }));
+
+      // 診断プラン — 全行を合算して1エントリ化
+      let analysisEntry = null;
+      if (analysisRows.length > 0) {
+        const totalLimit = analysisRows.reduce((s, r) => s + parseInt(r.site_limit || 0), 0);
+        const totalUsed = analysisRows.reduce((s, r) => s + parseInt(r.analyses_used || 0), 0);
+        const remaining = Math.max(0, totalLimit - totalUsed);
+        // 有効期限は最も早く切れる行（古い購入から失効）
+        const earliestExpiry = analysisRows
+          .map(r => r.expires_at)
+          .filter(Boolean)
+          .sort()[0] || null;
+        analysisEntry = {
+          id: 'analysis_combined',
+          planType: 'analysis',
+          planLabel: totalLimit > 1 ? `診断 ${remaining}/${totalLimit}` : (remaining > 0 ? '診断' : '診断 0/1'),
+          siteLimit: totalLimit,
+          expiresAt: earliestExpiry,
+          interval: 'year',
+          rowCount: analysisRows.length, // デバッグ用: 集約した購入レコード数
         };
-      });
-      // 既存仕様の「単一プラン」表示: 先頭（support 優先、次点 site_limit 降順）
+      }
+
+      // 並び順: 支援 先頭 → 診断
+      activePlans = [...supportEntries, ...(analysisEntry ? [analysisEntry] : [])];
+
+      // 既存仕様の「単一プラン」表示: 先頭（support 優先、次点 診断合算）
       if (activePlans.length > 0) {
         const first = activePlans[0];
         planType = first.planType;
