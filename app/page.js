@@ -1140,6 +1140,26 @@ const [chatSummaries, setChatSummaries] = useState([]);
         }
         if (site) {
           setSiteId(site.id);
+          // 戦略確定履歴を DB から復元（LS より DB を信頼）
+          try {
+            var lsConfKey = "ab3c_confirmations_" + site.id;
+            var dbConfs = Array.isArray(site.confirmations) ? site.confirmations : null;
+            if (dbConfs && dbConfs.length > 0) {
+              localStorage.setItem(lsConfKey, JSON.stringify(dbConfs));
+              setConfirmHistory(dbConfs);
+            } else {
+              // DB が空で LS にデータがあれば DB にマイグレーション push
+              var lsData = localStorage.getItem(lsConfKey);
+              if (lsData) {
+                try {
+                  var lsParsed = JSON.parse(lsData);
+                  if (Array.isArray(lsParsed) && lsParsed.length > 0) {
+                    fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, confirmations: lsParsed }) }).catch(function() {});
+                  }
+                } catch (e) {}
+              }
+            }
+          } catch (e) {}
           if (site.latest_analysis) {
             setResult(site.latest_analysis);
             setCurrentResult(site.latest_analysis);
@@ -1329,26 +1349,28 @@ useEffect(() => {
     }
     if (targetSiteId) {
       try {
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true }) });
+        // 確定スナップショットを先に組み立て（DBとLSに同じデータを保存）
+        var chatKey2 = "ab3c_chat_" + (currentResult ? JSON.stringify(currentResult).slice(0, 50) : "default");
+        var chatMsgs = [];
+        try { var cm = localStorage.getItem(chatKey2); if (cm) chatMsgs = JSON.parse(cm); } catch (e) {}
+        var snapshot = {
+          id: Date.now(),
+          date: new Date().toLocaleString("ja-JP"),
+          result: currentResult,
+          chatMessages: chatMsgs,
+          chatSummaries: chatSummaries,
+          strategyMessage: currentResult?.strategy_message?.message || "",
+          url: siteUrl || currentInput || "",
+        };
+        var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
+        var existing2 = [];
+        try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
+        existing2.push(snapshot);
+        // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
+        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
         setStrategyConfirmed(true);
-        // 確定履歴にスナップショットを保存
+        // LS にも保存（DBのキャッシュとして）
         try {
-          var chatKey2 = "ab3c_chat_" + (currentResult ? JSON.stringify(currentResult).slice(0, 50) : "default");
-          var chatMsgs = [];
-          try { var cm = localStorage.getItem(chatKey2); if (cm) chatMsgs = JSON.parse(cm); } catch (e) {}
-          var snapshot = {
-            id: Date.now(),
-            date: new Date().toLocaleString("ja-JP"),
-            result: currentResult,
-            chatMessages: chatMsgs,
-            chatSummaries: chatSummaries,
-            strategyMessage: currentResult?.strategy_message?.message || "",
-            url: siteUrl || currentInput || "",
-          };
-          var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
-          var existing2 = [];
-          try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
-          existing2.push(snapshot);
           localStorage.setItem(chKey2, JSON.stringify(existing2));
           setConfirmHistory(existing2);
         } catch (e) {}

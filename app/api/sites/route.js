@@ -24,6 +24,7 @@ async function ensureTable(sql) {
         strategy_confirmed BOOLEAN DEFAULT FALSE,
         strategy_confirmed_at TIMESTAMPTZ,
         chat_history JSONB,
+        confirmations JSONB,
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
@@ -31,6 +32,7 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_result JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mock JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMPTZ`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS confirmations JSONB`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -211,7 +213,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -231,6 +233,8 @@ export async function PUT(req) {
     const visualJson = visual_mock ? JSON.stringify(visual_mock) : null;
     const analyzedAtVal = analyzed_at ? new Date(analyzed_at).toISOString() : null;
     const chatJson = chat_history ? JSON.stringify(chat_history) : null;
+    // confirmations は空配列[] もユーザー意図（解除後の状態保存等）なので許容する
+    const confirmationsJson = Array.isArray(confirmations) ? JSON.stringify(confirmations) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
     const siteUrlVal = site_url !== undefined ? site_url : null;
@@ -253,6 +257,7 @@ export async function PUT(req) {
         strategy_confirmed = CASE WHEN ${confirmed}::boolean IS NOT NULL THEN ${confirmed}::boolean ELSE strategy_confirmed END,
         strategy_confirmed_at = CASE WHEN ${confirmed}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
         chat_history = CASE WHEN ${chatJson}::text IS NOT NULL THEN (${chatJson}::jsonb) ELSE chat_history END,
+        confirmations = CASE WHEN ${confirmationsJson}::text IS NOT NULL THEN (${confirmationsJson}::jsonb) ELSE confirmations END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *
