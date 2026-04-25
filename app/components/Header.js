@@ -18,7 +18,7 @@ const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragi
 
 const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction, onShowUpdates, hasUnseenUpdate }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -178,6 +178,29 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 <span style={{ marginRight: 4 }}>{item.icon}</span>{item.label}
               </a>
             ))}
+            {onShowUpdates && (
+              <button
+                onClick={onShowUpdates}
+                title="更新履歴・お知らせ"
+                style={{
+                  position: "relative",
+                  background: "transparent", border: "none", padding: 0, cursor: "pointer",
+                  fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ marginRight: 4 }}>📢</span>更新履歴
+                {hasUnseenUpdate && (
+                  <span
+                    aria-label="新着あり"
+                    style={{
+                      position: "absolute", top: -4, right: -8,
+                      width: 10, height: 10, borderRadius: "50%",
+                      background: "#ea580c", border: "2px solid #fff",
+                    }}
+                  />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

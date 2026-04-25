@@ -7,6 +7,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import PricingModal from "./components/PricingModal";
 import ShadowMock from "./components/ShadowMock";
+import UpdateHistoryModal from "./components/UpdateHistoryModal";
+import { latestUpdateId } from "./data/updates";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
@@ -864,6 +866,8 @@ const [tab, setTab] = useState("url");
   const [sharing, setSharing] = useState(false);
   const [showPricing, setShowPricing] = useState(false);
 const [showWelcome, setShowWelcome] = useState(false);
+const [showUpdates, setShowUpdates] = useState(false);
+const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
 const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
@@ -1239,6 +1243,30 @@ const [chatSummaries, setChatSummaries] = useState([]);
       }
     }
   }, [session]);
+
+  // 更新履歴の未読チェック: 最新エントリのIDがlocalStorageの既読IDと異なれば未読扱い
+  // - hasUnseenUpdate: ヘッダーのバッジ（赤丸）表示用
+  // - showUpdates: 自動でオーバーレイ表示するかどうか
+  useEffect(() => {
+    if (!latestUpdateId) return;
+    try {
+      const seen = localStorage.getItem("ab3c_last_seen_update_id");
+      if (seen !== latestUpdateId) {
+        setHasUnseenUpdate(true);
+        // ウェルカム表示中はかぶらないよう少し遅延
+        const t = setTimeout(() => setShowUpdates(true), 600);
+        return () => clearTimeout(t);
+      }
+    } catch (e) {}
+  }, []);
+
+  const dismissUpdates = () => {
+    setShowUpdates(false);
+    setHasUnseenUpdate(false);
+    try {
+      if (latestUpdateId) localStorage.setItem("ab3c_last_seen_update_id", latestUpdateId);
+    } catch (e) {}
+  };
 
   useEffect(() => {
   if (session) {
@@ -1784,6 +1812,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       )}
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
+      <UpdateHistoryModal open={showUpdates} onClose={dismissUpdates} highlightLatest={hasUnseenUpdate} />
 
       <Header
         onShowPricing={() => setShowPricing(true)}
@@ -1835,6 +1864,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }
         }}
         onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+        onShowUpdates={() => setShowUpdates(true)}
+        hasUnseenUpdate={hasUnseenUpdate}
       />
 
 
