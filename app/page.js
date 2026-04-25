@@ -1321,6 +1321,66 @@ useEffect(() => {
   localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
 };
 
+  // 「戻る先」サイトを in-place で復元（ページリロードなし）
+  // ⓪ → ① / ② 遷移時にフルリロードを避けることで、②タブが一瞬グレーアウトする問題を解消
+  const restorePreviousSite = async (targetPhase) => {
+    if (!previousSiteId) return;
+    try {
+      const res = await fetch("/api/sites");
+      const data = await res.json();
+      const site = (data.sites || []).find(s => s.id === previousSiteId);
+      if (!site) {
+        // 見つからなければフォールバック: フルリロード
+        const params = [`site_id=${previousSiteId}`];
+        if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
+        if (targetPhase === "action") params.push("phase=action");
+        window.location.href = `/?${params.join("&")}`;
+        return;
+      }
+      setSiteId(site.id);
+      if (site.latest_analysis) {
+        setResult(site.latest_analysis);
+        setCurrentResult(site.latest_analysis);
+        setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
+      }
+      if (site.improve_result) setImproveResult(site.improve_result);
+      if (site.visual_mock) setVisualMock(site.visual_mock);
+      if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
+      if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+      if (site.strategy_confirmed) setStrategyConfirmed(true);
+      // 戦略確定履歴を DB→LS 同期
+      try {
+        const lsConfKey = "ab3c_confirmations_" + site.id;
+        const dbConfs = Array.isArray(site.confirmations) ? site.confirmations : null;
+        if (dbConfs && dbConfs.length > 0) {
+          localStorage.setItem(lsConfKey, JSON.stringify(dbConfs));
+          setConfirmHistory(dbConfs);
+        } else {
+          const lsData = localStorage.getItem(lsConfKey);
+          if (lsData) {
+            try {
+              const lsParsed = JSON.parse(lsData);
+              if (Array.isArray(lsParsed)) setConfirmHistory(lsParsed);
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+      // URL を置換（履歴を増やさない）
+      const urlParams = [`site_id=${site.id}`];
+      if (site.site_url) urlParams.push(`url=${encodeURIComponent(site.site_url)}`);
+      window.history.replaceState(null, "", `/?${urlParams.join("&")}`);
+      // フェーズ切替
+      setViewOverride(targetPhase);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      // エラー時もフォールバック: フルリロード
+      const params = [`site_id=${previousSiteId}`];
+      if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
+      if (targetPhase === "action") params.push("phase=action");
+      window.location.href = `/?${params.join("&")}`;
+    }
+  };
+
   // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
   const confirmStrategy = async () => {
     const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
@@ -1724,26 +1784,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }
           reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
         }}
-        onSwitchToAnalysis={() => {
-          // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」の previousSite へ遷移
+        onSwitchToAnalysis={async () => {
+          // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」を in-place で復元
           if (currentResult) {
             setViewOverride("analysis");
             window.scrollTo(0, 0);
           } else if (previousSiteId) {
-            const params = [`site_id=${previousSiteId}`];
-            if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
-            window.location.href = `/?${params.join("&")}`;
+            await restorePreviousSite("analysis");
           }
         }}
-        onSwitchToAction={() => {
-          // 現在のサイトが確定済みならその場で切替、未確定でも「戻る先」が確定済みなら復帰遷移
+        onSwitchToAction={async () => {
+          // 現在のサイトが確定済みならその場で切替、未確定でも「戻る先」が確定済みなら in-place 復元
           if (strategyConfirmed) {
             setViewOverride("action");
             window.scrollTo(0, 0);
           } else if (previousSiteId && previousSiteConfirmed) {
-            const params = [`site_id=${previousSiteId}`, "phase=action"];
-            if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
-            window.location.href = `/?${params.join("&")}`;
+            await restorePreviousSite("action");
           }
         }}
         onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
