@@ -164,19 +164,20 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               </div>
             </button>
           )}
-          {/* サブナビ */}
+          {/* サブナビ — 順序: 初めての方へ / AB3C分析とは / 料金とプラン / 更新履歴 / よくある質問 / お問い合わせ */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {[
-              { label: "初めての方へ", href: "/howto", icon: "🔰" },
-              { label: "AB3C分析とは", href: "/about", icon: "📖" },
-              { label: "料金とプラン", href: "/pricing", icon: "💰" },
-              { label: "よくある質問", href: "/faq", icon: "❓" },
-            ].map((item) => (
-              <a key={item.label} href={item.href}
-                style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-                <span style={{ marginRight: 4 }}>{item.icon}</span>{item.label}
-              </a>
-            ))}
+            <a href="/howto"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              <span style={{ marginRight: 4 }}>🔰</span>初めての方へ
+            </a>
+            <a href="/about"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              <span style={{ marginRight: 4 }}>📖</span>AB3C分析とは
+            </a>
+            <a href="/pricing"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              <span style={{ marginRight: 4 }}>💰</span>料金とプラン
+            </a>
             {onShowUpdates && (
               <button
                 onClick={onShowUpdates}
@@ -200,6 +201,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 )}
               </button>
             )}
+            <a href="/faq"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              <span style={{ marginRight: 4 }}>❓</span>よくある質問
+            </a>
             <a href="/contact"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>✉️</span>お問い合わせ
