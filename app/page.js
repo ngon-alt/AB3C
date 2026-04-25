@@ -891,6 +891,8 @@ const [siteId, setSiteId] = useState(null);
 const [previousSiteId, setPreviousSiteId] = useState(null);
 const [previousSiteUrl, setPreviousSiteUrl] = useState(null);
 const [previousSiteConfirmed, setPreviousSiteConfirmed] = useState(false);
+// ⓪を押す前のサイトデータをキャッシュ（①/②へ戻る時にDB再取得を回避）
+const [previousSiteCache, setPreviousSiteCache] = useState(null);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
 const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
@@ -1323,14 +1325,37 @@ useEffect(() => {
 
   // 「戻る先」サイトを in-place で復元（ページリロードなし）
   // ⓪ → ① / ② 遷移時にフルリロードを避けることで、②タブが一瞬グレーアウトする問題を解消
+  // previousSiteCache（⓪押下時にメモリ保存したスナップショット）があれば DB 再取得せずに即時復元
   const restorePreviousSite = async (targetPhase) => {
     if (!previousSiteId) return;
+    // 1. キャッシュ即時復元（同一セッション内の⓪→①/②往復で発火）
+    if (previousSiteCache && previousSiteCache.id === previousSiteId) {
+      const c = previousSiteCache;
+      setSiteId(c.id);
+      if (c.result) {
+        setResult(c.result);
+        setCurrentResult(c.result);
+        setHistoryTitle(c.result.strategy_message?.message || "");
+      }
+      if (c.improve) setImproveResult(c.improve);
+      if (c.visual) setVisualMock(c.visual);
+      if (c.analyzedAt) setAnalyzedAt(c.analyzedAt);
+      if (c.url) { setCurrentInput(c.url); setUrl(c.url); setTab("url"); }
+      if (c.confirmed) setStrategyConfirmed(true);
+      if (Array.isArray(c.confirmations)) setConfirmHistory(c.confirmations);
+      const urlParams = [`site_id=${c.id}`];
+      if (c.url) urlParams.push(`url=${encodeURIComponent(c.url)}`);
+      window.history.replaceState(null, "", `/?${urlParams.join("&")}`);
+      setViewOverride(targetPhase);
+      window.scrollTo(0, 0);
+      return;
+    }
+    // 2. キャッシュなし or 別セッション: DB から取得（後方互換）
     try {
       const res = await fetch("/api/sites");
       const data = await res.json();
       const site = (data.sites || []).find(s => s.id === previousSiteId);
       if (!site) {
-        // 見つからなければフォールバック: フルリロード
         const params = [`site_id=${previousSiteId}`];
         if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
         if (targetPhase === "action") params.push("phase=action");
@@ -1348,7 +1373,6 @@ useEffect(() => {
       if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
       if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
       if (site.strategy_confirmed) setStrategyConfirmed(true);
-      // 戦略確定履歴を DB→LS 同期
       try {
         const lsConfKey = "ab3c_confirmations_" + site.id;
         const dbConfs = Array.isArray(site.confirmations) ? site.confirmations : null;
@@ -1365,15 +1389,12 @@ useEffect(() => {
           }
         }
       } catch (e) {}
-      // URL を置換（履歴を増やさない）
       const urlParams = [`site_id=${site.id}`];
       if (site.site_url) urlParams.push(`url=${encodeURIComponent(site.site_url)}`);
       window.history.replaceState(null, "", `/?${urlParams.join("&")}`);
-      // フェーズ切替
       setViewOverride(targetPhase);
       window.scrollTo(0, 0);
     } catch (e) {
-      // エラー時もフォールバック: フルリロード
       const params = [`site_id=${previousSiteId}`];
       if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
       if (targetPhase === "action") params.push("phase=action");
@@ -1776,11 +1797,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         previousSiteConfirmed={previousSiteConfirmed}
         onNewAnalysis={() => {
           // 「戻る先」として現在のサイトIDと確定状態を保存（①②タブから復帰できるように）
+          // 同時に表示中の全データもキャッシュしておき、戻り遷移時に DB 再取得なしで即表示
           if (siteId) {
             setPreviousSiteId(siteId);
             setPreviousSiteConfirmed(strategyConfirmed === true);
             const urlSnapshot = currentInput?.startsWith("http") ? currentInput : (url?.startsWith("http") ? url : null);
             if (urlSnapshot) setPreviousSiteUrl(urlSnapshot);
+            setPreviousSiteCache({
+              id: siteId,
+              url: urlSnapshot,
+              confirmed: strategyConfirmed === true,
+              result: currentResult,
+              improve: improveResult,
+              visual: visualMock,
+              analyzedAt,
+              confirmations: confirmHistory,
+            });
           }
           reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
         }}
