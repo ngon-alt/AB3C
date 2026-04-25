@@ -1485,8 +1485,22 @@ useEffect(() => {
     if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 
+    // URL一致で既存サイトを先に DB から探す（クロスブラウザでの確定状態を判定するため）
+    var prefoundSite = null;
+    if (tab === "url" && url.trim()) {
+      try {
+        const sitesRes = await fetch("/api/sites");
+        const sitesData = await sitesRes.json();
+        const normalizeUrl = u => u?.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+        prefoundSite = (sitesData.sites || []).find(s => normalizeUrl(s.site_url) === normalizeUrl(url.trim())) || null;
+      } catch (e) {}
+    }
+
     // 戦略確定済みの状態で再分析しようとしている場合、警告を出す
-    if (strategyConfirmed && currentResult) {
+    // - フロント state（同一ブラウザで確定済み）または
+    // - DB上で一致した既存サイトが確定済み（別ブラウザ・初回ロード前等で state が空でも検出）
+    const dbConfirmed = !!(prefoundSite && prefoundSite.strategy_confirmed === true);
+    if ((strategyConfirmed && currentResult) || dbConfirmed) {
       const ok = confirm(
         "このサイトは戦略確定済みです。\n" +
         "再分析しても過去の確定履歴（サイドバー）は保持されますが、\n" +
@@ -1494,6 +1508,12 @@ useEffect(() => {
         "続けて再分析しますか？"
       );
       if (!ok) return;
+      // DB の strategy_confirmed=false を即時反映（別ブラウザでの不整合を防ぐ）
+      if (dbConfirmed) {
+        try {
+          await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: prefoundSite.id, strategy_confirmed: false }) });
+        } catch (e) {}
+      }
     }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
@@ -1501,19 +1521,11 @@ setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirm
 // 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
-      // URL分析時: 既存サイトがあれば自動紐付け
+      // URL分析時: 既存サイトがあれば自動紐付け（上で取得済みの prefoundSite を再利用）
       var analyzeSiteId = null;
-      if (tab === "url" && url.trim()) {
-        try {
-          const sitesRes = await fetch("/api/sites");
-          const sitesData = await sitesRes.json();
-          const normalizeUrl = u => u?.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
-          const existingSite = (sitesData.sites || []).find(s => normalizeUrl(s.site_url) === normalizeUrl(url.trim()));
-          if (existingSite) {
-            analyzeSiteId = existingSite.id;
-            setSiteId(existingSite.id);
-          }
-        } catch (e) {}
+      if (tab === "url" && url.trim() && prefoundSite) {
+        analyzeSiteId = prefoundSite.id;
+        setSiteId(prefoundSite.id);
       }
       const body = tab === "url" ? { url } : { input };
       // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
