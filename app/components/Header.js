@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 import { latestUpdateId } from "../data/updates";
@@ -20,7 +21,7 @@ const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragi
 const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
 export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
   const [activePlans, setActivePlans] = useState([]); // check-pro が返す全 active プラン
@@ -114,7 +115,12 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
-          {session ? (
+          {sessionStatus === "loading" ? (
+            // 認証状態確定前: 高さを確保して空白で表示。一瞬だけログインボタンが表示される現象を防ぐ
+            <div aria-hidden style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 36, visibility: "hidden" }}>
+              <span style={{ fontSize: 16 }}>　</span>
+            </div>
+          ) : session ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {session.user?.name}
@@ -181,21 +187,21 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               </div>
             </button>
           )}
-          {/* サブナビ — 順序: 初めての方へ / AB3C分析とは / 料金とプラン / 更新履歴 / よくある質問 / お問い合わせ */}
+          {/* サブナビ — Next.js Link でクライアント遷移し、認証状態の再フェッチを避ける */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <a href="/howto"
+            <Link href="/howto"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>🔰</span>初めての方へ
-            </a>
-            <a href="/about"
+            </Link>
+            <Link href="/about"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>📖</span>AB3C分析とは
-            </a>
-            <a href="/pricing"
+            </Link>
+            <Link href="/pricing"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>💰</span>料金とプラン
-            </a>
-            <a
+            </Link>
+            <Link
               href="/updates"
               title="更新履歴・お知らせ"
               style={{
@@ -214,15 +220,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   }}
                 />
               )}
-            </a>
-            <a href="/faq"
+            </Link>
+            <Link href="/faq"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>❓</span>よくある質問
-            </a>
-            <a href="/contact"
+            </Link>
+            <Link href="/contact"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>✉️</span>お問い合わせ
-            </a>
+            </Link>
           </div>
         </div>
       </div>
