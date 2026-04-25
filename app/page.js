@@ -476,7 +476,10 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    // block: "nearest" でチャット内コンテナだけスクロール。
+    // 既定の block: "start" だとページ全体が下にスクロールしてしまい、
+    // 戦略策定タブを開いた時に「Benefitが画面上端に来る」位置までずれていた。
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages]);
 
   useEffect(() => {
@@ -634,7 +637,8 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    // block: "nearest" でチャット内コンテナだけスクロール（ページ全体スクロールを防止）
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages]);
 
   const initialized = useRef(false);
