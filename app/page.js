@@ -467,12 +467,15 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy }) {
-  const chatKey = `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId }) {
+  // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
+  const chatKey = siteId
+    ? `ab3c_analysis_chat_${siteId}`
+    : `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState([]);
   useEffect(() => {
     try { const saved = localStorage.getItem(chatKey); if (saved) setMessages(JSON.parse(saved)); } catch (e) {}
-  }, []);
+  }, [chatKey]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -492,7 +495,11 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
 
   useEffect(() => {
     try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch (e) {}
-  }, [messages]);
+    // siteId ベースの新キーなら、親（page.js）に通知して DB 同期を起動
+    if (siteId) {
+      try { window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } })); } catch (e) {}
+    }
+  }, [messages, chatKey, siteId]);
 
   // トピックチップからの送信
   useEffect(() => {
@@ -1132,6 +1139,31 @@ const [chatSummaries, setChatSummaries] = useState([]);
     return () => window.removeEventListener("ab3c-thread-changed", onThreadChanged);
   }, [siteId, threads, themeChats, actions]);
 
+  // 戦略策定タブの分析チャットの DB 同期（debounce 1.5s）
+  const analysisChatPutTimerRef = useRef(null);
+  useEffect(() => {
+    if (!siteId) return;
+    const onAnalysisChatChanged = (e) => {
+      if (e?.detail?.siteId && e.detail.siteId !== siteId) return;
+      if (analysisChatPutTimerRef.current) clearTimeout(analysisChatPutTimerRef.current);
+      analysisChatPutTimerRef.current = setTimeout(() => {
+        try {
+          const saved = localStorage.getItem("ab3c_analysis_chat_" + siteId);
+          const msgs = saved ? JSON.parse(saved) : [];
+          if (Array.isArray(msgs)) {
+            fetch("/api/sites", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: siteId, analysis_chat: msgs }),
+            }).catch(() => {});
+          }
+        } catch (e) {}
+      }, 1500);
+    };
+    window.addEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+    return () => window.removeEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+  }, [siteId]);
+
   // アクション永続化
   useEffect(() => {
     if (strategyConfirmed) {
@@ -1281,6 +1313,32 @@ const [chatSummaries, setChatSummaries] = useState([]);
               if (hasAnyLs) {
                 fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, threads: lsThreads || [], theme_chats: lsThemeChats || {}, thread_messages: lsThreadMessages, actions: lsActions || [] }) }).catch(function() {});
               }
+            }
+            // 戦略策定タブの進行中チャットの復元（action data とは独立に処理）
+            const dbAnalysisChat = Array.isArray(site.analysis_chat) ? site.analysis_chat : null;
+            if (dbAnalysisChat && dbAnalysisChat.length > 0) {
+              try { localStorage.setItem("ab3c_analysis_chat_" + site.id, JSON.stringify(dbAnalysisChat)); } catch (e) {}
+            } else {
+              // DB が空 → LS の siteId ベース or 旧ハッシュベースのチャットを DB へマイグレーション
+              try {
+                const lsNewKey = "ab3c_analysis_chat_" + site.id;
+                let lsMsgs = null;
+                const lsNewVal = localStorage.getItem(lsNewKey);
+                if (lsNewVal) lsMsgs = JSON.parse(lsNewVal);
+                if (!lsMsgs && site.latest_analysis) {
+                  // 旧キー（分析結果ハッシュベース）からの救済
+                  const oldKey = "ab3c_chat_" + JSON.stringify(site.latest_analysis).slice(0, 50);
+                  const oldVal = localStorage.getItem(oldKey);
+                  if (oldVal) {
+                    lsMsgs = JSON.parse(oldVal);
+                    // 新キーにもコピーしておく
+                    try { localStorage.setItem(lsNewKey, JSON.stringify(lsMsgs)); } catch (e) {}
+                  }
+                }
+                if (Array.isArray(lsMsgs) && lsMsgs.length > 0) {
+                  fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, analysis_chat: lsMsgs }) }).catch(function() {});
+                }
+              } catch (e) {}
             }
           } catch (e) {}
           if (site.latest_analysis) {
@@ -1581,9 +1639,19 @@ useEffect(() => {
     if (targetSiteId) {
       try {
         // 確定スナップショットを先に組み立て（DBとLSに同じデータを保存）
-        var chatKey2 = "ab3c_chat_" + (currentResult ? JSON.stringify(currentResult).slice(0, 50) : "default");
+        // チャットメッセージは siteId ベースの新キー優先、旧ハッシュベースキーをフォールバック
         var chatMsgs = [];
-        try { var cm = localStorage.getItem(chatKey2); if (cm) chatMsgs = JSON.parse(cm); } catch (e) {}
+        try {
+          if (targetSiteId) {
+            var newCm = localStorage.getItem("ab3c_analysis_chat_" + targetSiteId);
+            if (newCm) chatMsgs = JSON.parse(newCm);
+          }
+          if (chatMsgs.length === 0) {
+            var oldChatKey = "ab3c_chat_" + (currentResult ? JSON.stringify(currentResult).slice(0, 50) : "default");
+            var oldCm = localStorage.getItem(oldChatKey);
+            if (oldCm) chatMsgs = JSON.parse(oldCm);
+          }
+        } catch (e) {}
         var snapshot = {
           id: Date.now(),
           date: new Date().toLocaleString("ja-JP"),
@@ -2607,6 +2675,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   <AnalysisChatPanel
                     isPro={isPro || chatTickets > 0}
                     analysisResult={currentResult}
+                    siteId={siteId}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
                       try {

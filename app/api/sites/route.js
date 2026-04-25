@@ -38,6 +38,8 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS theme_chats JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS thread_messages JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS actions JSONB`;
+    // 戦略策定タブの進行中チャット（確定前の議論）の永続化
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_chat JSONB`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -218,7 +220,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -245,6 +247,8 @@ export async function PUT(req) {
     const themeChatsJson = (theme_chats && typeof theme_chats === "object") ? JSON.stringify(theme_chats) : null;
     const threadMessagesJson = (thread_messages && typeof thread_messages === "object") ? JSON.stringify(thread_messages) : null;
     const actionsJson = Array.isArray(actions) ? JSON.stringify(actions) : null;
+    // 戦略策定タブの進行中チャット
+    const analysisChatJson = Array.isArray(analysis_chat) ? JSON.stringify(analysis_chat) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
     const siteUrlVal = site_url !== undefined ? site_url : null;
@@ -272,6 +276,7 @@ export async function PUT(req) {
         theme_chats = CASE WHEN ${themeChatsJson}::text IS NOT NULL THEN (${themeChatsJson}::jsonb) ELSE theme_chats END,
         thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL THEN (${threadMessagesJson}::jsonb) ELSE thread_messages END,
         actions = CASE WHEN ${actionsJson}::text IS NOT NULL THEN (${actionsJson}::jsonb) ELSE actions END,
+        analysis_chat = CASE WHEN ${analysisChatJson}::text IS NOT NULL THEN (${analysisChatJson}::jsonb) ELSE analysis_chat END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *
