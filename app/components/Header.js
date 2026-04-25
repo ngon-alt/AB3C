@@ -18,7 +18,7 @@ const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragi
 
 const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -249,15 +249,27 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         })()}
         <span style={{ color: "#bbb", fontSize: 14, padding: "0 2px" }}>→</span>
 
-        {/* ② 戦略アクション */}
+        {/* ② 戦略アクション — 現在確定済み or 「前のサイト」が確定済みなら enabled */}
         {(() => {
           const active = phase === "action";
-          const enabled = strategyConfirmed;
+          const enabled = strategyConfirmed || (!!previousSiteId && !!previousSiteConfirmed);
           return (
             <span style={{ position: "relative", display: "inline-flex" }}
               onMouseEnter={e => { if (!active) { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "block"; } }}
               onMouseLeave={e => { const tip = e.currentTarget.querySelector(".nav-tip"); if (tip) tip.style.display = "none"; }}>
-              <button onClick={() => { if (!enabled) return; if (onSwitchToAction) onSwitchToAction(); else window.location.href = "/?phase=action"; }}
+              <button onClick={() => {
+                if (!enabled) return;
+                if (onSwitchToAction) { onSwitchToAction(); }
+                else {
+                  // フォールバック: 直接URL遷移（currentSiteId → previousSiteId の順で拾う）
+                  const sid = currentSiteId || previousSiteId;
+                  const surl = currentSiteUrl || previousSiteUrl;
+                  const params = ["phase=action"];
+                  if (sid) params.push(`site_id=${sid}`);
+                  if (surl) params.push(`url=${encodeURIComponent(surl)}`);
+                  window.location.href = `/?${params.join("&")}`;
+                }
+              }}
                 style={{
                   padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
                   background: active ? C.phase2 : enabled ? "#fde4cc" : "#f0f0ec",

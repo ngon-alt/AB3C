@@ -886,6 +886,7 @@ const [siteId, setSiteId] = useState(null);
 // ⓪新規戦略診断クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
 const [previousSiteId, setPreviousSiteId] = useState(null);
 const [previousSiteUrl, setPreviousSiteUrl] = useState(null);
+const [previousSiteConfirmed, setPreviousSiteConfirmed] = useState(false);
 const [strategyConfirmed, setStrategyConfirmed] = useState(false);
 const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
@@ -1708,10 +1709,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0)}
         previousSiteId={previousSiteId}
         previousSiteUrl={previousSiteUrl}
+        previousSiteConfirmed={previousSiteConfirmed}
         onNewAnalysis={() => {
-          // 「戻る先」として現在のサイトIDを保存（①戦略策定タブから復帰できるように）
+          // 「戻る先」として現在のサイトIDと確定状態を保存（①②タブから復帰できるように）
           if (siteId) {
             setPreviousSiteId(siteId);
+            setPreviousSiteConfirmed(strategyConfirmed === true);
             const urlSnapshot = currentInput?.startsWith("http") ? currentInput : (url?.startsWith("http") ? url : null);
             if (urlSnapshot) setPreviousSiteUrl(urlSnapshot);
           }
@@ -1728,7 +1731,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             window.location.href = `/?${params.join("&")}`;
           }
         }}
-        onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride("action"); window.scrollTo(0, 0); } }}
+        onSwitchToAction={() => {
+          // 現在のサイトが確定済みならその場で切替、未確定でも「戻る先」が確定済みなら復帰遷移
+          if (strategyConfirmed) {
+            setViewOverride("action");
+            window.scrollTo(0, 0);
+          } else if (previousSiteId && previousSiteConfirmed) {
+            const params = [`site_id=${previousSiteId}`, "phase=action"];
+            if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
+            window.location.href = `/?${params.join("&")}`;
+          }
+        }}
         onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
 
