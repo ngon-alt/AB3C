@@ -171,7 +171,6 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               { label: "AB3C分析とは", href: "/about", icon: "📖" },
               { label: "料金とプラン", href: "/pricing", icon: "💰" },
               { label: "よくある質問", href: "/faq", icon: "❓" },
-              { label: "お問い合わせ", href: "/contact", icon: "✉️" },
             ].map((item) => (
               <a key={item.label} href={item.href}
                 style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
@@ -201,6 +200,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 )}
               </button>
             )}
+            <a href="/contact"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              <span style={{ marginRight: 4 }}>✉️</span>お問い合わせ
+            </a>
           </div>
         </div>
       </div>
