@@ -997,6 +997,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
   }, [phase]);
 
   const DEFAULT_THREADS = [
+    // 日常の壁打ち（ChatGPT/Claude 代替の万能チャット）
+    { id: "general", label: "AI秘書", icon: "💼", preset: true },
     // 集客系
     { id: "seo", label: "SEO対策", icon: "🔍", preset: true },
     { id: "sns", label: "SNS運用", icon: "📱", preset: true },
@@ -1010,6 +1012,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
     { id: "sales", label: "営業資料・提案書", icon: "💼", preset: true },
   ];
+  // 既存ユーザー向けマイグレーション: 保存済み threads に "general" がなければ先頭に追加
+  const ensureGeneralTheme = (loadedThreads) => {
+    if (!Array.isArray(loadedThreads) || loadedThreads.length === 0) return loadedThreads;
+    if (loadedThreads.some(t => t && t.id === "general")) return loadedThreads;
+    return [{ id: "general", label: "AI秘書", icon: "💼", preset: true }, ...loadedThreads];
+  };
 
   // スレッド初期化（戦略確定時）
   useEffect(() => {
@@ -1018,7 +1026,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       try {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
-          setThreads(JSON.parse(saved));
+          setThreads(ensureGeneralTheme(JSON.parse(saved)));
         } else {
           setThreads(DEFAULT_THREADS);
         }
@@ -1235,8 +1243,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
             const hasAnyDbActionData = (dbThreads && dbThreads.length > 0) || (dbThemeChats && Object.keys(dbThemeChats).length > 0) || (dbThreadMessages && Object.keys(dbThreadMessages).length > 0) || (dbActions && dbActions.length > 0);
             if (hasAnyDbActionData) {
               if (dbThreads) {
-                setThreads(dbThreads);
-                try { localStorage.setItem("ab3c_threads_" + site.id, JSON.stringify(dbThreads)); } catch (e) {}
+                const migratedThreads = ensureGeneralTheme(dbThreads);
+                setThreads(migratedThreads);
+                try { localStorage.setItem("ab3c_threads_" + site.id, JSON.stringify(migratedThreads)); } catch (e) {}
               }
               if (dbThemeChats) {
                 setThemeChats(dbThemeChats);
@@ -1474,7 +1483,7 @@ useEffect(() => {
       if (c.url) { setCurrentInput(c.url); setUrl(c.url); setTab("url"); }
       if (c.confirmed) setStrategyConfirmed(true);
       if (Array.isArray(c.confirmations)) setConfirmHistory(c.confirmations);
-      if (Array.isArray(c.threads)) setThreads(c.threads);
+      if (Array.isArray(c.threads)) setThreads(ensureGeneralTheme(c.threads));
       if (c.themeChats && typeof c.themeChats === "object") setThemeChats(c.themeChats);
       if (Array.isArray(c.actions)) setActions(c.actions);
       const urlParams = [`site_id=${c.id}`];
