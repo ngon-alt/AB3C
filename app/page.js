@@ -900,8 +900,10 @@ const [chatExpanded, setChatExpanded] = useState(false);
 const [chatSummaries, setChatSummaries] = useState([]);
   
   // フェーズ導出（viewOverrideで表示タブを切り替え、strategyConfirmedは変更しない）
+  // 確定済みサイトを開いた場合も既定は「戦略策定」（analysis）。
+  // 確定直後の自動遷移は confirmStrategy() で setViewOverride("action") を明示する。
   const [viewOverride, setViewOverride] = useState(null);
-  const derivedPhase = !currentResult ? "input" : strategyConfirmed ? "action" : "analysis";
+  const derivedPhase = !currentResult ? "input" : "analysis";
   const phase = viewOverride || derivedPhase;
 
   const [headerHeight, setHeaderHeight] = useState(120);
@@ -1210,10 +1212,10 @@ const [chatSummaries, setChatSummaries] = useState([]);
       var chData = localStorage.getItem(chKey);
       if (chData) setConfirmHistory(JSON.parse(chData));
     } catch (e) {}
-    // URLパラメータからphaseを読み取り
+    // URLパラメータからphaseを読み取り（?phase=action なら戦略アクションタブへ明示遷移）
     const phaseParam = params.get("phase");
     if (phaseParam === "action") {
-      setTimeout(() => setViewOverride(null), 500);
+      setTimeout(() => setViewOverride("action"), 500);
     }
     // ブラウザの戻る/進むでURLパラメータが変わった時にリロード
     const handlePopState = () => window.location.reload();
@@ -1369,6 +1371,9 @@ useEffect(() => {
         // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
         await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
         setStrategyConfirmed(true);
+        // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
+        setViewOverride("action");
+        window.scrollTo(0, 0);
         // LS にも保存（DBのキャッシュとして）
         try {
           localStorage.setItem(chKey2, JSON.stringify(existing2));
@@ -1723,8 +1728,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             window.location.href = `/?${params.join("&")}`;
           }
         }}
-        onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride(null); window.scrollTo(0, 0); } }}
-        onConfirmStrategy={currentResult && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+        onSwitchToAction={() => { if (strategyConfirmed) { setViewOverride("action"); window.scrollTo(0, 0); } }}
+        onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
       />
 
 
@@ -2368,7 +2373,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    onConfirmStrategy={!isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+                    onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
                   />
                 </div>
                 ) : (
