@@ -649,6 +649,8 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
       try { localStorage.setItem(`ab3c_thread_${threadSiteId || "default"}_${threadId}`, JSON.stringify(messages)); } catch (e) {}
+      // 親（page.js）に通知して DB 同期を起動
+      try { window.dispatchEvent(new CustomEvent("ab3c-thread-changed", { detail: { siteId: threadSiteId, threadId } })); } catch (e) {}
     }
   }, [messages, threadId]);
 
@@ -1064,13 +1066,63 @@ const [chatSummaries, setChatSummaries] = useState([]);
     setActiveChatId(newChat.id);
   };
 
-  // スレッド永続化
+  // スレッド永続化（LS）
   useEffect(() => {
     if (threads.length > 0) {
       const storageKey = `ab3c_threads_${siteId || "default"}`;
       try { localStorage.setItem(storageKey, JSON.stringify(threads)); } catch (e) {}
     }
   }, [threads]);
+
+  // 戦略アクションフェーズの DB 同期（debounce 1.5s）
+  // threads/themeChats/actions/各threadのmessagesをまとめて PUT
+  const actionDataPutTimerRef = useRef(null);
+  const queueActionDataPut = () => {
+    if (!siteId) return;
+    if (actionDataPutTimerRef.current) clearTimeout(actionDataPutTimerRef.current);
+    actionDataPutTimerRef.current = setTimeout(() => {
+      // themeChats を辿って各 chatId のメッセージを LS から収集
+      const tm = {};
+      try {
+        Object.values(themeChats || {}).forEach((chats) => {
+          if (Array.isArray(chats)) chats.forEach((c) => {
+            try {
+              const saved = localStorage.getItem("ab3c_thread_" + siteId + "_" + c.id);
+              if (saved) tm[c.id] = JSON.parse(saved);
+            } catch (e) {}
+          });
+        });
+      } catch (e) {}
+      fetch("/api/sites", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: siteId,
+          threads,
+          theme_chats: themeChats,
+          thread_messages: tm,
+          actions,
+        }),
+      }).catch(() => {});
+    }, 1500);
+  };
+
+  // threads / themeChats / actions のいずれかが変わったら DB 同期をキュー
+  useEffect(() => {
+    if (!strategyConfirmed || !siteId) return;
+    queueActionDataPut();
+  }, [threads, themeChats, actions]);
+
+  // ThreadChat からのメッセージ更新通知でも DB 同期
+  useEffect(() => {
+    if (!siteId) return;
+    const onThreadChanged = (e) => {
+      if (e?.detail?.siteId && e.detail.siteId !== siteId) return;
+      queueActionDataPut();
+    };
+    window.addEventListener("ab3c-thread-changed", onThreadChanged);
+    return () => window.removeEventListener("ab3c-thread-changed", onThreadChanged);
+  }, [siteId, threads, themeChats, actions]);
 
   // アクション永続化
   useEffect(() => {
@@ -1170,6 +1222,55 @@ const [chatSummaries, setChatSummaries] = useState([]);
                     fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, confirmations: lsParsed }) }).catch(function() {});
                   }
                 } catch (e) {}
+              }
+            }
+          } catch (e) {}
+          // 戦略アクションフェーズのデータ復元（DB→state＋LS）
+          // DB が空で LS にデータあり → 自動マイグレーション push
+          try {
+            const dbThreads = Array.isArray(site.threads) ? site.threads : null;
+            const dbThemeChats = (site.theme_chats && typeof site.theme_chats === "object") ? site.theme_chats : null;
+            const dbThreadMessages = (site.thread_messages && typeof site.thread_messages === "object") ? site.thread_messages : null;
+            const dbActions = Array.isArray(site.actions) ? site.actions : null;
+            const hasAnyDbActionData = (dbThreads && dbThreads.length > 0) || (dbThemeChats && Object.keys(dbThemeChats).length > 0) || (dbThreadMessages && Object.keys(dbThreadMessages).length > 0) || (dbActions && dbActions.length > 0);
+            if (hasAnyDbActionData) {
+              if (dbThreads) {
+                setThreads(dbThreads);
+                try { localStorage.setItem("ab3c_threads_" + site.id, JSON.stringify(dbThreads)); } catch (e) {}
+              }
+              if (dbThemeChats) {
+                setThemeChats(dbThemeChats);
+                try { localStorage.setItem("ab3c_theme_chats_" + site.id, JSON.stringify(dbThemeChats)); } catch (e) {}
+              }
+              if (dbActions) {
+                setActions(dbActions);
+                try { localStorage.setItem("ab3c_actions_" + site.id, JSON.stringify(dbActions)); } catch (e) {}
+              }
+              if (dbThreadMessages) {
+                Object.entries(dbThreadMessages).forEach(([chatId, msgs]) => {
+                  try { localStorage.setItem("ab3c_thread_" + site.id + "_" + chatId, JSON.stringify(msgs)); } catch (e) {}
+                });
+              }
+            } else {
+              // DB が空 → LS にデータがあればマイグレーション push
+              const lsThreads = (() => { try { const v = localStorage.getItem("ab3c_threads_" + site.id); return v ? JSON.parse(v) : null; } catch (e) { return null; } })();
+              const lsThemeChats = (() => { try { const v = localStorage.getItem("ab3c_theme_chats_" + site.id); return v ? JSON.parse(v) : null; } catch (e) { return null; } })();
+              const lsActions = (() => { try { const v = localStorage.getItem("ab3c_actions_" + site.id); return v ? JSON.parse(v) : null; } catch (e) { return null; } })();
+              // thread_messages: スレッドIDが分からないので themeChats から導出
+              const lsThreadMessages = {};
+              if (lsThemeChats && typeof lsThemeChats === "object") {
+                Object.values(lsThemeChats).forEach((chats) => {
+                  if (Array.isArray(chats)) chats.forEach((c) => {
+                    try {
+                      const v = localStorage.getItem("ab3c_thread_" + site.id + "_" + c.id);
+                      if (v) lsThreadMessages[c.id] = JSON.parse(v);
+                    } catch (e) {}
+                  });
+                });
+              }
+              const hasAnyLs = (lsThreads && lsThreads.length > 0) || (lsThemeChats && Object.keys(lsThemeChats).length > 0) || Object.keys(lsThreadMessages).length > 0 || (lsActions && lsActions.length > 0);
+              if (hasAnyLs) {
+                fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, threads: lsThreads || [], theme_chats: lsThemeChats || {}, thread_messages: lsThreadMessages, actions: lsActions || [] }) }).catch(function() {});
               }
             }
           } catch (e) {}
@@ -1373,6 +1474,9 @@ useEffect(() => {
       if (c.url) { setCurrentInput(c.url); setUrl(c.url); setTab("url"); }
       if (c.confirmed) setStrategyConfirmed(true);
       if (Array.isArray(c.confirmations)) setConfirmHistory(c.confirmations);
+      if (Array.isArray(c.threads)) setThreads(c.threads);
+      if (c.themeChats && typeof c.themeChats === "object") setThemeChats(c.themeChats);
+      if (Array.isArray(c.actions)) setActions(c.actions);
       const urlParams = [`site_id=${c.id}`];
       if (c.url) urlParams.push(`url=${encodeURIComponent(c.url)}`);
       window.history.replaceState(null, "", `/?${urlParams.join("&")}`);
@@ -1843,6 +1947,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               visual: visualMock,
               analyzedAt,
               confirmations: confirmHistory,
+              threads,
+              themeChats,
+              actions,
             });
           }
           reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);

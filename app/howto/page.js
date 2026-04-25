@@ -275,27 +275,27 @@ export default function HowtoPage() {
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "16px 20px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✅ 保存される情報</div>
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
-                <li>分析結果 — データベースに保存されます</li>
-                <li>戦略確定履歴 — データベースに保存されます（別ブラウザ・別デバイスからも参照できます）</li>
+                <li>分析結果・改善レポート — データベースに保存されます</li>
+                <li>戦略確定履歴 — データベースに保存されます</li>
+                <li>戦略アクションのチャット履歴・施策・アクションリスト — データベースに保存されます</li>
                 <li>サイト管理のサイト一覧 — データベースに保存されます</li>
-                <li>戦略アクションのチャット履歴 — ご利用中のブラウザに保存されます</li>
               </ul>
+              <div style={{ fontSize: 14, color: C.muted, marginTop: 10, lineHeight: 1.7 }}>
+                同じアカウントでログインしていれば、別のブラウザ・別のデバイスからでも続きから利用できます。
+              </div>
             </div>
             <div style={{ background: "#fdf0ef", border: "1px solid #f5c6cb", borderRadius: 8, padding: "16px 20px" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.red, marginBottom: 8 }}>⚠️ データが消える可能性があるケース</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.red, marginBottom: 8 }}>⚠️ データが消えるケース</div>
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
-                <li><b>ブラウザのキャッシュ・データを消去した場合</b> — 戦略アクションのチャット履歴が消えます（分析結果・戦略確定履歴はデータベースに保存されているため残ります）</li>
-                <li><b>別のブラウザやデバイスでアクセスした場合</b> — 戦略アクションのチャット履歴は引き継がれません（分析結果・戦略確定履歴は表示されます）</li>
-                <li><b>シークレットウィンドウで利用した場合</b> — ウィンドウを閉じるとそのブラウザに保存していた情報が消えます</li>
-                <li><b>サイト管理でサイトを削除した場合</b> — そのサイトに関するすべての情報が削除されます</li>
+                <li><b>サイト管理でサイトを削除した場合</b> — そのサイトに関するすべての情報（分析結果・確定履歴・チャット履歴・アクション）が削除されます</li>
+                <li><b>サイト切替直後など、保存処理が完了する前にブラウザを閉じた場合</b> — 直近数秒の入力分が失われる可能性があります</li>
               </ul>
             </div>
             <div style={{ background: "#d4edda", border: "1px solid #c3e6cb", borderRadius: 8, padding: "16px 20px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 8 }}>💡 推奨事項</div>
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
                 <li>重要な分析結果は「シェアURL発行」や「印刷・PDF保存」で持ち帰っておくと安心です</li>
-                <li>戦略が固まったら「戦略を確定」を押して、データベースに保存してください</li>
-                <li>戦略アクションでの議論は、長文になったら都度コピーして手元に残しておくと万全です</li>
+                <li>戦略が固まったら「戦略を確定」を押して、確定スナップショットを残しておきましょう</li>
               </ul>
             </div>
           </div>

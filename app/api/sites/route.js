@@ -33,6 +33,11 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mock JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMPTZ`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS confirmations JSONB`;
+    // 戦略アクションフェーズのデータ永続化用（別ブラウザでも履歴を引き継げるように）
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS threads JSONB`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS theme_chats JSONB`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS thread_messages JSONB`;
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS actions JSONB`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -213,7 +218,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -235,6 +240,11 @@ export async function PUT(req) {
     const chatJson = chat_history ? JSON.stringify(chat_history) : null;
     // confirmations は空配列[] もユーザー意図（解除後の状態保存等）なので許容する
     const confirmationsJson = Array.isArray(confirmations) ? JSON.stringify(confirmations) : null;
+    // 戦略アクションフェーズのデータ。null は「未指定」、空配列・空オブジェクトは「クリアの意図」として保存
+    const threadsJson = Array.isArray(threads) ? JSON.stringify(threads) : null;
+    const themeChatsJson = (theme_chats && typeof theme_chats === "object") ? JSON.stringify(theme_chats) : null;
+    const threadMessagesJson = (thread_messages && typeof thread_messages === "object") ? JSON.stringify(thread_messages) : null;
+    const actionsJson = Array.isArray(actions) ? JSON.stringify(actions) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
 
     const siteUrlVal = site_url !== undefined ? site_url : null;
@@ -258,6 +268,10 @@ export async function PUT(req) {
         strategy_confirmed_at = CASE WHEN ${confirmed}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
         chat_history = CASE WHEN ${chatJson}::text IS NOT NULL THEN (${chatJson}::jsonb) ELSE chat_history END,
         confirmations = CASE WHEN ${confirmationsJson}::text IS NOT NULL THEN (${confirmationsJson}::jsonb) ELSE confirmations END,
+        threads = CASE WHEN ${threadsJson}::text IS NOT NULL THEN (${threadsJson}::jsonb) ELSE threads END,
+        theme_chats = CASE WHEN ${themeChatsJson}::text IS NOT NULL THEN (${themeChatsJson}::jsonb) ELSE theme_chats END,
+        thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL THEN (${threadMessagesJson}::jsonb) ELSE thread_messages END,
+        actions = CASE WHEN ${actionsJson}::text IS NOT NULL THEN (${actionsJson}::jsonb) ELSE actions END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *
