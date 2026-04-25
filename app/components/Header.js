@@ -22,9 +22,20 @@ const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
 export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session, status: sessionStatus } = useSession();
-  const [isPro, setIsPro] = useState(false);
-  const [chatTickets, setChatTickets] = useState(0);
-  const [activePlans, setActivePlans] = useState([]); // check-pro が返す全 active プラン
+  // sessionStorage キャッシュから初期化（ページ遷移後の「無料→指南15」のチラつき防止）
+  const readPlanCache = () => {
+    if (typeof window === "undefined") return null;
+    try {
+      const cached = sessionStorage.getItem("ab3c_check_pro");
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return null;
+  };
+  const cached = typeof window !== "undefined" ? readPlanCache() : null;
+  const [isPro, setIsPro] = useState(cached?.isPro || false);
+  const [chatTickets, setChatTickets] = useState(cached?.chatTickets || 0);
+  const [activePlans, setActivePlans] = useState(Array.isArray(cached?.activePlans) ? cached.activePlans : []); // check-pro が返す全 active プラン
+  const [planLoaded, setPlanLoaded] = useState(!!cached); // プラン情報読込完了フラグ
   const [activePlanId, setActivePlanId] = useState(null); // localStorage で選択中のプラン ID
   const [currentPath, setCurrentPath] = useState("/");
   const [sites, setSites] = useState([]);
@@ -58,11 +69,21 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
       fetch("/api/check-pro")
         .then((r) => r.json())
         .then((d) => {
-          setIsPro(d.isPro);
-          setChatTickets(d.chatTickets || 0);
-          setActivePlans(Array.isArray(d.activePlans) ? d.activePlans : []);
+          const isProV = !!d.isPro;
+          const chatTicketsV = d.chatTickets || 0;
+          const activePlansV = Array.isArray(d.activePlans) ? d.activePlans : [];
+          setIsPro(isProV);
+          setChatTickets(chatTicketsV);
+          setActivePlans(activePlansV);
+          setPlanLoaded(true);
+          // sessionStorage にキャッシュ（次のページ遷移で同期復元される）
+          try {
+            sessionStorage.setItem("ab3c_check_pro", JSON.stringify({
+              isPro: isProV, chatTickets: chatTicketsV, activePlans: activePlansV,
+            }));
+          } catch (e) {}
         })
-        .catch(() => { setIsPro(false); setChatTickets(0); });
+        .catch(() => { setIsPro(false); setChatTickets(0); setPlanLoaded(true); });
       fetch("/api/sites")
         .then((r) => r.json())
         .then((d) => setSites(d.sites || []))
@@ -124,10 +145,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
                 {session.user?.name}
-                {planLabel && !hasMultiplePlans && (
+                {planLoaded && planLabel && !hasMultiplePlans && (
                   <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>
                 )}
-                {planLabel && hasMultiplePlans && (
+                {planLoaded && planLabel && hasMultiplePlans && (
                   <span style={{ position: "relative" }}>
                     <button
                       onClick={() => setShowPlanDropdown(!showPlanDropdown)}
@@ -160,15 +181,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                     )}
                   </span>
                 )}
-                {isPro && !planLabel && <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
-                {!planLabel && !isPro && <span style={{ background: "#fff", color: C.ink, fontSize: 14, padding: "2px 8px", borderRadius: 3, border: `1px solid ${C.border}`, fontFamily: "'Space Mono', monospace" }}>無料</span>}
-                {nextRenewalAt && (
+                {planLoaded && isPro && !planLabel && <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
+                {planLoaded && !planLabel && !isPro && <span style={{ background: "#fff", color: C.ink, fontSize: 14, padding: "2px 8px", borderRadius: 3, border: `1px solid ${C.border}`, fontFamily: "'Space Mono', monospace" }}>無料</span>}
+                {planLoaded && nextRenewalAt && (
                   <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>
                     {planType === "support" ? "次回更新" : "有効期限"}: {new Date(nextRenewalAt).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
                   </span>
                 )}
               </span>
-              <button onClick={() => signOut()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
+              <button onClick={() => { try { sessionStorage.removeItem("ab3c_check_pro"); } catch (e) {} signOut(); }} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
                 ログアウト
               </button>
             </div>
