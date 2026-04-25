@@ -2,6 +2,7 @@
 
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
+import { latestUpdateId } from "../data/updates";
 
 const C = {
   bg: "#ebebeb",
@@ -18,7 +19,7 @@ const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragi
 
 const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
-export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction, onShowUpdates, hasUnseenUpdate }) {
+export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session } = useSession();
   const [isPro, setIsPro] = useState(false);
   const [chatTickets, setChatTickets] = useState(0);
@@ -28,6 +29,22 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [sites, setSites] = useState([]);
   const [showSiteDropdown, setShowSiteDropdown] = useState(false);
   const [showPlanDropdown, setShowPlanDropdown] = useState(false);
+  const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
+
+  // 更新履歴の未読チェック（ヘッダーは全ページで描画されるため、ここで判定）
+  useEffect(() => {
+    if (!latestUpdateId) return;
+    const recheck = () => {
+      try {
+        const seen = localStorage.getItem("ab3c_last_seen_update_id");
+        setHasUnseenUpdate(seen !== latestUpdateId);
+      } catch (e) {}
+    };
+    recheck();
+    // モーダルや /updates ページ訪問で既読化された時にバッジを即時消す
+    window.addEventListener("ab3c-updates-seen", recheck);
+    return () => window.removeEventListener("ab3c-updates-seen", recheck);
+  }, []);
 
   useEffect(() => {
     setCurrentPath(window.location.pathname + window.location.search);
@@ -178,29 +195,26 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>💰</span>料金とプラン
             </a>
-            {onShowUpdates && (
-              <button
-                onClick={onShowUpdates}
-                title="更新履歴・お知らせ"
-                style={{
-                  position: "relative",
-                  background: "transparent", border: "none", padding: 0, cursor: "pointer",
-                  fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap",
-                }}
-              >
-                <span style={{ marginRight: 4 }}>📢</span>更新履歴
-                {hasUnseenUpdate && (
-                  <span
-                    aria-label="新着あり"
-                    style={{
-                      position: "absolute", top: -4, right: -8,
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: "#ea580c", border: "2px solid #fff",
-                    }}
-                  />
-                )}
-              </button>
-            )}
+            <a
+              href="/updates"
+              title="更新履歴・お知らせ"
+              style={{
+                position: "relative",
+                fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ marginRight: 4 }}>📢</span>更新履歴
+              {hasUnseenUpdate && (
+                <span
+                  aria-label="新着あり"
+                  style={{
+                    position: "absolute", top: -4, right: -8,
+                    width: 10, height: 10, borderRadius: "50%",
+                    background: "#ea580c", border: "2px solid #fff",
+                  }}
+                />
+              )}
+            </a>
             <a href="/faq"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               <span style={{ marginRight: 4 }}>❓</span>よくある質問

@@ -1265,6 +1265,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
     setHasUnseenUpdate(false);
     try {
       if (latestUpdateId) localStorage.setItem("ab3c_last_seen_update_id", latestUpdateId);
+      // ヘッダーの赤丸バッジを即時消すためイベント発火
+      window.dispatchEvent(new Event("ab3c-updates-seen"));
     } catch (e) {}
   };
 
@@ -1864,8 +1866,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           }
         }}
         onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
-        onShowUpdates={() => setShowUpdates(true)}
-        hasUnseenUpdate={hasUnseenUpdate}
       />
 
 
