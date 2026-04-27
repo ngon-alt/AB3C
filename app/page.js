@@ -473,12 +473,30 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     ? `ab3c_analysis_chat_${siteId}`
     : `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState([]);
-  useEffect(() => {
-    try { const saved = localStorage.getItem(chatKey); if (saved) setMessages(JSON.parse(saved)); } catch (e) {}
-  }, [chatKey]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  // 初期ロード完了を追跡: 初回 save 効果が空配列で LS を上書きするのを防ぐ
+  const loadKeyRef = useRef(null);
+
+  // ロード + 初期メッセージ生成（chatKey が変わったら再実行）
+  useEffect(() => {
+    loadKeyRef.current = null; // ロード進行中マーク
+    let restored = false;
+    try {
+      const saved = localStorage.getItem(chatKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+          restored = true;
+        }
+      }
+    } catch (e) {}
+    if (!restored) {
+      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
+    }
+  }, [chatKey]);
 
   useEffect(() => {
     // block: "nearest" でチャット内コンテナだけスクロール。
@@ -488,12 +506,12 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   }, [messages]);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{ role: "assistant", content: "より詳細な説明が欲しい、分析内容に意見がある、変更したい、という場合は声をかけてください。\n\n説明が欲しい場合は、分析結果の項目タイトル横にある [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
+    // ロード直後の最初の save 効果は LS を空配列で上書きしてしまう恐れがあるため、
+    // chatKey ごとに 1 回スキップ（ロードによる setMessages が次レンダーで反映されるまで待つ）
+    if (loadKeyRef.current !== chatKey) {
+      loadKeyRef.current = chatKey;
+      return;
     }
-  }, []);
-
-  useEffect(() => {
     try { localStorage.setItem(chatKey, JSON.stringify(messages)); } catch (e) {}
     // siteId ベースの新キーなら、親（page.js）に通知して DB 同期を起動
     if (siteId) {
