@@ -1747,6 +1747,16 @@ useEffect(() => {
       setResult(merged);
       setAnalyzedAt(Date.now());
       setHistoryTitle(merged?.strategy_message?.message || "");
+      // 絞り込み再分析の結果を DB に保存（リロードで消えないように）
+      if (siteId) {
+        try {
+          await fetch("/api/sites", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: siteId, latest_analysis: merged, analyzed_at: Date.now() }),
+          });
+        } catch (e) { console.error("refine DB save error:", e); }
+      }
     } catch (e) {
       alert("再分析に失敗しました: " + (e?.message || e));
     } finally {
@@ -2688,10 +2698,19 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       } catch (e) { console.error("diff error:", e); }
                       setResult(newResult);
                       setCurrentResult(newResult);
+                      setAnalyzedAt(Date.now());
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
+                      // チャット会話内容を反映した再分析結果を DB に保存（リロードで消えないように）
+                      if (siteId) {
+                        fetch("/api/sites", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ id: siteId, latest_analysis: newResult, analyzed_at: Date.now() }),
+                        }).catch(function() {});
+                      }
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
