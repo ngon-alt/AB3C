@@ -586,7 +586,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.phase1Bg }}>
         <div style={{ textAlign: "center", color: C.muted, fontSize: 16, lineHeight: 1.8, fontFamily: "system-ui, sans-serif" }}>
-          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: C.ink }}>分析チャットを利用するにはログインが必要です</div>
+          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 12, color: C.ink }}>戦略策定チャットを利用するにはログインが必要です</div>
           <div>Googleアカウントでログインすると、分析結果をもとにAIと相談できます。</div>
         </div>
       </div>
@@ -1157,7 +1157,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     return () => window.removeEventListener("ab3c-thread-changed", onThreadChanged);
   }, [siteId, threads, themeChats, actions]);
 
-  // 戦略策定タブの分析チャットの DB 同期（debounce 1.5s）
+  // 戦略策定チャットの DB 同期（debounce 1.5s）
   const analysisChatPutTimerRef = useRef(null);
   useEffect(() => {
     if (!siteId) return;
@@ -2573,7 +2573,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 </div>
 
 
-{/* 分析チャットは右カラムに配置 */}
+{/* 戦略策定チャットは右カラムに配置 */}
 
 {/* 伴走フェーズのコンテンツは分析結果ブロックの外に移動済み */}
             </div>
@@ -2635,7 +2635,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <button
             onClick={function() { setChatMinimized(false); try { localStorage.removeItem("ab3c_chat_minimized"); } catch (e) {} }}
             style={{ position: "fixed", right: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "6px 0 0 6px", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "-2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}
-            title={phase === "action" ? "アクションリストを開く" : "分析チャットを開く"}
+            title={phase === "action" ? "アクションリストを開く" : "戦略策定チャットを開く"}
           >
             ◀ {phase === "action" ? "アクション" : "チャット"}を開く
           </button>
@@ -2666,7 +2666,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               {/* チャットヘッダー */}
               <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
-                  {phase === "action" ? `アクションリスト${actions.length > 0 ? `（${actions.length}）` : ""}` : "分析チャット"}
+                  {phase === "action" ? `アクションリスト${actions.length > 0 ? `（${actions.length}）` : ""}` : "戦略策定チャット"}
                 </span>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginLeft: 4 }}>
                   {phase !== "action" && chatSummaries.length > 0 ? `（${chatSummaries.length}回反映済み）` : ""}
@@ -2674,7 +2674,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 <button
                   onClick={function() { setChatMinimized(true); try { localStorage.setItem("ab3c_chat_minimized", "1"); } catch (e) {} }}
                   style={{ marginLeft: "auto", background: "transparent", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 11, fontWeight: 700, padding: "3px 10px", lineHeight: 1, fontFamily: "system-ui, sans-serif", flexShrink: 0 }}
-                  title={phase === "action" ? "アクションリストを閉じる" : "チャットを閉じる"}
+                  title={phase === "action" ? "アクションリストを閉じる" : "戦略策定チャットを閉じる"}
                 >
                   ▶ 閉じる
                 </button>
