@@ -29,7 +29,7 @@ const PRICE_PLANS = {
 
   // FutureShop特別提携プラン
   'price_1TQmDFCYHZ66REnUX1TmwpWQ': { type: 'analysis', sites: 300, interval: 'year' },  // 診断チケット 300枚 ¥900,000
-  'price_1TQmEjCYHZ66REnUPYsxHTny': { type: 'support',  sites: 15,  interval: 'month' }, // 指南プラン 15サイト ¥275,000/月（初回6か月50%OFFクーポン適用）
+  // 指南プラン15サイトは既存の price_1TMQJjCYHZ66REnUmEgb5GGN（¥330,000/月）をそのまま流用し、プロモーションコード FUTURESHOP6M（50%OFF/6か月）を被せる
 };
 
 // チャット回数マッピング：伴走プランは1サイトあたり月100回
