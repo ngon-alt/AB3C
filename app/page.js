@@ -1430,16 +1430,21 @@ const [chatSummaries, setChatSummaries] = useState([]);
     }
   }, [session]);
 
-  // 更新履歴の未読チェック: 最新エントリのIDがlocalStorageの既読IDと異なれば未読扱い
-  // - hasUnseenUpdate: ヘッダーのバッジ（赤丸）表示用
-  // - showUpdates: 自動でオーバーレイ表示するかどうか
+  // 更新履歴の未読チェック:
+  // - hasUnseenUpdate: ヘッダーの赤丸バッジ（未読がある時に常時表示）
+  // - showUpdates: 自動オーバーレイ。一度でも閉じたユーザーには再度自動表示しない
+  //   （以降は赤丸バッジ＋ヘッダーの「📢 更新履歴」リンクから任意に閲覧してもらう）
   useEffect(() => {
     if (!latestUpdateId) return;
     try {
       const seen = localStorage.getItem("ab3c_last_seen_update_id");
+      const dismissedOnce = localStorage.getItem("ab3c_updates_modal_dismissed") === "1";
+      // 未読があれば赤丸バッジは出す
       if (seen !== latestUpdateId) {
         setHasUnseenUpdate(true);
-        // ウェルカム表示中はかぶらないよう少し遅延
+      }
+      // 一度も閉じていない（=初回利用）かつ未読があれば、自動オーバーレイ表示
+      if (!dismissedOnce && seen !== latestUpdateId) {
         const t = setTimeout(() => setShowUpdates(true), 600);
         return () => clearTimeout(t);
       }
@@ -1451,6 +1456,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
     setHasUnseenUpdate(false);
     try {
       if (latestUpdateId) localStorage.setItem("ab3c_last_seen_update_id", latestUpdateId);
+      // 一度閉じた事実を記録 → 以降の更新では自動オーバーレイは出さず、赤丸バッジのみで通知
+      localStorage.setItem("ab3c_updates_modal_dismissed", "1");
       // ヘッダーの赤丸バッジを即時消すためイベント発火
       window.dispatchEvent(new Event("ab3c-updates-seen"));
     } catch (e) {}
