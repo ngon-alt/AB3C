@@ -254,9 +254,9 @@ export async function PUT(req) {
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
 
-    // 所有権チェック + 現状の analysis_versions / latest_analysis / strategy_confirmed を取得
+    // 所有権チェック + 現状の analysis_versions / latest_analysis / analyzed_at / strategy_confirmed を取得
     const existing = await sql`
-      SELECT id, latest_analysis, analysis_versions, strategy_confirmed
+      SELECT id, latest_analysis, analysis_versions, analyzed_at, strategy_confirmed
       FROM sites WHERE id = ${id} AND user_email = ${session.user.email}
     `;
     if (existing.length === 0) {
@@ -267,24 +267,47 @@ export async function PUT(req) {
     // ルール:
     //  - latest_analysis が新規付与され、現行 versions[0] と中身が違う場合のみ新世代として先頭に追加
     //  - 最大5世代まで保持（古いものは末尾から削除）
-    //  - versions が空のサイトは latest_analysis を v1 として初期化
+    //  - versions が空でも既存 latest_analysis があれば、それを v1 として保存してから新結果を v2 に積む（既存サイトのマイグレーション）
     //  - strategy_confirmed=true を受け取ったら versions[0].confirmed を true に
     let versionsUpdate = null; // null の場合は変更しない
     const existingRow = existing[0];
     const currentVersions = Array.isArray(existingRow.analysis_versions) ? existingRow.analysis_versions : [];
+    const existingLatest = existingRow.latest_analysis || null;
+    const existingAnalyzedAt = existingRow.analyzed_at ? new Date(existingRow.analyzed_at).getTime() : null;
 
     if (latest_analysis) {
       const newResultStr = JSON.stringify(latest_analysis);
       const headResultStr = currentVersions[0] ? JSON.stringify(currentVersions[0].result) : null;
       if (currentVersions.length === 0) {
-        // 初期化: latest_analysis を v1 として記録
-        versionsUpdate = [{
-          id: Date.now(),
-          result: latest_analysis,
-          created_at: new Date().toISOString(),
-          source: version_source || "initial",
-          confirmed: false,
-        }];
+        // versions 未初期化のサイト
+        // - 既存 latest_analysis がある & 新結果と異なる → 既存を v1、新規を v2
+        // - 既存 latest_analysis がない、または新規と同じ → 新規だけを v1
+        const existingLatestStr = existingLatest ? JSON.stringify(existingLatest) : null;
+        if (existingLatest && existingLatestStr !== newResultStr) {
+          const v1 = {
+            id: existingAnalyzedAt || Date.now() - 1,
+            result: existingLatest,
+            created_at: new Date(existingAnalyzedAt || Date.now() - 1).toISOString(),
+            source: "initial",
+            confirmed: !!existingRow.strategy_confirmed,
+          };
+          const v2 = {
+            id: Date.now(),
+            result: latest_analysis,
+            created_at: new Date().toISOString(),
+            source: version_source || "reanalyze",
+            confirmed: false,
+          };
+          versionsUpdate = [v2, v1];
+        } else {
+          versionsUpdate = [{
+            id: Date.now(),
+            result: latest_analysis,
+            created_at: new Date().toISOString(),
+            source: version_source || "initial",
+            confirmed: !!existingRow.strategy_confirmed,
+          }];
+        }
       } else if (newResultStr !== headResultStr) {
         // 新世代: 先頭に追加して 5 件で打ち切り
         const newVersion = {
