@@ -117,9 +117,9 @@ function HelpTip({ text }) {
   );
 }
 
-const Card = ({ color, title, children, onChat, help, textColor }) => (
+const Card = ({ color, title, children, onChat, help, textColor, titleColor }) => (
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${textColor || color}`, borderRadius: 4, padding: "16px 18px", position: "relative", boxShadow: textColor ? "0 0 0 2px " + textColor + "33" : "none" }} {...(onChat ? hoverShow : {})}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color: textColor || color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color: textColor || titleColor || color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
       <span>{title}</span>
       {help && <HelpTip text={help} />}
     </div>
@@ -426,9 +426,9 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
         <VersionTabBar versions={versions} sectionKey="advantage" sectionPaths={["advantage"]} active={avps.advantage || 0} onChange={onSectionTabChange} />
         <div style={g3}>
-          <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: "#000000", lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
-          <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
-          <div style={hasVersions ? {} : hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", advantageData.why_hard_to_copy)} help="自社の強みに根差し、競合が簡単には模倣できない理由を示します。" textColor={advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_hard_to_copy}</p></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} titleColor="#1a1a14" title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: "#000000", lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} titleColor="#1a1a14" title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.why_hard_to_copy")}><Card color={C.A} titleColor="#1a1a14" title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", advantageData.why_hard_to_copy)} help="自社の強みに根差し、競合が簡単には模倣できない理由を示します。" textColor={advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_hard_to_copy}</p></Card></div>
         </div>
       </div>
       <Divider />
