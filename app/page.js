@@ -117,9 +117,9 @@ function HelpTip({ text }) {
   );
 }
 
-const Card = ({ color, title, children, onChat, help }) => (
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 4, padding: "16px 18px", position: "relative" }} {...(onChat ? hoverShow : {})}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+const Card = ({ color, title, children, onChat, help, textColor }) => (
+  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${textColor || color}`, borderRadius: 4, padding: "16px 18px", position: "relative", boxShadow: textColor ? "0 0 0 2px " + textColor + "33" : "none" }} {...(onChat ? hoverShow : {})}>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, letterSpacing: "0.1em", textTransform: "uppercase", color: textColor || color, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
       <span>{title}</span>
       {help && <HelpTip text={help} />}
     </div>
@@ -142,7 +142,7 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-function UL({ items, onChatItem, checkable, checkedIndexes, onToggle }) {
+function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor }) {
   const [hoveredIdx, setHoveredIdx] = useState(-1);
   return (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -153,7 +153,7 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle }) {
      <li key={i}
        onMouseEnter={() => setHoveredIdx(i)}
        onMouseLeave={() => setHoveredIdx(-1)}
-       style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
+       style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: textColor || "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
        {...(onChatItem ? hoverShow : {})}>
         <label style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, cursor: checkable ? "pointer" : "default" }}>
           {checkable && (
@@ -213,7 +213,7 @@ function diffResults(oldR, newR, prefix) {
   return changed;
 }
 
-// ハイライトスタイル（反映回数で色が変わる）
+// ハイライトスタイル（反映回数で色が変わる）— 旧仕様。世代タブ機構に置き換え予定
 var HL_COLORS = [
   { background: "#fff3cd", borderLeft: "3px solid #ffc107", paddingLeft: 8 }, // 1回目: 黄色
   { background: "#d4edda", borderLeft: "3px solid #28a745", paddingLeft: 8 }, // 2回目: 緑
@@ -221,6 +221,129 @@ var HL_COLORS = [
   { background: "#f8d7da", borderLeft: "3px solid #dc3545", paddingLeft: 8 }, // 4回目: 赤
   { background: "#e2d9f3", borderLeft: "3px solid #6f42c1", paddingLeft: 8 }, // 5回目+: 紫
 ];
+
+// === 世代タブ機構 ===
+// 各セクションごとに「そのセクションが変わった世代」をタブとして表示し、
+// タブをクリックするとそのセクションだけ該当世代の内容に切り替わる。
+// バージョン色: v1=紫, v2=黄, v3=緑, v4=青, v5=赤（最大5世代）
+var VERSION_COLOR_PALETTE = [
+  { tab: "#6f42c1", tabText: "#fff", text: "#6f42c1", name: "紫" }, // v1
+  { tab: "#ffc107", tabText: "#1a1a14", text: "#a06800", name: "黄" }, // v2
+  { tab: "#28a745", tabText: "#fff", text: "#1e7e34", name: "緑" }, // v3
+  { tab: "#007bff", tabText: "#fff", text: "#0056b3", name: "青" }, // v4
+  { tab: "#dc3545", tabText: "#fff", text: "#a71d2a", name: "赤" }, // v5
+];
+
+// セクション定義: 中区分7セクション。タブ判定とテキスト色変更の基準パスを保持
+var SECTION_DEFS = [
+  { key: "benefit", paths: ["benefit"] },
+  { key: "advantage", paths: ["advantage"] },
+  { key: "customer", paths: ["three_c.customer"] },
+  { key: "competitor", paths: ["three_c.competitor"] },
+  { key: "company", paths: ["three_c.company"] },
+  { key: "strategy_message", paths: ["strategy_message"] },
+  { key: "checkpoints", paths: ["checkpoints"] },
+];
+
+function getValueByPath(obj, path) {
+  if (!obj) return undefined;
+  return path.split(".").reduce(function (o, k) { return o == null ? undefined : o[k]; }, obj);
+}
+
+function pathChangedBetween(path, resultA, resultB) {
+  return JSON.stringify(getValueByPath(resultA, path)) !== JSON.stringify(getValueByPath(resultB, path));
+}
+
+// セクション内のいずれかのパスが「currentIdx vs prevIdx」で変化していれば true
+function sectionChangedBetween(versions, sectionPaths, currentIdx, prevIdx) {
+  if (!versions[currentIdx] || !versions[prevIdx]) return false;
+  return sectionPaths.some(function (p) { return pathChangedBetween(p, versions[currentIdx].result, versions[prevIdx].result); });
+}
+
+// 指定セクションのタブ配列を返す（古い順 = 表示順）
+// versions は新しい順（[0]=最新）。タブの index は versions の data index。
+function getSectionTabs(versions, sectionPaths) {
+  if (!Array.isArray(versions) || versions.length === 0) return [];
+  var tabs = [];
+  // 一番古い（v1）から新しい方へ走査
+  for (var i = versions.length - 1; i >= 0; i--) {
+    var isInitial = i === versions.length - 1;
+    if (isInitial || sectionChangedBetween(versions, sectionPaths, i, i + 1)) {
+      tabs.push({ index: i, isInitial: isInitial });
+    }
+  }
+  return tabs;
+}
+
+// versions の dataIdx に対する「v番号」(1始まり、古い=v1)
+function versionDisplayNumber(versions, dataIdx) {
+  return versions.length - dataIdx;
+}
+
+// バージョン番号 1〜5 に対応する色を返す（5世代を超えても5色目を使い続ける）
+function getVersionColor(versionNumber) {
+  var idx = Math.min(Math.max(versionNumber - 1, 0), VERSION_COLOR_PALETTE.length - 1);
+  return VERSION_COLOR_PALETTE[idx];
+}
+
+// セクション内のカードについて「activeIdx で変わったカードのパス集合」を返す
+// 比較は activeIdx vs activeIdx+1（古い方）。activeIdx が末尾（v1）なら空集合。
+function getChangedCardPathsAt(versions, cardPaths, activeIdx) {
+  if (!Array.isArray(versions) || activeIdx == null) return new Set();
+  if (activeIdx >= versions.length - 1) return new Set();
+  var changed = new Set();
+  cardPaths.forEach(function (p) {
+    if (pathChangedBetween(p, versions[activeIdx].result, versions[activeIdx + 1].result)) {
+      changed.add(p);
+    }
+  });
+  return changed;
+}
+
+// 世代タブのスタイル小コンポーネント
+function VersionTabBar({ versions, sectionKey, sectionPaths, active, onChange, disabled }) {
+  if (!Array.isArray(versions) || versions.length <= 1) return null;
+  var tabs = getSectionTabs(versions, sectionPaths);
+  if (tabs.length === 0) return null;
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
+      <span style={{ fontSize: 11, color: "#78716c", fontFamily: "'Space Mono', monospace", letterSpacing: "0.05em", marginRight: 4 }}>世代</span>
+      {tabs.map(function (t) {
+        var num = versionDisplayNumber(versions, t.index);
+        var col = getVersionColor(num);
+        var isActive = active === t.index;
+        var isLatest = t.index === 0;
+        var confirmed = versions[t.index]?.confirmed === true;
+        return (
+          <button
+            key={t.index}
+            onClick={disabled ? undefined : function () { onChange && onChange(sectionKey, t.index); }}
+            disabled={disabled}
+            title={(isLatest ? "最新" : "過去の世代") + (confirmed ? "・確定済み" : "") + (t.isInitial ? "・初回" : "")}
+            style={{
+              background: isActive ? col.tab : "#fff",
+              color: isActive ? col.tabText : col.text,
+              border: "1.5px solid " + col.tab,
+              borderRadius: 14,
+              padding: "3px 10px",
+              fontSize: 12,
+              fontWeight: 700,
+              fontFamily: "'Space Mono', monospace",
+              letterSpacing: "0.04em",
+              cursor: disabled ? "not-allowed" : "pointer",
+              lineHeight: 1.4,
+              opacity: disabled ? 0.6 : 1,
+              boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
+              transition: "background 0.12s, color 0.12s",
+            }}
+          >
+            v{num}{isLatest ? "（最新）" : ""}{confirmed ? " ✓" : ""}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const SubLabel = ({ color, text, onChat, help }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>
@@ -230,69 +353,124 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }) {
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions, activeVersionPerSection, onSectionTabChange }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
   const qs = (section) => onChat && (() => onChat(`${section}について詳しく教えてください`));
   var cp = changedPaths || new Map();
   var hl = function(path) { try { if (cp.has && cp.has(path)) { var n = cp.get(path); return HL_COLORS[Math.min(n - 1, HL_COLORS.length - 1)]; } return {}; } catch (e) { return {}; } };
+
+  // === 世代タブ機構: セクション別に表示する result を選ぶ ===
+  // versions が未指定（旧呼び出し）の場合は d をそのまま使用（後方互換）
+  var hasVersions = Array.isArray(versions) && versions.length > 0;
+  var avps = activeVersionPerSection || {};
+  // セクションキー → 表示する result
+  function sectionResult(sectionKey) {
+    if (!hasVersions) return d;
+    var idx = avps[sectionKey] || 0;
+    return versions[idx]?.result || d;
+  }
+  // セクションキー → 「そのセクションが今アクティブな世代で変わったカードのパス集合」
+  // path -> 色（カードテキストに適用する色）。changed = true なら getVersionColor(versionNumber).text
+  function changedPathsForSection(sectionKey, cardPaths) {
+    if (!hasVersions) return { changed: new Set(), color: null };
+    var idx = avps[sectionKey] || 0;
+    var changed = getChangedCardPathsAt(versions, cardPaths, idx);
+    if (changed.size === 0) return { changed: changed, color: null };
+    var num = versionDisplayNumber(versions, idx);
+    return { changed: changed, color: getVersionColor(num).text };
+  }
+  function isViewingOld(sectionKey) {
+    if (!hasVersions) return false;
+    return (avps[sectionKey] || 0) !== 0;
+  }
+  // テキスト色適用ヘルパー（セクション内で使用）
+  function txt(color, baseStyle) {
+    return color ? Object.assign({}, baseStyle || {}, { color: color }) : (baseStyle || {});
+  }
+
+  // 各セクションのデータ・変更カード集合を準備
+  var benefitData = (sectionResult("benefit") || {}).benefit || {};
+  var benefitChanges = changedPathsForSection("benefit", ["benefit.needs", "benefit.wants"]);
+  var advantageData = (sectionResult("advantage") || {}).advantage || {};
+  var advantageChanges = changedPathsForSection("advantage", ["advantage.what", "advantage.why_good", "advantage.why_hard_to_copy"]);
+  var customerData = ((sectionResult("customer") || {}).three_c || {}).customer || {};
+  var customerChanges = changedPathsForSection("customer", ["three_c.customer.target", "three_c.customer.profile", "three_c.customer.stage", "three_c.customer.cutoff", "three_c.customer.market"]);
+  var competitorData = ((sectionResult("competitor") || {}).three_c || {}).competitor || { direct: [], indirect: [] };
+  var competitorChanges = changedPathsForSection("competitor", ["three_c.competitor.direct", "three_c.competitor.indirect"]);
+  var companyData = ((sectionResult("company") || {}).three_c || {}).company || {};
+  var companyChanges = changedPathsForSection("company", ["three_c.company.strength", "three_c.company.structure", "three_c.company.passion"]);
+  var smData = (sectionResult("strategy_message") || {}).strategy_message || {};
+  var smChanges = changedPathsForSection("strategy_message", ["strategy_message.message", "strategy_message.benefit_part", "strategy_message.advantage_part"]);
+  var cpData = (sectionResult("checkpoints") || {}).checkpoints || d.checkpoints || [];
+  var cpChanges = changedPathsForSection("checkpoints", ["checkpoints"]);
+
+  // 旧世代閲覧中はチェックボックス操作を無効化
+  var anyOld = ["benefit", "advantage", "customer", "competitor", "company", "strategy_message", "checkpoints"].some(isViewingOld);
+  var refineToggleEffective = anyOld ? null : onRefineToggle;
   return (
     <div>
+      {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
-        <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
+        <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
+        <VersionTabBar versions={versions} sectionKey="benefit" sectionPaths={["benefit"]} active={avps.benefit || 0} onChange={onSectionTabChange} />
         <div style={g2}>
-          <div style={hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。"><UL items={d.benefit.needs} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.needs} onToggle={onRefineToggle && ((i) => onRefineToggle("needs", i))} /></Card></div>
-          <div style={hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。"><UL items={d.benefit.wants} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.wants} onToggle={onRefineToggle && ((i) => onRefineToggle("wants", i))} /></Card></div>
+          <div style={hasVersions ? {} : hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。" textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null}><UL items={benefitData.needs || []} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.needs} onToggle={refineToggleEffective && ((i) => refineToggleEffective("needs", i))} textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null} /></Card></div>
+          <div style={hasVersions ? {} : hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。" textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null}><UL items={benefitData.wants || []} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.wants} onToggle={refineToggleEffective && ((i) => refineToggleEffective("wants", i))} textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null} /></Card></div>
         </div>
       </div>
       <Divider />
+      {/* === Advantage セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
+        <VersionTabBar versions={versions} sectionKey="advantage" sectionPaths={["advantage"]} active={avps.advantage || 0} onChange={onSectionTabChange} />
         <div style={g3}>
-          <div style={hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", d.advantage.what)} help="差別的優位点の内容を一言で表現したもの。"><div style={{ fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6 }}>{d.advantage.what}</div></Card></div>
-          <div style={hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", d.advantage.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_good}</p></Card></div>
-          <div style={hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", d.advantage.why_hard_to_copy)} help="自社の強みに根差し、競合が簡単には模倣できない理由を示します。"><p style={{ fontSize: 16, lineHeight: 1.7, color: "#000000" }}>{d.advantage.why_hard_to_copy}</p></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: C.A, lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
+          <div style={hasVersions ? {} : hl("advantage.why_hard_to_copy")}><Card color={C.A} title="なぜ真似されにくいか" onChat={q("なぜ真似されにくいか", advantageData.why_hard_to_copy)} help="自社の強みに根差し、競合が簡単には模倣できない理由を示します。" textColor={advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_hard_to_copy") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_hard_to_copy}</p></Card></div>
         </div>
       </div>
       <Divider />
+      {/* === 3C: Customer / Competitor / Company（それぞれ独立タブ） === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
+        <VersionTabBar versions={versions} sectionKey="customer" sectionPaths={["three_c.customer"]} active={avps.customer || 0} onChange={onSectionTabChange} />
         <div style={{ ...g2, marginBottom: 14 }}>
-          <div style={hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", d.three_c.customer.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。">
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 }}>{d.three_c.customer.target}</div>
-            <UL items={d.three_c.customer.profile} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!onRefineToggle} checkedIndexes={refineSelection?.profile} onToggle={onRefineToggle && ((i) => onRefineToggle("profile", i))} />
+          <div style={hasVersions ? {} : hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", customerData.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。" textColor={(customerChanges.changed.has("three_c.customer.target") || customerChanges.changed.has("three_c.customer.profile")) ? customerChanges.color : null}>
+            <div style={txt(customerChanges.changed.has("three_c.customer.target") ? customerChanges.color : null, { fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 })}>{customerData.target}</div>
+            <UL items={customerData.profile || []} onChatItem={onChat && ((item) => onChat(`ターゲットプロフィール「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.profile} onToggle={refineToggleEffective && ((i) => refineToggleEffective("profile", i))} textColor={customerChanges.changed.has("three_c.customer.profile") ? customerChanges.color : null} />
           </Card></div>
-          <div style={hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")} help="ターゲットが『ニーズ段階』（欠乏感・曖昧）か『ウォンツ段階』（具体的欲求）か。切り捨てたお客様（戦略的に対象外とした層）も明確化します。">
-            <p style={{ fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>段階：</b>{d.three_c.customer.stage}</p>
-            <p style={{ fontSize: 16, lineHeight: 1.65 }}><b>切り捨てたお客様：</b>{d.three_c.customer.cutoff}</p>
+          <div style={hasVersions ? {} : hl("three_c.customer.stage")}><Card color={C.C} title="アプローチ段階 · 切り捨て" onChat={qs("アプローチ段階と切り捨て")} help="ターゲットが『ニーズ段階』（欠乏感・曖昧）か『ウォンツ段階』（具体的欲求）か。切り捨てたお客様（戦略的に対象外とした層）も明確化します。" textColor={(customerChanges.changed.has("three_c.customer.stage") || customerChanges.changed.has("three_c.customer.cutoff")) ? customerChanges.color : null}>
+            <p style={txt(customerChanges.changed.has("three_c.customer.stage") ? customerChanges.color : null, { fontSize: 16, lineHeight: 1.65, marginBottom: 12, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}><b>段階：</b>{customerData.stage}</p>
+            <p style={txt(customerChanges.changed.has("three_c.customer.cutoff") ? customerChanges.color : null, { fontSize: 16, lineHeight: 1.65 })}><b>切り捨てたお客様：</b>{customerData.cutoff}</p>
           </Card></div>
         </div>
-        {d.three_c.customer.market && (
+        {customerData.market && (
           <div style={{ marginBottom: 14 }}>
-            <Card color={C.C} title="市場規模" onChat={qs("市場規模")} help="SAM（獲得可能な最大市場）・SOM（実際に狙える市場）・成長率/トレンドから事業機会を定量化。中小企業は SOM が年商規模を上回れば十分成立します。">
+            <Card color={C.C} title="市場規模" onChat={qs("市場規模")} help="SAM（獲得可能な最大市場）・SOM（実際に狙える市場）・成長率/トレンドから事業機会を定量化。中小企業は SOM が年商規模を上回れば十分成立します。" textColor={customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SAM（獲得可能市場）</div>
-                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.sam}</div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(d.three_c.customer.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
+                  <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.sam}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(customerData.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
-                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.som}</div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(d.three_c.customer.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
+                  <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
+                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
-                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{d.three_c.customer.market.growth}</div>
+                  <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.growth}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`市場成長率・トレンドについて詳しく教えてください`)} abs />}
                 </div>
               </div>
-              {d.three_c.customer.market.basis && (
+              {customerData.market.basis && (
                 <div style={{ marginTop: 12, padding: "12px 14px", background: "#f5f5f5", borderRadius: 4, borderLeft: `3px solid ${C.C}`, position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>算出根拠</div>
-                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{linkify(d.three_c.customer.market.basis)}</div>
+                  <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 14, color: C.ink, lineHeight: 1.8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{linkify(customerData.market.basis)}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`市場規模の算出根拠について詳しく教えてください`)} abs />}
                 </div>
               )}
@@ -302,46 +480,52 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle }
         <div style={g2}>
           <div>
             <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} help="直接競合（同業）だけでなく、同じニーズを満たす異業種競合も含めて検討。『お客様がどれと比較するか』の視点で洗い出します。" />
-            <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")}>
-              <UL items={[...d.three_c.competitor.direct, ...d.three_c.competitor.indirect.map(i => `↳ ${i}`)]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} />
+            <VersionTabBar versions={versions} sectionKey="competitor" sectionPaths={["three_c.competitor"]} active={avps.competitor || 0} onChange={onSectionTabChange} />
+            <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null}>
+              <UL items={[...(competitorData.direct || []), ...((competitorData.indirect || []).map(i => `↳ ${i}`))]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null} />
             </Card>
           </div>
           <div>
             <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="自社の具体的強み・その強みを生む構造的特徴・経営者の価値観/パッションの3層で掘り下げます。価値観の違いが最も真似されにくい。" />
-            <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")}>
-              <UL items={d.three_c.company.strength} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} />
-              <p style={{ fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` }}>構造：{d.three_c.company.structure}</p>
-              <p style={{ fontSize: 16, color: C.muted, marginTop: 6 }}>💡 {d.three_c.company.passion}</p></Card>
+            <VersionTabBar versions={versions} sectionKey="company" sectionPaths={["three_c.company"]} active={avps.company || 0} onChange={onSectionTabChange} />
+            <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+              <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
+              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>構造：{companyData.structure}</p>
+              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>💡 {companyData.passion}</p></Card>
           </div>
         </div>
       </div>
       <Divider />
-      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(cp.has && cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + (["#ffc107","#28a745","#007bff","#dc3545","#6f42c1"][Math.min((cp.get("strategy_message.message")||1)-1, 4)]) } : {}) }} {...(onChat ? hoverShow : {})}>
+      {/* === 戦略メッセージ === */}
+      <VersionTabBar versions={versions} sectionKey="strategy_message" sectionPaths={["strategy_message"]} active={avps.strategy_message || 0} onChange={onSectionTabChange} />
+      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(!hasVersions && cp.has && cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + (["#ffc107","#28a745","#007bff","#dc3545","#6f42c1"][Math.min((cp.get("strategy_message.message")||1)-1, 4)]) } : {}), ...(hasVersions && smChanges.changed.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + smChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
         {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{d.strategy_message.message}</div>
+<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{smData.message}</div>
         <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.85, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 16 }}>
-          <b>Benefit：</b>{d.strategy_message.benefit_part}<br />
-          <b>Advantage：</b>{d.strategy_message.advantage_part}
+          <b>Benefit：</b>{smData.benefit_part}<br />
+          <b>Advantage：</b>{smData.advantage_part}
         </div>
       </div>
-<div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative" }} {...(onChat ? hoverShow : {})}>
+      {/* === チェックポイント === */}
+      <VersionTabBar versions={versions} sectionKey="checkpoints" sectionPaths={["checkpoints"]} active={avps.checkpoints || 0} onChange={onSectionTabChange} />
+<div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative", ...(hasVersions && cpChanges.changed.has("checkpoints") ? { boxShadow: "0 0 0 2px " + cpChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
 {onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-    {d.checkpoints.map((cp, i) => (
+    {(cpData || []).map((cpItem, i) => (
       <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", lineHeight: 1.6, position: "relative" }} {...(onChat ? hoverShow : {})}>
         <Badge
-          status={cp.status}
-          onClick={onChat ? () => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`) : null}
-          title={onChat ? `「${cp.label}」の改善方法をチャットで相談` : null}
+          status={cpItem.status}
+          onClick={onChat ? () => onChat(`チェックポイント「${cpItem.label}」の改善方法を教えてください。現在の評価: ${cpItem.comment}`) : null}
+          title={onChat ? `「${cpItem.label}」の改善方法をチャットで相談` : null}
         />
-        <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cp.label}</b><br /><span style={{ color: C.ink, fontSize: 16 }}>{cp.comment}</span></div>
-        {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cp.label}」の改善方法を教えてください。現在の評価: ${cp.comment}`)} abs />}
+        <div style={{ flex: 1, fontSize: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}><b>{cpItem.label}</b><br /><span style={{ color: C.ink, fontSize: 16 }}>{cpItem.comment}</span></div>
+        {onChat && <ChatBtn onClick={() => onChat(`チェックポイント「${cpItem.label}」の改善方法を教えてください。現在の評価: ${cpItem.comment}`)} abs />}
       </div>
     ))}
   </div>
   <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
     {(() => {
-      const score = d.checkpoints.reduce((acc, cp) => acc + (cp.status === "ok" ? 2 : cp.status === "warn" ? 1 : 0), 0);
+      const score = (cpData || []).reduce((acc, cpi) => acc + (cpi.status === "ok" ? 2 : cpi.status === "warn" ? 1 : 0), 0);
       return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, color: C.ink }}>AB3Cスコア：{score} / 10</span>;
     })()}
 </div>
@@ -467,7 +651,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId }) {
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion }) {
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -636,15 +820,21 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
           style={{ width: "100%", marginTop: 8, background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
           💬 チャットに送信
         </button>
+        {/* 古い世代を表示中の場合は再分析・確定ボタンを非表示 */}
+        {isViewingOldVersion && (
+          <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 13, color: "#7a4f00", lineHeight: 1.6 }}>
+            🕒 過去の世代を表示中です。再分析・戦略確定するには、各セクションのタブで最新世代に戻してください。
+          </div>
+        )}
         {/* 3. この会話内容を分析に反映する（ティール：戦略策定フェーズ色） */}
-        {messages.length >= 3 && (
+        {!isViewingOldVersion && messages.length >= 3 && (
           <button onClick={reanalyze} disabled={loading}
             style={{ width: "100%", marginTop: 10, background: loading ? C.muted : C.phase1, border: "none", borderRadius: 6, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, padding: "12px", boxShadow: "0 2px 6px rgba(0,0,0,0.15)" }}>
             {loading ? "← 再分析中..." : "← この会話内容を分析に反映する"}
           </button>
         )}
         {/* 4. 戦略を確定 */}
-        {onConfirmStrategy && (
+        {!isViewingOldVersion && onConfirmStrategy && (
           <button onClick={onConfirmStrategy}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
             戦略を確定する →
@@ -912,6 +1102,39 @@ const [activePlanId, setActivePlanId] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
+// 分析結果の世代履歴（最大5世代・新しい順）。各要素 { id, result, created_at, source, confirmed }
+const [analysisVersions, setAnalysisVersions] = useState([]);
+// 各セクションがどの世代を表示しているか（key=セクションキー, value=versionsの index、0=最新）
+const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
+// いずれかのセクションで「最新以外」を見ている場合 true（再分析・確定ボタンを非表示にするため）
+const isViewingOldVersion = Object.values(activeVersionPerSection).some(function (v) { return (v || 0) !== 0; });
+// 世代タブのクリック: 該当セクションの表示世代を切り替え
+const handleSectionTabChange = function (sectionKey, versionIndex) {
+  setActiveVersionPerSection(function (prev) { return Object.assign({}, prev, ({ [sectionKey]: versionIndex })); });
+};
+// 新しい世代を先頭に追加（max 5）
+const addAnalysisVersion = function (newResult, source) {
+  setAnalysisVersions(function (prev) {
+    if (!newResult) return prev;
+    var head = prev[0]?.result;
+    if (head && JSON.stringify(head) === JSON.stringify(newResult)) return prev;
+    var newVersion = { id: Date.now(), result: newResult, created_at: new Date().toISOString(), source: source || "reanalyze", confirmed: false };
+    return [newVersion].concat(prev).slice(0, 5);
+  });
+  setActiveVersionPerSection({}); // 新世代追加時は全セクションを最新に戻す
+};
+// 初回分析または完全置換用
+const setVersionsFromInitial = function (result) {
+  if (!result) { setAnalysisVersions([]); setActiveVersionPerSection({}); return; }
+  setAnalysisVersions([{ id: Date.now(), result: result, created_at: new Date().toISOString(), source: "initial", confirmed: false }]);
+  setActiveVersionPerSection({});
+};
+// DB から復元した versions 配列をそのまま反映
+const setVersionsFromDB = function (versionsArray) {
+  if (!Array.isArray(versionsArray) || versionsArray.length === 0) { setAnalysisVersions([]); setActiveVersionPerSection({}); return; }
+  setAnalysisVersions(versionsArray);
+  setActiveVersionPerSection({});
+};
 const [chatWidth, setChatWidth] = useState(500);
 const [chatMinimized, setChatMinimized] = useState(false);
 const chatResizing = useRef(false);
@@ -995,6 +1218,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       }
       setResult(data.result);
       setCurrentResult(data.result);
+      setVersionsFromInitial(data.result); // sessionStorage 由来は版数情報を持たないので v1 として扱う（DB から取得し直すまでの暫定）
       setCurrentInput(data.input);
       setAnalyzedAt(data.timestamp);
       if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
@@ -1363,6 +1587,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
             setResult(site.latest_analysis);
             setCurrentResult(site.latest_analysis);
             setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
+            // 世代履歴の復元（DBから or 同期取得した versions、無ければ初回として暫定登録）
+            if (Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0) {
+              setVersionsFromDB(site.analysis_versions);
+            } else {
+              setVersionsFromInitial(site.latest_analysis);
+            }
             if (site.improve_result) setImproveResult(site.improve_result);
             if (site.visual_mock) setVisualMock(site.visual_mock);
             if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
@@ -1383,6 +1613,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
               if (parsed.result) {
                 setResult(parsed.result);
                 setCurrentResult(parsed.result);
+                setVersionsFromInitial(parsed.result);
                 setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
               }
@@ -1396,7 +1627,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
             var lsData2 = localStorage.getItem("ab3c_analysis_" + urlParam);
             if (lsData2) {
               var parsed2 = JSON.parse(lsData2);
-              if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
+              if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setVersionsFromInitial(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
             }
           } catch (e) {}
@@ -1552,6 +1783,9 @@ useEffect(() => {
         setResult(c.result);
         setCurrentResult(c.result);
         setHistoryTitle(c.result.strategy_message?.message || "");
+        // 世代履歴: キャッシュに含まれていればそれを使い、無ければ initial として再構成
+        if (Array.isArray(c.versions) && c.versions.length > 0) setVersionsFromDB(c.versions);
+        else setVersionsFromInitial(c.result);
       }
       if (c.improve) setImproveResult(c.improve);
       if (c.visual) setVisualMock(c.visual);
@@ -1586,6 +1820,11 @@ useEffect(() => {
         setResult(site.latest_analysis);
         setCurrentResult(site.latest_analysis);
         setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
+        if (Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0) {
+          setVersionsFromDB(site.analysis_versions);
+        } else {
+          setVersionsFromInitial(site.latest_analysis);
+        }
       }
       if (site.improve_result) setImproveResult(site.improve_result);
       if (site.visual_mock) setVisualMock(site.visual_mock);
@@ -1686,6 +1925,13 @@ useEffect(() => {
         // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
         await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
         setStrategyConfirmed(true);
+        // 世代タブの最新世代を確定済みマークに
+        setAnalysisVersions(function (prev) {
+          if (!Array.isArray(prev) || prev.length === 0) return prev;
+          var copy = prev.slice();
+          copy[0] = Object.assign({}, copy[0], { confirmed: true });
+          return copy;
+        });
         // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
         setViewOverride("action");
         window.scrollTo(0, 0);
@@ -1765,13 +2011,14 @@ useEffect(() => {
       setResult(merged);
       setAnalyzedAt(Date.now());
       setHistoryTitle(merged?.strategy_message?.message || "");
+      addAnalysisVersion(merged, "refine"); // 絞り込み再分析を新世代として追加
       // 絞り込み再分析の結果を DB に保存（リロードで消えないように）
       if (siteId) {
         try {
           await fetch("/api/sites", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: siteId, latest_analysis: merged, analyzed_at: Date.now() }),
+            body: JSON.stringify({ id: siteId, latest_analysis: merged, analyzed_at: Date.now(), version_source: "refine" }),
           });
         } catch (e) { console.error("refine DB save error:", e); }
       }
@@ -1848,6 +2095,8 @@ useEffect(() => {
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+// 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
+setVersionsFromInitial(null);
 // 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
@@ -1867,6 +2116,7 @@ setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirm
 setHistoryTitle(data?.strategy_message?.message || "");
 const savedText = tab === "url" ? url : input;
 setCurrentResult(data);
+setVersionsFromInitial(data); // 初回分析を v1 として登録
 setCurrentInput(savedText);
 setAnalyzedAt(Date.now());
 setLoading(false);
@@ -1987,7 +2237,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -2048,6 +2298,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               url: urlSnapshot,
               confirmed: strategyConfirmed === true,
               result: currentResult,
+              versions: analysisVersions, // 世代履歴も一緒にキャッシュ
               improve: improveResult,
               visual: visualMock,
               analyzedAt,
@@ -2143,6 +2394,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       <div key={ch.id} onClick={function() {
                         setCurrentResult(ch.result);
                         setResult(ch.result);
+                        setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
                         setHistoryTitle(ch.strategyMessage || "");
                         setStrategyConfirmed(true);
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
@@ -2358,6 +2610,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </button>
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
+    // 古い世代を見ている時は確定ボタンを非表示にする
+    if (isViewingOldVersion) return null;
     return (
       <>
         <button
@@ -2453,11 +2707,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       )}
     </div>
   </div>
+  {/* 古い世代を見ている時の案内バー */}
+  {isViewingOldVersion && (
+    <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
+      <b>🕒 過去の世代を表示中です。</b> 再分析・戦略確定するには、各セクションのタブで<b>v{analysisVersions.length}（最新）</b>に戻してください。
+    </div>
+  )}
   {(() => {
     const needsLen = currentResult.benefit?.needs?.length ?? 0;
     const wantsLen = currentResult.benefit?.wants?.length ?? 0;
     const profileLen = currentResult.three_c?.customer?.profile?.length ?? 0;
-    const isPending = !strategyConfirmed && (
+    const isPending = !strategyConfirmed && !isViewingOldVersion && (
       (refineSelection.needs?.length ?? 0) < needsLen ||
       (refineSelection.wants?.length ?? 0) < wantsLen ||
       (refineSelection.profile?.length ?? 0) < profileLen
@@ -2484,7 +2744,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={strategyConfirmed ? null : (key, i) => {
+  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
@@ -2704,6 +2964,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     isPro={isPro || chatTickets > 0}
                     analysisResult={currentResult}
                     siteId={siteId}
+                    isViewingOldVersion={isViewingOldVersion}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
                       try {
@@ -2719,6 +2980,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setAnalyzedAt(Date.now());
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
+                      addAnalysisVersion(newResult, "reanalyze"); // チャット再分析を新世代として追加
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       // チャット会話内容を反映した再分析結果を DB に保存（リロードで消えないように）
@@ -2726,7 +2988,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         fetch("/api/sites", {
                           method: "PUT",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ id: siteId, latest_analysis: newResult, analyzed_at: Date.now() }),
+                          body: JSON.stringify({ id: siteId, latest_analysis: newResult, analyzed_at: Date.now(), version_source: "reanalyze" }),
                         }).catch(function() {});
                       }
                       window.scrollTo({ top: 0, behavior: "smooth" });

@@ -40,6 +40,8 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS actions JSONB`;
     // 戦略策定タブの進行中チャット（確定前の議論）の永続化
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_chat JSONB`;
+    // 分析結果の世代履歴（最大5世代・新しい順）。各要素 { id, result, created_at, source, confirmed }
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_versions JSONB DEFAULT '[]'::jsonb`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -117,6 +119,28 @@ async function getMonthlyRegistrationInfo(sql, email) {
   };
 }
 
+// 既存サイト用: analysis_versions が空なら latest_analysis から v1 を生成して返す
+// （DB の書き込みは行わない。フロントは常に analysis_versions を読めば良い形に整形）
+function synthesizeVersionsForSite(site) {
+  if (!site) return site;
+  const hasVersions = Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0;
+  if (hasVersions) return site;
+  if (!site.latest_analysis) return { ...site, analysis_versions: [] };
+  const ts = site.analyzed_at ? new Date(site.analyzed_at).getTime() : Date.now();
+  return {
+    ...site,
+    analysis_versions: [
+      {
+        id: ts,
+        result: site.latest_analysis,
+        created_at: site.analyzed_at ? new Date(site.analyzed_at).toISOString() : new Date().toISOString(),
+        source: "initial",
+        confirmed: !!site.strategy_confirmed,
+      },
+    ],
+  };
+}
+
 // GET: ユーザーのサイト一覧取得
 export async function GET(req) {
   try {
@@ -126,11 +150,12 @@ export async function GET(req) {
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
 
-    const sites = await sql`
+    const rawSites = await sql`
       SELECT * FROM sites
       WHERE user_email = ${session.user.email}
       ORDER BY updated_at DESC
     `;
+    const sites = rawSites.map(synthesizeVersionsForSite);
     const planLimit = await getSiteLimit(sql, session.user.email);
     const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
 
@@ -220,7 +245,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat, version_source } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -229,12 +254,61 @@ export async function PUT(req) {
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
 
-    // 所有権チェック
-    const existing = await sql`SELECT id FROM sites WHERE id = ${id} AND user_email = ${session.user.email}`;
+    // 所有権チェック + 現状の analysis_versions / latest_analysis / strategy_confirmed を取得
+    const existing = await sql`
+      SELECT id, latest_analysis, analysis_versions, strategy_confirmed
+      FROM sites WHERE id = ${id} AND user_email = ${session.user.email}
+    `;
     if (existing.length === 0) {
       return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
     }
 
+    // === 分析結果の世代履歴を自動管理 ===
+    // ルール:
+    //  - latest_analysis が新規付与され、現行 versions[0] と中身が違う場合のみ新世代として先頭に追加
+    //  - 最大5世代まで保持（古いものは末尾から削除）
+    //  - versions が空のサイトは latest_analysis を v1 として初期化
+    //  - strategy_confirmed=true を受け取ったら versions[0].confirmed を true に
+    let versionsUpdate = null; // null の場合は変更しない
+    const existingRow = existing[0];
+    const currentVersions = Array.isArray(existingRow.analysis_versions) ? existingRow.analysis_versions : [];
+
+    if (latest_analysis) {
+      const newResultStr = JSON.stringify(latest_analysis);
+      const headResultStr = currentVersions[0] ? JSON.stringify(currentVersions[0].result) : null;
+      if (currentVersions.length === 0) {
+        // 初期化: latest_analysis を v1 として記録
+        versionsUpdate = [{
+          id: Date.now(),
+          result: latest_analysis,
+          created_at: new Date().toISOString(),
+          source: version_source || "initial",
+          confirmed: false,
+        }];
+      } else if (newResultStr !== headResultStr) {
+        // 新世代: 先頭に追加して 5 件で打ち切り
+        const newVersion = {
+          id: Date.now(),
+          result: latest_analysis,
+          created_at: new Date().toISOString(),
+          source: version_source || "reanalyze",
+          confirmed: false,
+        };
+        versionsUpdate = [newVersion, ...currentVersions].slice(0, 5);
+      }
+      // 同じ内容なら versionsUpdate は null のまま（変更しない）
+    }
+
+    // 確定マークの反映
+    if (strategy_confirmed === true) {
+      const targetVersions = versionsUpdate || (currentVersions.length > 0 ? [...currentVersions] : null);
+      if (targetVersions && targetVersions.length > 0) {
+        targetVersions[0] = { ...targetVersions[0], confirmed: true };
+        versionsUpdate = targetVersions;
+      }
+    }
+
+    const versionsJson = versionsUpdate ? JSON.stringify(versionsUpdate) : null;
     const analysisJson = latest_analysis ? JSON.stringify(latest_analysis) : null;
     const improveJson = improve_result ? JSON.stringify(improve_result) : null;
     const visualJson = visual_mock ? JSON.stringify(visual_mock) : null;
@@ -277,12 +351,13 @@ export async function PUT(req) {
         thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL THEN (${threadMessagesJson}::jsonb) ELSE thread_messages END,
         actions = CASE WHEN ${actionsJson}::text IS NOT NULL THEN (${actionsJson}::jsonb) ELSE actions END,
         analysis_chat = CASE WHEN ${analysisChatJson}::text IS NOT NULL THEN (${analysisChatJson}::jsonb) ELSE analysis_chat END,
+        analysis_versions = CASE WHEN ${versionsJson}::text IS NOT NULL THEN (${versionsJson}::jsonb) ELSE analysis_versions END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *
     `;
 
-    return NextResponse.json({ site: rows[0] });
+    return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) });
   } catch (e) {
     console.error("PUT /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });
