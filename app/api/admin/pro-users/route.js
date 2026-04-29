@@ -53,7 +53,16 @@ export async function POST(req) {
       SELECT site_limit FROM user_plans
       WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
     `;
-    const preChangeMaxSupport = Math.max(0, ...preChangeSupport.map(r => parseInt(r.site_limit || 0)));
+    const preChangeUserPlansMax = Math.max(0, ...preChangeSupport.map(r => parseInt(r.site_limit || 0)));
+    // PRO（pro_users）も「実質無制限プラン」として扱い、契約サイト数までしか持てないようにする
+    const preProCheck = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
+    const wasPro = preProCheck.length > 0;
+    let preChangeProLimit = 0;
+    if (wasPro) {
+      const cnt = await sql`SELECT COUNT(*) as c FROM sites WHERE user_email = ${email}`;
+      preChangeProLimit = parseInt(cnt[0].c);
+    }
+    const preChangeMaxSupport = Math.max(preChangeUserPlansMax, preChangeProLimit);
 
     // 既存プランを無効化
     await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`;

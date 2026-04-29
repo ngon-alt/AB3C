@@ -76,7 +76,16 @@ export async function POST(req) {
           FROM user_plans
           WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
         `;
-        if (existingSupport.length > 0) {
+        // PRO（pro_users）も「実質無制限プラン」として扱い、契約サイト数まで超過削除する
+        const proCheck = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
+        const isCurrentlyPro = proCheck.length > 0;
+        let proEffectiveLimit = 0;
+        if (isCurrentlyPro) {
+          const cnt = await sql`SELECT COUNT(*) as c FROM sites WHERE user_email = ${email}`;
+          proEffectiveLimit = parseInt(cnt[0].c);
+        }
+
+        if (existingSupport.length > 0 || isCurrentlyPro) {
           // Stripe の旧サブスクをキャンセル（admin 経由のものはスキップ）
           for (const ep of existingSupport) {
             if (ep.stripe_subscription_id && ep.stripe_price_id !== 'admin_manual') {
@@ -88,14 +97,18 @@ export async function POST(req) {
             }
           }
           // DB でまとめて 'replaced' に
-          await sql`
-            UPDATE user_plans SET status = 'replaced'
-            WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
-          `;
-          // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
-          await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
-          // ダウングレード判定: 旧プランの最大 site_limit が新プランを上回る場合のみ
-          const oldMaxLimit = Math.max(0, ...existingSupport.map(p => parseInt(p.site_limit || 0)));
+          if (existingSupport.length > 0) {
+            await sql`
+              UPDATE user_plans SET status = 'replaced'
+              WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+            `;
+            // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
+            await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
+          }
+          // ダウングレード判定: 「user_plans の最大 site_limit」と「PRO 在籍時の現サイト数」の
+          // 大きい方を旧上限として扱い、新プランを上回るなら超過分を古い順に削除
+          const userPlansMax = Math.max(0, ...existingSupport.map(p => parseInt(p.site_limit || 0)));
+          const oldMaxLimit = Math.max(userPlansMax, proEffectiveLimit);
           if (oldMaxLimit > plan.sites) {
             // 新しい N 件は残し、それより古い分を削除する
             // ORDER BY created_at DESC で新しい順に並べ、OFFSET plan.sites で新しい N 件をスキップ
@@ -109,7 +122,7 @@ export async function POST(req) {
             if (sitesToDelete.length > 0) {
               const ids = sitesToDelete.map(s => s.id);
               await sql`DELETE FROM sites WHERE id = ANY(${ids})`;
-              console.log(`ダウングレードにより ${sitesToDelete.length} サイトを削除: ${email} / ${oldMaxLimit} → ${plan.sites}`);
+              console.log(`ダウングレードにより ${sitesToDelete.length} サイトを削除: ${email} / ${oldMaxLimit} → ${plan.sites}${isCurrentlyPro && userPlansMax === 0 ? ' (PRO→有料移行)' : ''}`);
               planReplacement = {
                 isDowngrade: true,
                 oldLimit: oldMaxLimit,
