@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { sendPlanDowngradeEmail } from '@/app/lib/email';
+import { enforceLicenseSiteCap } from '@/app/lib/license-site-cap';
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
@@ -48,22 +49,6 @@ export async function POST(req) {
       )
     `;
 
-    // 切り替え前の support プラン site_limit 最大値（ダウングレード判定用）
-    const preChangeSupport = await sql`
-      SELECT site_limit FROM user_plans
-      WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
-    `;
-    const preChangeUserPlansMax = Math.max(0, ...preChangeSupport.map(r => parseInt(r.site_limit || 0)));
-    // PRO（pro_users）も「実質無制限プラン」として扱い、契約サイト数までしか持てないようにする
-    const preProCheck = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
-    const wasPro = preProCheck.length > 0;
-    let preChangeProLimit = 0;
-    if (wasPro) {
-      const cnt = await sql`SELECT COUNT(*) as c FROM sites WHERE user_email = ${email}`;
-      preChangeProLimit = parseInt(cnt[0].c);
-    }
-    const preChangeMaxSupport = Math.max(preChangeUserPlansMax, preChangeProLimit);
-
     // 既存プランを無効化
     await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`;
     // 新規プラン登録
@@ -72,22 +57,11 @@ export async function POST(req) {
       VALUES (${email}, ${p.type}, ${p.sites}, 'admin', 'admin_manual')
     `;
 
-    // 切り替え後の support プラン site_limit（新プランが support でない場合は 0）
-    const newSupportLimit = p.type === 'support' ? parseInt(p.sites) : 0;
-
-    // ダウングレード判定: 旧 support 上限 > 新 support 上限 の場合のみ超過サイトを削除
-    if (preChangeMaxSupport > newSupportLimit) {
-      // 新しい N 件は残し、それより古い分を削除（ORDER BY DESC OFFSET N で古い方を取得）
-      const sitesToDelete = await sql`
-        SELECT id, site_name, site_url FROM sites
-        WHERE user_email = ${email}
-        ORDER BY created_at DESC
-        OFFSET ${newSupportLimit}
-      `;
-      if (sitesToDelete.length > 0) {
-        const ids = sitesToDelete.map(s => s.id);
-        await sql`DELETE FROM sites WHERE id = ANY(${ids})`;
-        console.log(`管理画面プラン切替によるダウングレード: ${email} / ${preChangeMaxSupport} → ${newSupportLimit} / ${sitesToDelete.length}サイト削除`);
+    // ライセンス上限を超えるサイトを古い順に削除
+    try {
+      const capResult = await enforceLicenseSiteCap(sql, email);
+      if (!capResult.skipped && capResult.deleted > 0) {
+        console.log(`管理画面プラン切替によるライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
         // ダウングレード通知メール（対象ユーザーへ）
         try {
           let userName = null;
@@ -98,14 +72,16 @@ export async function POST(req) {
           await sendPlanDowngradeEmail({
             email,
             name: userName,
-            deletedSites: sitesToDelete,
-            oldLimit: preChangeMaxSupport,
-            newLimit: newSupportLimit,
+            deletedSites: capResult.deletedSites,
+            oldLimit: capResult.previousCount,
+            newLimit: capResult.cap,
           });
         } catch (e) {
           console.error('管理画面ダウングレード通知メール送信エラー:', e);
         }
       }
+    } catch (e) {
+      console.error('enforceLicenseSiteCap error:', e);
     }
   }
 
@@ -120,5 +96,31 @@ export async function DELETE(req) {
   const sql = neon(process.env.DATABASE_URL);
   await sql`DELETE FROM pro_users WHERE email = ${email}`;
   try { await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`; } catch (e) {}
+  // PRO 解除＋プラン無効化後、ライセンス上限を再評価して超過サイトを削除
+  // （戦略指南プランがない状態になるので実質「全削除」が走る）
+  try {
+    const capResult = await enforceLicenseSiteCap(sql, email);
+    if (!capResult.skipped && capResult.deleted > 0) {
+      console.log(`PRO解除によるライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
+      try {
+        let userName = null;
+        try {
+          const nameRows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
+          if (nameRows.length > 0) userName = nameRows[0].name;
+        } catch (e) {}
+        await sendPlanDowngradeEmail({
+          email,
+          name: userName,
+          deletedSites: capResult.deletedSites,
+          oldLimit: capResult.previousCount,
+          newLimit: capResult.cap,
+        });
+      } catch (e) {
+        console.error('PRO解除ダウングレード通知メール送信エラー:', e);
+      }
+    }
+  } catch (e) {
+    console.error('enforceLicenseSiteCap error (DELETE):', e);
+  }
   return Response.json({ success: true });
 }

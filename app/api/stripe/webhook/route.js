@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
 import { sendPaymentNotificationEmail, sendPlanDowngradeEmail } from '@/app/lib/email';
+import { enforceLicenseSiteCap } from '@/app/lib/license-site-cap';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -69,24 +70,17 @@ export async function POST(req) {
       //   ・ダウングレードなら古いサイトを自動削除（keep newest N）
       //   ・指南プランに紐づく既存チケットも一旦削除（下の INSERT で新数量に再発行）
       // 診断チケット（analysis）は合算仕様のため対象外。
-      let planReplacement = null;
+      // === 戦略指南プラン置き換え処理 ===
+      // 新規購入が support タイプの場合、既存 active な support プランを Stripe 側でキャンセルし、
+      // DB で status='replaced' にマーク、関連チケットもクリア。
+      // ※ 超過サイトの削除は後段の enforceLicenseSiteCap で一元処理する
       if (plan?.type === 'support') {
         const existingSupport = await sql`
-          SELECT id, stripe_subscription_id, stripe_price_id, site_limit
+          SELECT id, stripe_subscription_id, stripe_price_id
           FROM user_plans
           WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
         `;
-        // PRO（pro_users）も「実質無制限プラン」として扱い、契約サイト数まで超過削除する
-        const proCheck = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
-        const isCurrentlyPro = proCheck.length > 0;
-        let proEffectiveLimit = 0;
-        if (isCurrentlyPro) {
-          const cnt = await sql`SELECT COUNT(*) as c FROM sites WHERE user_email = ${email}`;
-          proEffectiveLimit = parseInt(cnt[0].c);
-        }
-
-        if (existingSupport.length > 0 || isCurrentlyPro) {
-          // Stripe の旧サブスクをキャンセル（admin 経由のものはスキップ）
+        if (existingSupport.length > 0) {
           for (const ep of existingSupport) {
             if (ep.stripe_subscription_id && ep.stripe_price_id !== 'admin_manual') {
               try {
@@ -96,47 +90,12 @@ export async function POST(req) {
               }
             }
           }
-          // DB でまとめて 'replaced' に
-          if (existingSupport.length > 0) {
-            await sql`
-              UPDATE user_plans SET status = 'replaced'
-              WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
-            `;
-            // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
-            await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
-          }
-          // ダウングレード判定: 「user_plans の最大 site_limit」と「PRO 在籍時の現サイト数」の
-          // 大きい方を旧上限として扱い、新プランを上回るなら超過分を古い順に削除
-          const userPlansMax = Math.max(0, ...existingSupport.map(p => parseInt(p.site_limit || 0)));
-          const oldMaxLimit = Math.max(userPlansMax, proEffectiveLimit);
-          if (oldMaxLimit > plan.sites) {
-            // 新しい N 件は残し、それより古い分を削除する
-            // ORDER BY created_at DESC で新しい順に並べ、OFFSET plan.sites で新しい N 件をスキップ
-            // → 残ったのが削除対象（古い方）
-            const sitesToDelete = await sql`
-              SELECT id, site_name, site_url FROM sites
-              WHERE user_email = ${email}
-              ORDER BY created_at DESC
-              OFFSET ${plan.sites}
-            `;
-            if (sitesToDelete.length > 0) {
-              const ids = sitesToDelete.map(s => s.id);
-              await sql`DELETE FROM sites WHERE id = ANY(${ids})`;
-              console.log(`ダウングレードにより ${sitesToDelete.length} サイトを削除: ${email} / ${oldMaxLimit} → ${plan.sites}${isCurrentlyPro && userPlansMax === 0 ? ' (PRO→有料移行)' : ''}`);
-              planReplacement = {
-                isDowngrade: true,
-                oldLimit: oldMaxLimit,
-                newLimit: plan.sites,
-                deletedSites: sitesToDelete,
-              };
-            }
-          } else {
-            planReplacement = {
-              isDowngrade: false,
-              oldLimit: oldMaxLimit,
-              newLimit: plan.sites,
-            };
-          }
+          await sql`
+            UPDATE user_plans SET status = 'replaced'
+            WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+          `;
+          // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
+          await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
         }
       }
 
@@ -192,6 +151,27 @@ export async function POST(req) {
           INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id, stripe_subscription_id, expires_at)
           VALUES (${email}, ${plan.type}, ${plan.sites}, ${plan.interval}, ${priceId}, ${subscriptionId}, ${expiresAt})
         `;
+      }
+
+      // === ライセンス上限を超えるサイトを古い順に削除 ===
+      // ルール:
+      //  - PRO 在籍時はスキップ（実質無制限）
+      //  - 戦略指南プランあり → 合計 site_limit までに削減
+      //  - 戦略指南プランなし（戦略診断チケットのみ／無料）→ サイトを保持できる契約がないため全削除
+      let planReplacement = null;
+      try {
+        const capResult = await enforceLicenseSiteCap(sql, email);
+        if (!capResult.skipped && capResult.deleted > 0) {
+          planReplacement = {
+            isDowngrade: true,
+            oldLimit: capResult.previousCount,
+            newLimit: capResult.cap,
+            deletedSites: capResult.deletedSites,
+          };
+          console.log(`ライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
+        }
+      } catch (e) {
+        console.error('enforceLicenseSiteCap error:', e);
       }
 
       console.log(`決済完了: ${email} / プラン: ${plan?.type || 'unknown'} / ${plan?.sites || 0}サイト / チャット${chatCount}回 / priceId: ${priceId}`);
