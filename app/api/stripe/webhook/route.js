@@ -1,7 +1,8 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-import { sendPaymentNotificationEmail, sendPlanDowngradeEmail } from '@/app/lib/email';
-import { enforceLicenseSiteCap } from '@/app/lib/license-site-cap';
+import { sendPaymentNotificationEmail } from '@/app/lib/email';
+// ※ ライセンス上限超過時のサイト削除はユーザー選択型 UI に変更したため、
+//    webhook では自動削除しない（/api/sites/cap-resolve 経由で削除される）。
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -73,7 +74,7 @@ export async function POST(req) {
       // === 戦略指南プラン置き換え処理 ===
       // 新規購入が support タイプの場合、既存 active な support プランを Stripe 側でキャンセルし、
       // DB で status='replaced' にマーク、関連チケットもクリア。
-      // ※ 超過サイトの削除は後段の enforceLicenseSiteCap で一元処理する
+      // ※ 超過サイトの削除はユーザー選択型 UI（/api/sites/cap-resolve）で実施
       if (plan?.type === 'support') {
         const existingSupport = await sql`
           SELECT id, stripe_subscription_id, stripe_price_id
@@ -153,27 +154,8 @@ export async function POST(req) {
         `;
       }
 
-      // === ライセンス上限を超えるサイトを古い順に削除 ===
-      // ルール:
-      //  - PRO 在籍時はスキップ（実質無制限）
-      //  - 戦略指南プランあり → 合計 site_limit までに削減
-      //  - 戦略指南プランなし（戦略診断チケットのみ／無料）→ サイトを保持できる契約がないため全削除
-      let planReplacement = null;
-      try {
-        const capResult = await enforceLicenseSiteCap(sql, email);
-        if (!capResult.skipped && capResult.deleted > 0) {
-          planReplacement = {
-            isDowngrade: true,
-            oldLimit: capResult.previousCount,
-            newLimit: capResult.cap,
-            deletedSites: capResult.deletedSites,
-          };
-          console.log(`ライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
-        }
-      } catch (e) {
-        console.error('enforceLicenseSiteCap error:', e);
-      }
-
+      // ※ ライセンス上限超過時のサイト削除は、購入後にユーザーが残すサイトを選択する UI
+      //    （/api/sites/cap-resolve 経由）で行う。webhook では自動削除しない。
       console.log(`決済完了: ${email} / プラン: ${plan?.type || 'unknown'} / ${plan?.sites || 0}サイト / チャット${chatCount}回 / priceId: ${priceId}`);
 
       // 運営向け決済通知メール（info@digi-kaku.or.jp）
@@ -208,25 +190,9 @@ export async function POST(req) {
         // 通知失敗でも webhook 自体は成功扱いにする（決済処理は既に完了しているため）
       }
 
-      // ダウングレードによりサイトが削除された場合、ユーザーに通知
-      if (planReplacement?.isDowngrade && planReplacement.deletedSites?.length > 0) {
-        try {
-          let buyerName = null;
-          try {
-            const rows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
-            if (rows.length > 0) buyerName = rows[0].name;
-          } catch (e) {}
-          await sendPlanDowngradeEmail({
-            email,
-            name: buyerName,
-            deletedSites: planReplacement.deletedSites,
-            oldLimit: planReplacement.oldLimit,
-            newLimit: planReplacement.newLimit,
-          });
-        } catch (e) {
-          console.error('ダウングレード通知メール送信エラー:', e);
-        }
-      }
+      // ※ ライセンス上限超過時のサイト削除はユーザー選択型 UI に移行したため、
+      //    webhook での自動削除＋通知メールは廃止。代わりに次回ログイン時に
+      //    モーダルで「残すサイトを選んでください」と案内し、確定時に削除＋通知を行う。
     }
   }
 

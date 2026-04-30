@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
-import { sendPlanDowngradeEmail } from '@/app/lib/email';
-import { enforceLicenseSiteCap } from '@/app/lib/license-site-cap';
+// ※ プラン切替・PRO 解除時のサイト削除はユーザー選択型 UI に変更したため、
+//    管理画面操作では自動削除しない（次回ログイン時に /api/sites/cap-resolve 経由で削除）。
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 
@@ -56,33 +56,7 @@ export async function POST(req) {
       INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id)
       VALUES (${email}, ${p.type}, ${p.sites}, 'admin', 'admin_manual')
     `;
-
-    // ライセンス上限を超えるサイトを古い順に削除
-    try {
-      const capResult = await enforceLicenseSiteCap(sql, email);
-      if (!capResult.skipped && capResult.deleted > 0) {
-        console.log(`管理画面プラン切替によるライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
-        // ダウングレード通知メール（対象ユーザーへ）
-        try {
-          let userName = null;
-          try {
-            const nameRows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
-            if (nameRows.length > 0) userName = nameRows[0].name;
-          } catch (e) {}
-          await sendPlanDowngradeEmail({
-            email,
-            name: userName,
-            deletedSites: capResult.deletedSites,
-            oldLimit: capResult.previousCount,
-            newLimit: capResult.cap,
-          });
-        } catch (e) {
-          console.error('管理画面ダウングレード通知メール送信エラー:', e);
-        }
-      }
-    } catch (e) {
-      console.error('enforceLicenseSiteCap error:', e);
-    }
+    // ※ サイト超過分の削除はユーザー側のモーダル操作（/api/sites/cap-resolve）で実施
   }
 
   return Response.json({ success: true });
@@ -96,31 +70,6 @@ export async function DELETE(req) {
   const sql = neon(process.env.DATABASE_URL);
   await sql`DELETE FROM pro_users WHERE email = ${email}`;
   try { await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`; } catch (e) {}
-  // PRO 解除＋プラン無効化後、ライセンス上限を再評価して超過サイトを削除
-  // （戦略指南プランがない状態になるので実質「全削除」が走る）
-  try {
-    const capResult = await enforceLicenseSiteCap(sql, email);
-    if (!capResult.skipped && capResult.deleted > 0) {
-      console.log(`PRO解除によるライセンス上限超過削除: ${email} / ${capResult.previousCount} → ${capResult.cap} / ${capResult.deleted}サイト削除`);
-      try {
-        let userName = null;
-        try {
-          const nameRows = await sql`SELECT name FROM users WHERE email = ${email} LIMIT 1`;
-          if (nameRows.length > 0) userName = nameRows[0].name;
-        } catch (e) {}
-        await sendPlanDowngradeEmail({
-          email,
-          name: userName,
-          deletedSites: capResult.deletedSites,
-          oldLimit: capResult.previousCount,
-          newLimit: capResult.cap,
-        });
-      } catch (e) {
-        console.error('PRO解除ダウングレード通知メール送信エラー:', e);
-      }
-    }
-  } catch (e) {
-    console.error('enforceLicenseSiteCap error (DELETE):', e);
-  }
+  // ※ サイト超過分の削除はユーザー側のモーダル操作（/api/sites/cap-resolve）で実施
   return Response.json({ success: true });
 }

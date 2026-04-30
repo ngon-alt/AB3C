@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import PricingModal from "./components/PricingModal";
 import ShadowMock from "./components/ShadowMock";
 import UpdateHistoryModal from "./components/UpdateHistoryModal";
+import SiteCapResolveModal from "./components/SiteCapResolveModal";
 import { latestUpdateId } from "./data/updates";
 
 const C = {
@@ -1085,6 +1086,9 @@ const [tab, setTab] = useState("url");
 const [showWelcome, setShowWelcome] = useState(false);
 const [showUpdates, setShowUpdates] = useState(false);
 const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
+// サイト上限超過モーダル（プラン切替後に「残すサイトを選択」）
+const [siteCapStatus, setSiteCapStatus] = useState(null); // { overCap, cap, currentCount, sites, reason }
+const [showSiteCapModal, setShowSiteCapModal] = useState(false);
 const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
@@ -1687,6 +1691,24 @@ const [chatSummaries, setChatSummaries] = useState([]);
     } catch (e) {}
   };
 
+  // サイト上限超過チェック: ログイン中のユーザーのみ /api/sites/cap-status を確認し、
+  // 超過していたら「残すサイトを選択」モーダルを表示する
+  const refreshSiteCapStatus = async () => {
+    try {
+      const res = await fetch("/api/sites/cap-status");
+      if (!res.ok) return;
+      const data = await res.json();
+      setSiteCapStatus(data);
+      if (data.overCap) {
+        setShowSiteCapModal(true);
+      }
+    } catch (e) {}
+  };
+  useEffect(() => {
+    if (!session) return;
+    refreshSiteCapStatus();
+  }, [session]);
+
   useEffect(() => {
   if (session) {
     fetch('/api/check-pro')
@@ -2274,6 +2296,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
       <UpdateHistoryModal open={showUpdates} onClose={dismissUpdates} highlightLatest={hasUnseenUpdate} />
+      <SiteCapResolveModal
+        open={showSiteCapModal && !!siteCapStatus?.overCap}
+        sites={siteCapStatus?.sites || []}
+        cap={siteCapStatus?.cap ?? 0}
+        currentCount={siteCapStatus?.currentCount ?? 0}
+        reason={siteCapStatus?.reason}
+        onResolved={async () => {
+          setShowSiteCapModal(false);
+          // サイト一覧を再取得（削除後の状態を反映）
+          await refreshSiteCapStatus();
+          // ヘッダー右上のサイトドロップダウンや、ダッシュボードのサイト一覧も再読み込みされるよう、
+          // 軽いリロードでDB→UI を統一
+          try { window.location.reload(); } catch (e) {}
+        }}
+        onDismiss={() => setShowSiteCapModal(false)}
+      />
 
       <Header
         onShowPricing={() => setShowPricing(true)}
