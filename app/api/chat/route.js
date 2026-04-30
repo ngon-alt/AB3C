@@ -37,7 +37,7 @@ export async function POST(req) {
   `;
   const hasTrial = trialRows.length > 0;
 
-  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice, actionSummary, actionTitle } = await req.json();
+  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice, actionSummary, actionTitle, siteId } = await req.json();
 
   // initialAdvice（テーマ初回自動生成）と actionSummary はチケット消費しない
   if (!initialAdvice && !actionSummary) {
@@ -180,58 +180,86 @@ ${conversationSummary}
         }
       }
 
-      // === 欠落・空フィールドを元の analysisResult から補完 ===
-      // Claude は会話で触れたセクションだけ詳細に返して、他は省略 or 空構造で返すことがある。
-      // 各「実フィールド」(配列・文字列)単位で空判定し、空なら元の値を採用する。
-      // 「構造あり中身空」(例: { direct: [], indirect: [] }) も上書きしてしまわないようにする。
+      // === 欠落・空フィールドを元の値から補完（カスケード式損失対策） ===
+      // 過去の再分析で一度フィールドが空になると、それ以降のorigも空のままになり復元不能。
+      // → DBから v1（最古・最も完全な状態）を取得し、最終フォールバックとして使う。
+      // 優先順位: parsedResult (np) > analysisResult (現在) > v1 (DBの初回) > 空
       const orig = analysisResult || {};
       const np = parsedResult || {};
-      // 配列: 中身があれば new、なければ orig
-      const pickArr = (newArr, origArr) => (Array.isArray(newArr) && newArr.length > 0) ? newArr : (Array.isArray(origArr) ? origArr : []);
-      // 文字列: trim して中身があれば new、なければ orig
-      const pickStr = (newStr, origStr) => (typeof newStr === "string" && newStr.trim() !== "") ? newStr : (typeof origStr === "string" ? origStr : "");
+      let v1 = {};
+      if (siteId) {
+        try {
+          const v1Rows = await sql`
+            SELECT analysis_versions FROM sites
+            WHERE id = ${siteId} AND user_email = ${session.user.email}
+          `;
+          const versions = v1Rows[0]?.analysis_versions;
+          if (Array.isArray(versions) && versions.length > 0) {
+            // 配列は新しい順なので末尾が最古 = v1
+            v1 = versions[versions.length - 1]?.result || {};
+          }
+        } catch (e) {
+          console.error("v1 取得失敗:", e?.message);
+        }
+      }
+      // 配列: 中身があれば new、なければ orig、最終的に v1
+      const pickArr = (newArr, origArr, v1Arr) => {
+        if (Array.isArray(newArr) && newArr.length > 0) return newArr;
+        if (Array.isArray(origArr) && origArr.length > 0) return origArr;
+        if (Array.isArray(v1Arr) && v1Arr.length > 0) return v1Arr;
+        return [];
+      };
+      // 文字列: trim して中身があれば new、なければ orig、最終的に v1
+      const pickStr = (newStr, origStr, v1Str) => {
+        if (typeof newStr === "string" && newStr.trim() !== "") return newStr;
+        if (typeof origStr === "string" && origStr.trim() !== "") return origStr;
+        if (typeof v1Str === "string" && v1Str.trim() !== "") return v1Str;
+        return "";
+      };
       const newResult = {
         benefit: {
-          core: pickStr(np.benefit?.core, orig.benefit?.core),
-          needs: pickArr(np.benefit?.needs, orig.benefit?.needs),
-          wants: pickArr(np.benefit?.wants, orig.benefit?.wants),
+          core: pickStr(np.benefit?.core, orig.benefit?.core, v1.benefit?.core),
+          needs: pickArr(np.benefit?.needs, orig.benefit?.needs, v1.benefit?.needs),
+          wants: pickArr(np.benefit?.wants, orig.benefit?.wants, v1.benefit?.wants),
         },
         advantage: {
-          what: pickStr(np.advantage?.what, orig.advantage?.what),
-          why_good: pickStr(np.advantage?.why_good, orig.advantage?.why_good),
-          why_hard_to_copy: pickStr(np.advantage?.why_hard_to_copy, orig.advantage?.why_hard_to_copy),
+          what: pickStr(np.advantage?.what, orig.advantage?.what, v1.advantage?.what),
+          why_good: pickStr(np.advantage?.why_good, orig.advantage?.why_good, v1.advantage?.why_good),
+          why_hard_to_copy: pickStr(np.advantage?.why_hard_to_copy, orig.advantage?.why_hard_to_copy, v1.advantage?.why_hard_to_copy),
         },
         three_c: {
           customer: {
-            target: pickStr(np.three_c?.customer?.target, orig.three_c?.customer?.target),
-            profile: pickArr(np.three_c?.customer?.profile, orig.three_c?.customer?.profile),
-            stage: pickStr(np.three_c?.customer?.stage, orig.three_c?.customer?.stage),
-            cutoff: pickStr(np.three_c?.customer?.cutoff, orig.three_c?.customer?.cutoff),
+            target: pickStr(np.three_c?.customer?.target, orig.three_c?.customer?.target, v1.three_c?.customer?.target),
+            profile: pickArr(np.three_c?.customer?.profile, orig.three_c?.customer?.profile, v1.three_c?.customer?.profile),
+            stage: pickStr(np.three_c?.customer?.stage, orig.three_c?.customer?.stage, v1.three_c?.customer?.stage),
+            cutoff: pickStr(np.three_c?.customer?.cutoff, orig.three_c?.customer?.cutoff, v1.three_c?.customer?.cutoff),
             market: {
-              sam: pickStr(np.three_c?.customer?.market?.sam, orig.three_c?.customer?.market?.sam),
-              som: pickStr(np.three_c?.customer?.market?.som, orig.three_c?.customer?.market?.som),
-              growth: pickStr(np.three_c?.customer?.market?.growth, orig.three_c?.customer?.market?.growth),
-              basis: pickStr(np.three_c?.customer?.market?.basis, orig.three_c?.customer?.market?.basis),
+              sam: pickStr(np.three_c?.customer?.market?.sam, orig.three_c?.customer?.market?.sam, v1.three_c?.customer?.market?.sam),
+              som: pickStr(np.three_c?.customer?.market?.som, orig.three_c?.customer?.market?.som, v1.three_c?.customer?.market?.som),
+              growth: pickStr(np.three_c?.customer?.market?.growth, orig.three_c?.customer?.market?.growth, v1.three_c?.customer?.market?.growth),
+              basis: pickStr(np.three_c?.customer?.market?.basis, orig.three_c?.customer?.market?.basis, v1.three_c?.customer?.market?.basis),
             },
           },
           competitor: {
-            direct: pickArr(np.three_c?.competitor?.direct, orig.three_c?.competitor?.direct),
-            indirect: pickArr(np.three_c?.competitor?.indirect, orig.three_c?.competitor?.indirect),
+            direct: pickArr(np.three_c?.competitor?.direct, orig.three_c?.competitor?.direct, v1.three_c?.competitor?.direct),
+            indirect: pickArr(np.three_c?.competitor?.indirect, orig.three_c?.competitor?.indirect, v1.three_c?.competitor?.indirect),
           },
           company: {
-            strength: pickArr(np.three_c?.company?.strength, orig.three_c?.company?.strength),
-            structure: pickStr(np.three_c?.company?.structure, orig.three_c?.company?.structure),
-            passion: pickStr(np.three_c?.company?.passion, orig.three_c?.company?.passion),
+            strength: pickArr(np.three_c?.company?.strength, orig.three_c?.company?.strength, v1.three_c?.company?.strength),
+            structure: pickStr(np.three_c?.company?.structure, orig.three_c?.company?.structure, v1.three_c?.company?.structure),
+            passion: pickStr(np.three_c?.company?.passion, orig.three_c?.company?.passion, v1.three_c?.company?.passion),
           },
         },
         strategy_message: {
-          message: pickStr(np.strategy_message?.message, orig.strategy_message?.message),
-          benefit_part: pickStr(np.strategy_message?.benefit_part, orig.strategy_message?.benefit_part),
-          advantage_part: pickStr(np.strategy_message?.advantage_part, orig.strategy_message?.advantage_part),
+          message: pickStr(np.strategy_message?.message, orig.strategy_message?.message, v1.strategy_message?.message),
+          benefit_part: pickStr(np.strategy_message?.benefit_part, orig.strategy_message?.benefit_part, v1.strategy_message?.benefit_part),
+          advantage_part: pickStr(np.strategy_message?.advantage_part, orig.strategy_message?.advantage_part, v1.strategy_message?.advantage_part),
         },
-        checkpoints: Array.isArray(np.checkpoints) && np.checkpoints.length > 0
+        checkpoints: (Array.isArray(np.checkpoints) && np.checkpoints.length > 0)
           ? np.checkpoints
-          : (Array.isArray(orig.checkpoints) ? orig.checkpoints : []),
+          : ((Array.isArray(orig.checkpoints) && orig.checkpoints.length > 0)
+              ? orig.checkpoints
+              : (Array.isArray(v1.checkpoints) ? v1.checkpoints : [])),
       };
       // 補完が発火したフィールドをログ（デバッグ用）
       const fallbackFields = [];
