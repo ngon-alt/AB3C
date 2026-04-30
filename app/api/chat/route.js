@@ -130,11 +130,31 @@ ${conversationSummary}
       const stopReason = response.stop_reason; // "end_turn" | "max_tokens" | ...
       const text = response.content?.[0]?.text || "";
       let clean = text.replace(/```json|```/g, "").trim();
-      // JSON前後のゴミを除去
+      // JSON 開始位置（最初の `{`）から、波括弧バランスで真の終端を探す
+      // 注: 文字列リテラル内の `{` `}` は数えない
       const jsonStart = clean.indexOf('{');
-      if (jsonStart > 0) clean = clean.substring(jsonStart);
-      const jsonEnd = clean.lastIndexOf('}');
-      if (jsonEnd > 0) clean = clean.substring(0, jsonEnd + 1);
+      if (jsonStart < 0) throw new Error("no JSON object found in response");
+      let depth = 0;
+      let inString = false;
+      let escapeNext = false;
+      let jsonEnd = -1;
+      for (let i = jsonStart; i < clean.length; i++) {
+        const ch = clean[i];
+        if (escapeNext) { escapeNext = false; continue; }
+        if (ch === "\\" && inString) { escapeNext = true; continue; }
+        if (ch === "\"") { inString = !inString; continue; }
+        if (inString) continue;
+        if (ch === "{") depth++;
+        else if (ch === "}") {
+          depth--;
+          if (depth === 0) { jsonEnd = i; break; }
+        }
+      }
+      if (jsonEnd < 0) {
+        // 開いた括弧が閉じていない = 切り捨ての可能性
+        throw new Error("JSON not properly closed (likely truncated)");
+      }
+      clean = clean.substring(jsonStart, jsonEnd + 1);
 
       // max_tokens で切れた場合は途中までしかパースできない可能性が高いため明示エラー
       if (stopReason === "max_tokens") {
