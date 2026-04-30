@@ -212,17 +212,25 @@ ${conversationSummary}
       required: ["benefit", "advantage", "three_c", "strategy_message", "checkpoints"],
     };
 
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 16000,
-      tools: [{
-        name: "return_analysis",
-        description: "改善されたAB3C分析結果をクライアントに返します。元の構造を保持し、全フィールドを必ず含めてください。",
-        input_schema: ab3cSchema,
-      }],
-      tool_choice: { type: "tool", name: "return_analysis" },
-      messages: [{ role: "user", content: userPrompt }],
-    });
+    let response;
+    try {
+      response = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 16000,
+        tools: [{
+          name: "return_analysis",
+          description: "改善されたAB3C分析結果をクライアントに返します。元の構造を保持し、全フィールドを必ず含めてください。",
+          input_schema: ab3cSchema,
+        }],
+        tool_choice: { type: "tool", name: "return_analysis" },
+        messages: [{ role: "user", content: userPrompt }],
+      });
+    } catch (apiErr) {
+      console.error("Anthropic API 呼び出し失敗:", apiErr?.message, apiErr?.status, apiErr?.error);
+      const status = apiErr?.status || 500;
+      const detail = apiErr?.error?.error?.message || apiErr?.message || "AI API への接続に失敗しました";
+      return NextResponse.json({ error: `再分析に失敗しました: ${detail}（API ${status}）` }, { status: 502 });
+    }
 
     try {
       const stopReason = response.stop_reason; // "end_turn" | "tool_use" | "max_tokens" | ...
@@ -331,15 +339,21 @@ ${conversationSummary}
       if (newResult.checkpoints === orig.checkpoints) fallbackFields.push("checkpoints");
       if (fallbackFields.length > 0) console.log("再分析: 元の値で補完したフィールド:", fallbackFields);
 
-      const summaryResponse = await client.messages.create({
-        model: "claude-sonnet-4-6",
-        max_tokens: 100,
-        messages: [{
-          role: "user",
-          content: `以下の会話内容を15文字以内で一言に要約してください。要約のみ返してください。\n\n${conversationSummary}`
-        }],
-      });
-      const chatSummary = summaryResponse.content[0].text.trim();
+      let chatSummary = "";
+      try {
+        const summaryResponse = await client.messages.create({
+          model: "claude-sonnet-4-6",
+          max_tokens: 100,
+          messages: [{
+            role: "user",
+            content: `以下の会話内容を15文字以内で一言に要約してください。要約のみ返してください。\n\n${conversationSummary}`
+          }],
+        });
+        chatSummary = summaryResponse.content[0].text.trim();
+      } catch (sumErr) {
+        // 要約失敗は致命的ではないので空文字列で続行
+        console.warn("chatSummary 生成失敗:", sumErr?.message);
+      }
       return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
       const stopReason = response?.stop_reason || "unknown";
