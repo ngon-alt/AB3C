@@ -41,7 +41,27 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [sites, setSites] = useState([]);
   const [showSiteDropdown, setShowSiteDropdown] = useState(false);
   const [showPlanDropdown, setShowPlanDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
+
+  // ユーザー名ドロップダウンから Stripe Portal を開く
+  const openStripePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const r = await fetch("/api/stripe/portal", { method: "POST" });
+      const d = await r.json();
+      if (!r.ok || !d.url) {
+        alert(d.error || "お支払い管理画面にアクセスできませんでした。");
+        setPortalLoading(false);
+        return;
+      }
+      window.location.href = d.url;
+    } catch (e) {
+      alert("通信エラーが発生しました。");
+      setPortalLoading(false);
+    }
+  };
 
   // 更新履歴の未読チェック（ヘッダーは全ページで描画されるため、ここで判定）
   useEffect(() => {
@@ -143,8 +163,43 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             </div>
           ) : session ? (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                {session.user?.name}
+              <span style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+                <button
+                  onClick={() => setShowUserDropdown(v => !v)}
+                  style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: C.ink, fontFamily: NAV_FONT, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 4 }}
+                  title="マイアカウントメニューを開く"
+                >
+                  {session.user?.name}
+                  <span style={{ fontSize: 10 }}>▼</span>
+                </button>
+                {showUserDropdown && (
+                  <div
+                    onMouseLeave={() => setShowUserDropdown(false)}
+                    style={{ position: "absolute", top: "100%", left: 0, marginTop: 6, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", zIndex: 500, minWidth: 220, overflow: "hidden" }}
+                  >
+                    <Link href="/account" onClick={() => setShowUserDropdown(false)}
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", textDecoration: "none", color: C.ink, fontSize: 14, borderBottom: `1px solid ${C.border}`, background: "#fff" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
+                      onMouseLeaveCapture={e => e.currentTarget.style.background = "#fff"}
+                    >
+                      <span>📋</span><span>マイアカウント</span>
+                    </Link>
+                    <button onClick={() => { setShowUserDropdown(false); openStripePortal(); }} disabled={portalLoading}
+                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", textAlign: "left", background: "#fff", border: "none", borderBottom: `1px solid ${C.border}`, cursor: portalLoading ? "not-allowed" : "pointer", color: C.ink, fontSize: 14, fontFamily: NAV_FONT }}
+                      onMouseEnter={e => { if (!portalLoading) e.currentTarget.style.background = "#f5f5f0"; }}
+                      onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                    >
+                      <span>💳</span><span>{portalLoading ? "読み込み中..." : "支払い履歴・領収書"}</span>
+                    </button>
+                    <button onClick={() => { try { sessionStorage.removeItem("ab3c_check_pro"); } catch (e) {} setShowUserDropdown(false); signOut(); }}
+                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", textAlign: "left", background: "#fff", border: "none", cursor: "pointer", color: C.ink, fontSize: 14, fontFamily: NAV_FONT }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
+                      onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                    >
+                      <span>🚪</span><span>ログアウト</span>
+                    </button>
+                  </div>
+                )}
                 {planLoaded && planLabel && !hasMultiplePlans && (
                   <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>
                 )}
@@ -189,9 +244,6 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   </span>
                 )}
               </span>
-              <button onClick={() => { try { sessionStorage.removeItem("ab3c_check_pro"); } catch (e) {} signOut(); }} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 4, padding: "4px 10px", cursor: "pointer", fontFamily: NAV_FONT, fontSize: 16, color: C.ink }}>
-                ログアウト
-              </button>
             </div>
           ) : (
             <button onClick={() => signIn("google")} style={{ display: "flex", alignItems: "center", gap: 0, border: "none", borderRadius: 4, cursor: "pointer", padding: 0, overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.25)", fontFamily: "Roboto, Arial, sans-serif" }}>
