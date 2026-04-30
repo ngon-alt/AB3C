@@ -38,7 +38,25 @@ export async function GET() {
     `;
     const currentCount = sitesAll.length;
 
-    // PRO は実質無制限なので overCap=false
+    // 判定の優先順位:
+    //  1. 戦略指南プラン active あり → そのプランの cap で制限（PRO であっても適用）
+    //     ※ 戦略指南プラン購入時に pro_users へも自動 INSERT されるため、isPro 単独では判定できない
+    //  2. 上記なし & PRO → 実質無制限（overCap=false）
+    //  3. 上記なし & 非PRO → cap=0、現サイトがあれば overCap=true
+    if (supportCap > 0) {
+      const cap = supportCap;
+      const overCap = currentCount > cap;
+      return NextResponse.json({
+        overCap,
+        isPro,
+        cap,
+        currentCount,
+        excessCount: Math.max(0, currentCount - cap),
+        reason: 'support',
+        sites: overCap ? sitesAll : [],
+      });
+    }
+
     if (isPro) {
       return NextResponse.json({
         overCap: false,
@@ -49,26 +67,22 @@ export async function GET() {
       });
     }
 
-    const cap = supportCap;
-    const overCap = currentCount > cap;
-    let reason = 'support';
-    if (cap === 0) {
-      // 戦略指南プランなし。診断チケットだけ持っているか、無契約
-      const analysisRows = await sql`
-        SELECT COUNT(*) as c FROM user_plans
-        WHERE user_email = ${email} AND plan_type = 'analysis' AND status = 'active'
-      `;
-      reason = parseInt(analysisRows[0]?.c || 0) > 0 ? 'analysis_only' : 'no_plan';
-    }
+    // 戦略指南プランなし＆非PRO: 戦略診断チケットだけ持っているか、無契約
+    const analysisRows = await sql`
+      SELECT COUNT(*) as c FROM user_plans
+      WHERE user_email = ${email} AND plan_type = 'analysis' AND status = 'active'
+    `;
+    const reason = parseInt(analysisRows[0]?.c || 0) > 0 ? 'analysis_only' : 'no_plan';
+    const cap = 0;
+    const overCap = currentCount > 0;
 
     return NextResponse.json({
       overCap,
       isPro: false,
       cap,
       currentCount,
-      excessCount: Math.max(0, currentCount - cap),
+      excessCount: currentCount,
       reason,
-      // overCap の時のみサイト一覧を返す（UI 選択用）
       sites: overCap ? sitesAll : [],
     });
   } catch (e) {
