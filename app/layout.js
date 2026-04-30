@@ -1,6 +1,7 @@
 import { Providers } from "./providers";
 import { Noto_Serif_JP, Space_Mono, EB_Garamond } from "next/font/google";
 import BugReportFloat from "./components/BugReportFloat";
+import SiteCapGuard from "./components/SiteCapGuard";
 import "./globals.css";
 import "./print.css";
 
@@ -65,6 +66,7 @@ export default function RootLayout({ children }) {
         <Providers>
           {children}
           <BugReportFloat />
+          <SiteCapGuard />
         </Providers>
       </body>
     </html>

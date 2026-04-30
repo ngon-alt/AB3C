@@ -8,7 +8,7 @@ import Footer from "./components/Footer";
 import PricingModal from "./components/PricingModal";
 import ShadowMock from "./components/ShadowMock";
 import UpdateHistoryModal from "./components/UpdateHistoryModal";
-import SiteCapResolveModal from "./components/SiteCapResolveModal";
+// SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
 
 const C = {
@@ -1093,8 +1093,7 @@ const [showWelcome, setShowWelcome] = useState(false);
 const [showUpdates, setShowUpdates] = useState(false);
 const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
 // サイト上限超過モーダル（プラン切替後に「残すサイトを選択」）
-const [siteCapStatus, setSiteCapStatus] = useState(null); // { overCap, cap, currentCount, sites, reason }
-const [showSiteCapModal, setShowSiteCapModal] = useState(false);
+// サイト上限超過モーダルは layout.js の SiteCapGuard が全ページ共通で扱うため、ここでは管理しない
 const [isPro, setIsPro] = useState(false);
 const [chatTickets, setChatTickets] = useState(0);
 const [trialChats, setTrialChats] = useState(0);
@@ -1697,23 +1696,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     } catch (e) {}
   };
 
-  // サイト上限超過チェック: ログイン中のユーザーのみ /api/sites/cap-status を確認し、
-  // 超過していたら「残すサイトを選択」モーダルを表示する
-  const refreshSiteCapStatus = async () => {
-    try {
-      const res = await fetch("/api/sites/cap-status");
-      if (!res.ok) return;
-      const data = await res.json();
-      setSiteCapStatus(data);
-      if (data.overCap) {
-        setShowSiteCapModal(true);
-      }
-    } catch (e) {}
-  };
-  useEffect(() => {
-    if (!session) return;
-    refreshSiteCapStatus();
-  }, [session]);
+  // サイト上限超過チェックは layout.js の SiteCapGuard が全ページ共通で扱う
 
   useEffect(() => {
   if (session) {
@@ -2305,22 +2288,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showWelcome && <WelcomeModal session={session} onClose={() => setShowWelcome(false)} onShowPricing={() => setShowPricing(true)} />}
       <UpdateHistoryModal open={showUpdates} onClose={dismissUpdates} highlightLatest={hasUnseenUpdate} />
-      <SiteCapResolveModal
-        open={showSiteCapModal && !!siteCapStatus?.overCap}
-        sites={siteCapStatus?.sites || []}
-        cap={siteCapStatus?.cap ?? 0}
-        currentCount={siteCapStatus?.currentCount ?? 0}
-        reason={siteCapStatus?.reason}
-        onResolved={async () => {
-          setShowSiteCapModal(false);
-          // サイト一覧を再取得（削除後の状態を反映）
-          await refreshSiteCapStatus();
-          // ヘッダー右上のサイトドロップダウンや、ダッシュボードのサイト一覧も再読み込みされるよう、
-          // 軽いリロードでDB→UI を統一
-          try { window.location.reload(); } catch (e) {}
-        }}
-        onDismiss={() => setShowSiteCapModal(false)}
-      />
+      {/* SiteCapResolveModal は layout.js の SiteCapGuard で全ページ共通表示 */}
 
       <Header
         onShowPricing={() => setShowPricing(true)}
