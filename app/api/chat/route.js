@@ -109,75 +109,134 @@ ${conversationText}
       .map(m => m.content.slice(0, 200))
       .join('\n');
 
-    const systemPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果をJSON形式で返してください。
+    const userPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果を return_analysis ツールで返してください。
+
 ## 元の分析結果
 ${JSON.stringify(analysisResult)}
+
 ## ユーザーからの追加情報（最新3件）
 ${conversationSummary}
-上記を反映した新しい分析結果を返してください。
 
-絶対に守ること（最重要）：
-- JSONのみ返す。説明文・前置き・コードブロック記号（\`\`\`）・JSON 後ろの追記コメントは一切不要
-- 返却する JSON は **元の分析結果と完全に同じトップレベル構造** を保持すること:
-  benefit, advantage, three_c (customer/competitor/company), strategy_message, checkpoints の **全フィールドを必ず含める**
-- 変更がないセクション（competitor, company など会話で触れていないセクション）は、**元の値をそのままコピーして必ず含めること**。省略・空配列・空文字列にしてはいけない
-- checkpoints は元の値（label/status/comment 各5項目）をそのまま全件コピーする
-- 必ず有効な JSON のみを返す（JSON が完了したら、それ以降は何も書かない）`;
+絶対に守ること:
+- 必ず return_analysis ツールを呼び出して結果を返すこと
+- 元の分析結果と同じトップレベル構造（benefit / advantage / three_c / strategy_message / checkpoints）を保持し、全フィールドを必ず含めること
+- 変更がないセクション（会話で触れていないもの）は、元の値をそのままコピーして含めること（省略・空配列・空文字列にしない）
+- checkpoints は元の5項目をそのまま全件コピーする`;
+
+    // AB3C 分析結果のスキーマ定義（Tool Use で構造化出力を強制）
+    const ab3cSchema = {
+      type: "object",
+      properties: {
+        benefit: {
+          type: "object",
+          properties: {
+            core: { type: "string", description: "ベネフィットの核心" },
+            needs: { type: "array", items: { type: "string" }, description: "ニーズ（欠乏感・曖昧な欲求）" },
+            wants: { type: "array", items: { type: "string" }, description: "ウォンツ（具体的欲求）" },
+          },
+          required: ["core", "needs", "wants"],
+        },
+        advantage: {
+          type: "object",
+          properties: {
+            what: { type: "string", description: "アドバンテージの内容" },
+            why_good: { type: "string", description: "なぜ好ましいのか" },
+            why_hard_to_copy: { type: "string", description: "なぜ真似されにくいか" },
+          },
+          required: ["what", "why_good", "why_hard_to_copy"],
+        },
+        three_c: {
+          type: "object",
+          properties: {
+            customer: {
+              type: "object",
+              properties: {
+                target: { type: "string" },
+                profile: { type: "array", items: { type: "string" } },
+                stage: { type: "string" },
+                cutoff: { type: "string" },
+                market: {
+                  type: "object",
+                  properties: {
+                    sam: { type: "string" },
+                    som: { type: "string" },
+                    growth: { type: "string" },
+                    basis: { type: "string" },
+                  },
+                },
+              },
+              required: ["target", "profile", "stage", "cutoff"],
+            },
+            competitor: {
+              type: "object",
+              properties: {
+                direct: { type: "array", items: { type: "string" } },
+                indirect: { type: "array", items: { type: "string" } },
+              },
+              required: ["direct", "indirect"],
+            },
+            company: {
+              type: "object",
+              properties: {
+                strength: { type: "array", items: { type: "string" } },
+                structure: { type: "string" },
+                passion: { type: "string" },
+              },
+              required: ["strength", "structure", "passion"],
+            },
+          },
+          required: ["customer", "competitor", "company"],
+        },
+        strategy_message: {
+          type: "object",
+          properties: {
+            message: { type: "string" },
+            benefit_part: { type: "string" },
+            advantage_part: { type: "string" },
+          },
+          required: ["message", "benefit_part", "advantage_part"],
+        },
+        checkpoints: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              label: { type: "string" },
+              status: { type: "string", enum: ["ok", "warn", "ng"] },
+              comment: { type: "string" },
+            },
+            required: ["label", "status", "comment"],
+          },
+        },
+      },
+      required: ["benefit", "advantage", "three_c", "strategy_message", "checkpoints"],
+    };
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 16000, // AB3C再生成は出力が大きい。8000では途中で切れることがあったため拡張
-      messages: [{ role: "user", content: systemPrompt }],
+      max_tokens: 16000,
+      tools: [{
+        name: "return_analysis",
+        description: "改善されたAB3C分析結果をクライアントに返します。元の構造を保持し、全フィールドを必ず含めてください。",
+        input_schema: ab3cSchema,
+      }],
+      tool_choice: { type: "tool", name: "return_analysis" },
+      messages: [{ role: "user", content: userPrompt }],
     });
 
     try {
-      const stopReason = response.stop_reason; // "end_turn" | "max_tokens" | ...
-      const text = response.content?.[0]?.text || "";
-      let clean = text.replace(/```json|```/g, "").trim();
-      // JSON 開始位置（最初の `{`）から、波括弧バランスで真の終端を探す
-      // 注: 文字列リテラル内の `{` `}` は数えない
-      const jsonStart = clean.indexOf('{');
-      if (jsonStart < 0) throw new Error("no JSON object found in response");
-      let depth = 0;
-      let inString = false;
-      let escapeNext = false;
-      let jsonEnd = -1;
-      for (let i = jsonStart; i < clean.length; i++) {
-        const ch = clean[i];
-        if (escapeNext) { escapeNext = false; continue; }
-        if (ch === "\\" && inString) { escapeNext = true; continue; }
-        if (ch === "\"") { inString = !inString; continue; }
-        if (inString) continue;
-        if (ch === "{") depth++;
-        else if (ch === "}") {
-          depth--;
-          if (depth === 0) { jsonEnd = i; break; }
-        }
-      }
-      if (jsonEnd < 0) {
-        // 開いた括弧が閉じていない = 切り捨ての可能性
-        throw new Error("JSON not properly closed (likely truncated)");
-      }
-      clean = clean.substring(jsonStart, jsonEnd + 1);
+      const stopReason = response.stop_reason; // "end_turn" | "tool_use" | "max_tokens" | ...
 
-      // max_tokens で切れた場合は途中までしかパースできない可能性が高いため明示エラー
+      // Tool Use レスポンスから構造化データを抽出
+      const toolUseBlock = (response.content || []).find(b => b.type === "tool_use" && b.name === "return_analysis");
+      if (!toolUseBlock || !toolUseBlock.input) {
+        throw new Error("Claude did not call return_analysis tool. stop_reason=" + stopReason);
+      }
+      let parsedResult = toolUseBlock.input;
+
+      // max_tokens で切れた場合は input が部分的になっている可能性
       if (stopReason === "max_tokens") {
-        throw new Error("max_tokens reached: response truncated");
-      }
-
-      let parsedResult;
-      try {
-        parsedResult = JSON.parse(clean);
-      } catch (e1) {
-        // 不正な制御文字を除去して再パース
-        const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
-        try {
-          parsedResult = JSON.parse(cleaned2);
-        } catch (e2) {
-          // 末尾カンマを除去（よくある Claude の癖）
-          const cleaned3 = cleaned2.replace(/,\s*([}\]])/g, "$1");
-          parsedResult = JSON.parse(cleaned3);
-        }
+        console.warn("max_tokens reached during tool_use; input may be partial");
       }
 
       // === 欠落・空フィールドを元の値から補完（カスケード式損失対策） ===
@@ -283,21 +342,21 @@ ${conversationSummary}
       const chatSummary = summaryResponse.content[0].text.trim();
       return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
-      const rawText = response?.content?.[0]?.text || "";
       const stopReason = response?.stop_reason || "unknown";
-      console.error("再分析JSONパースエラー:", e?.message);
-      console.error("stop_reason:", stopReason, "/ usage:", response?.usage);
-      console.error("Raw response length:", rawText.length);
-      console.error("Raw response (first 800):", rawText.slice(0, 800));
-      console.error("Raw response (last 400):", rawText.slice(-400));
-      // 失敗種別を切り分けてユーザーに伝える
+      const blocks = response?.content || [];
+      const blockSummary = blocks.map(b => `${b.type}${b.type === "text" ? `(${(b.text || "").length}chars)` : b.type === "tool_use" ? `(${b.name})` : ""}`).join(",");
+      console.error("再分析エラー:", e?.message);
+      console.error("stop_reason:", stopReason, "/ usage:", response?.usage, "/ blocks:", blockSummary);
+      // テキストブロックがある場合は冒頭を出してデバッグ用に
+      const textBlock = blocks.find(b => b.type === "text");
+      if (textBlock) console.error("text block (first 500):", (textBlock.text || "").slice(0, 500));
       let reason;
       if (stopReason === "max_tokens" || /max_tokens/.test(e?.message || "")) {
         reason = "AIの応答が長すぎて途中で切れました。会話のメッセージを短くしてからもう一度お試しください。";
-      } else if (rawText.length < 50) {
-        reason = "AIから空の応答が返りました。";
+      } else if (/did not call/.test(e?.message || "")) {
+        reason = "AIがツール経由の応答を返しませんでした。";
       } else {
-        reason = "AIの応答を解釈できませんでした（JSON形式エラー）。";
+        reason = "AIの応答を解釈できませんでした。";
       }
       return NextResponse.json({ error: `再分析に失敗しました: ${reason}少し時間をおいてもう一度お試しください。` }, { status: 500 });
     }
