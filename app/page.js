@@ -354,9 +354,10 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-// 戦略の組み合わせパターン3案を縦並びで表示するセクション。
-// AB3C 本来の考え方（ターゲット×ベネフィットがセットで、それに応じて競合・自社強み・戦略メッセージが絞られる）を
-// UI 上で可視化する。各パターンに「深掘りする」ボタンがあり、選択中のパターンは赤枠でハイライトされる。
+// 戦略の組み合わせパターン3案を縦並びで表示するセクション（サマリー表示）。
+// 新スキーマ（per-combination 完全AB3C）から、各パターンの要点を抽出して表示。
+// 各パターンに「深掘りする」ボタンがあり、選択中のパターンは赤枠でハイライトされる。
+// Phase B再 でタブ式の完全AB3C表示UIに作り直す予定。
 function CombinationsSection({ d, selectedCombinationId, onSelectCombination, onChat }) {
   if (!d?.combinations || !Array.isArray(d.combinations) || d.combinations.length === 0) {
     return null;
@@ -364,6 +365,7 @@ function CombinationsSection({ d, selectedCombinationId, onSelectCombination, on
   const combinations = d.combinations;
   const recommendedId = d.recommended_combination_id;
   const selectedId = selectedCombinationId || recommendedId || combinations[0]?.id;
+  const companyCore = d.company_core || {};
   return (
     <div style={{ marginBottom: 32 }}>
       <SectionLabel
@@ -382,6 +384,7 @@ function CombinationsSection({ d, selectedCombinationId, onSelectCombination, on
           <CombinationCard
             key={combo.id}
             combo={combo}
+            companyCore={companyCore}
             isSelected={combo.id === selectedId}
             isRecommended={combo.id === recommendedId}
             onSelect={() => onSelectCombination && onSelectCombination(combo.id)}
@@ -393,16 +396,37 @@ function CombinationsSection({ d, selectedCombinationId, onSelectCombination, on
   );
 }
 
-function CombinationCard({ combo, isSelected, isRecommended, onSelect, onChat }) {
+// 新スキーマ対応: combo.benefit/advantage/strategy_message などはオブジェクト構造に。
+// サマリー表示なので各オブジェクトから要点（core, what, message, target, etc.）だけ抽出する。
+function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSelect, onChat }) {
   const borderColor = isSelected ? C.B : C.border;
   const headerBg = isSelected ? C.B : C.ink;
   const cardBg = isSelected ? "#fff5f5" : "#ffffff";
-  const askChat = onChat ? () => onChat(`組み合わせパターン「${combo.label}」をベースにさらに深掘りしてください`) : null;
+  const askChat = onChat ? () => onChat(`組み合わせパターン「${combo?.label || ""}」をベースにさらに深掘りしてください`) : null;
   const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+
+  // 新スキーマからサマリー表示用の文字列を安全に抽出
+  const targetText = combo?.customer?.target || "";
+  const benefitText = combo?.benefit?.core || "";
+  const advantageText = combo?.advantage?.what || "";
+  const strategyMessageText = combo?.strategy_message?.message || "";
+  // 競合：direct から最大2件、URL部分は表示しない
+  const directList = Array.isArray(combo?.competitor?.direct) ? combo.competitor.direct : [];
+  const competitorText = directList.slice(0, 2)
+    .map(d => (typeof d === "string" ? d.split("｜")[0] : ""))
+    .filter(Boolean)
+    .join(" / ");
+  // 自社強み：strengths_used のindexで company_core.all_strengths を解決
+  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const usedIdx = Array.isArray(combo?.strengths_used) ? combo.strengths_used : [];
+  const strengthText = usedIdx.length > 0 && allStrengths.length > 0
+    ? usedIdx.slice(0, 2).map(i => allStrengths[i]).filter(Boolean).join(" / ")
+    : "";
+
   const Row = ({ label, labelColor, valueBold, value }) => (
     <>
       <div style={{ fontWeight: 700, color: labelColor || "#444", paddingTop: 8, fontSize: 14, fontFamily: sansFont }}>{label}</div>
-      <div style={{ paddingTop: 8, fontSize: 16, lineHeight: 1.7, fontWeight: valueBold ? 700 : 400, color: C.ink, fontFamily: sansFont }}>{value}</div>
+      <div style={{ paddingTop: 8, fontSize: 16, lineHeight: 1.7, fontWeight: valueBold ? 700 : 400, color: C.ink, fontFamily: sansFont }}>{value || "—"}</div>
     </>
   );
   return (
@@ -422,7 +446,7 @@ function CombinationCard({ combo, isSelected, isRecommended, onSelect, onChat })
           padding: "8px 16px", fontSize: 17, fontWeight: 700,
           borderRadius: 4, fontFamily: "'Noto Serif JP', serif",
         }}>
-          パターン{combo.id}：{combo.label}
+          パターン{combo?.id || ""}：{combo?.label || ""}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRecommended && (
@@ -440,17 +464,17 @@ function CombinationCard({ combo, isSelected, isRecommended, onSelect, onChat })
 
       {/* 詳細グリッド */}
       <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", columnGap: 14, rowGap: 0, marginBottom: 16, borderTop: `1px dashed ${C.border}`, borderBottom: `1px dashed ${C.border}`, paddingBottom: 8 }}>
-        <Row label="ターゲット" value={combo.target} />
-        <Row label="Benefit" labelColor={C.B} valueBold value={combo.benefit} />
-        <Row label="競合" value={combo.competitor_focus} />
-        <Row label="自社の強み" value={combo.company_strength_focus} />
-        <Row label="Advantage" labelColor={C.A} valueBold value={combo.advantage} />
+        <Row label="ターゲット" value={targetText} />
+        <Row label="Benefit" labelColor={C.B} valueBold value={benefitText} />
+        <Row label="競合" value={competitorText} />
+        <Row label="自社の強み" value={strengthText} />
+        <Row label="Advantage" labelColor={C.A} valueBold value={advantageText} />
       </div>
 
       {/* 戦略メッセージ */}
       <div style={{ background: C.ink, color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>STRATEGY MESSAGE</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{combo.strategy_message}</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{strategyMessageText || "—"}</div>
       </div>
 
       {/* アクションボタン */}
