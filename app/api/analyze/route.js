@@ -132,12 +132,34 @@ AB3C分析の正確な定義：
 
 戦略メッセージ = Benefit（何が得られるか）＋ Advantage（なぜ競合よりいいか）
 
-## 組み合わせパターン（重要・追加要件）
+## AB3C 組み合わせパターンの構造（最重要）
 
-AB3C は本来、ターゲットとベネフィットがセットで、それに応じて競合・自社の強み・戦略メッセージが絞り込まれます。
-そのため、要素を箇条書きで並列に並べるだけでなく、「この層に・この価値を・この強みで提供する」という**組み合わせ**として表現するのが本来の姿です。
+AB3C は本来、**ターゲットとベネフィットがセット**で決まり、それに応じて競合・自社の強み・Advantage・戦略メッセージ・チェックポイント評価が一気通貫で絞り込まれます。
+ひとつの会社でも、誰に何を提供するかの切り口（=ポジショニング）が違えば、AB3C 全体が別物になります。
 
-上記の全体分析に加えて、**ターゲット×ベネフィットの切り口を3つ**提示してください（後述の combinations 配列）。
+そのため、本分析では以下の構造で出力してください:
+
+1. **company_core**（共通 / パターンに依らず変わらない会社の根っこ）
+   - 強みを生む構造的特徴 (structure)
+   - 経営者の価値観・パッション (passion)
+   - 自社の強み一覧 (all_strengths) — 各パターンが利用する基底リスト
+
+2. **combinations**（3つの独立した完全な AB3C セット）
+   各パターンは「ターゲット×ベネフィットの切り口」で全く別のポジショニングを表現します。
+   各パターンは以下を**完全に**持つこと（要約版ではない）:
+   - customer: target / profile[] / stage / cutoff / market{sam,som,growth,basis}
+   - benefit: core / needs[] / wants[]（このターゲット特有のニーズ・ウォンツ）
+   - competitor: direct[] / indirect[]（このパターンで対峙する競合）
+   - strengths_used: [..]（company_core.all_strengths の参照index、このパターンで活きる強み）
+   - advantage: what / why_good / why_hard_to_copy（このターゲット・競合に対する優位性）
+   - strategy_message: message / benefit_part / advantage_part
+   - checkpoints: 5項目評価（このパターン固有の評価）
+
+   **市場規模・ニーズ・競合・Advantage はパターンごとに変わります**。例えば:
+   - 「BtoC 自宅用」と「ギフト用」では狙う市場規模も違う
+   - 競合も違う（BtoC は同業EC、ギフトは百貨店ギフト）
+   - Advantage の why_good も違う（自宅向けには「フィット感」、ギフト向けには「物語性」）
+   - 戦略メッセージも当然違う
 
 ### 切り口を考える際のヒント
 事業内容によって自然な切り口は変わります。よくあるパターンの例:
@@ -154,8 +176,8 @@ AB3C は本来、ターゲットとベネフィットがセットで、それに
 事業内容上「組み合わせはこの2つしかない」と判断した場合は2つでも構いませんが、原則3つ出すこと。
 
 ### 各組み合わせの戦略メッセージは短く
-要素を絞り込んでいるからこそ、各組み合わせの strategy_message は**最大40文字、理想20〜30文字**で表現してください。
-言葉を磨いて一撃で伝わるコピーにすること。全体の strategy_message が長くても、各組み合わせは短く。
+要素を絞り込んでいるからこそ、各組み合わせの strategy_message.message は**最大40文字、理想20〜30文字**で表現してください。
+言葉を磨いて一撃で伝わるコピーにすること。
 
 ### おすすめパターンの選定
 recommended_combination_id には、AIが最も推奨する1つのidを入れてください。
@@ -173,85 +195,90 @@ ${analysisTarget}
 
 以下のJSON形式のみで返してください：
 {
-  "benefit": {
-    "needs": ["ニーズ1", "ニーズ2"],
-    "wants": ["ウォンツ1", "ウォンツ2"],
-    "core": "ベネフィットの核心を一言で"
-  },
-  "advantage": {
-    "what": "アドバンテージの内容を一言で",
-    "why_good": "なぜお客様にとって好ましいのか",
-    "why_hard_to_copy": "なぜ競合に真似されにくいか"
-  },
-  "three_c": {
-    "customer": {
-      "target": "ターゲット顧客を一言で",
-      "profile": ["特徴1", "特徴2", "特徴3"],
-      "stage": "ニーズ段階 or ウォンツ段階",
-      "cutoff": "切り捨てたお客様",
-      "market": {
-        "sam": "獲得可能市場規模（例：約500億円）",
-        "som": "実際に狙える市場規模（例：約50億円）",
-        "growth": "市場成長率・トレンド（例：年率10%成長、DX需要で拡大中）",
-        "basis": "算出根拠（公的統計・業界レポートからの引用の場合は出典名・年度・URLを明記。フェルミ推定の場合はベースとなる数字と計算過程を簡潔に説明。例：『経済産業省DXレポート2024（https://www.meti.go.jp/...）によると国内DX市場は約3.4兆円。うちコンサルティング領域は約15%の5,100億円。中小企業向けは約30%と推定し、SAM≒1,500億円』）"
-      }
-    },
-    "competitor": {
-      "direct": ["直接競合1（特徴も含めて）｜https://example.com", "直接競合2（特徴も含めて）｜https://example.com"],
-      "indirect": ["異業種競合1｜https://example.com", "異業種競合2"]
-    },
-    "company": {
-      "strength": ["具体的強み1", "具体的強み2"],
-      "structure": "強みを生む構造的特徴",
-      "passion": "経営者の価値観・パッション"
-    }
-  },
-  "strategy_message": {
-    "message": "戦略メッセージ（一言で選ばれる理由）",
-    "benefit_part": "ベネフィット部分",
-    "advantage_part": "アドバンテージ部分"
+  "company_core": {
+    "structure": "強みを生む構造的特徴（パターンに依らず会社共通）",
+    "passion": "経営者の価値観・パッション（パターンに依らず会社共通）",
+    "all_strengths": [
+      "具体的強み1（技術・ノウハウ・設備など）",
+      "具体的強み2",
+      "具体的強み3"
+    ]
   },
   "combinations": [
     {
       "id": 1,
       "label": "短いキャッチー名（10〜15字、例：足の悩み解消ルート）",
-      "target": "ターゲット顧客像（30字以内）",
-      "benefit": "得られる価値を一言で（30字以内）",
-      "competitor_focus": "この組み合わせで主に意識する競合（具体名）",
-      "company_strength_focus": "この組み合わせで活きる自社の主な強み",
-      "advantage": "競合との差別的優位点（30字以内）",
-      "strategy_message": "短く鋭い戦略メッセージ（40字以内、理想20〜30字）"
+      "customer": {
+        "target": "このパターンのターゲット顧客像を一言で",
+        "profile": ["特徴1", "特徴2", "特徴3"],
+        "stage": "ニーズ段階 or ウォンツ段階",
+        "cutoff": "このパターンで切り捨てたお客様",
+        "market": {
+          "sam": "獲得可能市場規模（例：約500億円）",
+          "som": "実際に狙える市場規模（例：約50億円）",
+          "growth": "市場成長率・トレンド",
+          "basis": "算出根拠（公的統計の出典名・年度・URLまたはフェルミ推定の計算過程）"
+        }
+      },
+      "benefit": {
+        "core": "このターゲットが得られる価値の核心を一言で",
+        "needs": ["このターゲット特有のニーズ1", "ニーズ2"],
+        "wants": ["このターゲット特有のウォンツ1", "ウォンツ2"]
+      },
+      "competitor": {
+        "direct": ["直接競合1（特徴も含めて）｜https://example.com", "直接競合2｜https://..."],
+        "indirect": ["異業種競合1｜https://...", "異業種競合2"]
+      },
+      "strengths_used": [0, 2],
+      "advantage": {
+        "what": "このターゲット・競合に対する差別的優位点を一言で",
+        "why_good": "なぜこのターゲットにとって好ましいのか",
+        "why_hard_to_copy": "なぜ競合に真似されにくいか"
+      },
+      "strategy_message": {
+        "message": "短く鋭い戦略メッセージ（40字以内、理想20〜30字）",
+        "benefit_part": "ベネフィット部分",
+        "advantage_part": "アドバンテージ部分"
+      },
+      "checkpoints": [
+        {"label": "切り捨てができているか", "status": "ok", "comment": "コメント"},
+        {"label": "価値の本質（ニーズまで掘り下げた戦略・コンテンツになっているか）", "status": "warn", "comment": "コメント"},
+        {"label": "同業種競合、異業種競合との違いを表現できているか", "status": "ok", "comment": "コメント"},
+        {"label": "アドバンテージは模倣されにくいか", "status": "ok", "comment": "コメント"},
+        {"label": "戦略メッセージのわかりやすさ（戦略要素が絞られているか、優先順位をつけられているか）", "status": "ok", "comment": "コメント"}
+      ]
     },
     {
       "id": 2,
-      "label": "別の切り口の名前",
-      "target": "別のターゲット層",
-      "benefit": "別のベネフィット",
-      "competitor_focus": "別の主競合",
-      "company_strength_focus": "別の主な強み",
-      "advantage": "別の優位点",
-      "strategy_message": "別の戦略メッセージ"
+      "label": "別の切り口（例: ギフト用層ルート）",
+      "customer": {"target": "...", "profile": [], "stage": "...", "cutoff": "...", "market": {"sam": "...", "som": "...", "growth": "...", "basis": "..."}},
+      "benefit": {"core": "...", "needs": [], "wants": []},
+      "competitor": {"direct": [], "indirect": []},
+      "strengths_used": [1, 3],
+      "advantage": {"what": "...", "why_good": "...", "why_hard_to_copy": "..."},
+      "strategy_message": {"message": "...", "benefit_part": "...", "advantage_part": "..."},
+      "checkpoints": [/* 5項目 */]
     },
     {
       "id": 3,
-      "label": "さらに別の切り口の名前",
-      "target": "さらに別のターゲット層",
-      "benefit": "さらに別のベネフィット",
-      "competitor_focus": "さらに別の主競合",
-      "company_strength_focus": "さらに別の主な強み",
-      "advantage": "さらに別の優位点",
-      "strategy_message": "さらに別の戦略メッセージ"
+      "label": "さらに別の切り口",
+      "customer": {/* 完全な構造 */},
+      "benefit": {/* 完全な構造 */},
+      "competitor": {/* 完全な構造 */},
+      "strengths_used": [0, 4],
+      "advantage": {/* 完全な構造 */},
+      "strategy_message": {/* 完全な構造 */},
+      "checkpoints": [/* 5項目 */]
     }
   ],
-  "recommended_combination_id": 1,
-  "checkpoints": [
-    {"label": "切り捨てができているか", "status": "ok", "comment": "コメント"},
-    {"label": "価値の本質（ニーズまで掘り下げた戦略・コンテンツになっているか）", "status": "warn", "comment": "コメント"},
-    {"label": "同業種競合、異業種競合との違いを表現できているか", "status": "ok", "comment": "コメント"},
-    {"label": "アドバンテージは模倣されにくいか", "status": "ok", "comment": "コメント"},
-    {"label": "戦略メッセージのわかりやすさ（戦略要素が絞られているか、優先順位をつけられているか）", "status": "ok", "comment": "コメント"}
-  ]
+  "recommended_combination_id": 1
 }
+
+**strengths_used の使い方**: company_core.all_strengths の配列インデックス（0始まり）を入れてください。例えば all_strengths が3つあるとき、[0, 2] と書けば「1番目と3番目の強み」をこのパターンで使う、という意味になります。各パターンで違う強みの組み合わせになるはずです（同じパターンが3つ並ぶようなら切り口の選び方を見直してください）。
+
+**市場規模（market）について**: 各パターンは違うターゲット層を狙うので、SAM・SOM も理論上は異なります。算出根拠は ${useWebSearch ? "ウェブ検索で" : ""}公的統計・業界レポート・フェルミ推定で示してください。基底となる全体市場規模の参照は同じでも構いませんが、SAM・SOM はパターンごとに違う数字になるはずです。
+
+**競合（competitor）について**: 各パターンで対峙する競合は違います。例えば BtoC自宅向けなら同業EC、ギフト用なら百貨店ギフトのように、パターンの切り口に応じた具体的な競合を挙げてください。
 
 ## チェックポイントの判定基準（厳守）
 
@@ -314,7 +341,7 @@ JSONのみ返してください。
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: 12000, // 3パターン分の完全AB3C出力に対応するため引き上げ
       tools: tools.length > 0 ? tools : undefined,
       messages: [{ role: "user", content: prompt }],
     });
@@ -337,8 +364,42 @@ if (jsonEnd > 0) {
   clean = clean.substring(0, jsonEnd + 1);
 }
 
+// 新スキーマ（company_core + combinations[全完全AB3C]）から、既存の消費者（improve/chat/share/DB）が
+// 期待する旧スキーマ（top-level benefit/advantage/three_c/strategy_message/checkpoints）を recommended パターンの
+// データで埋めるシム。各 Phase で消費者を新スキーマ対応に更新するまでの後方互換措置。
+function backfillLegacyFields(result) {
+  if (!result || typeof result !== "object") return result;
+  if (!Array.isArray(result.combinations) || result.combinations.length === 0) return result;
+  const recommendedId = result.recommended_combination_id;
+  const recommended = result.combinations.find(c => c?.id === recommendedId) || result.combinations[0];
+  if (!recommended) return result;
+  // 既存の top-level フィールドが既に存在する場合は上書きしない（古いプロンプトとの互換性）
+  if (!result.benefit && recommended.benefit) result.benefit = recommended.benefit;
+  if (!result.advantage && recommended.advantage) result.advantage = recommended.advantage;
+  if (!result.strategy_message && recommended.strategy_message) result.strategy_message = recommended.strategy_message;
+  if (!result.checkpoints && recommended.checkpoints) result.checkpoints = recommended.checkpoints;
+  if (!result.three_c) {
+    const core = result.company_core || {};
+    const usedIdx = Array.isArray(recommended.strengths_used) ? recommended.strengths_used : [];
+    const allStrengths = Array.isArray(core.all_strengths) ? core.all_strengths : [];
+    const usedStrengths = usedIdx.length > 0
+      ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+      : allStrengths;
+    result.three_c = {
+      customer: recommended.customer || {},
+      competitor: recommended.competitor || { direct: [], indirect: [] },
+      company: {
+        strength: usedStrengths,
+        structure: core.structure || "",
+        passion: core.passion || "",
+      },
+    };
+  }
+  return result;
+}
+
 try {
-  const result = JSON.parse(clean);
+  const result = backfillLegacyFields(JSON.parse(clean));
   // 分析完了メール送信（プラン種別で文面を分岐・エラーでも止めない）
   try {
     if (session?.user?.email) {
@@ -356,7 +417,7 @@ try {
   // リトライ: 不正な制御文字を除去して再パース
   try {
     const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
-    const result2 = JSON.parse(cleaned2);
+    const result2 = backfillLegacyFields(JSON.parse(cleaned2));
     return NextResponse.json(result2);
   } catch (e2) {
     return NextResponse.json({ error: "AI応答の解析に失敗しました。もう一度お試しください。" }, { status: 500 });
