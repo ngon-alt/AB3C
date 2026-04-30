@@ -500,7 +500,110 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
   );
 }
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination }) {
+// Phase B再: 組み合わせパターンのタブバー（選択中タブの完全AB3Cが下のセクションに表示される）
+function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }) {
+  if (!Array.isArray(combinations) || combinations.length === 0) return null;
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+  const selectedCombo = combinations.find(c => c?.id === selectedId);
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.1em", color: C.muted, textTransform: "uppercase", marginBottom: 8, fontWeight: 700 }}>
+        STRATEGY COMBINATION TABS — クリックで切り替え
+      </div>
+      <div style={{ display: "flex", gap: 4, alignItems: "flex-end", flexWrap: "wrap", borderBottom: `3px solid ${C.B}`, paddingBottom: 0 }}>
+        {combinations.map(combo => {
+          const isSelected = combo.id === selectedId;
+          const isRecommended = combo.id === recommendedId;
+          return (
+            <button
+              key={combo.id}
+              onClick={() => onSelect && onSelect(combo.id)}
+              style={{
+                background: isSelected ? C.B : "#d8d8d4",
+                color: isSelected ? "#fff" : "#444",
+                border: "none",
+                borderRadius: "8px 8px 0 0",
+                padding: "14px 20px 14px",
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "'Noto Serif JP', serif",
+                position: "relative",
+                marginRight: 2,
+                boxShadow: isSelected ? "0 -3px 10px rgba(255,0,0,0.18)" : "none",
+                transition: "all 0.15s",
+                transform: isSelected ? "translateY(0)" : "translateY(0)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = "#c0c0bc";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.background = "#d8d8d4";
+                }
+              }}
+            >
+              {isRecommended && (
+                <span style={{ position: "absolute", top: -10, right: -8, background: "#fef3c7", color: "#854d0e", fontSize: 11, padding: "2px 8px", borderRadius: 3, border: "1px solid #fbbf24", fontFamily: sansFont, fontWeight: 700, whiteSpace: "nowrap" }}>
+                  ⭐ おすすめ
+                </span>
+              )}
+              <span style={{ fontSize: 13, fontFamily: "'Space Mono', monospace", opacity: 0.7, marginRight: 6 }}>P{combo.id}</span>
+              {combo.label}
+            </button>
+          );
+        })}
+      </div>
+      {/* 選択中パターンの説明帯 */}
+      {selectedCombo && (
+        <div style={{
+          background: "#fff5f5", borderLeft: `4px solid ${C.B}`,
+          padding: "14px 20px",
+          fontSize: 15, lineHeight: 1.7,
+          fontFamily: sansFont,
+          marginTop: 0,
+        }}>
+          <span style={{ color: C.B, fontWeight: 700 }}>深掘り中：</span>
+          <span style={{ color: C.ink, marginLeft: 4 }}>
+            「<b>パターン{selectedCombo.id}：{selectedCombo.label}</b>」の完全な AB3C 分析が下に表示されています。タブを切り替えると、別のターゲット・別の競合・別の市場規模で構成された AB3C 分析に切り替わります。
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 1つの combination から、ResultView の既存セクション表示用の result-like オブジェクト（shadowResult）を組み立てる。
+// 既存の `d.benefit / d.advantage / d.three_c / d.strategy_message / d.checkpoints` を読む render コードに、
+// 組み合わせごとのデータをそのまま流し込めるようにすることで、ResultView 本体の render 部の大幅な書き換えを避ける。
+// company.strength は company_core.all_strengths を strengths_used のindexで解決する。
+function buildShadowResultFromCombo(combo, companyCore) {
+  if (!combo) return null;
+  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+  const usedStrengths = usedIdx.length > 0
+    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+    : allStrengths;
+  return {
+    benefit: combo.benefit || {},
+    advantage: combo.advantage || {},
+    three_c: {
+      customer: combo.customer || {},
+      competitor: combo.competitor || { direct: [], indirect: [] },
+      company: {
+        strength: usedStrengths,
+        structure: companyCore?.structure || "",
+        passion: companyCore?.passion || "",
+      },
+    },
+    strategy_message: combo.strategy_message || {},
+    checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
+  };
+}
+
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -508,12 +611,24 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   var cp = changedPaths || new Map();
   var hl = function(path) { try { if (cp.has && cp.has(path)) { var n = cp.get(path); return HL_COLORS[Math.min(n - 1, HL_COLORS.length - 1)]; } return {}; } catch (e) { return {}; } };
 
+  // === Phase B再: 組み合わせパターン対応 ===
+  // d.combinations[] がある場合、選択中パターンの完全AB3Cを下のセクションで表示する。
+  // 既存の `d.benefit / d.three_c / d.checkpoints` を読む render コードはそのまま活かしつつ、
+  // shadowResult 経由で組み合わせごとのデータに切り替える（versions タブは抑制）。
+  var hasCombinations = !!(d?.combinations && Array.isArray(d.combinations) && d.combinations.length > 0);
+  var currentCombo = hasCombinations
+    ? (d.combinations.find(function(c) { return c && c.id === selectedCombinationId; }) || d.combinations[0])
+    : null;
+  var shadowResult = currentCombo ? buildShadowResultFromCombo(currentCombo, d.company_core) : null;
+  var versions = hasCombinations ? [] : rawVersions;
+
   // === 世代タブ機構: セクション別に表示する result を選ぶ ===
   // versions が未指定（旧呼び出し）の場合は d をそのまま使用（後方互換）
   var hasVersions = Array.isArray(versions) && versions.length > 0;
   var avps = activeVersionPerSection || {};
   // セクションキー → 表示する result
   function sectionResult(sectionKey) {
+    if (hasCombinations) return shadowResult; // 組み合わせ表示中は選択中パターンのデータを使う
     if (!hasVersions) return d;
     var idx = avps[sectionKey] || 0;
     return versions[idx]?.result || d;
@@ -553,26 +668,19 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   var cpData = (sectionResult("checkpoints") || {}).checkpoints || d.checkpoints || [];
   var cpChanges = changedPathsForSection("checkpoints", ["checkpoints"]);
 
-  // 旧世代閲覧中はチェックボックス操作を無効化
+  // 旧世代閲覧中・組み合わせ表示中はチェックボックス操作を無効化（Phase B再: refinement は Phase E で per-combo 対応予定）
   var anyOld = ["benefit", "advantage", "customer", "competitor", "company", "strategy_message", "checkpoints"].some(isViewingOld);
-  var refineToggleEffective = anyOld ? null : onRefineToggle;
-  var hasCombinations = !!(d?.combinations && Array.isArray(d.combinations) && d.combinations.length > 0);
+  var refineToggleEffective = (anyOld || hasCombinations) ? null : onRefineToggle;
   return (
     <div>
-      {/* === 戦略の組み合わせパターン（最上部・combinations[]がある場合のみ） === */}
-      <CombinationsSection
-        d={d}
-        selectedCombinationId={selectedCombinationId}
-        onSelectCombination={onSelectCombination}
-        onChat={onChat}
-      />
+      {/* Phase B再: 組み合わせパターンタブバー（選択中タブの完全AB3Cが下に表示される） */}
       {hasCombinations && (
-        <>
-          <Divider />
-          <div style={{ marginBottom: 24, padding: "12px 18px", background: "#f5f5f0", borderRadius: 4, fontSize: 14, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-            ▼ 以下は <b>共通の分析詳細</b> です。上の組み合わせパターンを選んで深掘りすることを推奨しますが、各要素の中身（市場規模・競合一覧・自社の3層構造など）を確認することもできます。
-          </div>
-        </>
+        <CombinationTabBar
+          combinations={d.combinations}
+          selectedId={currentCombo?.id}
+          recommendedId={d.recommended_combination_id}
+          onSelect={onSelectCombination}
+        />
       )}
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
