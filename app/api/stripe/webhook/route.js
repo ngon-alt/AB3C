@@ -106,14 +106,13 @@ export async function POST(req) {
         VALUES (${email}, ${chatCount}, FALSE)
       `;
 
-      // プロユーザー登録（伴走プランのみ）
-      if (plan?.type === 'support') {
-        await sql`
-          INSERT INTO pro_users (email, name, added_at)
-          VALUES (${email}, ${email}, NOW())
-          ON CONFLICT (email) DO NOTHING
-        `;
-      }
+      // ※ 戦略指南プラン契約者を pro_users に自動追加していた処理は廃止。
+      //   理由:
+      //    - pro_users は「テスト用無制限ユーザー」を表す管理テーブルで、
+      //      有料契約者と混在すると管理画面の一覧で見分けがつかなくなる
+      //    - 戦略指南プラン契約者には tickets（サイト数×100回/月）が付与されるため、
+      //      無制限チャット相当の体験は維持される（CLAUDE.md「1サイト月100回上限」を機能させる）
+      //    - getSiteLimit() は user_plans の support を優先するためサイト上限への影響なし
 
       // プラン情報をuser_plansに記録
       if (plan) {
