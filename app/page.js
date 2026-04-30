@@ -754,16 +754,22 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages, analysisResult, reanalyze: true }),
       });
-      const data = await res.json();
-      if (data.reanalyzed && data.result) {
+      let data = null;
+      try { data = await res.json(); } catch (e) { data = null; }
+      if (data && data.reanalyzed && data.result) {
         const summary = data.chatSummary || messages.filter(m => m.role === "user").slice(-1).map(m => m.content.slice(0, 20)).join("、");
         onReanalyze(data.result, summary);
         setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
       } else {
-        setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。" }]);
+        // 失敗詳細をメッセージに表示（API エラー or HTTPステータス or 無応答）
+        const httpInfo = !res.ok ? `（HTTP ${res.status}）` : "";
+        const errMsg = (data && data.error) ? data.error : "再分析データの取得に失敗しました。もう一度お試しください。";
+        console.error("再分析失敗:", { status: res.status, ok: res.ok, data });
+        setMessages(prev => [...prev, { role: "assistant", content: `${errMsg}${httpInfo}` }]);
       }
     } catch (e) {
-      setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]);
+      console.error("再分析エラー:", e);
+      setMessages(prev => [...prev, { role: "assistant", content: "通信エラーが発生しました。回線をご確認の上もう一度お試しください。" }]);
     } finally { setLoading(false); }
   };
 

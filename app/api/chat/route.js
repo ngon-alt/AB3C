@@ -6,6 +6,9 @@ import { neon } from "@neondatabase/serverless";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Vercel Functions のタイムアウト延長（再分析や初回アドバイス生成は時間がかかるため）
+export const maxDuration = 300;
+
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
@@ -93,6 +96,13 @@ ${conversationText}
   }
 
   if (reanalyze) {
+    // analysisResult が空だと Claude が JSON を返せないので早めに弾く
+    if (!analysisResult || typeof analysisResult !== "object") {
+      return NextResponse.json({ error: "再分析の元になる分析結果が取得できませんでした。画面をリロードしてからもう一度お試しください。" }, { status: 400 });
+    }
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "再分析するには、まずチャットでいくつかご相談ください。" }, { status: 400 });
+    }
     const conversationSummary = messages
       .filter(m => m.role === 'user')
       .slice(-3)
@@ -145,9 +155,16 @@ ${conversationSummary}
       const chatSummary = summaryResponse.content[0].text.trim();
       return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
-      console.error("再分析JSONパースエラー:", e);
-      console.error("Raw response (first 500):", response?.content?.[0]?.text?.slice(0, 500));
-      return NextResponse.json({ error: "再分析に失敗しました。もう一度お試しください。" }, { status: 500 });
+      const rawText = response?.content?.[0]?.text || "";
+      console.error("再分析JSONパースエラー:", e?.message);
+      console.error("Raw response length:", rawText.length);
+      console.error("Raw response (first 800):", rawText.slice(0, 800));
+      console.error("Raw response (last 400):", rawText.slice(-400));
+      // レスポンスが空 or 極端に短い場合は別メッセージで案内
+      const reason = rawText.length < 50
+        ? "AIから空の応答が返りました。"
+        : "AIの応答を解釈できませんでした（JSON形式エラー）。";
+      return NextResponse.json({ error: `再分析に失敗しました: ${reason}少し時間をおいてもう一度お試しください。` }, { status: 500 });
     }
   }
 
