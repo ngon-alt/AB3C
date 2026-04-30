@@ -68,8 +68,12 @@ export async function DELETE(req) {
     return Response.json({ error: '認証エラー' }, { status: 401 });
   }
   const sql = neon(process.env.DATABASE_URL);
+  // PRO（テスト用無制限）解除のみ。
+  // ※ かつては user_plans の active を canceled に書き換えていたが、
+  //   有料契約者が誤って pro_users に混在していた場合に、削除操作で
+  //   実ライセンス（user_plans）まで無効化される事故が発生したため廃止。
+  //   有料プランの解約は Stripe Customer Portal もしくは admin POST 経由で行うこと。
   await sql`DELETE FROM pro_users WHERE email = ${email}`;
-  try { await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`; } catch (e) {}
   // ※ サイト超過分の削除はユーザー側のモーダル操作（/api/sites/cap-resolve）で実施
   return Response.json({ success: true });
 }
