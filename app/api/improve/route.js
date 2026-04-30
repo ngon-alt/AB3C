@@ -6,6 +6,9 @@ import { neon } from "@neondatabase/serverless";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Vercel Functions のタイムアウト延長（改善レポート生成は時間がかかる）
+export const maxDuration = 300;
+
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
@@ -78,19 +81,78 @@ ${JSON.stringify(analysisResult, null, 2)}
 
 JSONのみ返してください。`;
 
+  let message;
   try {
-    const message = await client.messages.create({
+    message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: 16000, // 15項目×詳細テキストで大きめ
       messages: [{ role: "user", content: prompt }],
     });
+  } catch (e) {
+    console.error("/api/improve Claude API error:", e?.message);
+    return NextResponse.json({ error: "AI への接続に失敗しました。少し時間をおいてもう一度お試しください。" }, { status: 502 });
+  }
 
+  try {
+    const stopReason = message.stop_reason;
     const text = message.content.filter(b => b.type === "text").map(b => b.text).join("");
-    const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
+    let clean = text.replace(/```json|```/g, "").trim();
+
+    // JSON 開始位置から波括弧バランスで真の終端を探す（lastIndexOf 誤検出対策）
+    const jsonStart = clean.indexOf("{");
+    if (jsonStart < 0) throw new Error("no JSON object found");
+    let depth = 0, inString = false, escapeNext = false, jsonEnd = -1;
+    for (let i = jsonStart; i < clean.length; i++) {
+      const ch = clean[i];
+      if (escapeNext) { escapeNext = false; continue; }
+      if (ch === "\\" && inString) { escapeNext = true; continue; }
+      if (ch === "\"") { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) { jsonEnd = i; break; }
+      }
+    }
+    if (jsonEnd < 0) throw new Error("JSON not properly closed (likely truncated)");
+    clean = clean.substring(jsonStart, jsonEnd + 1);
+
+    if (stopReason === "max_tokens") throw new Error("max_tokens reached: response truncated");
+
+    let result;
+    try {
+      result = JSON.parse(clean);
+    } catch (e1) {
+      const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
+      try {
+        result = JSON.parse(cleaned2);
+      } catch (e2) {
+        const cleaned3 = cleaned2.replace(/,\s*([}\]])/g, "$1");
+        result = JSON.parse(cleaned3);
+      }
+    }
+
+    // 必須フィールド検証（空でもいいが配列であることが必要）
+    if (!result || !Array.isArray(result.contents) || !Array.isArray(result.design) || !Array.isArray(result.structure)) {
+      console.error("/api/improve 不完全なJSON:", JSON.stringify(result).slice(0, 300));
+      return NextResponse.json({ error: "改善レポートの内容が不完全でした。もう一度お試しください。", debug: "incomplete sections" }, { status: 500 });
+    }
     return NextResponse.json(result);
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "改善レポートの生成に失敗しました。" }, { status: 500 });
+    const rawText = message?.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
+    console.error("/api/improve JSONパースエラー:", e?.message);
+    console.error("stop_reason:", message?.stop_reason, "/ usage:", message?.usage);
+    console.error("Raw response length:", rawText.length);
+    console.error("Raw response (first 500):", rawText.slice(0, 500));
+    console.error("Raw response (last 300):", rawText.slice(-300));
+    let reason;
+    if (message?.stop_reason === "max_tokens" || /max_tokens/.test(e?.message || "")) {
+      reason = "AIの応答が長すぎて途中で切れました。";
+    } else if (rawText.length < 50) {
+      reason = "AIから空の応答が返りました。";
+    } else {
+      reason = "AIの応答を解釈できませんでした（JSON形式エラー）。";
+    }
+    return NextResponse.json({ error: `改善レポートの生成に失敗しました: ${reason}少し時間をおいてもう一度お試しください。`, debug: e?.message }, { status: 500 });
   }
 }

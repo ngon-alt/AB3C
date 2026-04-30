@@ -2175,16 +2175,19 @@ if (tab === "url" && savedText.startsWith("http")) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ analysisResult: data, url: savedText }),
     });
-    improveData = await improveRes.json();
-    if (!improveData.error) {
+    try { improveData = await improveRes.json(); } catch (e) { improveData = { error: `HTTP ${improveRes.status} 応答が解釈できませんでした` }; }
+    if (improveRes.ok && !improveData.error) {
       setImproveResult(improveData);
     } else {
-      console.error("改善レポート生成エラー:", improveData.error, improveData.debug);
+      console.error("改善レポート生成エラー:", { status: improveRes.status, error: improveData.error, debug: improveData.debug });
+      setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${improveRes.status}）。再分析ボタンで再生成できます。` });
       setVisualLoading(false); // 改善レポート失敗時はビジュアルも走らないのでクリア
     }
   } catch (e) {
     console.error("改善レポート自動生成エラー:", e);
-    improveData = { error: String(e?.message || e) };
+    const msg = "改善レポートの取得中に通信エラーが発生しました。しばらく待ってからお試しください。";
+    improveData = { error: msg };
+    setImproveResult({ error: msg });
     setVisualLoading(false);
   } finally {
     setImproveLoading(false);
@@ -2812,7 +2815,35 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       ウェブサイト改善レポートを生成中です…
     </div>
   )}
-  {currentInput?.startsWith("http") && improveResult && (
+  {currentInput?.startsWith("http") && improveResult?.error && (
+    <div style={{ marginTop: 40, padding: "20px 24px", background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, fontSize: 15, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 16 }}>⚠ ウェブサイト改善レポートの生成に失敗しました</div>
+      <div style={{ marginBottom: 12 }}>{improveResult.error}</div>
+      <button
+        onClick={async () => {
+          if (!currentInput?.startsWith("http") || !currentResult) return;
+          setImproveLoading(true);
+          setImproveResult(null);
+          setOverlayMessage("ウェブサイト改善レポート生成中...");
+          try {
+            const r = await fetch("/api/improve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, url: currentInput }) });
+            let d = null; try { d = await r.json(); } catch (e) { d = { error: `HTTP ${r.status}` }; }
+            if (r.ok && !d.error) setImproveResult(d);
+            else setImproveResult({ error: d.error || `改善レポートの生成に失敗しました（HTTP ${r.status}）` });
+          } catch (e) {
+            setImproveResult({ error: "通信エラーが発生しました。" });
+          } finally {
+            setImproveLoading(false);
+            setOverlayMessage(null);
+          }
+        }}
+        style={{ background: C.A, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "8px 16px" }}
+      >
+        🔄 改善レポートを再生成
+      </button>
+    </div>
+  )}
+  {currentInput?.startsWith("http") && improveResult && !improveResult.error && (
     <div id="improve-area" style={{ marginTop: 48 }}>
       <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
