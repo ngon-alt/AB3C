@@ -122,12 +122,13 @@ ${conversationSummary}
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 8000,
+      max_tokens: 16000, // AB3C再生成は出力が大きい。8000では途中で切れることがあったため拡張
       messages: [{ role: "user", content: systemPrompt }],
     });
 
     try {
-      const text = response.content[0].text;
+      const stopReason = response.stop_reason; // "end_turn" | "max_tokens" | ...
+      const text = response.content?.[0]?.text || "";
       let clean = text.replace(/```json|```/g, "").trim();
       // JSON前後のゴミを除去
       const jsonStart = clean.indexOf('{');
@@ -135,13 +136,24 @@ ${conversationSummary}
       const jsonEnd = clean.lastIndexOf('}');
       if (jsonEnd > 0) clean = clean.substring(0, jsonEnd + 1);
 
+      // max_tokens で切れた場合は途中までしかパースできない可能性が高いため明示エラー
+      if (stopReason === "max_tokens") {
+        throw new Error("max_tokens reached: response truncated");
+      }
+
       let newResult;
       try {
         newResult = JSON.parse(clean);
       } catch (e1) {
         // 不正な制御文字を除去して再パース
         const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
-        newResult = JSON.parse(cleaned2);
+        try {
+          newResult = JSON.parse(cleaned2);
+        } catch (e2) {
+          // 末尾カンマを除去（よくある Claude の癖）
+          const cleaned3 = cleaned2.replace(/,\s*([}\]])/g, "$1");
+          newResult = JSON.parse(cleaned3);
+        }
       }
 
       const summaryResponse = await client.messages.create({
@@ -156,14 +168,21 @@ ${conversationSummary}
       return NextResponse.json({ reanalyzed: true, result: newResult, chatSummary });
     } catch (e) {
       const rawText = response?.content?.[0]?.text || "";
+      const stopReason = response?.stop_reason || "unknown";
       console.error("再分析JSONパースエラー:", e?.message);
+      console.error("stop_reason:", stopReason, "/ usage:", response?.usage);
       console.error("Raw response length:", rawText.length);
       console.error("Raw response (first 800):", rawText.slice(0, 800));
       console.error("Raw response (last 400):", rawText.slice(-400));
-      // レスポンスが空 or 極端に短い場合は別メッセージで案内
-      const reason = rawText.length < 50
-        ? "AIから空の応答が返りました。"
-        : "AIの応答を解釈できませんでした（JSON形式エラー）。";
+      // 失敗種別を切り分けてユーザーに伝える
+      let reason;
+      if (stopReason === "max_tokens" || /max_tokens/.test(e?.message || "")) {
+        reason = "AIの応答が長すぎて途中で切れました。会話のメッセージを短くしてからもう一度お試しください。";
+      } else if (rawText.length < 50) {
+        reason = "AIから空の応答が返りました。";
+      } else {
+        reason = "AIの応答を解釈できませんでした（JSON形式エラー）。";
+      }
       return NextResponse.json({ error: `再分析に失敗しました: ${reason}少し時間をおいてもう一度お試しください。` }, { status: 500 });
     }
   }
