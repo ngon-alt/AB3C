@@ -354,7 +354,129 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions, activeVersionPerSection, onSectionTabChange }) {
+// 戦略の組み合わせパターン3案を縦並びで表示するセクション。
+// AB3C 本来の考え方（ターゲット×ベネフィットがセットで、それに応じて競合・自社強み・戦略メッセージが絞られる）を
+// UI 上で可視化する。各パターンに「深掘りする」ボタンがあり、選択中のパターンは赤枠でハイライトされる。
+function CombinationsSection({ d, selectedCombinationId, onSelectCombination, onChat }) {
+  if (!d?.combinations || !Array.isArray(d.combinations) || d.combinations.length === 0) {
+    return null;
+  }
+  const combinations = d.combinations;
+  const recommendedId = d.recommended_combination_id;
+  const selectedId = selectedCombinationId || recommendedId || combinations[0]?.id;
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionLabel
+        color={C.phase1}
+        letter="P"
+        jp="戦略の組み合わせパターン"
+        en="STRATEGY COMBINATIONS"
+        desc="ターゲット×ベネフィットの切り口を3案提示。深掘りしたい1つを選んでください"
+        help="AB3C本来の考え方では、ターゲットとベネフィットがセットで決まり、それに応じて競合・自社の強み・戦略メッセージが絞り込まれます。最も強い1つを選んで深掘りしましょう。"
+      />
+      <div style={{ background: C.phase1Bg, padding: "12px 16px", borderRadius: 4, fontSize: 15, lineHeight: 1.7, marginBottom: 18, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        AIが3つの組み合わせを提案しました。各パターンは <b>別のターゲット・別の競合・別の自社強み</b> に焦点を当てています。
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {combinations.map(combo => (
+          <CombinationCard
+            key={combo.id}
+            combo={combo}
+            isSelected={combo.id === selectedId}
+            isRecommended={combo.id === recommendedId}
+            onSelect={() => onSelectCombination && onSelectCombination(combo.id)}
+            onChat={onChat}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CombinationCard({ combo, isSelected, isRecommended, onSelect, onChat }) {
+  const borderColor = isSelected ? C.B : C.border;
+  const headerBg = isSelected ? C.B : C.ink;
+  const cardBg = isSelected ? "#fff5f5" : "#ffffff";
+  const askChat = onChat ? () => onChat(`組み合わせパターン「${combo.label}」をベースにさらに深掘りしてください`) : null;
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+  const Row = ({ label, labelColor, valueBold, value }) => (
+    <>
+      <div style={{ fontWeight: 700, color: labelColor || "#444", paddingTop: 8, fontSize: 14, fontFamily: sansFont }}>{label}</div>
+      <div style={{ paddingTop: 8, fontSize: 16, lineHeight: 1.7, fontWeight: valueBold ? 700 : 400, color: C.ink, fontFamily: sansFont }}>{value}</div>
+    </>
+  );
+  return (
+    <div style={{
+      background: cardBg,
+      border: `2px solid ${borderColor}`,
+      borderRadius: 6,
+      padding: "20px 24px",
+      boxShadow: isSelected ? `0 0 0 4px rgba(255,0,0,0.12)` : "none",
+      transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
+      position: "relative",
+    }} {...(askChat ? hoverShow : {})}>
+      {/* ラベルとバッジ */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{
+          background: headerBg, color: "#fff",
+          padding: "8px 16px", fontSize: 17, fontWeight: 700,
+          borderRadius: 4, fontFamily: "'Noto Serif JP', serif",
+        }}>
+          パターン{combo.id}：{combo.label}
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {isRecommended && (
+            <span style={{ background: "#fef3c7", color: "#854d0e", padding: "6px 12px", fontSize: 13, fontWeight: 700, borderRadius: 4, border: "1px solid #fbbf24", fontFamily: sansFont }}>
+              ⭐ AIのおすすめ
+            </span>
+          )}
+          {isSelected && (
+            <span style={{ background: C.B, color: "#fff", padding: "6px 12px", fontSize: 13, fontWeight: 700, borderRadius: 4, fontFamily: sansFont }}>
+              ✓ 深掘り中
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 詳細グリッド */}
+      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", columnGap: 14, rowGap: 0, marginBottom: 16, borderTop: `1px dashed ${C.border}`, borderBottom: `1px dashed ${C.border}`, paddingBottom: 8 }}>
+        <Row label="ターゲット" value={combo.target} />
+        <Row label="Benefit" labelColor={C.B} valueBold value={combo.benefit} />
+        <Row label="競合" value={combo.competitor_focus} />
+        <Row label="自社の強み" value={combo.company_strength_focus} />
+        <Row label="Advantage" labelColor={C.A} valueBold value={combo.advantage} />
+      </div>
+
+      {/* 戦略メッセージ */}
+      <div style={{ background: C.ink, color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{combo.strategy_message}</div>
+      </div>
+
+      {/* アクションボタン */}
+      {!isSelected ? (
+        <button
+          onClick={onSelect}
+          style={{
+            background: C.B, color: "#fff", border: "none", borderRadius: 4,
+            padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer",
+            fontFamily: sansFont,
+          }}
+        >
+          このパターンで深掘りする →
+        </button>
+      ) : (
+        <div style={{ fontSize: 14, color: C.ink, fontFamily: sansFont }}>
+          ✓ このパターンで深掘り中（チャットで磨いてください）
+        </div>
+      )}
+
+      {askChat && <ChatBtn onClick={askChat} abs />}
+    </div>
+  );
+}
+
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -410,8 +532,24 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   // 旧世代閲覧中はチェックボックス操作を無効化
   var anyOld = ["benefit", "advantage", "customer", "competitor", "company", "strategy_message", "checkpoints"].some(isViewingOld);
   var refineToggleEffective = anyOld ? null : onRefineToggle;
+  var hasCombinations = !!(d?.combinations && Array.isArray(d.combinations) && d.combinations.length > 0);
   return (
     <div>
+      {/* === 戦略の組み合わせパターン（最上部・combinations[]がある場合のみ） === */}
+      <CombinationsSection
+        d={d}
+        selectedCombinationId={selectedCombinationId}
+        onSelectCombination={onSelectCombination}
+        onChat={onChat}
+      />
+      {hasCombinations && (
+        <>
+          <Divider />
+          <div style={{ marginBottom: 24, padding: "12px 18px", background: "#f5f5f0", borderRadius: 4, fontSize: 14, color: C.ink, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+            ▼ 以下は <b>共通の分析詳細</b> です。上の組み合わせパターンを選んで深掘りすることを推奨しますが、各要素の中身（市場規模・競合一覧・自社の3層構造など）を確認することもできます。
+          </div>
+        </>
+      )}
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
@@ -1108,6 +1246,7 @@ const [activePlanId, setActivePlanId] = useState(null);
   const [refineToast, setRefineToast] = useState(false);
   const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
+  const [selectedCombinationId, setSelectedCombinationId] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
@@ -1181,6 +1320,21 @@ const [chatSummaries, setChatSummaries] = useState([]);
     const header = document.querySelector("#app-header");
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
+
+  // currentResult が変わったら、選択中の組み合わせパターンを「AIのおすすめ」にリセット。
+  // 既存の選択IDが新しいresultに存在しない場合（再分析でcombinationsが変わった場合等）も
+  // recommended_combination_id か先頭IDにフォールバック。combinations が無い旧データなら null。
+  useEffect(() => {
+    if (!currentResult?.combinations || !Array.isArray(currentResult.combinations) || currentResult.combinations.length === 0) {
+      setSelectedCombinationId(null);
+      return;
+    }
+    const validIds = currentResult.combinations.map(c => c.id);
+    setSelectedCombinationId(prev => {
+      if (prev && validIds.includes(prev)) return prev;
+      return currentResult.recommended_combination_id || validIds[0];
+    });
+  }, [currentResult]);
 
   // 分析結果・改善レポート・ビジュアルが変わったらlocalStorage/sessionStorageに自動保存
   // sessionStorage はページ内遷移後や決済画面からの戻りでの復元用
@@ -2759,7 +2913,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
+  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={setSelectedCombinationId} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
