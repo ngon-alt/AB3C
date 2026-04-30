@@ -56,13 +56,35 @@ export async function POST(req) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const email = session.metadata?.email;
-    const priceId = session.metadata?.priceId;
+    // 自前 /api/stripe/checkout 経由の場合は metadata に email/priceId が入っている
+    let email = session.metadata?.email;
+    let priceId = session.metadata?.priceId;
+
+    // Payment Link 経由など metadata が空のケースにフォールバック対応
+    // - email: Stripe が収集した customer_details.email を使う
+    // - priceId: line_items を取得して最初の price.id を使う
+    if (!email) {
+      email = session.customer_details?.email || session.customer_email || null;
+    }
+    if (!priceId) {
+      try {
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+        if (lineItems?.data?.length > 0) {
+          priceId = lineItems.data[0].price?.id || null;
+        }
+      } catch (e) {
+        console.error('Payment Link 用 line_items 取得エラー:', e);
+      }
+    }
 
     if (email) {
       const sql = neon(process.env.DATABASE_URL);
       const plan = PRICE_PLANS[priceId];
       const chatCount = getChatCount(plan);
+      if (!plan) {
+        // 未登録の priceId はログを残す（PRICE_PLANS に追加すれば次回から動く）
+        console.error(`PRICE_PLANS に未登録の priceId: ${priceId} (email=${email}, sessionId=${session.id})`);
+      }
 
       // === 戦略指南プラン置き換え処理 ===
       // 新規購入が support タイプの場合、既存 active な support プランを
