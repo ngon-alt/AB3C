@@ -180,63 +180,69 @@ ${conversationSummary}
         }
       }
 
-      // === 欠落フィールドを元の analysisResult から補完 ===
-      // Claude が会話で触れたセクションだけ返して他を省略するケース対策。
-      // 各フィールドが「空・欠落」なら元の値で埋め、全体構造を必ず完成させる。
-      const isEmptyValue = (v) => {
-        if (v == null) return true;
-        if (Array.isArray(v)) return v.length === 0;
-        if (typeof v === "object") return Object.keys(v).length === 0;
-        if (typeof v === "string") return v.trim() === "";
-        return false;
-      };
+      // === 欠落・空フィールドを元の analysisResult から補完 ===
+      // Claude は会話で触れたセクションだけ詳細に返して、他は省略 or 空構造で返すことがある。
+      // 各「実フィールド」(配列・文字列)単位で空判定し、空なら元の値を採用する。
+      // 「構造あり中身空」(例: { direct: [], indirect: [] }) も上書きしてしまわないようにする。
       const orig = analysisResult || {};
       const np = parsedResult || {};
+      // 配列: 中身があれば new、なければ orig
+      const pickArr = (newArr, origArr) => (Array.isArray(newArr) && newArr.length > 0) ? newArr : (Array.isArray(origArr) ? origArr : []);
+      // 文字列: trim して中身があれば new、なければ orig
+      const pickStr = (newStr, origStr) => (typeof newStr === "string" && newStr.trim() !== "") ? newStr : (typeof origStr === "string" ? origStr : "");
       const newResult = {
         benefit: {
-          ...(orig.benefit || {}),
-          ...(np.benefit || {}),
+          core: pickStr(np.benefit?.core, orig.benefit?.core),
+          needs: pickArr(np.benefit?.needs, orig.benefit?.needs),
+          wants: pickArr(np.benefit?.wants, orig.benefit?.wants),
         },
         advantage: {
-          ...(orig.advantage || {}),
-          ...(np.advantage || {}),
+          what: pickStr(np.advantage?.what, orig.advantage?.what),
+          why_good: pickStr(np.advantage?.why_good, orig.advantage?.why_good),
+          why_hard_to_copy: pickStr(np.advantage?.why_hard_to_copy, orig.advantage?.why_hard_to_copy),
         },
         three_c: {
           customer: {
-            ...((orig.three_c || {}).customer || {}),
-            ...((np.three_c || {}).customer || {}),
+            target: pickStr(np.three_c?.customer?.target, orig.three_c?.customer?.target),
+            profile: pickArr(np.three_c?.customer?.profile, orig.three_c?.customer?.profile),
+            stage: pickStr(np.three_c?.customer?.stage, orig.three_c?.customer?.stage),
+            cutoff: pickStr(np.three_c?.customer?.cutoff, orig.three_c?.customer?.cutoff),
             market: {
-              ...(((orig.three_c || {}).customer || {}).market || {}),
-              ...(((np.three_c || {}).customer || {}).market || {}),
+              sam: pickStr(np.three_c?.customer?.market?.sam, orig.three_c?.customer?.market?.sam),
+              som: pickStr(np.three_c?.customer?.market?.som, orig.three_c?.customer?.market?.som),
+              growth: pickStr(np.three_c?.customer?.market?.growth, orig.three_c?.customer?.market?.growth),
+              basis: pickStr(np.three_c?.customer?.market?.basis, orig.three_c?.customer?.market?.basis),
             },
           },
-          competitor: isEmptyValue((np.three_c || {}).competitor)
-            ? (orig.three_c || {}).competitor || { direct: [], indirect: [] }
-            : (np.three_c || {}).competitor,
-          company: isEmptyValue((np.three_c || {}).company)
-            ? (orig.three_c || {}).company || {}
-            : (np.three_c || {}).company,
+          competitor: {
+            direct: pickArr(np.three_c?.competitor?.direct, orig.three_c?.competitor?.direct),
+            indirect: pickArr(np.three_c?.competitor?.indirect, orig.three_c?.competitor?.indirect),
+          },
+          company: {
+            strength: pickArr(np.three_c?.company?.strength, orig.three_c?.company?.strength),
+            structure: pickStr(np.three_c?.company?.structure, orig.three_c?.company?.structure),
+            passion: pickStr(np.three_c?.company?.passion, orig.three_c?.company?.passion),
+          },
         },
-        strategy_message: isEmptyValue(np.strategy_message)
-          ? orig.strategy_message || {}
-          : { ...(orig.strategy_message || {}), ...(np.strategy_message || {}) },
+        strategy_message: {
+          message: pickStr(np.strategy_message?.message, orig.strategy_message?.message),
+          benefit_part: pickStr(np.strategy_message?.benefit_part, orig.strategy_message?.benefit_part),
+          advantage_part: pickStr(np.strategy_message?.advantage_part, orig.strategy_message?.advantage_part),
+        },
         checkpoints: Array.isArray(np.checkpoints) && np.checkpoints.length > 0
           ? np.checkpoints
-          : (orig.checkpoints || []),
+          : (Array.isArray(orig.checkpoints) ? orig.checkpoints : []),
       };
-      // ニーズ・ウォンツ・プロフィール配列も「空配列なら元を採用」
-      if (!Array.isArray(np.benefit?.needs) || np.benefit.needs.length === 0) {
-        newResult.benefit.needs = orig.benefit?.needs || [];
-      }
-      if (!Array.isArray(np.benefit?.wants) || np.benefit.wants.length === 0) {
-        newResult.benefit.wants = orig.benefit?.wants || [];
-      }
-      if (!Array.isArray(np.three_c?.customer?.profile) || np.three_c.customer.profile.length === 0) {
-        newResult.three_c.customer.profile = orig.three_c?.customer?.profile || [];
-      }
-      if (!Array.isArray(np.three_c?.company?.strength) || np.three_c.company.strength.length === 0) {
-        newResult.three_c.company.strength = orig.three_c?.company?.strength || [];
-      }
+      // 補完が発火したフィールドをログ（デバッグ用）
+      const fallbackFields = [];
+      if (newResult.three_c.competitor.direct === orig.three_c?.competitor?.direct) fallbackFields.push("competitor.direct");
+      if (newResult.three_c.competitor.indirect === orig.three_c?.competitor?.indirect) fallbackFields.push("competitor.indirect");
+      if (newResult.three_c.company.strength === orig.three_c?.company?.strength) fallbackFields.push("company.strength");
+      if (newResult.three_c.company.structure === orig.three_c?.company?.structure) fallbackFields.push("company.structure");
+      if (newResult.three_c.company.passion === orig.three_c?.company?.passion) fallbackFields.push("company.passion");
+      if (newResult.strategy_message.message === orig.strategy_message?.message) fallbackFields.push("strategy_message.message");
+      if (newResult.checkpoints === orig.checkpoints) fallbackFields.push("checkpoints");
+      if (fallbackFields.length > 0) console.log("再分析: 元の値で補完したフィールド:", fallbackFields);
 
       const summaryResponse = await client.messages.create({
         model: "claude-sonnet-4-6",
