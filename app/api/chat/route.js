@@ -115,10 +115,14 @@ ${JSON.stringify(analysisResult)}
 ## ユーザーからの追加情報（最新3件）
 ${conversationSummary}
 上記を反映した新しい分析結果を返してください。
-絶対に守ること：
-- JSONのみ返す。説明文・前置き・コードブロック記号（\`\`\`）は一切不要
-- checkpointsは元の値をそのままコピーして変更しない
-- 必ず有効なJSONのみを返す`;
+
+絶対に守ること（最重要）：
+- JSONのみ返す。説明文・前置き・コードブロック記号（\`\`\`）・JSON 後ろの追記コメントは一切不要
+- 返却する JSON は **元の分析結果と完全に同じトップレベル構造** を保持すること:
+  benefit, advantage, three_c (customer/competitor/company), strategy_message, checkpoints の **全フィールドを必ず含める**
+- 変更がないセクション（competitor, company など会話で触れていないセクション）は、**元の値をそのままコピーして必ず含めること**。省略・空配列・空文字列にしてはいけない
+- checkpoints は元の値（label/status/comment 各5項目）をそのまま全件コピーする
+- 必ず有効な JSON のみを返す（JSON が完了したら、それ以降は何も書かない）`;
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -161,19 +165,77 @@ ${conversationSummary}
         throw new Error("max_tokens reached: response truncated");
       }
 
-      let newResult;
+      let parsedResult;
       try {
-        newResult = JSON.parse(clean);
+        parsedResult = JSON.parse(clean);
       } catch (e1) {
         // 不正な制御文字を除去して再パース
         const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
         try {
-          newResult = JSON.parse(cleaned2);
+          parsedResult = JSON.parse(cleaned2);
         } catch (e2) {
           // 末尾カンマを除去（よくある Claude の癖）
           const cleaned3 = cleaned2.replace(/,\s*([}\]])/g, "$1");
-          newResult = JSON.parse(cleaned3);
+          parsedResult = JSON.parse(cleaned3);
         }
+      }
+
+      // === 欠落フィールドを元の analysisResult から補完 ===
+      // Claude が会話で触れたセクションだけ返して他を省略するケース対策。
+      // 各フィールドが「空・欠落」なら元の値で埋め、全体構造を必ず完成させる。
+      const isEmptyValue = (v) => {
+        if (v == null) return true;
+        if (Array.isArray(v)) return v.length === 0;
+        if (typeof v === "object") return Object.keys(v).length === 0;
+        if (typeof v === "string") return v.trim() === "";
+        return false;
+      };
+      const orig = analysisResult || {};
+      const np = parsedResult || {};
+      const newResult = {
+        benefit: {
+          ...(orig.benefit || {}),
+          ...(np.benefit || {}),
+        },
+        advantage: {
+          ...(orig.advantage || {}),
+          ...(np.advantage || {}),
+        },
+        three_c: {
+          customer: {
+            ...((orig.three_c || {}).customer || {}),
+            ...((np.three_c || {}).customer || {}),
+            market: {
+              ...(((orig.three_c || {}).customer || {}).market || {}),
+              ...(((np.three_c || {}).customer || {}).market || {}),
+            },
+          },
+          competitor: isEmptyValue((np.three_c || {}).competitor)
+            ? (orig.three_c || {}).competitor || { direct: [], indirect: [] }
+            : (np.three_c || {}).competitor,
+          company: isEmptyValue((np.three_c || {}).company)
+            ? (orig.three_c || {}).company || {}
+            : (np.three_c || {}).company,
+        },
+        strategy_message: isEmptyValue(np.strategy_message)
+          ? orig.strategy_message || {}
+          : { ...(orig.strategy_message || {}), ...(np.strategy_message || {}) },
+        checkpoints: Array.isArray(np.checkpoints) && np.checkpoints.length > 0
+          ? np.checkpoints
+          : (orig.checkpoints || []),
+      };
+      // ニーズ・ウォンツ・プロフィール配列も「空配列なら元を採用」
+      if (!Array.isArray(np.benefit?.needs) || np.benefit.needs.length === 0) {
+        newResult.benefit.needs = orig.benefit?.needs || [];
+      }
+      if (!Array.isArray(np.benefit?.wants) || np.benefit.wants.length === 0) {
+        newResult.benefit.wants = orig.benefit?.wants || [];
+      }
+      if (!Array.isArray(np.three_c?.customer?.profile) || np.three_c.customer.profile.length === 0) {
+        newResult.three_c.customer.profile = orig.three_c?.customer?.profile || [];
+      }
+      if (!Array.isArray(np.three_c?.company?.strength) || np.three_c.company.strength.length === 0) {
+        newResult.three_c.company.strength = orig.three_c?.company?.strength || [];
       }
 
       const summaryResponse = await client.messages.create({
