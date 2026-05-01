@@ -37,6 +37,11 @@ export async function POST(req) {
       success_url: `${process.env.NEXTAUTH_URL}/?success=true`,
       cancel_url: `${process.env.NEXTAUTH_URL}/?canceled=true`,
       customer_email: session.user.email,
+      // 一括払い（戦略診断チケット）でも Stripe Customer を作成しておく。
+      // デフォルト ('if_required') では Customer が作られず、購入後にマイアカウントから
+      // Customer Portal を開けなくなる（領収書も見られない）ため明示的に always を指定。
+      // subscription モードでは Stripe が自動で Customer を作るので isOneTime のときだけ付ける。
+      ...(isOneTime && { customer_creation: 'always' }),
       metadata: {
         email: session.user.email,
         priceId: priceId,
