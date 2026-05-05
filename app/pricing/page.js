@@ -157,7 +157,6 @@ export default function PricingPage() {
   };
 
   const perSite = (total, sites) => Math.round(total / sites);
-  const campaign = (price) => Math.round(price / 2);
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
@@ -165,19 +164,6 @@ export default function PricingPage() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 80px" }}>
 
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 24 }}>料金とプラン</div>
-
-        {/* キャンペーンバナー */}
-        <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: 8, padding: '20px', marginBottom: 24, textAlign: 'center', color: '#fff' }}>
-          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>先行ユーザー価格キャンペーン</div>
-          <div style={{ fontSize: 14, marginBottom: 12 }}>4月30日まで または 100名到達まで</div>
-          <div style={{ fontSize: 24, fontWeight: 700, background: '#fff', color: '#667eea', display: 'inline-block', padding: '8px 24px', borderRadius: 4 }}>全プラン 50%OFF</div>
-          <div style={{ fontSize: 12, marginTop: 12, opacity: 0.95, lineHeight: 1.7 }}>
-            ※50%OFFは初回の契約期間のみ適用されます<br/>
-            ※更新時は通常価格（定価）となります<br/>
-            ※サービス内容の大幅変更時は価格改定の可能性あり
-          </div>
-        </div>
-
 
         {/* 機能比較表 */}
         <div style={{ marginBottom: 24, overflowX: "auto" }}>
@@ -243,23 +229,17 @@ export default function PricingPage() {
             <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>{plan.sites}サイトプラン</div>
-                <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(campaign(plan.annual), plan.sites).toLocaleString()}/サイト</div>
+                <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(plan.annual, plan.sites).toLocaleString()}/サイト</div>
               </div>
-              <div style={{ fontSize: 14, color: C.muted, textDecoration: "line-through", marginBottom: 4 }}>通常価格 ¥{plan.annual.toLocaleString()}/年</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                <span style={{ background: '#667eea', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3 }}>50%OFF</span>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink }}>
-                  ¥{campaign(plan.annual).toLocaleString()}
-                  <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
-                  <div style={{ fontSize: 11, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみの価格です</div>
-                </div>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
+                ¥{plan.annual.toLocaleString()}
+                <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
               </div>
               <CheckoutButton label={`この${plan.sites}サイトプランにする →`} onClick={() => handleCheckout(analysisPrices[plan.sites])} bg={C.A} />
             </div>
           ))}
           <div style={{ marginTop: 16, padding: "12px 16px", background: "#fff", borderRadius: 6, fontSize: 13, color: C.muted, lineHeight: 1.8 }}>
             ※ 全て税込価格です。<br/>
-            <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
             ※ 戦略診断チケットは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
             ※ 戦略診断チケットは履歴保存されません。診断結果はPDF・シェアURL・印刷で必ず持ち帰ってください。<br/>
             ※ 100サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
@@ -283,31 +263,23 @@ export default function PricingPage() {
             <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>{plan.sites}サイトプラン</div>
-                <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(campaign(plan.annual) / 12, plan.sites).toLocaleString()}/サイト/月（年額時）</div>
+                <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>¥{perSite(plan.annual / 12, plan.sites).toLocaleString()}/サイト/月（年額時）</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>月額契約</div>
-                  <div style={{ fontSize: 13, color: C.muted, textDecoration: "line-through", marginBottom: 2 }}>¥{plan.monthly.toLocaleString()}/月</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span style={{ background: '#667eea', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 3 }}>50%OFF</span>
-                  </div>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                    ¥{campaign(plan.monthly).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/月</span>
-                    <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
+                    ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/月</span>
                   </div>
                   <CheckoutButton label="月額で始める →" onClick={() => handleCheckout(supportPricesMonthly[plan.sites])} bg={C.ink} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>年額契約</div>
-                  <div style={{ fontSize: 13, color: C.muted, textDecoration: "line-through", marginBottom: 2 }}>¥{plan.annual.toLocaleString()}/年</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span style={{ background: '#667eea', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 3 }}>50%OFF</span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, color: C.muted }}>年額契約</span>
                     <span style={{ fontSize: 12, color: '#1a6fd4', fontWeight: 600 }}>+2ヶ月無料</span>
                   </div>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                    ¥{campaign(plan.annual).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
-                    <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
+                    ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
                   </div>
                   <CheckoutButton label="年額で始める →" onClick={() => handleCheckout(supportPricesAnnual[plan.sites])} bg={C.A} />
                 </div>
@@ -316,7 +288,6 @@ export default function PricingPage() {
           ))}
           <div style={{ marginTop: 16, padding: "12px 16px", background: "#fff", borderRadius: 6, fontSize: 13, color: C.muted, lineHeight: 1.8 }}>
             ※ 全て税込価格です。<br/>
-            <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
             ※ 戦略指南プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
             ※ チャット上限：1サイトあたり月100回<br/>
             ※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。

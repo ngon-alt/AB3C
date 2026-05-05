@@ -128,7 +128,6 @@ export default function PricingModal({ onClose }) {
   };
 
   const perSite = (total, sites) => Math.round(total / sites);
-  const campaign = (price) => Math.round(price / 2);
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
@@ -136,30 +135,6 @@ export default function PricingModal({ onClose }) {
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: C.muted }}>✕</button>
 
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: C.ink, marginBottom: 24 }}>プランと料金</div>
-
-        {/* キャンペーンバナー */}
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: 8, padding: '20px', marginBottom: 24, textAlign: 'center', color: '#fff'
-        }}>
-          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
-            先行ユーザー価格キャンペーン
-          </div>
-          <div style={{ fontSize: 14, marginBottom: 12 }}>
-            4月30日まで または 100名到達まで
-          </div>
-          <div style={{
-            fontSize: 24, fontWeight: 700, background: '#fff', color: '#667eea',
-            display: 'inline-block', padding: '8px 24px', borderRadius: 4
-          }}>
-            全プラン 50%OFF
-          </div>
-          <div style={{ fontSize: 12, marginTop: 12, opacity: 0.95, lineHeight: 1.7 }}>
-            ※50%OFFは初回の契約期間のみ適用されます<br/>
-            ※更新時は通常価格（定価）となります<br/>
-            ※サービス内容の大幅変更時は価格改定の可能性あり
-          </div>
-        </div>
 
         {/* フリープラン */}
         <div style={{ background: C.highlight, border: "none", borderRadius: 8, padding: "20px", marginBottom: 24 }}>
@@ -270,22 +245,13 @@ export default function PricingModal({ onClose }) {
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
                         {plan.sites}サイトプラン
                       </div>
-                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
-                        ¥{perSite(campaign(plan.annual), plan.sites).toLocaleString()}/サイト
+                      <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+                        ¥{perSite(plan.annual, plan.sites).toLocaleString()}/サイト
                       </div>
                     </div>
-                    {/* 正規価格（取り消し線） */}
-                    <div style={{ fontSize: 14, color: C.muted, textDecoration: "line-through", marginBottom: 4 }}>
-                      通常価格 ¥{plan.annual.toLocaleString()}/年
-                    </div>
-                    {/* キャンペーン価格 */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-                      <span style={{ background: '#667eea', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 3 }}>50%OFF</span>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink }}>
-                        ¥{campaign(plan.annual).toLocaleString()}
-                        <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
-                        <div style={{ fontSize: 11, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみの価格です</div>
-                      </div>
+                    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
+                      ¥{plan.annual.toLocaleString()}
+                      <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
                     </div>
                     <button
                       onClick={() => handleCheckout(analysisPrices[plan.sites])}
@@ -320,23 +286,16 @@ export default function PricingModal({ onClose }) {
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
                         {plan.sites}サイトプラン
                       </div>
-                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
-                        ¥{perSite(campaign(plan.annual) / 12, plan.sites).toLocaleString()}/サイト/月（年額時）
+                      <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+                        ¥{perSite(plan.annual / 12, plan.sites).toLocaleString()}/サイト/月（年額時）
                       </div>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       {/* 月額 */}
                       <div>
                         <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>月額契約</div>
-                        <div style={{ fontSize: 13, color: C.muted, textDecoration: "line-through", marginBottom: 2 }}>
-                          ¥{plan.monthly.toLocaleString()}/月
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                          <span style={{ background: '#667eea', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 3 }}>50%OFF</span>
-                        </div>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                          ¥{campaign(plan.monthly).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/月</span>
-                          <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
+                          ¥{plan.monthly.toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/月</span>
                         </div>
                         <button
                           onClick={() => handleCheckout(supportPricesMonthly[plan.sites])}
@@ -351,17 +310,12 @@ export default function PricingModal({ onClose }) {
                       </div>
                       {/* 年額 */}
                       <div>
-                        <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>年額契約</div>
-                        <div style={{ fontSize: 13, color: C.muted, textDecoration: "line-through", marginBottom: 2 }}>
-                          ¥{plan.annual.toLocaleString()}/年
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                          <span style={{ background: '#667eea', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 3 }}>50%OFF</span>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, color: C.muted }}>年額契約</span>
                           <span style={{ fontSize: 12, color: '#1a6fd4', fontWeight: 600 }}>+2ヶ月無料</span>
                         </div>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-                          ¥{campaign(plan.annual).toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
-                          <div style={{ fontSize: 10, color: C.red, fontWeight: 600, marginTop: 2 }}>※初回決済分のみ</div>
+                          ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
                         </div>
                         <button
                           onClick={() => handleCheckout(supportPricesAnnual[plan.sites])}
@@ -383,7 +337,6 @@ export default function PricingModal({ onClose }) {
             {/* 注釈（タブごとに切り替え） */}
             <div style={{ marginTop: 20, padding: "16px 20px", background: C.highlight, borderRadius: 6, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
               ※ 全て税込価格です。<br/>
-              <strong style={{ color: C.red }}>※ 50%OFF価格は4月30日までに決済された初回分のみに適用されます。更新時は通常価格（定価）となります。</strong><br/>
               {showAnalysis && (
                 <>
                   ※ 戦略診断チケットは購入から1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/>
@@ -443,7 +396,7 @@ export default function PricingModal({ onClose }) {
               <div style={{ background: "#fff8f8", border: `1px solid #ffcccc`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.B, marginBottom: 8, letterSpacing: "0.08em" }}>YOUR COST</div>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/年〜</span></div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>戦略診断チケット 1サイト<br />（先行ユーザー50%OFF価格）</div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>戦略診断チケット 1サイト</div>
               </div>
               <div style={{ background: "#f0fff4", border: `1px solid #86efac`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: "#16a34a", marginBottom: 8, letterSpacing: "0.08em" }}>CLIENT FEE</div>
