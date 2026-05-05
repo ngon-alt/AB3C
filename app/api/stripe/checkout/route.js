@@ -12,9 +12,6 @@ const ANALYSIS_PRICE_IDS = new Set([
   "price_1TMovUCYHZ66REnUdqdw3Jcc",
 ]);
 
-// キャンペーンクーポンID（TODO: Stripeで作成後に差し替え）
-const CAMPAIGN_COUPON_ID = process.env.STRIPE_CAMPAIGN_COUPON_ID || null;
-
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -47,17 +44,6 @@ export async function POST(req) {
         priceId: priceId,
       },
     };
-
-    // キャンペーンクーポンが設定されていれば自動適用
-    if (CAMPAIGN_COUPON_ID) {
-      if (isOneTime) {
-        // 一括払い: discounts を使用
-        checkoutParams.discounts = [{ coupon: CAMPAIGN_COUPON_ID }];
-      } else {
-        // サブスクリプション: discounts を使用
-        checkoutParams.discounts = [{ coupon: CAMPAIGN_COUPON_ID }];
-      }
-    }
 
     const checkoutSession = await stripe.checkout.sessions.create(checkoutParams);
 
