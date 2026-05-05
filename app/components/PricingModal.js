@@ -245,7 +245,7 @@ export default function PricingModal({ onClose }) {
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
                         {plan.sites}サイトプラン
                       </div>
-                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+                      <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
                         ¥{perSite(plan.annual, plan.sites).toLocaleString()}/サイト
                       </div>
                     </div>
@@ -286,7 +286,7 @@ export default function PricingModal({ onClose }) {
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
                         {plan.sites}サイトプラン
                       </div>
-                      <div style={{ fontSize: 12, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
+                      <div style={{ fontSize: 14, color: C.muted, fontFamily: "'Space Mono', monospace" }}>
                         ¥{perSite(plan.annual / 12, plan.sites).toLocaleString()}/サイト/月（年額時）
                       </div>
                     </div>
@@ -310,8 +310,8 @@ export default function PricingModal({ onClose }) {
                       </div>
                       {/* 年額 */}
                       <div>
-                        <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>年額契約</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, color: C.muted }}>年額契約</span>
                           <span style={{ fontSize: 12, color: '#1a6fd4', fontWeight: 600 }}>+2ヶ月無料</span>
                         </div>
                         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
