@@ -279,6 +279,16 @@ export default function PricingModal({ onClose }) {
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ 年額契約＝月額×10（2ヶ月分無料）</span>
                 </div>
 
+                {/* デジ革会員特典の告知 */}
+                <div style={{ background: "#fff", border: `2px solid ${C.A}`, borderRadius: 8, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🎟️</div>
+                  <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
+                    <strong style={{ color: C.A, fontSize: 15 }}>デジ革（一般社団法人デジタル経営革新協会）会員特典</strong><br/>
+                    戦略指南プランを<strong>月額契約 ¥10,000オフ ／ 年額契約 ¥100,000オフ</strong>でご利用いただけます。
+                    会員向けに別途お知らせしているプロモーションコードを、チェックアウト画面でご入力ください。
+                  </div>
+                </div>
+
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
                 {supportPlanDetails.map((plan, i) => (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 6, padding: "16px", marginBottom: 12 }}>

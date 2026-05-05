@@ -39,6 +39,10 @@ export async function POST(req) {
       // Customer Portal を開けなくなる（領収書も見られない）ため明示的に always を指定。
       // subscription モードでは Stripe が自動で Customer を作るので isOneTime のときだけ付ける。
       ...(isOneTime && { customer_creation: 'always' }),
+      // 戦略指南プラン（subscription）のみプロモーションコード入力を許可。
+      // デジ革会員割引（DIGIKAKU-M / DIGIKAKU-Y 等）の適用に使う。
+      // 戦略診断チケット側では入力欄を出さない（FUTURESHOP6M 等の流用を防止）。
+      ...(!isOneTime && { allow_promotion_codes: true }),
       metadata: {
         email: session.user.email,
         priceId: priceId,
