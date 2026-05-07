@@ -1488,9 +1488,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
-  // currentResult が変わったら、選択中の組み合わせパターンを「AIのおすすめ」にリセット。
-  // 既存の選択IDが新しいresultに存在しない場合（再分析でcombinationsが変わった場合等）も
-  // recommended_combination_id か先頭IDにフォールバック。combinations が無い旧データなら null。
+  // currentResult が変わったら、選択中の組み合わせパターンを更新。
+  // - confirmed_combination_id があればそれを優先（確定履歴を開いたとき、確定したパターンが選ばれる）
+  // - なければ recommended_combination_id（AIのおすすめ）
+  // - それも無ければ先頭ID
+  // 既存の選択IDが新しいresultに存在しない場合（再分析でcombinationsが変わった場合等）も上記の順でフォールバック。
   useEffect(() => {
     if (!currentResult?.combinations || !Array.isArray(currentResult.combinations) || currentResult.combinations.length === 0) {
       setSelectedCombinationId(null);
@@ -1499,7 +1501,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     const validIds = currentResult.combinations.map(c => c.id);
     setSelectedCombinationId(prev => {
       if (prev && validIds.includes(prev)) return prev;
-      return currentResult.recommended_combination_id || validIds[0];
+      return currentResult.confirmed_combination_id || currentResult.recommended_combination_id || validIds[0];
     });
   }, [currentResult]);
 
@@ -1597,6 +1599,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // 改善レポート・ビジュアルモックの両方がパターン別にキャッシュされ、未生成なら順次生成する。
   function handleCombinationSwitch(id) {
     setSelectedCombinationId(id);
+    // 表示中タイトルも選択中パターンの戦略メッセージに同期（確定前の見え方が分かりやすく、
+    // そのまま確定すれば履歴にもこのタイトルが残る）。
+    var nextCombo = currentResult?.combinations?.find(function(c) { return c?.id === id; });
+    if (nextCombo?.strategy_message?.message) {
+      setHistoryTitle(nextCombo.strategy_message.message);
+    }
     if (!currentInput?.startsWith("http")) return;
     if (!currentResult?.combinations) return;
     const cachedImprove = improveResultsByCombination[id];
@@ -2375,13 +2383,42 @@ useEffect(() => {
             if (oldCm) chatMsgs = JSON.parse(oldCm);
           }
         } catch (e) {}
+        // 確定時に選択中パターンのデータを top-level にシム（保存後にこの確定履歴を開いたとき、
+        // その時に選んでいたパターンの AB3C・改善レポートが復元されるように）。
+        var snapshotResult = currentResult;
+        var confirmedStrategyMessageText = currentResult?.strategy_message?.message || "";
+        var selectedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
+        if (selectedCombo && Array.isArray(currentResult?.combinations)) {
+          var allStrengthsArr = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
+          var usedIdxArr = Array.isArray(selectedCombo.strengths_used) ? selectedCombo.strengths_used : [];
+          var usedStrengthsArr = usedIdxArr.length > 0
+            ? usedIdxArr.map(function(i) { return allStrengthsArr[i]; }).filter(Boolean)
+            : allStrengthsArr;
+          snapshotResult = Object.assign({}, currentResult, {
+            benefit: selectedCombo.benefit || currentResult.benefit,
+            advantage: selectedCombo.advantage || currentResult.advantage,
+            three_c: {
+              customer: selectedCombo.customer || currentResult.three_c?.customer || {},
+              competitor: selectedCombo.competitor || currentResult.three_c?.competitor || { direct: [], indirect: [] },
+              company: {
+                strength: usedStrengthsArr,
+                structure: currentResult.company_core?.structure || currentResult.three_c?.company?.structure || "",
+                passion: currentResult.company_core?.passion || currentResult.three_c?.company?.passion || "",
+              },
+            },
+            strategy_message: selectedCombo.strategy_message || currentResult.strategy_message,
+            checkpoints: Array.isArray(selectedCombo.checkpoints) ? selectedCombo.checkpoints : (currentResult.checkpoints || []),
+            confirmed_combination_id: selectedCombinationId,
+          });
+          confirmedStrategyMessageText = selectedCombo.strategy_message?.message || confirmedStrategyMessageText;
+        }
         var snapshot = {
           id: Date.now(),
           date: new Date().toLocaleString("ja-JP"),
-          result: currentResult,
+          result: snapshotResult,
           chatMessages: chatMsgs,
           chatSummaries: chatSummaries,
-          strategyMessage: currentResult?.strategy_message?.message || "",
+          strategyMessage: confirmedStrategyMessageText,
           url: siteUrl || currentInput || "",
         };
         var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
