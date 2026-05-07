@@ -2498,6 +2498,16 @@ useEffect(() => {
         } catch (e) {}
       }
     }
+// 同じURLの再分析: 戦略策定タブのチャット履歴をクリア（localStorage + DB 両方）
+// 戦略アクションタブのスレッド・アクション・戦略確定履歴は確定戦略に紐づくため残す
+if (prefoundSite) {
+  try { localStorage.removeItem("ab3c_analysis_chat_" + prefoundSite.id); } catch (e) {}
+  fetch("/api/sites", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
+  }).catch(() => {});
+}
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
