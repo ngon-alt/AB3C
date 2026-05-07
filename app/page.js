@@ -500,75 +500,102 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
   );
 }
 
-// Phase B再: 組み合わせパターンのタブバー（選択中タブの完全AB3Cが下のセクションに表示される）
+// 組み合わせパターンの切替コントロール（ピル型ボタン群＋現在表示中の大見出し帯）。
+// タブUIではなく「切替スイッチ＋見出し」で構成し、下のAB3C本体とは
+// セクション見出しによって接続される（タブのような容器メタファは持たない）。
 function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }) {
   if (!Array.isArray(combinations) || combinations.length === 0) return null;
   const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
   const selectedCombo = combinations.find(c => c?.id === selectedId);
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.1em", color: C.muted, textTransform: "uppercase", marginBottom: 8, fontWeight: 700 }}>
-        STRATEGY COMBINATION TABS — クリックで切り替え
+    <div style={{ marginBottom: 28 }}>
+      {/* 切替コントロール（ピル型ボタン群） */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 14, color: "#444", marginBottom: 10, fontFamily: sansFont, fontWeight: 700 }}>
+          戦略パターンを切り替え
+          <span style={{ fontWeight: 400, color: "#777", marginLeft: 8, fontSize: 13 }}>
+            （AIが3案提案。ボタンで表示を切替）
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          {combinations.map(combo => {
+            const isSelected = combo.id === selectedId;
+            const isRecommended = combo.id === recommendedId;
+            return (
+              <button
+                key={combo.id}
+                onClick={() => onSelect && onSelect(combo.id)}
+                style={{
+                  background: isSelected ? C.B : "#ffffff",
+                  color: isSelected ? "#fff" : C.ink,
+                  border: isSelected ? `2px solid ${C.B}` : `2px solid #c8c8c4`,
+                  borderRadius: 999,
+                  padding: "10px 18px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: sansFont,
+                  transition: "background 0.15s, border-color 0.15s, color 0.15s",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  lineHeight: 1.2,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = "#f5f5f0";
+                    e.currentTarget.style.borderColor = "#888";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = "#ffffff";
+                    e.currentTarget.style.borderColor = "#c8c8c4";
+                  }
+                }}
+              >
+                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                <span>{combo.label}</span>
+                {isRecommended && (
+                  <span style={{
+                    background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
+                    color: isSelected ? "#fff" : "#854d0e",
+                    fontSize: 11,
+                    padding: "3px 9px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    border: isSelected ? "1px solid rgba(255,255,255,0.4)" : "1px solid #fbbf24",
+                  }}>
+                    ⭐ おすすめ
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 4, alignItems: "flex-end", flexWrap: "wrap", borderBottom: `3px solid ${C.B}`, paddingBottom: 0 }}>
-        {combinations.map(combo => {
-          const isSelected = combo.id === selectedId;
-          const isRecommended = combo.id === recommendedId;
-          return (
-            <button
-              key={combo.id}
-              onClick={() => onSelect && onSelect(combo.id)}
-              style={{
-                background: isSelected ? C.B : "#d8d8d4",
-                color: isSelected ? "#fff" : "#444",
-                border: "none",
-                borderRadius: "8px 8px 0 0",
-                padding: "14px 20px 14px",
-                fontSize: 16,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "'Noto Serif JP', serif",
-                position: "relative",
-                marginRight: 2,
-                boxShadow: isSelected ? "0 -3px 10px rgba(255,0,0,0.18)" : "none",
-                transition: "all 0.15s",
-                transform: isSelected ? "translateY(0)" : "translateY(0)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = "#c0c0bc";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.background = "#d8d8d4";
-                }
-              }}
-            >
-              {isRecommended && (
-                <span style={{ position: "absolute", top: -10, right: -8, background: "#fef3c7", color: "#854d0e", fontSize: 11, padding: "2px 8px", borderRadius: 3, border: "1px solid #fbbf24", fontFamily: sansFont, fontWeight: 700, whiteSpace: "nowrap" }}>
-                  ⭐ おすすめ
-                </span>
-              )}
-              <span style={{ fontSize: 13, fontFamily: "'Space Mono', monospace", opacity: 0.7, marginRight: 6 }}>P{combo.id}</span>
-              {combo.label}
-            </button>
-          );
-        })}
-      </div>
-      {/* 選択中パターンの説明帯 */}
+
+      {/* 現在表示中の見出し帯（タブの容器メタファに頼らず、見出しとして本体に接続する） */}
       {selectedCombo && (
         <div style={{
-          background: "#fff5f5", borderLeft: `4px solid ${C.B}`,
-          padding: "14px 20px",
-          fontSize: 15, lineHeight: 1.7,
-          fontFamily: sansFont,
-          marginTop: 0,
+          background: "#fff",
+          border: `1px solid ${C.border}`,
+          borderLeft: `6px solid ${C.B}`,
+          padding: "18px 22px",
+          borderRadius: 4,
         }}>
-          <span style={{ color: C.B, fontWeight: 700 }}>深掘り中：</span>
-          <span style={{ color: C.ink, marginLeft: 4 }}>
-            「<b>パターン{selectedCombo.id}：{selectedCombo.label}</b>」の完全な AB3C 分析が下に表示されています。タブを切り替えると、別のターゲット・別の競合・別の市場規模で構成された AB3C 分析に切り替わります。
-          </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+              現在表示中
+            </span>
+            <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+              パターン{selectedCombo.id}：{selectedCombo.label}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
+            このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）が下に表示されています。
+          </div>
         </div>
       )}
     </div>
