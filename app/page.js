@@ -1538,6 +1538,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (needImprove) {
       setImproveSwitchLoading(true);
       setImproveResult(null);
+      // 初回生成と同じローディングオーバーレイを出す（ピル切替時に何も起きていないように見えるのを防ぐ）
+      setOverlayMessage("ウェブサイト改善レポート生成中...");
       try {
         const res = await fetch("/api/improve", {
           method: "POST",
@@ -1550,10 +1552,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
           setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: improveData }));
         } else {
           setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
+          setOverlayMessage(null);
           return; // 改善レポート失敗時はビジュアルも生成しない
         }
       } catch (e) {
         setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
+        setOverlayMessage(null);
         return;
       } finally {
         setImproveSwitchLoading(false);
@@ -1564,6 +1568,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (needVisual && improveData && !improveData.error) {
       setVisualLoading(true);
       setVisualMock(null);
+      setOverlayMessage("改善ビジュアル生成中...");
       try {
         const res = await fetch("/api/improve/visual", {
           method: "POST",
@@ -1582,6 +1587,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
         setVisualLoading(false);
       }
     }
+
+    // 全て完了したらオーバーレイを消す
+    setOverlayMessage(null);
   }
 
   // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
