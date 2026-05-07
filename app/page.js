@@ -1405,6 +1405,8 @@ const [activePlanId, setActivePlanId] = useState(null);
   const [improveResultsByCombination, setImproveResultsByCombination] = useState({});
   const [improveSwitchLoading, setImproveSwitchLoading] = useState(false);
   const [visualMock, setVisualMock] = useState(null);
+  // パターンID→そのパターン向けビジュアルモックのキャッシュ（改善レポートと同じ仕組み）
+  const [visualMocksByCombination, setVisualMocksByCombination] = useState({});
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
   const [refining, setRefining] = useState(false);
@@ -1501,10 +1503,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
     });
   }, [currentResult]);
 
-  // 指定パターン用の analysisResult を組み立てて /api/improve を呼び、結果をキャッシュ＆表示。
-  // 改善レポートは「現在表示中のパターン向け」を見たいので、tab切替時に都度呼ばれる。
-  // 既存のキャッシュにあるパターンが選ばれた場合は呼ばずに即時表示するのが呼び出し側の責任。
-  async function generateImproveForCombination(combinationId) {
+  // 指定パターン用の analysisResult を組み立てて /api/improve（必要なら /api/improve/visual も）を
+  // 呼び、結果をキャッシュ＆表示。
+  // - needImprove=true なら改善レポートを生成（既にキャッシュにあれば呼び出し側でスキップ）
+  // - needVisual=true ならビジュアルモックも生成（改善レポートが必要・成功している場合のみ）
+  async function generateForCombination(combinationId, needImprove, needVisual) {
     if (!currentResult?.combinations) return;
     const combo = currentResult.combinations.find(c => c?.id === combinationId);
     if (!combo) return;
@@ -1529,43 +1532,75 @@ const [chatSummaries, setChatSummaries] = useState([]);
       strategy_message: combo.strategy_message || {},
       checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
     };
-    setImproveSwitchLoading(true);
-    setImproveResult(null);
-    try {
-      const res = await fetch("/api/improve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysisResult: comboResult, url: currentInput }),
-      });
-      let data;
-      try { data = await res.json(); } catch (e) { data = { error: `HTTP ${res.status} 応答が解釈できませんでした` }; }
-      if (res.ok && !data.error) {
-        setImproveResult(data);
-        setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: data }));
-      } else {
-        setImproveResult({ error: data.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
+
+    // Step 1: 改善レポート（テキスト）
+    let improveData = improveResultsByCombination[combinationId] || null;
+    if (needImprove) {
+      setImproveSwitchLoading(true);
+      setImproveResult(null);
+      try {
+        const res = await fetch("/api/improve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisResult: comboResult, url: currentInput }),
+        });
+        try { improveData = await res.json(); } catch (e) { improveData = { error: `HTTP ${res.status} 応答が解釈できませんでした` }; }
+        if (res.ok && !improveData.error) {
+          setImproveResult(improveData);
+          setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: improveData }));
+        } else {
+          setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
+          return; // 改善レポート失敗時はビジュアルも生成しない
+        }
+      } catch (e) {
+        setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
+        return;
+      } finally {
+        setImproveSwitchLoading(false);
       }
-    } catch (e) {
-      setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
-    } finally {
-      setImproveSwitchLoading(false);
+    }
+
+    // Step 2: ビジュアルモック（改善レポートが揃っている場合のみ）
+    if (needVisual && improveData && !improveData.error) {
+      setVisualLoading(true);
+      setVisualMock(null);
+      try {
+        const res = await fetch("/api/improve/visual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisResult: comboResult, improveResult: improveData, url: currentInput }),
+        });
+        let visualData;
+        try { visualData = await res.json(); } catch (e) { visualData = { error: `HTTP ${res.status}` }; }
+        if (res.ok && !visualData.error) {
+          setVisualMock(visualData);
+          setVisualMocksByCombination(prev => ({ ...prev, [combinationId]: visualData }));
+        }
+      } catch (e) {
+        // ビジュアル失敗は致命的ではないので静かに無視（改善レポートは表示済み）
+      } finally {
+        setVisualLoading(false);
+      }
     }
   }
 
   // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
   // 両方このハンドラを使うことで「state は1つ・UIは2箇所」の同期動作を実現する。
+  // 改善レポート・ビジュアルモックの両方がパターン別にキャッシュされ、未生成なら順次生成する。
   function handleCombinationSwitch(id) {
     setSelectedCombinationId(id);
     if (!currentInput?.startsWith("http")) return;
     if (!currentResult?.combinations) return;
-    const cached = improveResultsByCombination[id];
-    if (cached) {
-      setImproveResult(cached);
-      return;
-    }
+    const cachedImprove = improveResultsByCombination[id];
+    const cachedVisual = visualMocksByCombination[id];
+    // キャッシュにあれば即時表示（パターンに対応するビジュアルが無い場合は visualMock を null にしておく）
+    if (cachedImprove) setImproveResult(cachedImprove);
+    setVisualMock(cachedVisual || null);
     // 初回分析中（improveLoading）と衝突しない場合のみ追加生成
-    if (!improveLoading) {
-      generateImproveForCombination(id);
+    const needImprove = !cachedImprove;
+    const needVisual = !cachedVisual;
+    if ((needImprove || needVisual) && !improveLoading) {
+      generateForCombination(id, needImprove, needVisual);
     }
   }
 
@@ -1577,11 +1612,14 @@ const [chatSummaries, setChatSummaries] = useState([]);
         var existing = {};
         try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
         var savedAt = analyzedAt || existing.timestamp || Date.now();
-        // improveByCombo: パターン別キャッシュ。空オブジェクトの場合は既存値を保持。
+        // improveByCombo / visualByCombo: パターン別キャッシュ。空オブジェクトの場合は既存値を保持。
         var improveByComboToSave = (improveResultsByCombination && Object.keys(improveResultsByCombination).length > 0)
           ? improveResultsByCombination
           : (existing.improveByCombo || null);
-        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, improveByCombo: improveByComboToSave, visual: visualMock || existing.visual || null, timestamp: savedAt };
+        var visualByComboToSave = (visualMocksByCombination && Object.keys(visualMocksByCombination).length > 0)
+          ? visualMocksByCombination
+          : (existing.visualByCombo || null);
+        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, improveByCombo: improveByComboToSave, visual: visualMock || existing.visual || null, visualByCombo: visualByComboToSave, timestamp: savedAt };
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
@@ -1590,11 +1628,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
           improveResult: improveResult || null,
           improveByCombo: improveByComboToSave,
           visualMock: visualMock || null,
+          visualByCombo: visualByComboToSave,
           timestamp: savedAt,
         }));
       } catch (e) {}
     }
-  }, [currentResult, improveResult, improveResultsByCombination, visualMock, currentInput, analyzedAt]);
+  }, [currentResult, improveResult, improveResultsByCombination, visualMock, visualMocksByCombination, currentInput, analyzedAt]);
 
   // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
   // URLパラメータに site_id / url がある場合は、それと一致する場合のみ復元（別サイトのデータ復元バグ防止）
@@ -1627,6 +1666,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       if (data.improveResult) setImproveResult(data.improveResult);
       if (data.improveByCombo && typeof data.improveByCombo === "object") setImproveResultsByCombination(data.improveByCombo);
       if (data.visualMock) setVisualMock(data.visualMock);
+      if (data.visualByCombo && typeof data.visualByCombo === "object") setVisualMocksByCombination(data.visualByCombo);
       if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
     } catch (e) {}
   }, []);
@@ -2019,6 +2059,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
                 setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
                 if (parsed.improveByCombo && typeof parsed.improveByCombo === "object") setImproveResultsByCombination(parsed.improveByCombo);
+                if (parsed.visual) setVisualMock(parsed.visual);
+                if (parsed.visualByCombo && typeof parsed.visualByCombo === "object") setVisualMocksByCombination(parsed.visualByCombo);
               }
             }
           } catch (e) {}
@@ -2033,6 +2075,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
               if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setVersionsFromInitial(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
               if (parsed2.improveByCombo && typeof parsed2.improveByCombo === "object") setImproveResultsByCombination(parsed2.improveByCombo);
+              if (parsed2.visual) setVisualMock(parsed2.visual);
+              if (parsed2.visualByCombo && typeof parsed2.visualByCombo === "object") setVisualMocksByCombination(parsed2.visualByCombo);
             }
           } catch (e) {}
         }
@@ -2508,7 +2552,7 @@ if (prefoundSite) {
     body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
   }).catch(() => {});
 }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({});
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -2598,6 +2642,11 @@ if (tab === "url" && savedText.startsWith("http")) {
       visualData = await visualRes.json();
       if (!visualData.error) {
         setVisualMock(visualData);
+        // 初回生成分は recommended パターン向けキャッシュへ保存（改善レポートと同じ流れ）
+        const recommendedId = data?.recommended_combination_id;
+        if (recommendedId) {
+          setVisualMocksByCombination(prev => ({ ...prev, [recommendedId]: visualData }));
+        }
       } else {
         console.error("改善ビジュアル生成エラー:", visualData.error, visualData.debug);
       }
@@ -2661,7 +2710,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
