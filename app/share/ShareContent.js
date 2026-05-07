@@ -14,6 +14,13 @@ function trimRouteSuffix(label) {
   return label.replace(/[\s　]*ルート$/, "");
 }
 
+// パターン別の固有色（メインUI と同じ・AB3Cの赤青黒、フェーズ色を避けて選定）。
+const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+function patternColor(id) {
+  if (!id) return "#444";
+  return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
+}
+
 // パターン別の AB3C データを top-level に展開して、既存のレンダリングをそのまま使えるようにする。
 // （メイン側 page.js の buildShadowResultFromCombo と同じロジック）
 function buildShadowResultFromCombo(combo, companyCore) {
@@ -58,14 +65,16 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
           {combinations.map(combo => {
             const isSelected = combo.id === selectedId;
             const isRecommended = combo.id === recommendedId;
+            const myColor = patternColor(combo.id);
             return (
               <button
                 key={combo.id}
                 onClick={() => onSelect && onSelect(combo.id)}
                 style={{
-                  background: isSelected ? C.B : "#ffffff",
+                  background: isSelected ? myColor : "#ffffff",
                   color: isSelected ? "#fff" : C.ink,
-                  border: isSelected ? `2px solid ${C.B}` : `2px solid #c8c8c4`,
+                  border: isSelected ? `2px solid ${myColor}` : `2px solid #c8c8c4`,
+                  borderLeft: isSelected ? `2px solid ${myColor}` : `6px solid ${myColor}`,
                   borderRadius: 999,
                   padding: "10px 18px",
                   fontSize: 15,
@@ -103,7 +112,7 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
         <div style={{
           background: "#fff",
           border: `1px solid ${C.border}`,
-          borderLeft: `6px solid ${C.B}`,
+          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
           padding: "18px 22px",
           borderRadius: 4,
         }}>
