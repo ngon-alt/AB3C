@@ -784,12 +784,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
             </Card>
           </div>
           <div>
-            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="自社の具体的強み・その強みを生む構造的特徴・経営者の価値観/パッションの3層で掘り下げます。価値観の違いが最も真似されにくい。" />
+            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
             <VersionTabBar versions={versions} sectionKey="company" sectionPaths={["three_c.company"]} active={avps.company || 0} onChange={onSectionTabChange} />
-            <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+            <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+              <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
-              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>構造：{companyData.structure}</p>
-              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>💡 {companyData.passion}</p></Card>
+              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>仕組み：{companyData.structure}</p>
+              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>価値観：{companyData.passion}</p></Card>
           </div>
         </div>
       </div>
