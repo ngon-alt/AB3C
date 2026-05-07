@@ -245,6 +245,11 @@ export default function ShareContent({ input, result, improveResult, visualMock,
     )}
   </div>
 )}
+            {/* AB3C戦略分析レポート 大見出し（メインUIと同じ黒帯） */}
+            <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+            </div>
             {hasCombinations && (
               <CombinationSwitcher
                 combinations={result.combinations}
@@ -340,49 +345,68 @@ export default function ShareContent({ input, result, improveResult, visualMock,
                   </div>
                 ))}
               </div>
+              {/* AB3Cスコア（メインUIと同じ ok=2点 / warn=1点 / ng=0点 の合計）*/}
+              <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
+                  AB3Cスコア：{(d.checkpoints || []).reduce(function(acc, cpi) { return acc + (cpi.status === "ok" ? 2 : cpi.status === "warn" ? 1 : 0); }, 0)} / 10
+                </span>
+              </div>
             </div>
           </div>
         )}
 {displayedImprove && (
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px", marginTop: 32 }}>
-    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
-    {/* 5つのチェックポイントは上の AB3C セクションで既に表示されているためここには配置しない */}
-    {[
-      { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
-      { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
-      { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
-    ].map(section => (
-      <div key={section.key} style={{ marginBottom: 28 }}>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
-        {displayedImprove[section.key]?.map((item, i) => (
-          <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
-            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+  <div style={{ marginTop: 32 }}>
+    {/* ウェブサイト改善レポート 大見出し（メインUIと同じ黒帯） */}
+    <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+    </div>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px" }}>
+      {/* 改善後のファーストビュー・イメージ（メインUIと同じ位置：3項目セクションより上） */}
+      {displayedVisual && (
+        <div className="visual-mock-section" style={{ marginBottom: 32 }}>
+          <style>{`
+            @media print {
+              .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
+              .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
+              .visual-mock-frame { break-before: avoid-page; page-break-before: avoid; }
+              .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
+            }
+          `}</style>
+          <div className="visual-mock-banner" style={{ borderLeft: `4px solid ${C.ink}`, padding: "6px 14px", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", color: C.muted, marginBottom: 2 }}>IMPROVED FIRST-VIEW MOCKUP</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink }}>改善後のファーストビュー・イメージ</div>
           </div>
-        ))}
-      </div>
-    ))}
-    {displayedVisual && (
-      <div className="visual-mock-section" style={{ marginTop: 32, paddingTop: 24, borderTop: `2px solid ${C.border}` }}>
-        <style>{`
-          @media print {
-            .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
-            .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
-            .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
-          }
-        `}</style>
-        <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>改善後のファーストビュー・イメージ</div>
-        <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
-          <ShadowMock html={displayedVisual.visual_mock_html} style={{ display: "block", width: "100%" }} />
+          <div className="visual-mock-frame">
+            <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+              <ShadowMock html={displayedVisual.visual_mock_html} style={{ display: "block", width: "100%" }} />
+            </div>
+            {displayedVisual.caption && (
+              <div className="visual-mock-caption" style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
+                <b style={{ color: C.A }}>💡 このビジュアルの意図：</b>{displayedVisual.caption}
+              </div>
+            )}
+          </div>
         </div>
-        {displayedVisual.caption && (
-          <div className="visual-mock-caption" style={{ marginTop: 10, padding: "12px 16px", background: C.highlight, borderLeft: `4px solid ${C.B}`, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
-            <b style={{ color: C.B }}>💡 このビジュアルの意図：</b>{displayedVisual.caption}
-          </div>
-        )}
-      </div>
-    )}
+      )}
+      {/* 5つのチェックポイントは上の AB3C セクションで既に表示されているためここには配置しない */}
+      {[
+        { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
+        { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
+        { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
+      ].map(section => (
+        <div key={section.key} style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
+          {displayedImprove[section.key]?.map((item, i) => (
+            <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   </div>
 )}
       </div>
