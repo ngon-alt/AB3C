@@ -784,12 +784,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
             </Card>
           </div>
           <div>
-            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="自社の具体的強み・その強みを生む構造的特徴・経営者の価値観/パッションの3層で掘り下げます。価値観の違いが最も真似されにくい。" />
+            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
             <VersionTabBar versions={versions} sectionKey="company" sectionPaths={["three_c.company"]} active={avps.company || 0} onChange={onSectionTabChange} />
-            <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+            <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+              <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
-              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>構造：{companyData.structure}</p>
-              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>💡 {companyData.passion}</p></Card>
+              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>仕組み：{companyData.structure}</p>
+              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>価値観：{companyData.passion}</p></Card>
           </div>
         </div>
       </div>
@@ -1398,6 +1399,11 @@ const [trialChats, setTrialChats] = useState(0);
 const [activePlans, setActivePlans] = useState([]);
 const [activePlanId, setActivePlanId] = useState(null);
   const [improveResult, setImproveResult] = useState(null);
+  // パターンID→そのパターン向け改善レポートのキャッシュ。
+  // selectedCombinationId が切り替わったとき、ここを参照して即時表示するか、
+  // 未生成なら /api/improve を呼んで生成する。
+  const [improveResultsByCombination, setImproveResultsByCombination] = useState({});
+  const [improveSwitchLoading, setImproveSwitchLoading] = useState(false);
   const [visualMock, setVisualMock] = useState(null);
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
@@ -1495,6 +1501,74 @@ const [chatSummaries, setChatSummaries] = useState([]);
     });
   }, [currentResult]);
 
+  // 指定パターン用の analysisResult を組み立てて /api/improve を呼び、結果をキャッシュ＆表示。
+  // 改善レポートは「現在表示中のパターン向け」を見たいので、tab切替時に都度呼ばれる。
+  // 既存のキャッシュにあるパターンが選ばれた場合は呼ばずに即時表示するのが呼び出し側の責任。
+  async function generateImproveForCombination(combinationId) {
+    if (!currentResult?.combinations) return;
+    const combo = currentResult.combinations.find(c => c?.id === combinationId);
+    if (!combo) return;
+    const allStrengths = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
+    const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+    const usedStrengths = usedIdx.length > 0
+      ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+      : allStrengths;
+    const comboResult = {
+      ...currentResult,
+      benefit: combo.benefit || {},
+      advantage: combo.advantage || {},
+      three_c: {
+        customer: combo.customer || {},
+        competitor: combo.competitor || { direct: [], indirect: [] },
+        company: {
+          strength: usedStrengths,
+          structure: currentResult.company_core?.structure || "",
+          passion: currentResult.company_core?.passion || "",
+        },
+      },
+      strategy_message: combo.strategy_message || {},
+      checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
+    };
+    setImproveSwitchLoading(true);
+    setImproveResult(null);
+    try {
+      const res = await fetch("/api/improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysisResult: comboResult, url: currentInput }),
+      });
+      let data;
+      try { data = await res.json(); } catch (e) { data = { error: `HTTP ${res.status} 応答が解釈できませんでした` }; }
+      if (res.ok && !data.error) {
+        setImproveResult(data);
+        setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: data }));
+      } else {
+        setImproveResult({ error: data.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
+      }
+    } catch (e) {
+      setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
+    } finally {
+      setImproveSwitchLoading(false);
+    }
+  }
+
+  // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
+  // 両方このハンドラを使うことで「state は1つ・UIは2箇所」の同期動作を実現する。
+  function handleCombinationSwitch(id) {
+    setSelectedCombinationId(id);
+    if (!currentInput?.startsWith("http")) return;
+    if (!currentResult?.combinations) return;
+    const cached = improveResultsByCombination[id];
+    if (cached) {
+      setImproveResult(cached);
+      return;
+    }
+    // 初回分析中（improveLoading）と衝突しない場合のみ追加生成
+    if (!improveLoading) {
+      generateImproveForCombination(id);
+    }
+  }
+
   // 分析結果・改善レポート・ビジュアルが変わったらlocalStorage/sessionStorageに自動保存
   // sessionStorage はページ内遷移後や決済画面からの戻りでの復元用
   useEffect(function() {
@@ -1503,19 +1577,24 @@ const [chatSummaries, setChatSummaries] = useState([]);
         var existing = {};
         try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
         var savedAt = analyzedAt || existing.timestamp || Date.now();
-        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, visual: visualMock || existing.visual || null, timestamp: savedAt };
+        // improveByCombo: パターン別キャッシュ。空オブジェクトの場合は既存値を保持。
+        var improveByComboToSave = (improveResultsByCombination && Object.keys(improveResultsByCombination).length > 0)
+          ? improveResultsByCombination
+          : (existing.improveByCombo || null);
+        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, improveByCombo: improveByComboToSave, visual: visualMock || existing.visual || null, timestamp: savedAt };
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
           siteId: siteId || null,
           result: currentResult,
           improveResult: improveResult || null,
+          improveByCombo: improveByComboToSave,
           visualMock: visualMock || null,
           timestamp: savedAt,
         }));
       } catch (e) {}
     }
-  }, [currentResult, improveResult, visualMock, currentInput, analyzedAt]);
+  }, [currentResult, improveResult, improveResultsByCombination, visualMock, currentInput, analyzedAt]);
 
   // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
   // URLパラメータに site_id / url がある場合は、それと一致する場合のみ復元（別サイトのデータ復元バグ防止）
@@ -1546,6 +1625,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
       else { setInput(data.input); setTab("text"); }
       if (data.improveResult) setImproveResult(data.improveResult);
+      if (data.improveByCombo && typeof data.improveByCombo === "object") setImproveResultsByCombination(data.improveByCombo);
       if (data.visualMock) setVisualMock(data.visualMock);
       if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
     } catch (e) {}
@@ -1938,6 +2018,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
                 setVersionsFromInitial(parsed.result);
                 setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
+                if (parsed.improveByCombo && typeof parsed.improveByCombo === "object") setImproveResultsByCombination(parsed.improveByCombo);
               }
             }
           } catch (e) {}
@@ -1951,6 +2032,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
               var parsed2 = JSON.parse(lsData2);
               if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setVersionsFromInitial(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
+              if (parsed2.improveByCombo && typeof parsed2.improveByCombo === "object") setImproveResultsByCombination(parsed2.improveByCombo);
             }
           } catch (e) {}
         }
@@ -2416,7 +2498,7 @@ useEffect(() => {
         } catch (e) {}
       }
     }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -2474,6 +2556,11 @@ if (tab === "url" && savedText.startsWith("http")) {
     try { improveData = await improveRes.json(); } catch (e) { improveData = { error: `HTTP ${improveRes.status} 応答が解釈できませんでした` }; }
     if (improveRes.ok && !improveData.error) {
       setImproveResult(improveData);
+      // 初回生成分は recommended パターン向けキャッシュに保存（top-levelシムが recommended を反映しているため）
+      const recommendedId = data?.recommended_combination_id;
+      if (recommendedId) {
+        setImproveResultsByCombination(prev => ({ ...prev, [recommendedId]: improveData }));
+      }
     } else {
       console.error("改善レポート生成エラー:", { status: improveRes.status, error: improveData.error, debug: improveData.debug });
       setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${improveRes.status}）。再分析ボタンで再生成できます。` });
@@ -2564,7 +2651,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -3072,7 +3159,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={setSelectedCombinationId} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
+  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
@@ -3091,9 +3178,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       return newSel;
     });
   }} />
-  {currentInput?.startsWith("http") && improveLoading && !improveResult && (
+  {/* 改善レポートの見出し＋パターン切替（combinations がある場合は常に表示。ローディング中も切替できるよう外出し） */}
+  {currentInput?.startsWith("http") && Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 && (
+    <div style={{ marginTop: 48 }}>
+      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+      </div>
+      <CombinationTabBar
+        combinations={currentResult.combinations}
+        selectedId={selectedCombinationId}
+        recommendedId={currentResult.recommended_combination_id}
+        onSelect={handleCombinationSwitch}
+      />
+    </div>
+  )}
+  {currentInput?.startsWith("http") && (improveLoading || improveSwitchLoading) && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
-      ウェブサイト改善レポートを生成中です…
+      {improveSwitchLoading ? "このパターン用の改善レポートを生成中です…" : "ウェブサイト改善レポートを生成中です…"}
     </div>
   )}
   {currentInput?.startsWith("http") && improveResult?.error && (
@@ -3125,11 +3227,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   )}
   {currentInput?.startsWith("http") && improveResult && !improveResult.error && (
-    <div id="improve-area" style={{ marginTop: 48 }}>
-      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
-      </div>
+    <div id="improve-area" style={{ marginTop: Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 ? 16 : 48 }}>
+      {/* combinations が無い旧データの場合のみ、ここで見出しを表示。新データは上で表示済み */}
+      {!(Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0) && (
+        <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+        </div>
+      )}
       {/* 5つのチェックポイントは上の AB3C 分析セクションで既に表示されているため、
           改善レポート側での再表示は重複になるためここには配置しない */}
       {(visualLoading || visualMock) && (
