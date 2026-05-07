@@ -402,7 +402,7 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
   const borderColor = isSelected ? C.B : C.border;
   const headerBg = isSelected ? C.B : C.ink;
   const cardBg = isSelected ? "#fff5f5" : "#ffffff";
-  const askChat = onChat ? () => onChat(`組み合わせパターン「${combo?.label || ""}」をベースにさらに深掘りしてください`) : null;
+  const askChat = onChat ? () => onChat(`組み合わせパターン「${trimRouteSuffix(combo?.label) || ""}」をベースにさらに深掘りしてください`) : null;
   const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
 
   // 新スキーマからサマリー表示用の文字列を安全に抽出
@@ -446,7 +446,7 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
           padding: "8px 16px", fontSize: 17, fontWeight: 700,
           borderRadius: 4, fontFamily: "'Noto Serif JP', serif",
         }}>
-          パターン{combo?.id || ""}：{combo?.label || ""}
+          パターン{combo?.id || ""}：{trimRouteSuffix(combo?.label) || ""}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRecommended && (
@@ -498,6 +498,13 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
       {askChat && <ChatBtn onClick={askChat} abs />}
     </div>
   );
+}
+
+// パターンラベル末尾の「ルート」を除去（ボタンが2行に折り返すのを防ぐため）。
+// 既存データへの後方互換のため、表示直前にトリムする方式。
+function trimRouteSuffix(label) {
+  if (!label || typeof label !== "string") return label;
+  return label.replace(/[\s　]*ルート$/, "");
 }
 
 // 組み合わせパターンの切替コントロール（ピル型ボタン群＋現在表示中の大見出し帯）。
@@ -555,7 +562,7 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                 }}
               >
                 <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
-                <span>{combo.label}</span>
+                <span>{trimRouteSuffix(combo.label)}</span>
                 {isRecommended && (
                   <span style={{
                     background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
@@ -590,7 +597,7 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
               現在表示中
             </span>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-              パターン{selectedCombo.id}：{selectedCombo.label}
+              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
             </span>
           </div>
           <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>

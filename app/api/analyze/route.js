@@ -207,7 +207,7 @@ ${analysisTarget}
   "combinations": [
     {
       "id": 1,
-      "label": "短いキャッチー名（10〜15字、例：足の悩み解消ルート）",
+      "label": "短いキャッチー名（10〜15字、ボタン1行に収まるよう「ルート」「戦略」等の余分な接尾辞は付けない。例：足の悩み解消／在宅介護向け）",
       "customer": {
         "target": "このパターンのターゲット顧客像を一言で",
         "profile": ["特徴1", "特徴2", "特徴3"],
@@ -250,7 +250,7 @@ ${analysisTarget}
     },
     {
       "id": 2,
-      "label": "別の切り口（例: ギフト用層ルート）",
+      "label": "別の切り口（10〜15字、接尾辞なし。例: ギフト用層／プロ向け）",
       "customer": {"target": "...", "profile": [], "stage": "...", "cutoff": "...", "market": {"sam": "...", "som": "...", "growth": "...", "basis": "..."}},
       "benefit": {"core": "...", "needs": [], "wants": []},
       "competitor": {"direct": [], "indirect": []},

@@ -8,6 +8,12 @@ const C = {
   ink: "#1a1a14", muted: "#8a8478", highlight: "#f0ebe0",
 };
 
+// パターンラベル末尾の「ルート」を除去（ボタンが2行に折り返すのを防ぐため）。
+function trimRouteSuffix(label) {
+  if (!label || typeof label !== "string") return label;
+  return label.replace(/[\s　]*ルート$/, "");
+}
+
 // パターン別の AB3C データを top-level に展開して、既存のレンダリングをそのまま使えるようにする。
 // （メイン側 page.js の buildShadowResultFromCombo と同じロジック）
 function buildShadowResultFromCombo(combo, companyCore) {
@@ -73,7 +79,7 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
                 }}
               >
                 <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
-                <span>{combo.label}</span>
+                <span>{trimRouteSuffix(combo.label)}</span>
                 {isRecommended && (
                   <span style={{
                     background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
@@ -106,7 +112,7 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
               現在表示中
             </span>
             <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-              パターン{selectedCombo.id}：{selectedCombo.label}
+              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
             </span>
           </div>
           <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
