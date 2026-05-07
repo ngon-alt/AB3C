@@ -1454,6 +1454,9 @@ const [chatWidth, setChatWidth] = useState(500);
 const [chatMinimized, setChatMinimized] = useState(false);
 const chatResizing = useRef(false);
 const [confirmHistory, setConfirmHistory] = useState([]);
+// クリックされた確定履歴エントリのID。サイドバーの選択中マーカー表示や
+// チャット履歴の復元判定に使う。新規分析・再分析時にリセット。
+const [activeConfirmId, setActiveConfirmId] = useState(null);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 // ⓪新規戦略診断クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
@@ -2605,7 +2608,7 @@ if (prefoundSite) {
     body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
   }).catch(() => {});
 }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({});
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setActiveConfirmId(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -2763,7 +2766,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -2916,9 +2919,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   </div>
                 ) : (
                   confirmHistory.slice().reverse().map(function(ch, i) {
-                    var isActive = currentResult?.strategy_message?.message === ch.strategyMessage;
+                    // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
+                    var isActive = activeConfirmId === ch.id;
                     return (
                       <div key={ch.id} onClick={function() {
+                        setActiveConfirmId(ch.id);
                         setCurrentResult(ch.result);
                         setResult(ch.result);
                         setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
@@ -2926,6 +2931,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setStrategyConfirmed(true);
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                        // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
+                        // それぞれの議論の経緯が見られるよう）。siteId ベースのキーへ書き戻し、
+                        // AnalysisChatPanel が再ロードする。
+                        try {
+                          if (siteId && Array.isArray(ch.chatMessages)) {
+                            localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(ch.chatMessages));
+                            // AnalysisChatPanel に変更を通知（同コンポーネントは siteId ベースキーを監視）
+                            window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
+                          }
+                        } catch (e) {}
                         setChangedPaths(new Map());
                       }}
                         style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: isActive ? "rgba(255,255,255,0.15)" : "transparent", borderLeft: isActive ? "3px solid #6db3f8" : "3px solid transparent" }}>
@@ -3535,6 +3550,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 (isPro || chatTickets > 0) ? (
                 <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
+                    /* 確定履歴クリック時にチャットも切り替えるため、activeConfirmId を含めて key を変える。
+                       これで AnalysisChatPanel が再マウントされ、復元された localStorage を読み直す。 */
+                    key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
                     isPro={isPro || chatTickets > 0}
                     analysisResult={currentResult}
                     siteId={siteId}
