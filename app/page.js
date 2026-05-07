@@ -1896,7 +1896,15 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl(""); setShareExpiresAt(""); setShareCopied(false);
     try {
-      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null, visualMock: visualMock || null }) });
+      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        input: inputText,
+        result: resultData,
+        improveResult: improveResult || null,
+        visualMock: visualMock || null,
+        // 全パターン分のキャッシュも一緒に保存。シェア先でタブ切替できるようにする。
+        improveResultsByCombination: improveResultsByCombination && Object.keys(improveResultsByCombination).length > 0 ? improveResultsByCombination : null,
+        visualMocksByCombination: visualMocksByCombination && Object.keys(visualMocksByCombination).length > 0 ? visualMocksByCombination : null,
+      }) });
       const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
@@ -3079,8 +3087,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       document.title = origTitle;
     }}
     style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
+    title="現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"
   >
-🖨️ 印刷・ＰＤＦ保存
+🖨️ 表示中のパターンを印刷・ＰＤＦ
   </button>
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);

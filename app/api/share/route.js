@@ -29,6 +29,9 @@ async function ensureTable() {
   // 発行者メールを記録（診断ユーザーのシェア一覧ダッシュボード用）
   await sql`ALTER TABLE shared_results ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_shared_results_user_email ON shared_results(user_email)`;
+  // パターン別キャッシュ（シェア先でタブ切替できるようにする）
+  await sql`ALTER TABLE shared_results ADD COLUMN IF NOT EXISTS improve_results_by_combination JSONB`;
+  await sql`ALTER TABLE shared_results ADD COLUMN IF NOT EXISTS visual_mocks_by_combination JSONB`;
   ensured = true;
 }
 
@@ -41,7 +44,7 @@ function generateId() {
 
 export async function POST(req) {
   try {
-    const { input, result, improveResult, visualMock } = await req.json();
+    const { input, result, improveResult, visualMock, improveResultsByCombination, visualMocksByCombination } = await req.json();
     await ensureTable();
     // 発行者メールを取得（未ログインはNULL許容）
     let userEmail = null;
@@ -54,8 +57,18 @@ export async function POST(req) {
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
     await sql`
-      INSERT INTO shared_results (id, input_text, result, improve_result, visual_mock, expires_at, user_email)
-      VALUES (${id}, ${input || ""}, ${JSON.stringify(result)}, ${improveResult ? JSON.stringify(improveResult) : null}, ${visualMock ? JSON.stringify(visualMock) : null}, ${expiresAt.toISOString()}, ${userEmail})
+      INSERT INTO shared_results (id, input_text, result, improve_result, visual_mock, expires_at, user_email, improve_results_by_combination, visual_mocks_by_combination)
+      VALUES (
+        ${id},
+        ${input || ""},
+        ${JSON.stringify(result)},
+        ${improveResult ? JSON.stringify(improveResult) : null},
+        ${visualMock ? JSON.stringify(visualMock) : null},
+        ${expiresAt.toISOString()},
+        ${userEmail},
+        ${improveResultsByCombination ? JSON.stringify(improveResultsByCombination) : null},
+        ${visualMocksByCombination ? JSON.stringify(visualMocksByCombination) : null}
+      )
     `;
     return NextResponse.json({ id, expires_at: expiresAt.toISOString() });
   } catch (e) {
@@ -87,6 +100,8 @@ export async function GET(req) {
       result: row.result,
       improveResult: row.improve_result,
       visualMock: row.visual_mock,
+      improveResultsByCombination: row.improve_results_by_combination,
+      visualMocksByCombination: row.visual_mocks_by_combination,
       created_at: row.created_at,
       expires_at: row.expires_at,
     });

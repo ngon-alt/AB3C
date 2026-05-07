@@ -11,6 +11,8 @@ export default async function SharePage({ searchParams }) {
   let result = null;
   let improveResult = null;
   let visualMock = null;
+  let improveResultsByCombination = null;
+  let visualMocksByCombination = null;
   let error = "";
   let expiredAt = null;
 
@@ -33,6 +35,8 @@ export default async function SharePage({ searchParams }) {
           result = typeof row.result === 'string' ? JSON.parse(row.result) : row.result;
           improveResult = row.improve_result ? (typeof row.improve_result === 'string' ? JSON.parse(row.improve_result) : row.improve_result) : null;
           visualMock = row.visual_mock ? (typeof row.visual_mock === 'string' ? JSON.parse(row.visual_mock) : row.visual_mock) : null;
+          improveResultsByCombination = row.improve_results_by_combination ? (typeof row.improve_results_by_combination === 'string' ? JSON.parse(row.improve_results_by_combination) : row.improve_results_by_combination) : null;
+          visualMocksByCombination = row.visual_mocks_by_combination ? (typeof row.visual_mocks_by_combination === 'string' ? JSON.parse(row.visual_mocks_by_combination) : row.visual_mocks_by_combination) : null;
         }
       }
     } catch (e) {
@@ -40,5 +44,14 @@ export default async function SharePage({ searchParams }) {
     }
   }
 
-  return <ShareContent input={input} result={result} improveResult={improveResult} visualMock={visualMock} error={error} expiredAt={expiredAt} />;
+  return <ShareContent
+    input={input}
+    result={result}
+    improveResult={improveResult}
+    visualMock={visualMock}
+    improveResultsByCombination={improveResultsByCombination}
+    visualMocksByCombination={visualMocksByCombination}
+    error={error}
+    expiredAt={expiredAt}
+  />;
 }
