@@ -507,6 +507,14 @@ function trimRouteSuffix(label) {
   return label.replace(/[\s　]*ルート$/, "");
 }
 
+// パターン別の固有色（AB3Cの赤・青・黒、フェーズ色のティール・オレンジを避けて選定）。
+// 選択中の色とラベル色を一致させることで、どのパターンを見ているかを直感的に伝える。
+const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+function patternColor(id) {
+  if (!id) return "#444";
+  return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
+}
+
 // 組み合わせパターンの切替コントロール（ピル型ボタン群＋現在表示中の大見出し帯）。
 // タブUIではなく「切替スイッチ＋見出し」で構成し、下のAB3C本体とは
 // セクション見出しによって接続される（タブのような容器メタファは持たない）。
@@ -528,14 +536,17 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
           {combinations.map(combo => {
             const isSelected = combo.id === selectedId;
             const isRecommended = combo.id === recommendedId;
+            const myColor = patternColor(combo.id);
             return (
               <button
                 key={combo.id}
                 onClick={() => onSelect && onSelect(combo.id)}
                 style={{
-                  background: isSelected ? C.B : "#ffffff",
+                  // 選択中：パターン固有色（緑/紫/茶）。未選択でも左側に細い色帯を残してパターン色を予告。
+                  background: isSelected ? myColor : "#ffffff",
                   color: isSelected ? "#fff" : C.ink,
-                  border: isSelected ? `2px solid ${C.B}` : `2px solid #c8c8c4`,
+                  border: isSelected ? `2px solid ${myColor}` : `2px solid #c8c8c4`,
+                  borderLeft: isSelected ? `2px solid ${myColor}` : `6px solid ${myColor}`,
                   borderRadius: 999,
                   padding: "10px 18px",
                   fontSize: 15,
@@ -552,12 +563,14 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   if (!isSelected) {
                     e.currentTarget.style.background = "#f5f5f0";
                     e.currentTarget.style.borderColor = "#888";
+                    e.currentTarget.style.borderLeftColor = myColor;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isSelected) {
                     e.currentTarget.style.background = "#ffffff";
                     e.currentTarget.style.borderColor = "#c8c8c4";
+                    e.currentTarget.style.borderLeftColor = myColor;
                   }
                 }}
               >
@@ -583,12 +596,12 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
         </div>
       </div>
 
-      {/* 現在表示中の見出し帯（タブの容器メタファに頼らず、見出しとして本体に接続する） */}
+      {/* 現在表示中の見出し帯（左アクセントは選択中パターンの色に揃える） */}
       {selectedCombo && (
         <div style={{
           background: "#fff",
           border: `1px solid ${C.border}`,
-          borderLeft: `6px solid ${C.B}`,
+          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
           padding: "18px 22px",
           borderRadius: 4,
         }}>
