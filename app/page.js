@@ -3036,6 +3036,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
                         setHistoryTitle(ch.strategyMessage || "");
                         setStrategyConfirmed(true);
+                        // 確定時に選んでいたパターン（confirmed_combination_id）を明示的に復元する。
+                        // これを呼ばないと、別パターン閲覧中に履歴クリックしても useEffect が
+                        // 「prev が valid なら維持」ロジックでパターン切替が発生せず、
+                        // P2を確定したのにP1が表示される、というバグが起きる。
+                        if (ch.result?.confirmed_combination_id) {
+                          setSelectedCombinationId(ch.result.confirmed_combination_id);
+                        }
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
                         // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
