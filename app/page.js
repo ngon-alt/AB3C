@@ -2553,7 +2553,12 @@ useEffect(() => {
         // 確定時の改善レポート・ビジュアルモックも一緒に保存する。
         // パターン切替後に generateForCombination 経由で state にあるが DB 反映が
         // race condition で漏れるケースがあるため、確定タイミングでも明示的に永続化する（保険）。
-        const confirmBody = { id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 };
+        // latest_analysis は currentResult ではなく snapshotResult を使う。
+        // snapshotResult には confirmed_combination_id が含まれており、ページ再ロード時の
+        // useEffect [currentResult] がこれを参照して確定パターン (P2 等) を選択できる。
+        // currentResult を使うと confirmed_combination_id が無く、recommended の P1 が
+        // 復元されてしまう（権さん指摘）。
+        const confirmBody = { id: targetSiteId, latest_analysis: snapshotResult, strategy_confirmed: true, confirmations: existing2 };
         if (improveResult && !improveResult.error) confirmBody.improve_result = improveResult;
         if (visualMock && !visualMock.error) confirmBody.visual_mock = visualMock;
         const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(confirmBody) });
