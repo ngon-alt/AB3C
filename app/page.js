@@ -3432,34 +3432,63 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
   <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ */}
-    <div style={{ padding: "20px 24px", background: C.phase1, flexShrink: 0, position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>戦略メッセージ = Benefit + Advantage</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.6, fontFamily: "system-ui, sans-serif", marginBottom: 8 }}>
-            {currentResult?.strategy_message?.message || ""}
+    {/* 戦略メッセージ — 戦略策定タブのPカードと同じデザインに統一 */}
+    <div style={{ padding: "20px 24px", flexShrink: 0 }}>
+      {(() => {
+        const confirmedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
+        const sm = confirmedCombo?.strategy_message || currentResult?.strategy_message || {};
+        const pColor = confirmedCombo ? patternColor(confirmedCombo.id) : "#2a2a26";
+        const SANS = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+        return (
+          <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden" }}>
+            <div style={{ background: pColor, height: 10 }} />
+            <div style={{ padding: "16px 22px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {confirmedCombo && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em" }}>
+                        P{confirmedCombo.id}
+                      </span>
+                      <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+                        {trimRouteSuffix(confirmedCombo.label)}
+                      </span>
+                    </div>
+                  )}
+                  {sm?.message && (
+                    <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", color: "#888", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+                      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
+                        {sm.message}
+                      </div>
+                      {(sm.benefit_part || sm.advantage_part) && (
+                        <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.8, color: "#555", fontFamily: SANS }}>
+                          {sm.benefit_part && (<div><b style={{ color: C.B }}>Benefit：</b>{sm.benefit_part}</div>)}
+                          {sm.advantage_part && (<div><b style={{ color: C.A }}>Advantage：</b>{sm.advantage_part}</div>)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {strategyConfirmed && (
+                  <button
+                    onClick={unconfirmStrategy}
+                    title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
+                    style={{
+                      background: C.B, border: "none", borderRadius: 999,
+                      color: "#fff", cursor: "pointer",
+                      fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
+                      flexShrink: 0, whiteSpace: "nowrap",
+                    }}
+                  >
+                    ↺ 戦略を解除
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontFamily: "system-ui, sans-serif", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 8 }}>
-            <b>Benefit：</b>{currentResult?.strategy_message?.benefit_part || ""}<br />
-            <b>Advantage：</b>{currentResult?.strategy_message?.advantage_part || ""}
-          </div>
-        </div>
-        {strategyConfirmed && (
-          <button
-            onClick={unconfirmStrategy}
-            title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
-            style={{
-              background: C.B, border: "none", borderRadius: 999,
-              color: "#fff", cursor: "pointer",
-              fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
-              flexShrink: 0, whiteSpace: "nowrap",
-            }}
-          >
-            ↺ 戦略を解除
-          </button>
-        )}
-      </div>
+        );
+      })()}
     </div>
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
