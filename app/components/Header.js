@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 import { latestUpdateId } from "../data/updates";
@@ -22,6 +23,9 @@ const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
 export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session, status: sessionStatus } = useSession();
+  // TOPページではキャッチコピーがあるためヘッダーサブタイトルは非表示にする（重複解消）
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
   // sessionStorage キャッシュから初期化（ページ遷移後の「無料→指南15」のチラつき防止）
   const readPlanCache = () => {
     if (typeof window === "undefined") return null;
@@ -151,9 +155,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
             </span>
           </div>
-          <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
-            選ばれる理由を言語化する 戦略策定AI
-          </div>
+          {!isHomePage && (
+            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
+              選ばれる理由を言語化する 戦略策定AI
+            </div>
+          )}
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
           {sessionStatus === "loading" ? (

@@ -3010,7 +3010,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         textAlign: "left" 
       }}
     >
-      <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>WebサイトのURLを貼るだけ</div>
     </button>
@@ -3027,7 +3026,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         textAlign: "left" 
       }}
     >
-      <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>事業概要を自由に記述</div>
     </button>
@@ -3036,13 +3034,26 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
  {/* 入力エリア（コンパクト化のため padding を縮小） */}
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "14px 20px 18px", boxShadow: `2px 2px 0 ${C.border}` }}>
     {tab === "text" ? (
-      <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
-        placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
-        style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
+      <>
+        <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+          placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
+          style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
+        <div style={{ marginTop: 10 }}>
+          <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "10px 24px" }}>
+            {loading ? "分析中…" : "▶ 分析する"}
+          </button>
+        </div>
+      </>
     ) : (
-      <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
-        placeholder="例：https://www.example.co.jp"
-        style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", outline: "none", boxSizing: "border-box" }} />
+      // URLモードはGoogle検索バー風に：input と「分析する」ボタンを横並びで1行に
+      <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+        <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
+          placeholder="例：https://www.example.co.jp"
+          style={{ flex: 1, minWidth: 0, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", outline: "none", boxSizing: "border-box" }} />
+        <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "10px 24px", whiteSpace: "nowrap" }}>
+          {loading ? "分析中…" : "▶ 分析する"}
+        </button>
+      </div>
     )}
 {error && (
   <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 16, color: C.red, marginTop: 12 }}>
@@ -3052,11 +3063,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
 )}
-    <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10 }}>
-      <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "10px 24px" }}>
-        {loading ? "分析中…" : "▶ 分析する"}
-      </button>
-    </div>
   </div>
 </div>
           )}
