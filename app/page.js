@@ -2724,6 +2724,36 @@ useEffect(() => {
     }
   };
 
+  // 履歴閲覧モードを抜けて、現在のライブ状態（DB の latest_analysis）に戻す。
+  // activeConfirmId が立っている = 過去のスナップショットを閲覧中なので、
+  // currentResult が古い snap になっている → DB から最新を読み直して同期する。
+  const exitHistoryView = async () => {
+    setActiveConfirmId(null);
+    if (!siteId) return;
+    try {
+      const res = await fetch("/api/sites");
+      const d = await res.json();
+      const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+      const live = (d.sites || []).find(s => String(s.id) === String(siteId));
+      if (!live) return;
+      if (live.latest_analysis) {
+        setCurrentResult(live.latest_analysis);
+        setResult(live.latest_analysis);
+        setHistoryTitle(live.latest_analysis.strategy_message?.message || "");
+        // 確定パターン（confirmed_combination_id）も連動
+        if (live.latest_analysis.confirmed_combination_id) {
+          setSelectedCombinationId(live.latest_analysis.confirmed_combination_id);
+        }
+      }
+      // 確定状態は DB 値を反映
+      if (live.strategy_confirmed) setStrategyConfirmed(true);
+      else setStrategyConfirmed(false);
+    } catch (e) {
+      // 失敗時は activeConfirmId だけ解除して警告
+      console.error("exitHistoryView failed:", e);
+    }
+  };
+
   // 戦略の確定を解除（確定履歴は保持、フェーズだけ analysis に戻す）
   const unconfirmStrategy = async () => {
     const ok = confirm(
@@ -3300,6 +3330,28 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
+              {/* 履歴閲覧中バナー: activeConfirmId が立っていれば過去スナップショットを表示中。
+                  確定状態の UI 表示と混同しないよう、明示的に「閲覧モードである」ことを伝える。 */}
+              {activeConfirmId && (() => {
+                const viewingItem = confirmHistory.find(c => c.id === activeConfirmId);
+                const dateStr = viewingItem?.date || "";
+                return (
+                  <div style={{ background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
+                      📜 <b>履歴を閲覧中</b>{dateStr ? `（${dateStr} に確定）` : ""}<br/>
+                      <span style={{ fontSize: 13, color: C.muted }}>
+                        ※ これは過去のスナップショットです。この戦略を再度確定したい場合は下の「この履歴の戦略で再確定する →」を押してください。
+                      </span>
+                    </div>
+                    <button
+                      onClick={exitHistoryView}
+                      style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 999, color: C.ink, cursor: "pointer", fontFamily: "system-ui, sans-serif", fontSize: 13, fontWeight: 700, padding: "8px 16px", whiteSpace: "nowrap", flexShrink: 0 }}
+                    >
+                      ✕ 閲覧をやめて最新に戻る
+                    </button>
+                  </div>
+                );
+              })()}
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
   {currentInput && !currentInput.startsWith("http") && (
     <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
@@ -3346,24 +3398,37 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
     // 古い世代を見ている時は確定ボタンを非表示にする
     if (isViewingOldVersion) return null;
+    // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
+    // 「この履歴で再確定」ボタンに切替、解除ボタンは隠す（live でないので解除対象外）。
+    const isViewingHistory = activeConfirmId != null;
+    const confirmDisabled = !canConfirm || (strategyConfirmed && !isViewingHistory);
+    const confirmLabel = isViewingHistory
+      ? "この履歴の戦略で再確定する →"
+      : strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →";
+    const confirmTitle = isDiagnosisActive
+      ? "戦略診断チケットでは戦略確定はご利用いただけません"
+      : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可"
+      : isViewingHistory ? "この履歴のスナップショットで再確定します（履歴に新エントリが追加されます）"
+      : strategyConfirmed ? "戦略確定済み"
+      : "戦略を確定して戦略アクションへ進む";
     return (
       <>
         <button
-          onClick={canConfirm ? confirmStrategy : null}
-          disabled={!canConfirm || strategyConfirmed}
-          title={isDiagnosisActive ? "戦略診断チケットでは戦略確定はご利用いただけません" : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+          onClick={confirmDisabled ? null : confirmStrategy}
+          disabled={confirmDisabled}
+          title={confirmTitle}
           style={{
-            background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : "#2a2a26",
+            background: !canConfirm ? "#cccccc" : (strategyConfirmed && !isViewingHistory) ? "#888" : "#2a2a26",
             border: "none", borderRadius: 999,
             color: "#fff",
-            cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
+            cursor: confirmDisabled ? "not-allowed" : "pointer",
             fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
             opacity: !canConfirm ? 0.7 : 1,
           }}
         >
-          {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →"}
+          {confirmLabel}
         </button>
-        {strategyConfirmed && (
+        {strategyConfirmed && !isViewingHistory && (
           <button
             onClick={unconfirmStrategy}
             title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
