@@ -2995,9 +2995,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化。
     </h1>
   </div>
-  {/* タブ */}
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: -1, position: "relative", zIndex: 1 }}>
-
+  {/* タブ（コンテンツに応じた幅で左寄せ。右側は余白でタブ感を出す） */}
+  <div style={{ display: "flex", gap: 10, marginBottom: -1, position: "relative", zIndex: 1, alignItems: "stretch" }}>
     <button
       onClick={() => { setTab("url"); setError(""); }}
       style={{
@@ -3006,15 +3005,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "url" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 14px",
+        padding: "12px 32px 12px 16px",
         cursor: "pointer",
-        textAlign: "left"
+        textAlign: "left",
+        flex: "0 0 auto"
       }}
     >
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>WebサイトのURLを貼るだけ</div>
     </button>
-      <button
+    <button
       onClick={() => { setTab("text"); setError(""); }}
       style={{
         background: tab === "text" ? C.surface : "#d0d0d0",
@@ -3022,9 +3022,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "text" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 14px",
+        padding: "12px 32px 12px 16px",
         cursor: "pointer",
-        textAlign: "left"
+        textAlign: "left",
+        flex: "0 0 auto"
       }}
     >
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
