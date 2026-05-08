@@ -509,7 +509,8 @@ function trimRouteSuffix(label) {
 
 // パターン別の固有色（AB3Cの赤・青・黒、フェーズ色のティール・オレンジを避けて選定）。
 // 選択中の色とラベル色を一致させることで、どのパターンを見ているかを直感的に伝える。
-const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+// P1の緑は phase1 ティールと紛らわしかったため、ローズに変更。
+const PATTERN_COLORS = ["#be185d", "#6b21a8", "#78350f"]; // ローズ・紫・茶
 function patternColor(id) {
   if (!id) return "#444";
   return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";

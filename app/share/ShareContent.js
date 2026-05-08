@@ -15,7 +15,8 @@ function trimRouteSuffix(label) {
 }
 
 // パターン別の固有色（メインUI と同じ・AB3Cの赤青黒、フェーズ色を避けて選定）。
-const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+// P1の緑は phase1 ティールと紛らわしかったため、ローズに変更。
+const PATTERN_COLORS = ["#be185d", "#6b21a8", "#78350f"]; // ローズ・紫・茶
 function patternColor(id) {
   if (!id) return "#444";
   return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
