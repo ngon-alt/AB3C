@@ -3066,7 +3066,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setResult(ch.result);
                         setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
                         setHistoryTitle(ch.strategyMessage || "");
-                        setStrategyConfirmed(true);
                         // 確定時に選んでいたパターン（confirmed_combination_id）を明示的に復元する。
                         // これを呼ばないと、別パターン閲覧中に履歴クリックしても useEffect が
                         // 「prev が valid なら維持」ロジックでパターン切替が発生せず、
@@ -3074,6 +3073,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         if (ch.result?.confirmed_combination_id) {
                           setSelectedCombinationId(ch.result.confirmed_combination_id);
                         }
+                        // 注意: ここで setStrategyConfirmed(true) を呼ばない。
+                        // strategyConfirmed は DB の strategy_confirmed を反映する状態であり、
+                        // 履歴クリックで「ローカル UI だけ確定中に見せる」と DB と不整合になる
+                        // （ダッシュボードは未確定、分析画面は確定中、という権さん指摘の混乱が起きる）。
+                        // 履歴は「過去のスナップショットを閲覧する」読み取り専用機能。
+                        // この履歴の戦略を再確定したい場合は表示後に「戦略を確定する」ボタンを押せばよい。
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
                         // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
