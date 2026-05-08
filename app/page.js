@@ -2985,7 +2985,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </button>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
+          <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1, margin: "0 auto", width: "100%" }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
   {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除）。
