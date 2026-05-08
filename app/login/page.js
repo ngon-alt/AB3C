@@ -8,7 +8,7 @@ const C = {
 
 export default function LoginPage() {
   return (
-    <main style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <main style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "48px 40px", maxWidth: 400, width: "100%", textAlign: "center", boxShadow: `4px 4px 0 ${C.border}` }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: "2.5rem", fontWeight: 700, letterSpacing: "-0.04em", marginBottom: 8 }}>
           <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
