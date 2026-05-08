@@ -575,7 +575,17 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   }
                 }}
               >
-                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                {/* 「PX」ピル：選択中は白抜き＋色文字（ボタン背景の反転）、未選択は色＋白文字（見出し帯のバッジと同じ） */}
+                <span style={{
+                  background: isSelected ? "#fff" : myColor,
+                  color: isSelected ? myColor : "#fff",
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  letterSpacing: "0.05em",
+                }}>P{combo.id}</span>
                 <span>{trimRouteSuffix(combo.label)}</span>
                 {isRecommended && (
                   <span style={{

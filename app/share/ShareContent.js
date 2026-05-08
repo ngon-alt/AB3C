@@ -88,7 +88,16 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
                   lineHeight: 1.2,
                 }}
               >
-                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                <span style={{
+                  background: isSelected ? "#fff" : myColor,
+                  color: isSelected ? myColor : "#fff",
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  letterSpacing: "0.05em",
+                }}>P{combo.id}</span>
                 <span>{trimRouteSuffix(combo.label)}</span>
                 {isRecommended && (
                   <span style={{
