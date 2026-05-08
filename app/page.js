@@ -2988,8 +2988,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
-  {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除） */}
-  <div style={{ textAlign: "center", padding: "32px 16px 28px" }}>
+  {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除）。
+      下の余白は上下バランスを取るため広めに。 */}
+  <div style={{ textAlign: "center", padding: "36px 16px 44px" }}>
     <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0 }}>
       あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化。
     </h1>
@@ -3031,8 +3032,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </button>
   </div>
 
- {/* 入力エリア（コンパクト化のため padding を縮小） */}
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "14px 20px 18px", boxShadow: `2px 2px 0 ${C.border}` }}>
+ {/* 入力エリア（タブと一体感を保ちつつ、入力欄の上下にゆとりを持たせる） */}
+  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "22px 22px 26px", boxShadow: `2px 2px 0 ${C.border}` }}>
     {/* AB3C カラー（赤B・黒C・青A）の3層ストライプボタン。
         TOPの主役アクションとして AB3C の3層構造を視覚化＋色付けで存在感を出す。 */}
     {(() => {
