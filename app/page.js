@@ -1622,6 +1622,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
     }
 
     // Step 2: ビジュアルモック（改善レポートが揃っている場合のみ）
+    // visualData は外側スコープで宣言（後段の DB 永続化処理から参照するため）
+    let visualData = visualMocksByCombination[combinationId] || null;
     if (needVisual && improveData && !improveData.error) {
       setVisualLoading(true);
       setVisualMock(null);
@@ -1632,7 +1634,6 @@ const [chatSummaries, setChatSummaries] = useState([]);
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ analysisResult: comboResult, improveResult: improveData, url: currentInput }),
         });
-        let visualData;
         try { visualData = await res.json(); } catch (e) { visualData = { error: `HTTP ${res.status}` }; }
         if (res.ok && !visualData.error) {
           setVisualMock(visualData);
@@ -1647,6 +1648,25 @@ const [chatSummaries, setChatSummaries] = useState([]);
 
     // 全て完了したらオーバーレイを消す
     setOverlayMessage(null);
+
+    // パターン切替で生成した改善レポート/ビジュアルモックを DB に永続化する。
+    // 過去はメモリのみで、確定タイミングや次回訪問時に消えていた（権さん指摘）。
+    // siteId が確定している（既存サイトを開いている）場合のみ実行。
+    // fire-and-forget（背景で書き込み、UI は止めない）
+    try {
+      if (siteId) {
+        const persistBody = { id: siteId };
+        if (improveData && !improveData.error) persistBody.improve_result = improveData;
+        if (visualData && !visualData.error) persistBody.visual_mock = visualData;
+        if (Object.keys(persistBody).length > 1) {
+          fetch("/api/sites", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(persistBody),
+          }).catch(function() {});
+        }
+      }
+    } catch (e) {}
   }
 
   // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
@@ -2501,7 +2521,13 @@ useEffect(() => {
         // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
         // レスポンスステータスを必ず検証する。HTTP エラー（401/403/500 等）でも fetch は throw しないため、
         // 検証なしで進めると「ローカル UI は確定済み・DB は未確定」のズレが発生する（過去にこれで履歴消失バグ発生）。
-        const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
+        // 確定時の改善レポート・ビジュアルモックも一緒に保存する。
+        // パターン切替後に generateForCombination 経由で state にあるが DB 反映が
+        // race condition で漏れるケースがあるため、確定タイミングでも明示的に永続化する（保険）。
+        const confirmBody = { id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 };
+        if (improveResult && !improveResult.error) confirmBody.improve_result = improveResult;
+        if (visualMock && !visualMock.error) confirmBody.visual_mock = visualMock;
+        const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(confirmBody) });
         if (!resp.ok) {
           let errMsg = "保存に失敗しました（HTTP " + resp.status + "）。";
           try { const errBody = await resp.json(); if (errBody?.error) errMsg = errBody.error; } catch (e) {}
