@@ -1759,6 +1759,30 @@ const [chatSummaries, setChatSummaries] = useState([]);
       if (data.visualMock) setVisualMock(data.visualMock);
       if (data.visualByCombo && typeof data.visualByCombo === "object") setVisualMocksByCombination(data.visualByCombo);
       if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
+      // sessionStorage 復元の場合、DB 由来の siteId・strategy_confirmed・confirmations を
+      // 別途 /api/sites から取得して state を補完する。
+      // これがないと「URL params 無しでセッション復元したケース」で確定履歴サイドバーが
+      // 空のままになり、確定済みなのに未確定 UI のように見える（権さん指摘）。
+      const inputForLookup = data.input;
+      const savedSiteId = data.siteId;
+      if (savedSiteId || (inputForLookup && inputForLookup.startsWith("http"))) {
+        const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+        fetch("/api/sites").then(r => r.json()).then(d => {
+          const allSites = d.sites || [];
+          let match = savedSiteId ? allSites.find(s => String(s.id) === String(savedSiteId)) : null;
+          if (!match && inputForLookup) {
+            const nInput = norm(inputForLookup);
+            match = allSites.find(s => norm(s.site_url) === nInput);
+          }
+          if (!match) return;
+          setSiteId(match.id);
+          if (match.strategy_confirmed) setStrategyConfirmed(true);
+          if (Array.isArray(match.confirmations) && match.confirmations.length > 0) {
+            try { localStorage.setItem("ab3c_confirmations_" + match.id, JSON.stringify(match.confirmations)); } catch (e) {}
+            setConfirmHistory(match.confirmations);
+          }
+        }).catch(() => {});
+      }
     } catch (e) {}
   }, []);
 
