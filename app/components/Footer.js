@@ -14,7 +14,7 @@ export default function Footer() {
           <img src="https://ab3c.jp/img/common/digi_logo.png" alt="一般社団法人デジタル経営革新協会" style={{ height: 26 }} />
           <span style={{ fontSize: 14, color: C.ink, fontWeight: 600 }}>一般社団法人デジタル経営革新協会</span>
         </div>
-        <div style={{ marginBottom: 10, fontSize: 13 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · <a href="https://ab3c.jp/" style={{ color: C.muted, textDecoration: "underline" }}>ab3c.jp</a> · Powered by Claude AI</div>
+        <div style={{ marginBottom: 10, fontSize: 13 }}>AB3C は株式会社ゴンウェブイノベーションズが開発したフレームワークです · Powered by Claude AI</div>
         <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap", fontSize: 13 }}>
           <a href="/contact" style={{ color: C.muted, textDecoration: "underline" }}>お問い合わせ</a>
           <span style={{ color: C.border }}>|</span>
