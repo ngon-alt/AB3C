@@ -9,8 +9,8 @@ const C = {
   surface: "#ffffff",
   bg: "#f5f2eb",
   red: "#c0392b",
-  phase1: "#0d9488",
-  phase2: "#ea580c",
+  phase1: "#2a2a26",
+  phase2: "#2a2a26",
   highlight: "#fef3c7",
 };
 

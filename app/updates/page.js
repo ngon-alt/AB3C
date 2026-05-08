@@ -7,8 +7,8 @@ import updates, { latestUpdateId } from "../data/updates";
 const C = {
   bg: "#f5f2eb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#1a1a14", muted: "#78716c",
-  phase1: "#0d9488", phase1Bg: "#a7e9e0",
-  phase2: "#ea580c",
+  phase1: "#2a2a26", phase1Bg: "#faf8f4",
+  phase2: "#2a2a26",
 };
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";

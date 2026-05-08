@@ -15,8 +15,10 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#ebebeb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#000000", muted: "#000000", highlight: "#fef3c7",
-  phase1: "#0d9488", phase1Bg: "#a7e9e0",
-  phase2: "#ea580c", phase2Bg: "#fed7aa",
+  // フェーズ色は廃止し「墨色＋生成り」で統一。tab ①② の番号と矢印で進行方向を語る。
+  // phase1/phase2 のキーは下流コードの破壊を避けるため残しているが、値は同一（墨色）。
+  phase1: "#2a2a26", phase1Bg: "#faf8f4",
+  phase2: "#2a2a26", phase2Bg: "#faf8f4",
 };
 
 // チェックポイントの判定アイコン。
@@ -51,7 +53,7 @@ const Badge = ({ status, onClick, title }) => {
         e.currentTarget.style.borderColor = C.phase1;
         e.currentTarget.style.borderStyle = "solid";
         e.currentTarget.style.transform = "scale(1.1)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(13,148,136,0.25)";
+        e.currentTarget.style.boxShadow = "0 2px 8px rgba(42,42,38,0.25)";
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = "#f8f8f6";
@@ -1183,11 +1185,11 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
             {loading ? "← 再分析中..." : "← この会話内容を分析に反映する"}
           </button>
         )}
-        {/* 4. 戦略を確定 */}
+        {/* 4. 戦略を確定 — 文言と矢印で「次の場所(②)」を明示し、色は墨色で統一 */}
         {!isViewingOldVersion && onConfirmStrategy && (
           <button onClick={onConfirmStrategy}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
-            戦略を確定する →
+            戦略を確定して ② 戦略アクションへ →
           </button>
         )}
       </div>
@@ -2828,7 +2830,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       {overlayMessage && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: overlayMessage.includes("改善") ? "transparent" : "rgba(0,0,0,0.15)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center", paddingBottom: 40, pointerEvents: overlayMessage.includes("改善") ? "none" : "auto" }}>
           <div style={{ background: "#fff", borderRadius: 12, padding: "24px 36px", textAlign: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.2)", maxWidth: 360, display: "flex", alignItems: "center", gap: 16, pointerEvents: "auto" }}>
-            <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: `3px solid ${overlayMessage.includes("改善") ? "#ea580c" : "#0d9488"}`, borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
+            <div style={{ width: 36, height: 36, border: "3px solid #e5e5e0", borderTop: "3px solid #2a2a26", borderRadius: "50%", flexShrink: 0, animation: "spin 1s linear infinite" }} />
             <div style={{ textAlign: "left" }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a14", marginBottom: 2 }}>{overlayMessage}</div>
               <div style={{ fontSize: 13, color: "#78716c" }}>2〜3分お待ちください</div>
@@ -3170,7 +3172,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             opacity: !canConfirm ? 0.7 : 1,
           }}
         >
-          {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定する →"}
+          {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →"}
         </button>
         {strategyConfirmed && (
           <button

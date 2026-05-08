@@ -9,8 +9,8 @@ const C = {
   border: "#e5e5e0",
   surface: "#ffffff",
   bg: "#ebebeb",
-  accent: "#0d9488",
-  accentBg: "#a7e9e0",
+  accent: "#2a2a26",
+  accentBg: "#faf8f4",
 };
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
@@ -96,7 +96,7 @@ export default function UpdateHistoryModal({ open, onClose, highlightLatest = fa
                 </span>
                 {idx === 0 && highlightLatest && (
                   <span style={{
-                    fontSize: 12, color: "#fff", background: "#ea580c",
+                    fontSize: 12, color: "#fff", background: "#c0392b",
                     padding: "3px 8px", borderRadius: 12, fontWeight: 700,
                   }}>
                     NEW

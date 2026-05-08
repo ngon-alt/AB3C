@@ -6,7 +6,7 @@ const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
   ink: "#1a1a14", muted: "#78716c", highlight: "#f0ebe0",
-  phase1: "#0d9488", phase2: "#ea580c",
+  phase1: "#2a2a26", phase2: "#2a2a26",
 };
 
 function Section({ title, icon, children }) {
@@ -167,7 +167,7 @@ export default function HowtoPage() {
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1, marginBottom: 12 }}>STEP 3 — 戦略を確定する</div>
               <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
-                「この戦略で良い」と思ったら、チャットパネルの一番下にある<b style={{ color: C.phase2 }}>オレンジ色の「戦略を確定する →」</b>ボタンを押しましょう。戦略が確定したら、それに紐づいて様々な施策を検討できる<b>戦略アクションタブ</b>が有効になります。
+                「この戦略で良い」と思ったら、チャットパネルの一番下にある<b>「戦略を確定して ② 戦略アクションへ →」</b>ボタンを押しましょう。戦略が確定したら、それに紐づいて様々な施策を検討できる<b>戦略アクションタブ</b>が有効になります。
               </div>
               <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "8px", textAlign: "center" }}>
                 <img
@@ -177,7 +177,7 @@ export default function HowtoPage() {
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                 />
                 <div style={{ fontSize: 13, color: C.muted, marginTop: 8, fontStyle: "italic" }}>
-                  ↑ 一番下のオレンジ色のボタンが「戦略を確定する」です
+                  ↑ 一番下の大きなボタンが「戦略を確定して ② 戦略アクションへ →」です
                 </div>
               </div>
             </div>
