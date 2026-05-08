@@ -113,20 +113,34 @@ function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect
         <div style={{
           background: "#fff",
           border: `1px solid ${C.border}`,
-          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
-          padding: "18px 22px",
           borderRadius: 4,
+          overflow: "hidden",
         }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
-              現在表示中
-            </span>
-            <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
-            </span>
-          </div>
-          <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
-            このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）と改善レポートが下に表示されています。
+          <div style={{ background: patternColor(selectedCombo.id), height: 10 }} />
+          <div style={{ padding: "16px 22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+                現在表示中
+              </span>
+              <span style={{
+                background: patternColor(selectedCombo.id),
+                color: "#fff",
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 14,
+                fontWeight: 700,
+                padding: "4px 14px",
+                borderRadius: 999,
+                letterSpacing: "0.05em",
+              }}>
+                P{selectedCombo.id}
+              </span>
+              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+                {trimRouteSuffix(selectedCombo.label)}
+              </span>
+            </div>
+            <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
+              このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）と改善レポートが下に表示されています。
+            </div>
           </div>
         </div>
       )}
