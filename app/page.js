@@ -3462,34 +3462,32 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden" }}>
             <div style={{ background: pColor, height: 10 }} />
             <div style={{ padding: "16px 22px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {confirmedCombo && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                      <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em" }}>
-                        P{confirmedCombo.id}
-                      </span>
-                      <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-                        {trimRouteSuffix(confirmedCombo.label)}
-                      </span>
-                    </div>
-                  )}
-                  {sm?.message && (
-                    <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
-                      <div style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", padding: "4px 14px", borderRadius: 999, marginBottom: 12 }}>戦略メッセージ</div>
-                      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
-                        {sm.message}
-                      </div>
-                      {(sm.benefit_part || sm.advantage_part) && (
-                        <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.8, color: "#555", fontFamily: SANS }}>
-                          {sm.benefit_part && (<div><b style={{ color: C.B }}>Benefit：</b>{sm.benefit_part}</div>)}
-                          {sm.advantage_part && (<div><b style={{ color: C.A }}>Advantage：</b>{sm.advantage_part}</div>)}
-                        </div>
-                      )}
+              {confirmedCombo && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em" }}>
+                    P{confirmedCombo.id}
+                  </span>
+                  <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+                    {trimRouteSuffix(confirmedCombo.label)}
+                  </span>
+                </div>
+              )}
+              {sm?.message && (
+                <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
+                  <div style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", padding: "4px 14px", borderRadius: 999, marginBottom: 12 }}>戦略メッセージ</div>
+                  <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
+                    {sm.message}
+                  </div>
+                  {(sm.benefit_part || sm.advantage_part) && (
+                    <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.8, color: "#555", fontFamily: SANS }}>
+                      {sm.benefit_part && (<div><b style={{ color: C.B }}>Benefit：</b>{sm.benefit_part}</div>)}
+                      {sm.advantage_part && (<div><b style={{ color: C.A }}>Advantage：</b>{sm.advantage_part}</div>)}
                     </div>
                   )}
                 </div>
-                {strategyConfirmed && (
+              )}
+              {strategyConfirmed && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
                   <button
                     onClick={unconfirmStrategy}
                     title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
@@ -3502,8 +3500,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   >
                     ↺ 戦略を解除
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         );
