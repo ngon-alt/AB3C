@@ -2999,15 +2999,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
     <button
       onClick={() => { setTab("url"); setError(""); }}
-      style={{ 
-        background: tab === "url" ? C.surface : "#d0d0d0", 
-        border: `1px solid ${C.border}`, 
-        borderTop: `4px solid ${C.B}`,
-        borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, 
-        borderRadius: "6px 6px 0 0", 
-        padding: "12px 14px", 
-        cursor: "pointer", 
-        textAlign: "left" 
+      style={{
+        background: tab === "url" ? C.surface : "#d0d0d0",
+        border: `1px solid ${C.border}`,
+        borderTop: `4px solid #555`,
+        borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
+        borderRadius: "6px 6px 0 0",
+        padding: "12px 14px",
+        cursor: "pointer",
+        textAlign: "left"
       }}
     >
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
@@ -3015,15 +3015,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </button>
       <button
       onClick={() => { setTab("text"); setError(""); }}
-      style={{ 
-        background: tab === "text" ? C.surface : "#d0d0d0", 
-        border: `1px solid ${C.border}`, 
-        borderTop: `4px solid ${C.A}`,
-        borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, 
-        borderRadius: "6px 6px 0 0", 
-        padding: "12px 14px", 
-        cursor: "pointer", 
-        textAlign: "left" 
+      style={{
+        background: tab === "text" ? C.surface : "#d0d0d0",
+        border: `1px solid ${C.border}`,
+        borderTop: `4px solid #555`,
+        borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
+        borderRadius: "6px 6px 0 0",
+        padding: "12px 14px",
+        cursor: "pointer",
+        textAlign: "left"
       }}
     >
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
@@ -3033,28 +3033,53 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
  {/* 入力エリア（コンパクト化のため padding を縮小） */}
   <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "14px 20px 18px", boxShadow: `2px 2px 0 ${C.border}` }}>
-    {tab === "text" ? (
-      <>
-        <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
-          placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
-          style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
-        <div style={{ marginTop: 10 }}>
-          <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "10px 24px" }}>
+    {/* AB3C カラー（赤B・黒C・青A）の3層ストライプボタン。
+        TOPの主役アクションとして AB3C の3層構造を視覚化＋色付けで存在感を出す。 */}
+    {(() => {
+      const ab3cBtn = (
+        <button onClick={analyze} disabled={loading}
+          style={{
+            border: "none", borderRadius: 4, padding: 0, overflow: "hidden", background: "transparent",
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+            transition: "transform 0.12s, box-shadow 0.12s",
+          }}
+          onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)"; } }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)"; }}
+        >
+          <div style={{ background: C.B, height: 6 }} />
+          <div style={{
+            background: loading ? C.muted : C.ink,
+            color: "#fff",
+            padding: "10px 28px",
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+          }}>
             {loading ? "分析中…" : "▶ 分析する"}
-          </button>
-        </div>
-      </>
-    ) : (
-      // URLモードはGoogle検索バー風に：input と「分析する」ボタンを横並びで1行に
-      <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
-        <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
-          placeholder="例：https://www.example.co.jp"
-          style={{ flex: 1, minWidth: 0, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", outline: "none", boxSizing: "border-box" }} />
-        <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "10px 24px", whiteSpace: "nowrap" }}>
-          {loading ? "分析中…" : "▶ 分析する"}
+          </div>
+          <div style={{ background: C.A, height: 6 }} />
         </button>
-      </div>
-    )}
+      );
+      return tab === "text" ? (
+        <>
+          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+            placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
+            style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
+          <div style={{ marginTop: 10 }}>{ab3cBtn}</div>
+        </>
+      ) : (
+        // URLモードはGoogle検索バー風に：input と「分析する」ボタンを横並びで1行に
+        <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+          <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
+            placeholder="例：https://www.example.co.jp"
+            style={{ flex: 1, minWidth: 0, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", outline: "none", boxSizing: "border-box" }} />
+          {ab3cBtn}
+        </div>
+      );
+    })()}
 {error && (
   <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 16, color: C.red, marginTop: 12 }}>
     <div style={{ whiteSpace: "pre-line" }}>{error}</div>
