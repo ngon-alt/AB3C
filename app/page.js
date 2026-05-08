@@ -2002,7 +2002,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
       // DBからサイトの分析結果を復元
       fetch("/api/sites").then(function(r) { return r.json(); }).then(function(data) {
         var sites = data.sites || [];
-        var site = sid ? sites.find(function(s) { return s.id === sid; }) : null;
+        // 型不一致バグ修正: URL から取れる sid は文字列、DB の s.id は数値（SERIAL）。
+        // === で比較すると常に false になり、URL fallback に頼ることになる。
+        // 確定済みサイトを管理ページから「分析を開く」で開いた時に strategy_confirmed が
+        // 復元されないバグの根本原因はこれ（URL末尾スラッシュ等の差で fallback も失敗するケース）。
+        var site = sid ? sites.find(function(s) { return String(s.id) === String(sid); }) : null;
         if (!site && urlParam) {
           site = sites.find(function(s) { return s.site_url === urlParam; });
         }
@@ -2336,7 +2340,7 @@ useEffect(() => {
     try {
       const res = await fetch("/api/sites");
       const data = await res.json();
-      const site = (data.sites || []).find(s => s.id === previousSiteId);
+      const site = (data.sites || []).find(s => String(s.id) === String(previousSiteId));
       if (!site) {
         const params = [`site_id=${previousSiteId}`];
         if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
