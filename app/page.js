@@ -3020,11 +3020,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1, margin: "0 auto", width: "100%" }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
-  {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除）。
-      下の余白は上下バランスを取るため広めに。 */}
-  <div style={{ textAlign: "center", padding: "36px 16px 44px" }}>
-    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0 }}>
-      あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化。
+  {/* キャッチコピー（TOPの主役メッセージ）。
+      上下にゆとりを持たせて視覚的に独立させる。句点は外す（ロゴらしく印象を強める）。 */}
+  <div style={{ textAlign: "center", padding: "72px 16px 88px" }}>
+    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 34, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0, letterSpacing: "0.02em" }}>
+      あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化
     </h1>
   </div>
   {/* タブ（コンテンツに応じた幅で左寄せ。右側は余白でタブ感を出す） */}
