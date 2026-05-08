@@ -3003,7 +3003,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       style={{
         background: tab === "url" ? C.surface : "#d0d0d0",
         border: `1px solid ${C.border}`,
-        borderTop: `4px solid #555`,
+        borderTop: `4px solid ${tab === "url" ? C.ink : "#555"}`,
         borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
         padding: "12px 14px",
@@ -3019,7 +3019,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       style={{
         background: tab === "text" ? C.surface : "#d0d0d0",
         border: `1px solid ${C.border}`,
-        borderTop: `4px solid #555`,
+        borderTop: `4px solid ${tab === "text" ? C.ink : "#555"}`,
         borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
         padding: "12px 14px",
