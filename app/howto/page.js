@@ -251,7 +251,7 @@ export default function HowtoPage() {
         {/* 戦略パターン（3つの組み合わせ） */}
         <Section title="戦略パターン（3つの組み合わせ）" icon="🎯">
           <Card title="AIが3つの戦略パターンを提案">
-            分析を実行すると、AIは「ターゲット × ベネフィット × アドバンテージ」の組み合わせ方を3パターン提案します。それぞれが独立した完全なAB3C分析になっており、別のターゲット・別の競合・別の強みで構成されています。AB3C戦略分析レポートの上部にあるピル型の切替ボタン（P1緑・P2紫・P3茶）で、いつでも切り替えて見比べられます。
+            分析を実行すると、AIは「ターゲット × ベネフィット × アドバンテージ」の組み合わせ方を3パターン提案します。それぞれが独立した完全なAB3C分析になっており、別のターゲット・別の競合・別の強みで構成されています。AB3C戦略分析レポートの上部にあるピル型の切替ボタン（P1ローズ・P2紫・P3茶）で、いつでも切り替えて見比べられます。
           </Card>
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
@@ -268,7 +268,7 @@ export default function HowtoPage() {
             </div>
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🎨 色で対応関係が分かる</div>
-              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>選択中のパターンと「現在表示中」帯のアクセントが同じ色（緑/紫/茶）になります。AB3C原則の赤・青・黒は使わず、別の3色で区別。</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>選択中のパターンと「現在表示中」帯のアクセントが同じ色（ローズ/紫/茶）になります。AB3C原則の赤・青・黒は使わず、別の3色で区別。</div>
             </div>
           </div>
         </Section>

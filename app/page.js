@@ -509,7 +509,8 @@ function trimRouteSuffix(label) {
 
 // パターン別の固有色（AB3Cの赤・青・黒、フェーズ色のティール・オレンジを避けて選定）。
 // 選択中の色とラベル色を一致させることで、どのパターンを見ているかを直感的に伝える。
-const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+// P1の緑は phase1 ティールと紛らわしかったため、ローズに変更。
+const PATTERN_COLORS = ["#be185d", "#6b21a8", "#78350f"]; // ローズ・紫・茶
 function patternColor(id) {
   if (!id) return "#444";
   return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
@@ -574,7 +575,17 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   }
                 }}
               >
-                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                {/* 「PX」ピル：選択中は白抜き＋色文字（ボタン背景の反転）、未選択は色＋白文字（見出し帯のバッジと同じ） */}
+                <span style={{
+                  background: isSelected ? "#fff" : myColor,
+                  color: isSelected ? myColor : "#fff",
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  letterSpacing: "0.05em",
+                }}>P{combo.id}</span>
                 <span>{trimRouteSuffix(combo.label)}</span>
                 {isRecommended && (
                   <span style={{
@@ -596,25 +607,39 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
         </div>
       </div>
 
-      {/* 現在表示中の見出し帯（左アクセントは選択中パターンの色に揃える） */}
+      {/* 現在表示中の見出し帯：上部に太いストライプ＋「PX」を色付きバッジに */}
       {selectedCombo && (
         <div style={{
           background: "#fff",
           border: `1px solid ${C.border}`,
-          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
-          padding: "18px 22px",
           borderRadius: 4,
+          overflow: "hidden",
         }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
-              現在表示中
-            </span>
-            <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
-            </span>
-          </div>
-          <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
-            このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）が下に表示されています。
+          <div style={{ background: patternColor(selectedCombo.id), height: 10 }} />
+          <div style={{ padding: "16px 22px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+                現在表示中
+              </span>
+              <span style={{
+                background: patternColor(selectedCombo.id),
+                color: "#fff",
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 14,
+                fontWeight: 700,
+                padding: "4px 14px",
+                borderRadius: 999,
+                letterSpacing: "0.05em",
+              }}>
+                P{selectedCombo.id}
+              </span>
+              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+                {trimRouteSuffix(selectedCombo.label)}
+              </span>
+            </div>
+            <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
+              このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）が下に表示されています。
+            </div>
           </div>
         </div>
       )}
@@ -2985,7 +3010,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           </button>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
+          <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1, margin: "0 auto", width: "100%" }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
   {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除）。
@@ -3005,7 +3030,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "url" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 32px 12px 16px",
+        padding: "18px 32px 16px 18px",
         cursor: "pointer",
         textAlign: "left",
         flex: "0 0 auto"
@@ -3022,7 +3047,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "text" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 32px 12px 16px",
+        padding: "18px 32px 16px 18px",
         cursor: "pointer",
         textAlign: "left",
         flex: "0 0 auto"
@@ -3450,7 +3475,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
 )}
-          <Footer />
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
 
@@ -3624,6 +3648,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
         )}
       </div>{/* end grid */}
+      <Footer />
     </div>
   );
 }
