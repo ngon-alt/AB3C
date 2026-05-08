@@ -234,7 +234,7 @@ export default function HowtoPage() {
             {[
               { label: "B — Benefit（お客様が求める価値）", color: C.B, desc: "ニーズ（欠乏感・曖昧な欲求）とウォンツ（具体的欲求）の両面から、お客様が本当に求めている価値を分析します。" },
               { label: "A — Advantage（差別的優位点）", color: C.A, desc: "競合との「好ましい違い」を明らかにします。なぜお客様に選ばれるのか、なぜ真似されにくいのかを示します。" },
-              { label: "3C — Customer · Competitor · Company", color: C.C, desc: "お客様（ターゲット・市場規模）・競合（直接競合・異業種競合）・自社（強み・構造・パッション）の3つの視点で事業を構造化します。" },
+              { label: "3C — Customer · Competitor · Company", color: C.C, desc: "お客様（ターゲット・市場規模）・競合（直接競合・異業種競合）・自社（強み・仕組み・価値観）の3つの視点で事業を構造化します。" },
               { label: "戦略メッセージ = Benefit + Advantage", color: C.phase1, desc: "「選ばれる理由」を一言で表現したメッセージ。ウェブサイト・営業資料・採用ページなど、すべての発信の核心になります。" },
               { label: "5つのチェックポイント", color: C.ink, desc: "AB3Cが成立しているかを5つの観点で評価します。✅（OK）⚠️（注意）❌（NG）で現状の課題が一目でわかります。" },
             ].map(function(item, i) {
@@ -245,6 +245,31 @@ export default function HowtoPage() {
                 </div>
               );
             })}
+          </div>
+        </Section>
+
+        {/* 戦略パターン（3つの組み合わせ） */}
+        <Section title="戦略パターン（3つの組み合わせ）" icon="🎯">
+          <Card title="AIが3つの戦略パターンを提案">
+            分析を実行すると、AIは「ターゲット × ベネフィット × アドバンテージ」の組み合わせ方を3パターン提案します。それぞれが独立した完全なAB3C分析になっており、別のターゲット・別の競合・別の強みで構成されています。AB3C戦略分析レポートの上部にあるピル型の切替ボタン（P1緑・P2紫・P3茶）で、いつでも切り替えて見比べられます。
+          </Card>
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>⭐ AIのおすすめ表示</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>3パターンのうち、AIが最も成立しやすいと判断した1つに「⭐ おすすめ」が付きます。最初はそのパターンが選ばれた状態で表示されます。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🔄 パターンごとに連動</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>切替ボタンを押すと、AB3C分析・改善レポート・ファーストビューイメージのすべてがそのパターン用の内容に切り替わります（必要に応じて自動生成）。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>💾 パターンごとに戦略確定</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>各パターンを「戦略を確定する」で個別に確定できます。確定履歴サイドバーには、それぞれが別エントリとして残ります。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🎨 色で対応関係が分かる</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>選択中のパターンと「現在表示中」帯のアクセントが同じ色（緑/紫/茶）になります。AB3C原則の赤・青・黒は使わず、別の3色で区別。</div>
+            </div>
           </div>
         </Section>
 
@@ -304,11 +329,11 @@ export default function HowtoPage() {
         {/* シェア・印刷 */}
         <Section title="シェア・印刷機能" icon="📤">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <Card title="🔗 シェアURL発行">
-              分析結果を共有するためのURLを発行できます。このURLを社内共有やクライアントへの提案に活用できます。Google NotebookLMに読み込ませると、スライド資料の自動生成にも使えます。
+            <Card title="🔗 シェアURL発行（全パターン）">
+              分析結果を共有するためのURLを発行できます。<b>3つの戦略パターンすべて</b>がシェアURLに含まれ、シェア先の方も同じピル型ボタンでパターンを切り替えて見られます。Google NotebookLMに読み込ませると、スライド資料の自動生成にも使えます。
             </Card>
-            <Card title="🖨️ 印刷・PDF保存">
-              分析結果をブラウザの印刷機能でPDFとして保存できます。提案書や社内資料として活用できます。
+            <Card title="🖨️ 表示中のパターンを印刷・PDF">
+              <b>現在切り替えているパターン</b>を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。提案書や社内資料として活用できます。
             </Card>
           </div>
         </Section>
