@@ -2988,9 +2988,18 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
+  {/* キャッチコピー（TOPの主役メッセージ。短い1行＋小サブで Google 風シンプル構成） */}
+  <div style={{ textAlign: "center", padding: "32px 16px 28px" }}>
+    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0 }}>
+      あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化。
+    </h1>
+    <p style={{ fontSize: 16, color: C.muted, marginTop: 14, lineHeight: 1.7, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      URL を入れるだけ。AB3Cで戦略を分析します。
+    </p>
+  </div>
   {/* タブ */}
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: -1, position: "relative", zIndex: 1 }}>
-    
+
     <button
       onClick={() => { setTab("url"); setError(""); }}
       style={{ 
@@ -3062,86 +3071,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 </div>
           )}
-{!currentResult && !loading && (
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "16px 0" }}>
-    <a href="/howto" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>🔰</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>初めての方へ</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>使い方・入力方法・活用法</div>
-      </div>
-    </a>
-    <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>📖</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>フレームワークの詳細</div>
-      </div>
-    </a>
-    <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>💰</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>料金とプラン</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>戦略診断チケット・戦略指南プランの詳細</div>
-      </div>
-    </a>
-    <a href="/faq" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>❓</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>よくある質問</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>FAQ・お問い合わせ前にご確認ください</div>
-      </div>
-    </a>
-</div>
-)}
-
-{!currentResult && !loading && (
-  <div style={{ marginTop: 40, padding: "32px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>戦略指南 AI 使い方</div>
-    
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
-      <p style={{ fontSize: 16, lineHeight: 1.9, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>AB3C分析は、「選ばれる理由」を明らかにする事業戦略フレームワークです。Benefit（お客様が求める価値）・Advantage（競合との好ましい違い）・3C（Customer・Competitor・Company）を構造化することで、事業にかかわるすべての人の共通言語をつくります。</p>
-    </div>
-
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>🌐 URLで分析（既存事業向け）</div>
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>すでにウェブサイトがある場合はURLを入力するだけ。現在のサイトが戦略を正しく伝えられているか、競合と比べてアドバンテージが伝わっているかを確認できます。</p>
-        </div>
-        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✏️ テキストで入力（新規事業向け）</div>
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>これから起業する、新規事業を立ち上げる、大幅に事業を刷新したい場合はテキストで事業概要を入力。試行錯誤しながら繰り返すことで事業モデルの精度を上げられます。</p>
-        </div>
-      </div>
-    </div>
-
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-        {[
-          { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
-{ icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけで事業戦略の改善提案スライド資料が作成できます。" },
-          { icon: "📝", title: "補助金・事業計画の構想整理", desc: "AB3Cで整理した戦略を、補助金申請や事業計画を検討する際の構想整理・記入のヒントとしてご活用いただけます。" },
-
-        ].map((item, i) => (
-          <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px" }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{item.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", textAlign: "center" }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
-      <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.75)", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることが戦略指南 AIの役割です。</p>
-    </div>
-  </div>
-)}
+{/* TOPページのリンクカード4種と「戦略指南 AI 使い方」セクションは削除済み。
+    Google風のシンプル構成（キャッチコピー＋入力欄）に変更。
+    AB3C分析とは → /about、2つの使い方・分析結果の活用方法 → /howto に集約。
+    各ページへのナビは Header メニューから可能。 */}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
