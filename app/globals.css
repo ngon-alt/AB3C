@@ -14,3 +14,27 @@ html, body {
 html {
   scroll-padding-top: 0;
 }
+
+/* サイト全体のフォント定義（CLAUDE.md ルール準拠）
+ * - 本文（body）はゴシック体（system-ui 系サンセリフ）
+ * - 見出しのみ明朝体（Noto Serif JP）
+ * 小さい文字で明朝は読みづらいので、見出し以外は必ずゴシックに統一する。
+ *
+ * CSS変数:
+ *   --font-body: ゴシック（本文・リスト・ボタン・小さいテキスト全て）
+ *   --font-heading: 明朝（h1-h6 と「セクション見出し相当」のみに使用）
+ *   --font-mono: 等幅（コード片や ID・キャプション風の英文ラベル）
+ */
+:root {
+  --font-body: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, sans-serif;
+  --font-heading: "Noto Serif JP", serif;
+  --font-mono: "Space Mono", "Courier New", monospace;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
