@@ -115,7 +115,7 @@ useEffect(() => {
   );
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', fontFamily: "'Noto Serif JP', serif" }}>
+    <div style={{ background: C.bg, minHeight: '100vh' }}>
       <div style={{ borderBottom: `2px solid ${C.ink}`, padding: '20px 32px', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700 }}>
           <span style={{ color: C.C }}>戦略指南 AI</span>

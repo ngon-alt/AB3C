@@ -234,7 +234,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
 
   return (
     <>
-    <main style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Noto Serif JP', serif", padding: "40px 20px 100px" }}>
+    <main style={{ background: C.bg, minHeight: "100vh", padding: "40px 20px 100px" }}>
       <div style={{ maxWidth: 860, margin: "0 auto" }}>
         <div style={{ borderBottom: `2px solid ${C.ink}`, paddingBottom: 20, marginBottom: 32, display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
           <div>

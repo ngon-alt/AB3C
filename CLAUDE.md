@@ -114,8 +114,19 @@ checkpoints: [{ label, status, comment }]
 | サイドバー | 11-14px（幅制約のため例外） |
 | 最小許容サイズ | 16px（一部UI要素のみ） |
 
-**本文は全てサンセリフ体**（system-ui系）。小さい文字でセリフ体は読みづらいため。
+**本文は全てサンセリフ体（ゴシック）**。小さい文字でセリフ体は読みづらいため。
 見出しのみ Noto Serif JP / Space Mono 使用可。
+
+### フォント定義（globals.css に CSS 変数として定義済み）
+```
+--font-body:    system-ui ベース（ゴシック）  ← 本文・リスト・ボタン全部
+--font-heading: 'Noto Serif JP', serif（明朝） ← 見出しのみ
+--font-mono:    'Space Mono', monospace      ← コード片・英文ラベル
+```
+- body のデフォルトは `--font-body`（ゴシック）
+- h1〜h6 のデフォルトは `--font-heading`（明朝）
+- **新規UIで `fontFamily: "'Noto Serif JP', serif"` を直接指定する場合は「これは見出しか」を必ず確認**
+- ページ全体の wrapper（`<main>` `<div>`）に `fontFamily: serif` を入れない（サブツリー全体が明朝になる）
 
 ## 2フェーズ構造
 
