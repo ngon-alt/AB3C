@@ -314,22 +314,21 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
       </div>
       {/* 下段: メインナビ（ピル型ステッパー） */}
       <nav style={{ padding: "12px 24px 14px", display: "flex", alignItems: "center", gap: 6, background: "#fff", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
-        {/* ⓪ 新規戦略診断 — 「入口」のニュートラルなスレート色（Benefit赤/Advantage青/teal/orangeと衝突しない） */}
+        {/* ⓪ 新規戦略診断 — ①② と同じ墨色＋中立グレーで統一 */}
         {(() => {
           const active = phase === "input";
-          const PHASE0 = "#64748b"; // slate-500 系: 中立で「まだ選択前」を表現
           return (
             <button onClick={() => { if (onNewAnalysis) onNewAnalysis(); else window.location.href = "/"; }}
               title="URL or テキスト入力から新規に戦略診断を実行します（戦略診断チケットはこのステップのみが対象です）"
               style={{
                 padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
-                background: active ? PHASE0 : "#e2e8f0",
-                color: active ? "#fff" : "#475569",
-                border: active ? `2px solid ${PHASE0}` : `2px solid transparent`,
+                background: active ? "#2a2a26" : "#e5e5e0",
+                color: active ? "#fff" : "#2a2a26",
+                border: active ? `2px solid #2a2a26` : `2px solid transparent`,
                 borderRadius: 999,
                 display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
               }}>
-              <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#94a3b8", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
+              <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#2a2a26", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
               新規戦略診断
             </button>
           );
@@ -431,7 +430,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "inline-flex", alignItems: "center", gap: 6,
-            background: C.ink, border: "2px solid transparent", borderRadius: 999,
+            background: "#2a2a26", border: "2px solid transparent", borderRadius: 999,
           }}>
           📋 サイト管理
         </a>
