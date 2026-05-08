@@ -354,7 +354,303 @@ const SubLabel = ({ color, text, onChat, help }) => (
   </div>
 );
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions, activeVersionPerSection, onSectionTabChange }) {
+// 戦略の組み合わせパターン3案を縦並びで表示するセクション（サマリー表示）。
+// 新スキーマ（per-combination 完全AB3C）から、各パターンの要点を抽出して表示。
+// 各パターンに「深掘りする」ボタンがあり、選択中のパターンは赤枠でハイライトされる。
+// Phase B再 でタブ式の完全AB3C表示UIに作り直す予定。
+function CombinationsSection({ d, selectedCombinationId, onSelectCombination, onChat }) {
+  if (!d?.combinations || !Array.isArray(d.combinations) || d.combinations.length === 0) {
+    return null;
+  }
+  const combinations = d.combinations;
+  const recommendedId = d.recommended_combination_id;
+  const selectedId = selectedCombinationId || recommendedId || combinations[0]?.id;
+  const companyCore = d.company_core || {};
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <SectionLabel
+        color={C.phase1}
+        letter="P"
+        jp="戦略の組み合わせパターン"
+        en="STRATEGY COMBINATIONS"
+        desc="ターゲット×ベネフィットの切り口を3案提示。深掘りしたい1つを選んでください"
+        help="AB3C本来の考え方では、ターゲットとベネフィットがセットで決まり、それに応じて競合・自社の強み・戦略メッセージが絞り込まれます。最も強い1つを選んで深掘りしましょう。"
+      />
+      <div style={{ background: C.phase1Bg, padding: "12px 16px", borderRadius: 4, fontSize: 15, lineHeight: 1.7, marginBottom: 18, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        AIが3つの組み合わせを提案しました。各パターンは <b>別のターゲット・別の競合・別の自社強み</b> に焦点を当てています。
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {combinations.map(combo => (
+          <CombinationCard
+            key={combo.id}
+            combo={combo}
+            companyCore={companyCore}
+            isSelected={combo.id === selectedId}
+            isRecommended={combo.id === recommendedId}
+            onSelect={() => onSelectCombination && onSelectCombination(combo.id)}
+            onChat={onChat}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 新スキーマ対応: combo.benefit/advantage/strategy_message などはオブジェクト構造に。
+// サマリー表示なので各オブジェクトから要点（core, what, message, target, etc.）だけ抽出する。
+function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSelect, onChat }) {
+  const borderColor = isSelected ? C.B : C.border;
+  const headerBg = isSelected ? C.B : C.ink;
+  const cardBg = isSelected ? "#fff5f5" : "#ffffff";
+  const askChat = onChat ? () => onChat(`組み合わせパターン「${trimRouteSuffix(combo?.label) || ""}」をベースにさらに深掘りしてください`) : null;
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+
+  // 新スキーマからサマリー表示用の文字列を安全に抽出
+  const targetText = combo?.customer?.target || "";
+  const benefitText = combo?.benefit?.core || "";
+  const advantageText = combo?.advantage?.what || "";
+  const strategyMessageText = combo?.strategy_message?.message || "";
+  // 競合：direct から最大2件、URL部分は表示しない
+  const directList = Array.isArray(combo?.competitor?.direct) ? combo.competitor.direct : [];
+  const competitorText = directList.slice(0, 2)
+    .map(d => (typeof d === "string" ? d.split("｜")[0] : ""))
+    .filter(Boolean)
+    .join(" / ");
+  // 自社強み：strengths_used のindexで company_core.all_strengths を解決
+  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const usedIdx = Array.isArray(combo?.strengths_used) ? combo.strengths_used : [];
+  const strengthText = usedIdx.length > 0 && allStrengths.length > 0
+    ? usedIdx.slice(0, 2).map(i => allStrengths[i]).filter(Boolean).join(" / ")
+    : "";
+
+  const Row = ({ label, labelColor, valueBold, value }) => (
+    <>
+      <div style={{ fontWeight: 700, color: labelColor || "#444", paddingTop: 8, fontSize: 14, fontFamily: sansFont }}>{label}</div>
+      <div style={{ paddingTop: 8, fontSize: 16, lineHeight: 1.7, fontWeight: valueBold ? 700 : 400, color: C.ink, fontFamily: sansFont }}>{value || "—"}</div>
+    </>
+  );
+  return (
+    <div style={{
+      background: cardBg,
+      border: `2px solid ${borderColor}`,
+      borderRadius: 6,
+      padding: "20px 24px",
+      boxShadow: isSelected ? `0 0 0 4px rgba(255,0,0,0.12)` : "none",
+      transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
+      position: "relative",
+    }} {...(askChat ? hoverShow : {})}>
+      {/* ラベルとバッジ */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{
+          background: headerBg, color: "#fff",
+          padding: "8px 16px", fontSize: 17, fontWeight: 700,
+          borderRadius: 4, fontFamily: "'Noto Serif JP', serif",
+        }}>
+          パターン{combo?.id || ""}：{trimRouteSuffix(combo?.label) || ""}
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {isRecommended && (
+            <span style={{ background: "#fef3c7", color: "#854d0e", padding: "6px 12px", fontSize: 13, fontWeight: 700, borderRadius: 4, border: "1px solid #fbbf24", fontFamily: sansFont }}>
+              ⭐ AIのおすすめ
+            </span>
+          )}
+          {isSelected && (
+            <span style={{ background: C.B, color: "#fff", padding: "6px 12px", fontSize: 13, fontWeight: 700, borderRadius: 4, fontFamily: sansFont }}>
+              ✓ 深掘り中
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 詳細グリッド */}
+      <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", columnGap: 14, rowGap: 0, marginBottom: 16, borderTop: `1px dashed ${C.border}`, borderBottom: `1px dashed ${C.border}`, paddingBottom: 8 }}>
+        <Row label="ターゲット" value={targetText} />
+        <Row label="Benefit" labelColor={C.B} valueBold value={benefitText} />
+        <Row label="競合" value={competitorText} />
+        <Row label="自社の強み" value={strengthText} />
+        <Row label="Advantage" labelColor={C.A} valueBold value={advantageText} />
+      </div>
+
+      {/* 戦略メッセージ */}
+      <div style={{ background: C.ink, color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{strategyMessageText || "—"}</div>
+      </div>
+
+      {/* アクションボタン */}
+      {!isSelected ? (
+        <button
+          onClick={onSelect}
+          style={{
+            background: C.B, color: "#fff", border: "none", borderRadius: 4,
+            padding: "12px 24px", fontSize: 15, fontWeight: 700, cursor: "pointer",
+            fontFamily: sansFont,
+          }}
+        >
+          このパターンで深掘りする →
+        </button>
+      ) : (
+        <div style={{ fontSize: 14, color: C.ink, fontFamily: sansFont }}>
+          ✓ このパターンで深掘り中（チャットで磨いてください）
+        </div>
+      )}
+
+      {askChat && <ChatBtn onClick={askChat} abs />}
+    </div>
+  );
+}
+
+// パターンラベル末尾の「ルート」を除去（ボタンが2行に折り返すのを防ぐため）。
+// 既存データへの後方互換のため、表示直前にトリムする方式。
+function trimRouteSuffix(label) {
+  if (!label || typeof label !== "string") return label;
+  return label.replace(/[\s　]*ルート$/, "");
+}
+
+// パターン別の固有色（AB3Cの赤・青・黒、フェーズ色のティール・オレンジを避けて選定）。
+// 選択中の色とラベル色を一致させることで、どのパターンを見ているかを直感的に伝える。
+const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+function patternColor(id) {
+  if (!id) return "#444";
+  return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
+}
+
+// 組み合わせパターンの切替コントロール（ピル型ボタン群＋現在表示中の大見出し帯）。
+// タブUIではなく「切替スイッチ＋見出し」で構成し、下のAB3C本体とは
+// セクション見出しによって接続される（タブのような容器メタファは持たない）。
+function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }) {
+  if (!Array.isArray(combinations) || combinations.length === 0) return null;
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+  const selectedCombo = combinations.find(c => c?.id === selectedId);
+  return (
+    <div style={{ marginBottom: 28 }}>
+      {/* 切替コントロール（ピル型ボタン群） */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 14, color: "#444", marginBottom: 10, fontFamily: sansFont, fontWeight: 700 }}>
+          戦略パターンを切り替え
+          <span style={{ fontWeight: 400, color: "#777", marginLeft: 8, fontSize: 13 }}>
+            （AIが3案提案。ボタンで表示を切替）
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          {combinations.map(combo => {
+            const isSelected = combo.id === selectedId;
+            const isRecommended = combo.id === recommendedId;
+            const myColor = patternColor(combo.id);
+            return (
+              <button
+                key={combo.id}
+                onClick={() => onSelect && onSelect(combo.id)}
+                style={{
+                  // 選択中：パターン固有色（緑/紫/茶）。未選択でも左側に細い色帯を残してパターン色を予告。
+                  background: isSelected ? myColor : "#ffffff",
+                  color: isSelected ? "#fff" : C.ink,
+                  border: isSelected ? `2px solid ${myColor}` : `2px solid #c8c8c4`,
+                  borderLeft: isSelected ? `2px solid ${myColor}` : `6px solid ${myColor}`,
+                  borderRadius: 999,
+                  padding: "10px 18px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: sansFont,
+                  transition: "background 0.15s, border-color 0.15s, color 0.15s",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  lineHeight: 1.2,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = "#f5f5f0";
+                    e.currentTarget.style.borderColor = "#888";
+                    e.currentTarget.style.borderLeftColor = myColor;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.background = "#ffffff";
+                    e.currentTarget.style.borderColor = "#c8c8c4";
+                    e.currentTarget.style.borderLeftColor = myColor;
+                  }
+                }}
+              >
+                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                <span>{trimRouteSuffix(combo.label)}</span>
+                {isRecommended && (
+                  <span style={{
+                    background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
+                    color: isSelected ? "#fff" : "#854d0e",
+                    fontSize: 11,
+                    padding: "3px 9px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    border: isSelected ? "1px solid rgba(255,255,255,0.4)" : "1px solid #fbbf24",
+                  }}>
+                    ⭐ おすすめ
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 現在表示中の見出し帯（左アクセントは選択中パターンの色に揃える） */}
+      {selectedCombo && (
+        <div style={{
+          background: "#fff",
+          border: `1px solid ${C.border}`,
+          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
+          padding: "18px 22px",
+          borderRadius: 4,
+        }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+              現在表示中
+            </span>
+            <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
+            このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）が下に表示されています。
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 1つの combination から、ResultView の既存セクション表示用の result-like オブジェクト（shadowResult）を組み立てる。
+// 既存の `d.benefit / d.advantage / d.three_c / d.strategy_message / d.checkpoints` を読む render コードに、
+// 組み合わせごとのデータをそのまま流し込めるようにすることで、ResultView 本体の render 部の大幅な書き換えを避ける。
+// company.strength は company_core.all_strengths を strengths_used のindexで解決する。
+function buildShadowResultFromCombo(combo, companyCore) {
+  if (!combo) return null;
+  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+  const usedStrengths = usedIdx.length > 0
+    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+    : allStrengths;
+  return {
+    benefit: combo.benefit || {},
+    advantage: combo.advantage || {},
+    three_c: {
+      customer: combo.customer || {},
+      competitor: combo.competitor || { direct: [], indirect: [] },
+      company: {
+        strength: usedStrengths,
+        structure: companyCore?.structure || "",
+        passion: companyCore?.passion || "",
+      },
+    },
+    strategy_message: combo.strategy_message || {},
+    checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
+  };
+}
+
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -362,12 +658,24 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   var cp = changedPaths || new Map();
   var hl = function(path) { try { if (cp.has && cp.has(path)) { var n = cp.get(path); return HL_COLORS[Math.min(n - 1, HL_COLORS.length - 1)]; } return {}; } catch (e) { return {}; } };
 
+  // === Phase B再: 組み合わせパターン対応 ===
+  // d.combinations[] がある場合、選択中パターンの完全AB3Cを下のセクションで表示する。
+  // 既存の `d.benefit / d.three_c / d.checkpoints` を読む render コードはそのまま活かしつつ、
+  // shadowResult 経由で組み合わせごとのデータに切り替える（versions タブは抑制）。
+  var hasCombinations = !!(d?.combinations && Array.isArray(d.combinations) && d.combinations.length > 0);
+  var currentCombo = hasCombinations
+    ? (d.combinations.find(function(c) { return c && c.id === selectedCombinationId; }) || d.combinations[0])
+    : null;
+  var shadowResult = currentCombo ? buildShadowResultFromCombo(currentCombo, d.company_core) : null;
+  var versions = hasCombinations ? [] : rawVersions;
+
   // === 世代タブ機構: セクション別に表示する result を選ぶ ===
   // versions が未指定（旧呼び出し）の場合は d をそのまま使用（後方互換）
   var hasVersions = Array.isArray(versions) && versions.length > 0;
   var avps = activeVersionPerSection || {};
   // セクションキー → 表示する result
   function sectionResult(sectionKey) {
+    if (hasCombinations) return shadowResult; // 組み合わせ表示中は選択中パターンのデータを使う
     if (!hasVersions) return d;
     var idx = avps[sectionKey] || 0;
     return versions[idx]?.result || d;
@@ -407,11 +715,20 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   var cpData = (sectionResult("checkpoints") || {}).checkpoints || d.checkpoints || [];
   var cpChanges = changedPathsForSection("checkpoints", ["checkpoints"]);
 
-  // 旧世代閲覧中はチェックボックス操作を無効化
+  // 旧世代閲覧中・組み合わせ表示中はチェックボックス操作を無効化（Phase B再: refinement は Phase E で per-combo 対応予定）
   var anyOld = ["benefit", "advantage", "customer", "competitor", "company", "strategy_message", "checkpoints"].some(isViewingOld);
-  var refineToggleEffective = anyOld ? null : onRefineToggle;
+  var refineToggleEffective = (anyOld || hasCombinations) ? null : onRefineToggle;
   return (
     <div>
+      {/* Phase B再: 組み合わせパターンタブバー（選択中タブの完全AB3Cが下に表示される） */}
+      {hasCombinations && (
+        <CombinationTabBar
+          combinations={d.combinations}
+          selectedId={currentCombo?.id}
+          recommendedId={d.recommended_combination_id}
+          onSelect={onSelectCombination}
+        />
+      )}
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
@@ -487,12 +804,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
             </Card>
           </div>
           <div>
-            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="自社の具体的強み・その強みを生む構造的特徴・経営者の価値観/パッションの3層で掘り下げます。価値観の違いが最も真似されにくい。" />
+            <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
             <VersionTabBar versions={versions} sectionKey="company" sectionPaths={["three_c.company"]} active={avps.company || 0} onChange={onSectionTabChange} />
-            <Card color={C.C} title="強み · 構造 · パッション" onChat={qs("自社の強み・構造・パッション")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+            <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
+              <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
-              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>構造：{companyData.structure}</p>
-              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>💡 {companyData.passion}</p></Card>
+              <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>仕組み：{companyData.structure}</p>
+              <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>価値観：{companyData.passion}</p></Card>
           </div>
         </div>
       </div>
@@ -1101,13 +1419,21 @@ const [trialChats, setTrialChats] = useState(0);
 const [activePlans, setActivePlans] = useState([]);
 const [activePlanId, setActivePlanId] = useState(null);
   const [improveResult, setImproveResult] = useState(null);
+  // パターンID→そのパターン向け改善レポートのキャッシュ。
+  // selectedCombinationId が切り替わったとき、ここを参照して即時表示するか、
+  // 未生成なら /api/improve を呼んで生成する。
+  const [improveResultsByCombination, setImproveResultsByCombination] = useState({});
+  const [improveSwitchLoading, setImproveSwitchLoading] = useState(false);
   const [visualMock, setVisualMock] = useState(null);
+  // パターンID→そのパターン向けビジュアルモックのキャッシュ（改善レポートと同じ仕組み）
+  const [visualMocksByCombination, setVisualMocksByCombination] = useState({});
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
   const [refining, setRefining] = useState(false);
   const [refineToast, setRefineToast] = useState(false);
   const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
+  const [selectedCombinationId, setSelectedCombinationId] = useState(null);
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
@@ -1148,6 +1474,9 @@ const [chatWidth, setChatWidth] = useState(500);
 const [chatMinimized, setChatMinimized] = useState(false);
 const chatResizing = useRef(false);
 const [confirmHistory, setConfirmHistory] = useState([]);
+// クリックされた確定履歴エントリのID。サイドバーの選択中マーカー表示や
+// チャット履歴の復元判定に使う。新規分析・再分析時にリセット。
+const [activeConfirmId, setActiveConfirmId] = useState(null);
 const [improveLoading, setImproveLoading] = useState(false);
 const [siteId, setSiteId] = useState(null);
 // ⓪新規戦略診断クリック時に「前のサイト」を記憶しておき、①戦略策定タブから戻れるようにする
@@ -1182,6 +1511,138 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (header) setHeaderHeight(header.offsetHeight);
   }, []);
 
+  // currentResult が変わったら、選択中の組み合わせパターンを更新。
+  // - confirmed_combination_id があればそれを優先（確定履歴を開いたとき、確定したパターンが選ばれる）
+  // - なければ recommended_combination_id（AIのおすすめ）
+  // - それも無ければ先頭ID
+  // 既存の選択IDが新しいresultに存在しない場合（再分析でcombinationsが変わった場合等）も上記の順でフォールバック。
+  useEffect(() => {
+    if (!currentResult?.combinations || !Array.isArray(currentResult.combinations) || currentResult.combinations.length === 0) {
+      setSelectedCombinationId(null);
+      return;
+    }
+    const validIds = currentResult.combinations.map(c => c.id);
+    setSelectedCombinationId(prev => {
+      if (prev && validIds.includes(prev)) return prev;
+      return currentResult.confirmed_combination_id || currentResult.recommended_combination_id || validIds[0];
+    });
+  }, [currentResult]);
+
+  // 指定パターン用の analysisResult を組み立てて /api/improve（必要なら /api/improve/visual も）を
+  // 呼び、結果をキャッシュ＆表示。
+  // - needImprove=true なら改善レポートを生成（既にキャッシュにあれば呼び出し側でスキップ）
+  // - needVisual=true ならビジュアルモックも生成（改善レポートが必要・成功している場合のみ）
+  async function generateForCombination(combinationId, needImprove, needVisual) {
+    if (!currentResult?.combinations) return;
+    const combo = currentResult.combinations.find(c => c?.id === combinationId);
+    if (!combo) return;
+    const allStrengths = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
+    const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+    const usedStrengths = usedIdx.length > 0
+      ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+      : allStrengths;
+    const comboResult = {
+      ...currentResult,
+      benefit: combo.benefit || {},
+      advantage: combo.advantage || {},
+      three_c: {
+        customer: combo.customer || {},
+        competitor: combo.competitor || { direct: [], indirect: [] },
+        company: {
+          strength: usedStrengths,
+          structure: currentResult.company_core?.structure || "",
+          passion: currentResult.company_core?.passion || "",
+        },
+      },
+      strategy_message: combo.strategy_message || {},
+      checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
+    };
+
+    // Step 1: 改善レポート（テキスト）
+    let improveData = improveResultsByCombination[combinationId] || null;
+    if (needImprove) {
+      setImproveSwitchLoading(true);
+      setImproveResult(null);
+      // 初回生成と同じローディングオーバーレイを出す（ピル切替時に何も起きていないように見えるのを防ぐ）
+      setOverlayMessage("ウェブサイト改善レポート生成中...");
+      try {
+        const res = await fetch("/api/improve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisResult: comboResult, url: currentInput }),
+        });
+        try { improveData = await res.json(); } catch (e) { improveData = { error: `HTTP ${res.status} 応答が解釈できませんでした` }; }
+        if (res.ok && !improveData.error) {
+          setImproveResult(improveData);
+          setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: improveData }));
+        } else {
+          setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
+          setOverlayMessage(null);
+          return; // 改善レポート失敗時はビジュアルも生成しない
+        }
+      } catch (e) {
+        setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
+        setOverlayMessage(null);
+        return;
+      } finally {
+        setImproveSwitchLoading(false);
+      }
+    }
+
+    // Step 2: ビジュアルモック（改善レポートが揃っている場合のみ）
+    if (needVisual && improveData && !improveData.error) {
+      setVisualLoading(true);
+      setVisualMock(null);
+      setOverlayMessage("改善ビジュアル生成中...");
+      try {
+        const res = await fetch("/api/improve/visual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysisResult: comboResult, improveResult: improveData, url: currentInput }),
+        });
+        let visualData;
+        try { visualData = await res.json(); } catch (e) { visualData = { error: `HTTP ${res.status}` }; }
+        if (res.ok && !visualData.error) {
+          setVisualMock(visualData);
+          setVisualMocksByCombination(prev => ({ ...prev, [combinationId]: visualData }));
+        }
+      } catch (e) {
+        // ビジュアル失敗は致命的ではないので静かに無視（改善レポートは表示済み）
+      } finally {
+        setVisualLoading(false);
+      }
+    }
+
+    // 全て完了したらオーバーレイを消す
+    setOverlayMessage(null);
+  }
+
+  // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
+  // 両方このハンドラを使うことで「state は1つ・UIは2箇所」の同期動作を実現する。
+  // 改善レポート・ビジュアルモックの両方がパターン別にキャッシュされ、未生成なら順次生成する。
+  function handleCombinationSwitch(id) {
+    setSelectedCombinationId(id);
+    // 表示中タイトルも選択中パターンの戦略メッセージに同期（確定前の見え方が分かりやすく、
+    // そのまま確定すれば履歴にもこのタイトルが残る）。
+    var nextCombo = currentResult?.combinations?.find(function(c) { return c?.id === id; });
+    if (nextCombo?.strategy_message?.message) {
+      setHistoryTitle(nextCombo.strategy_message.message);
+    }
+    if (!currentInput?.startsWith("http")) return;
+    if (!currentResult?.combinations) return;
+    const cachedImprove = improveResultsByCombination[id];
+    const cachedVisual = visualMocksByCombination[id];
+    // キャッシュにあれば即時表示（パターンに対応するビジュアルが無い場合は visualMock を null にしておく）
+    if (cachedImprove) setImproveResult(cachedImprove);
+    setVisualMock(cachedVisual || null);
+    // 初回分析中（improveLoading）と衝突しない場合のみ追加生成
+    const needImprove = !cachedImprove;
+    const needVisual = !cachedVisual;
+    if ((needImprove || needVisual) && !improveLoading) {
+      generateForCombination(id, needImprove, needVisual);
+    }
+  }
+
   // 分析結果・改善レポート・ビジュアルが変わったらlocalStorage/sessionStorageに自動保存
   // sessionStorage はページ内遷移後や決済画面からの戻りでの復元用
   useEffect(function() {
@@ -1190,19 +1651,28 @@ const [chatSummaries, setChatSummaries] = useState([]);
         var existing = {};
         try { existing = JSON.parse(localStorage.getItem("ab3c_analysis_" + currentInput) || "{}"); } catch (e) {}
         var savedAt = analyzedAt || existing.timestamp || Date.now();
-        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, visual: visualMock || existing.visual || null, timestamp: savedAt };
+        // improveByCombo / visualByCombo: パターン別キャッシュ。空オブジェクトの場合は既存値を保持。
+        var improveByComboToSave = (improveResultsByCombination && Object.keys(improveResultsByCombination).length > 0)
+          ? improveResultsByCombination
+          : (existing.improveByCombo || null);
+        var visualByComboToSave = (visualMocksByCombination && Object.keys(visualMocksByCombination).length > 0)
+          ? visualMocksByCombination
+          : (existing.visualByCombo || null);
+        var toSave = { result: currentResult, improve: improveResult || existing.improve || null, improveByCombo: improveByComboToSave, visual: visualMock || existing.visual || null, visualByCombo: visualByComboToSave, timestamp: savedAt };
         localStorage.setItem("ab3c_analysis_" + currentInput, JSON.stringify(toSave));
         sessionStorage.setItem("ab3c_last_analysis", JSON.stringify({
           input: currentInput,
           siteId: siteId || null,
           result: currentResult,
           improveResult: improveResult || null,
+          improveByCombo: improveByComboToSave,
           visualMock: visualMock || null,
+          visualByCombo: visualByComboToSave,
           timestamp: savedAt,
         }));
       } catch (e) {}
     }
-  }, [currentResult, improveResult, visualMock, currentInput, analyzedAt]);
+  }, [currentResult, improveResult, improveResultsByCombination, visualMock, visualMocksByCombination, currentInput, analyzedAt]);
 
   // 直前の分析結果を復元（ページ内遷移からの戻り・決済画面からの戻り対応）
   // URLパラメータに site_id / url がある場合は、それと一致する場合のみ復元（別サイトのデータ復元バグ防止）
@@ -1233,7 +1703,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
       if (data.input.startsWith("http")) { setUrl(data.input); setTab("url"); }
       else { setInput(data.input); setTab("text"); }
       if (data.improveResult) setImproveResult(data.improveResult);
+      if (data.improveByCombo && typeof data.improveByCombo === "object") setImproveResultsByCombination(data.improveByCombo);
       if (data.visualMock) setVisualMock(data.visualMock);
+      if (data.visualByCombo && typeof data.visualByCombo === "object") setVisualMocksByCombination(data.visualByCombo);
       if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
     } catch (e) {}
   }, []);
@@ -1463,7 +1935,15 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const shareResult = async (inputText, resultData) => {
     setSharing(true); setShareUrl(""); setShareExpiresAt(""); setShareCopied(false);
     try {
-      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: inputText, result: resultData, improveResult: improveResult || null, visualMock: visualMock || null }) });
+      const res = await fetch("/api/share", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+        input: inputText,
+        result: resultData,
+        improveResult: improveResult || null,
+        visualMock: visualMock || null,
+        // 全パターン分のキャッシュも一緒に保存。シェア先でタブ切替できるようにする。
+        improveResultsByCombination: improveResultsByCombination && Object.keys(improveResultsByCombination).length > 0 ? improveResultsByCombination : null,
+        visualMocksByCombination: visualMocksByCombination && Object.keys(visualMocksByCombination).length > 0 ? visualMocksByCombination : null,
+      }) });
       const data = await res.json();
       if (data.id) {
         const url = `${window.location.origin}/share?id=${data.id}`;
@@ -1625,6 +2105,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
                 setVersionsFromInitial(parsed.result);
                 setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
+                if (parsed.improveByCombo && typeof parsed.improveByCombo === "object") setImproveResultsByCombination(parsed.improveByCombo);
+                if (parsed.visual) setVisualMock(parsed.visual);
+                if (parsed.visualByCombo && typeof parsed.visualByCombo === "object") setVisualMocksByCombination(parsed.visualByCombo);
               }
             }
           } catch (e) {}
@@ -1638,6 +2121,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
               var parsed2 = JSON.parse(lsData2);
               if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setVersionsFromInitial(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
+              if (parsed2.improveByCombo && typeof parsed2.improveByCombo === "object") setImproveResultsByCombination(parsed2.improveByCombo);
+              if (parsed2.visual) setVisualMock(parsed2.visual);
+              if (parsed2.visualByCombo && typeof parsed2.visualByCombo === "object") setVisualMocksByCombination(parsed2.visualByCombo);
             }
           } catch (e) {}
         }
@@ -1920,13 +2406,42 @@ useEffect(() => {
             if (oldCm) chatMsgs = JSON.parse(oldCm);
           }
         } catch (e) {}
+        // 確定時に選択中パターンのデータを top-level にシム（保存後にこの確定履歴を開いたとき、
+        // その時に選んでいたパターンの AB3C・改善レポートが復元されるように）。
+        var snapshotResult = currentResult;
+        var confirmedStrategyMessageText = currentResult?.strategy_message?.message || "";
+        var selectedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
+        if (selectedCombo && Array.isArray(currentResult?.combinations)) {
+          var allStrengthsArr = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
+          var usedIdxArr = Array.isArray(selectedCombo.strengths_used) ? selectedCombo.strengths_used : [];
+          var usedStrengthsArr = usedIdxArr.length > 0
+            ? usedIdxArr.map(function(i) { return allStrengthsArr[i]; }).filter(Boolean)
+            : allStrengthsArr;
+          snapshotResult = Object.assign({}, currentResult, {
+            benefit: selectedCombo.benefit || currentResult.benefit,
+            advantage: selectedCombo.advantage || currentResult.advantage,
+            three_c: {
+              customer: selectedCombo.customer || currentResult.three_c?.customer || {},
+              competitor: selectedCombo.competitor || currentResult.three_c?.competitor || { direct: [], indirect: [] },
+              company: {
+                strength: usedStrengthsArr,
+                structure: currentResult.company_core?.structure || currentResult.three_c?.company?.structure || "",
+                passion: currentResult.company_core?.passion || currentResult.three_c?.company?.passion || "",
+              },
+            },
+            strategy_message: selectedCombo.strategy_message || currentResult.strategy_message,
+            checkpoints: Array.isArray(selectedCombo.checkpoints) ? selectedCombo.checkpoints : (currentResult.checkpoints || []),
+            confirmed_combination_id: selectedCombinationId,
+          });
+          confirmedStrategyMessageText = selectedCombo.strategy_message?.message || confirmedStrategyMessageText;
+        }
         var snapshot = {
           id: Date.now(),
           date: new Date().toLocaleString("ja-JP"),
-          result: currentResult,
+          result: snapshotResult,
           chatMessages: chatMsgs,
           chatSummaries: chatSummaries,
-          strategyMessage: currentResult?.strategy_message?.message || "",
+          strategyMessage: confirmedStrategyMessageText,
           url: siteUrl || currentInput || "",
         };
         var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
@@ -2103,7 +2618,17 @@ useEffect(() => {
         } catch (e) {}
       }
     }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setVisualMock(null);
+// 同じURLの再分析: 戦略策定タブのチャット履歴をクリア（localStorage + DB 両方）
+// 戦略アクションタブのスレッド・アクション・戦略確定履歴は確定戦略に紐づくため残す
+if (prefoundSite) {
+  try { localStorage.removeItem("ab3c_analysis_chat_" + prefoundSite.id); } catch (e) {}
+  fetch("/api/sites", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
+  }).catch(() => {});
+}
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setActiveConfirmId(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -2161,6 +2686,11 @@ if (tab === "url" && savedText.startsWith("http")) {
     try { improveData = await improveRes.json(); } catch (e) { improveData = { error: `HTTP ${improveRes.status} 応答が解釈できませんでした` }; }
     if (improveRes.ok && !improveData.error) {
       setImproveResult(improveData);
+      // 初回生成分は recommended パターン向けキャッシュに保存（top-levelシムが recommended を反映しているため）
+      const recommendedId = data?.recommended_combination_id;
+      if (recommendedId) {
+        setImproveResultsByCombination(prev => ({ ...prev, [recommendedId]: improveData }));
+      }
     } else {
       console.error("改善レポート生成エラー:", { status: improveRes.status, error: improveData.error, debug: improveData.debug });
       setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${improveRes.status}）。再分析ボタンで再生成できます。` });
@@ -2188,6 +2718,11 @@ if (tab === "url" && savedText.startsWith("http")) {
       visualData = await visualRes.json();
       if (!visualData.error) {
         setVisualMock(visualData);
+        // 初回生成分は recommended パターン向けキャッシュへ保存（改善レポートと同じ流れ）
+        const recommendedId = data?.recommended_combination_id;
+        if (recommendedId) {
+          setVisualMocksByCombination(prev => ({ ...prev, [recommendedId]: visualData }));
+        }
       } else {
         console.error("改善ビジュアル生成エラー:", visualData.error, visualData.debug);
       }
@@ -2251,7 +2786,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setVisualMock(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
   const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
@@ -2404,9 +2939,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   </div>
                 ) : (
                   confirmHistory.slice().reverse().map(function(ch, i) {
-                    var isActive = currentResult?.strategy_message?.message === ch.strategyMessage;
+                    // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
+                    var isActive = activeConfirmId === ch.id;
                     return (
                       <div key={ch.id} onClick={function() {
+                        setActiveConfirmId(ch.id);
                         setCurrentResult(ch.result);
                         setResult(ch.result);
                         setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
@@ -2414,6 +2951,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         setStrategyConfirmed(true);
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
                         if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                        // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
+                        // それぞれの議論の経緯が見られるよう）。siteId ベースのキーへ書き戻し、
+                        // AnalysisChatPanel が再ロードする。
+                        try {
+                          if (siteId && Array.isArray(ch.chatMessages)) {
+                            localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(ch.chatMessages));
+                            // AnalysisChatPanel に変更を通知（同コンポーネントは siteId ベースキーを監視）
+                            window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
+                          }
+                        } catch (e) {}
                         setChangedPaths(new Map());
                       }}
                         style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: isActive ? "rgba(255,255,255,0.15)" : "transparent", borderLeft: isActive ? "3px solid #6db3f8" : "3px solid transparent" }}>
@@ -2441,63 +2988,100 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1 }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
-  {/* タブ */}
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: -1, position: "relative", zIndex: 1 }}>
-    
+  {/* キャッチコピー（TOPの主役メッセージ。Header のサブタイトルと意味が被るためサブ行は削除）。
+      下の余白は上下バランスを取るため広めに。 */}
+  <div style={{ textAlign: "center", padding: "36px 16px 44px" }}>
+    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0 }}>
+      あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」を、AIで言語化。
+    </h1>
+  </div>
+  {/* タブ（コンテンツに応じた幅で左寄せ。右側は余白でタブ感を出す） */}
+  <div style={{ display: "flex", gap: 10, marginBottom: -1, position: "relative", zIndex: 1, alignItems: "stretch" }}>
     <button
       onClick={() => { setTab("url"); setError(""); }}
-      style={{ 
-        background: tab === "url" ? C.surface : "#d0d0d0", 
-        border: `1px solid ${C.border}`, 
-        borderTop: `4px solid ${C.B}`,
-        borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`, 
-        borderRadius: "6px 6px 0 0", 
-        padding: "12px 14px", 
-        cursor: "pointer", 
-        textAlign: "left" 
+      style={{
+        background: tab === "url" ? C.surface : "#d0d0d0",
+        border: `1px solid ${C.border}`,
+        borderTop: `4px solid ${tab === "url" ? C.ink : "#c4c4c0"}`,
+        borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
+        borderRadius: "6px 6px 0 0",
+        padding: "12px 32px 12px 16px",
+        cursor: "pointer",
+        textAlign: "left",
+        flex: "0 0 auto"
       }}
     >
-      <div style={{ fontSize: 20, marginBottom: 3 }}>🌐</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>URLで分析</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>WebサイトのURLを貼るだけ</div>
     </button>
-      <button
+    <button
       onClick={() => { setTab("text"); setError(""); }}
-      style={{ 
-        background: tab === "text" ? C.surface : "#d0d0d0", 
-        border: `1px solid ${C.border}`, 
-        borderTop: `4px solid ${C.A}`,
-        borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`, 
-        borderRadius: "6px 6px 0 0", 
-        padding: "12px 14px", 
-        cursor: "pointer", 
-        textAlign: "left" 
+      style={{
+        background: tab === "text" ? C.surface : "#d0d0d0",
+        border: `1px solid ${C.border}`,
+        borderTop: `4px solid ${tab === "text" ? C.ink : "#c4c4c0"}`,
+        borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
+        borderRadius: "6px 6px 0 0",
+        padding: "12px 32px 12px 16px",
+        cursor: "pointer",
+        textAlign: "left",
+        flex: "0 0 auto"
       }}
     >
-      <div style={{ fontSize: 20, marginBottom: 3 }}>✏️</div>
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
       <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>事業概要を自由に記述</div>
     </button>
   </div>
 
- {/* 入力エリア */}
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "20px 28px 28px", boxShadow: `2px 2px 0 ${C.border}` }}>
-    {tab === "text" ? (
-      <>
-        <label style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, color: C.muted, display: "block", marginBottom: 10 }}>事業の概要を入力してください</label>
-        <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
-          placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
-          style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "14px 16px", resize: "vertical", minHeight: 120, outline: "none", boxSizing: "border-box" }} />
-      </>
-    ) : (
-      <>
-        <label style={{ fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, color: C.muted, display: "block", marginBottom: 10 }}>分析したいウェブサイトのURLを入力してください</label>
-        <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
-          placeholder="例：https://www.example.co.jp"
-          style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "14px 16px", outline: "none", boxSizing: "border-box" }} />
-        <p style={{ fontSize: 16, color: C.muted, marginTop: 8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>※ サイトの内容を読み取りAB3C分析を行います。一部のサイトは読み取れない場合があります。</p>
-      </>
-    )}
+ {/* 入力エリア（タブと一体感を保ちつつ、入力欄の上下にゆとりを持たせる） */}
+  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: "0 0 8px 8px", padding: "22px 22px 26px", boxShadow: `2px 2px 0 ${C.border}` }}>
+    {/* AB3C カラー（赤B・黒C・青A）の3層ストライプボタン。
+        TOPの主役アクションとして AB3C の3層構造を視覚化＋色付けで存在感を出す。 */}
+    {(() => {
+      const ab3cBtn = (
+        <button onClick={analyze} disabled={loading}
+          style={{
+            border: "none", borderRadius: 4, padding: 0, overflow: "hidden", background: "transparent",
+            cursor: loading ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+            whiteSpace: "nowrap",
+            transition: "transform 0.12s, box-shadow 0.12s",
+          }}
+          onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)"; } }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)"; }}
+        >
+          <div style={{ background: C.B, height: 6 }} />
+          <div style={{
+            background: loading ? C.muted : C.ink,
+            color: "#fff",
+            padding: "10px 28px",
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 16,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+          }}>
+            {loading ? "分析中…" : "▶ 分析する"}
+          </div>
+          <div style={{ background: C.A, height: 6 }} />
+        </button>
+      );
+      return tab === "text" ? (
+        <>
+          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+            placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
+            style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
+          <div style={{ marginTop: 10 }}>{ab3cBtn}</div>
+        </>
+      ) : (
+        // URLモードはGoogle検索バー風に：input と「分析する」ボタンを横並びで1行に
+        <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+          <input type="url" value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.nativeEvent.isComposing) analyze(); }}
+            placeholder="例：https://www.example.co.jp"
+            style={{ flex: 1, minWidth: 0, background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", outline: "none", boxSizing: "border-box" }} />
+          {ab3cBtn}
+        </div>
+      );
+    })()}
 {error && (
   <div style={{ background: "#fdf0ef", borderLeft: `3px solid ${C.red}`, padding: "10px 14px", fontSize: 16, color: C.red, marginTop: 12 }}>
     <div style={{ whiteSpace: "pre-line" }}>{error}</div>
@@ -2506,95 +3090,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
 )}
-    <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 14 }}>
-      <button onClick={analyze} disabled={loading} style={{ background: loading ? C.muted : C.ink, border: "none", borderRadius: 2, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, letterSpacing: "0.06em", padding: "12px 28px" }}>
-        {loading ? "分析中…" : "▶ 分析する"}
-      </button>
-      <span style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{tab === "text" ? "Ctrl + Enter でも実行できます" : "Enter でも実行できます"}</span>
-    </div>
   </div>
 </div>
           )}
-{!currentResult && !loading && (
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, margin: "16px 0" }}>
-    <a href="/howto" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>🔰</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>初めての方へ</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>使い方・入力方法・活用法</div>
-      </div>
-    </a>
-    <a href="/about" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>📖</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>AB3C分析とは</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>フレームワークの詳細</div>
-      </div>
-    </a>
-    <a href="/pricing" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>💰</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>料金とプラン</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>戦略診断チケット・戦略指南プランの詳細</div>
-      </div>
-    </a>
-    <a href="/faq" style={{ display: "flex", alignItems: "center", gap: 10, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 16px", textDecoration: "none", color: C.ink }}>
-      <span style={{ fontSize: 24 }}>❓</span>
-      <div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>よくある質問</div>
-        <div style={{ fontSize: 16, color: C.ink, marginTop: 2 }}>FAQ・お問い合わせ前にご確認ください</div>
-      </div>
-    </a>
-</div>
-)}
-
-{!currentResult && !loading && (
-  <div style={{ marginTop: 40, padding: "32px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, marginBottom: 24 }}>戦略指南 AI 使い方</div>
-    
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>AB3C分析とは</div>
-      <p style={{ fontSize: 16, lineHeight: 1.9, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>AB3C分析は、「選ばれる理由」を明らかにする事業戦略フレームワークです。Benefit（お客様が求める価値）・Advantage（競合との好ましい違い）・3C（Customer・Competitor・Company）を構造化することで、事業にかかわるすべての人の共通言語をつくります。</p>
-    </div>
-
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>2つの使い方</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>🌐 URLで分析（既存事業向け）</div>
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>すでにウェブサイトがある場合はURLを入力するだけ。現在のサイトが戦略を正しく伝えられているか、競合と比べてアドバンテージが伝わっているかを確認できます。</p>
-        </div>
-        <div style={{ background: "#e8e8e8", borderRadius: 6, padding: "16px 18px" }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✏️ テキストで入力（新規事業向け）</div>
-          <p style={{ fontSize: 16, lineHeight: 1.8, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>これから起業する、新規事業を立ち上げる、大幅に事業を刷新したい場合はテキストで事業概要を入力。試行錯誤しながら繰り返すことで事業モデルの精度を上げられます。</p>
-        </div>
-      </div>
-    </div>
-
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 10, borderLeft: `3px solid ${C.A}`, paddingLeft: 12 }}>分析結果の活用方法</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-        {[
-          { icon: "🌐", title: "ウェブサイト改善", desc: "戦略メッセージをTOPページで表現。AB3Cがウェブ改善の指示書になります。" },
-{ icon: "📊", title: "スライド資料を即作成", desc: "シェアURLをGoogle NotebookLMに読み込ませるだけで事業戦略の改善提案スライド資料が作成できます。" },
-          { icon: "📝", title: "補助金・事業計画の構想整理", desc: "AB3Cで整理した戦略を、補助金申請や事業計画を検討する際の構想整理・記入のヒントとしてご活用いただけます。" },
-
-        ].map((item, i) => (
-          <div key={i} style={{ background: "#e8e8e8", borderRadius: 6, padding: "14px 16px" }}>
-            <div style={{ fontSize: 20, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{item.title}</div>
-            <p style={{ fontSize: 16, lineHeight: 1.7, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>{item.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div style={{ background: C.ink, borderRadius: 6, padding: "20px 24px", textAlign: "center" }}>
-      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 8 }}>分析はゴールではありません</div>
-      <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.75)", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>戦略をクリアにし、関係者全員が同じ設計図を見られる「共通言語」をつくることが戦略指南 AIの役割です。</p>
-    </div>
-  </div>
-)}
+{/* TOPページのリンクカード4種と「戦略指南 AI 使い方」セクションは削除済み。
+    Google風のシンプル構成（キャッチコピー＋入力欄）に変更。
+    AB3C分析とは → /about、2つの使い方・分析結果の活用方法 → /howto に集約。
+    各ページへのナビは Header メニューから可能。 */}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
@@ -2620,8 +3122,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       document.title = origTitle;
     }}
     style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
+    title="現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"
   >
-🖨️ 印刷・ＰＤＦ保存
+🖨️ 表示中のパターンを印刷・ＰＤＦ
   </button>
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
@@ -2759,7 +3262,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
+  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
@@ -2778,9 +3281,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       return newSel;
     });
   }} />
-  {currentInput?.startsWith("http") && improveLoading && !improveResult && (
+  {/* 改善レポートの見出し＋パターン切替（combinations がある場合は常に表示。ローディング中も切替できるよう外出し） */}
+  {currentInput?.startsWith("http") && Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 && (
+    <div style={{ marginTop: 48 }}>
+      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+      </div>
+      <CombinationTabBar
+        combinations={currentResult.combinations}
+        selectedId={selectedCombinationId}
+        recommendedId={currentResult.recommended_combination_id}
+        onSelect={handleCombinationSwitch}
+      />
+    </div>
+  )}
+  {currentInput?.startsWith("http") && (improveLoading || improveSwitchLoading) && !improveResult && (
     <div style={{ textAlign: "center", padding: "40px 20px", color: C.muted, fontSize: 16, borderTop: `3px solid ${C.ink}`, marginTop: 40 }}>
-      ウェブサイト改善レポートを生成中です…
+      {improveSwitchLoading ? "このパターン用の改善レポートを生成中です…" : "ウェブサイト改善レポートを生成中です…"}
     </div>
   )}
   {currentInput?.startsWith("http") && improveResult?.error && (
@@ -2812,11 +3330,14 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   )}
   {currentInput?.startsWith("http") && improveResult && !improveResult.error && (
-    <div id="improve-area" style={{ marginTop: 48 }}>
-      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
-      </div>
+    <div id="improve-area" style={{ marginTop: Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 ? 16 : 48 }}>
+      {/* combinations が無い旧データの場合のみ、ここで見出しを表示。新データは上で表示済み */}
+      {!(Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0) && (
+        <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+        </div>
+      )}
       {/* 5つのチェックポイントは上の AB3C 分析セクションで既に表示されているため、
           改善レポート側での再表示は重複になるためここには配置しない */}
       {(visualLoading || visualMock) && (
@@ -3004,6 +3525,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 (isPro || chatTickets > 0) ? (
                 <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
+                    /* 確定履歴クリック時にチャットも切り替えるため、activeConfirmId を含めて key を変える。
+                       これで AnalysisChatPanel が再マウントされ、復元された localStorage を読み直す。 */
+                    key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
                     isPro={isPro || chatTickets > 0}
                     analysisResult={currentResult}
                     siteId={siteId}

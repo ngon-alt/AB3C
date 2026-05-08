@@ -1,4 +1,5 @@
 "use client";
+import { useState, useMemo } from "react";
 import ShadowMock from "../components/ShadowMock";
 import Footer from "../components/Footer";
 const C = {
@@ -6,6 +7,131 @@ const C = {
   bg: "#f5f2eb", surface: "#ffffff", border: "#ddd8cc",
   ink: "#1a1a14", muted: "#8a8478", highlight: "#f0ebe0",
 };
+
+// パターンラベル末尾の「ルート」を除去（ボタンが2行に折り返すのを防ぐため）。
+function trimRouteSuffix(label) {
+  if (!label || typeof label !== "string") return label;
+  return label.replace(/[\s　]*ルート$/, "");
+}
+
+// パターン別の固有色（メインUI と同じ・AB3Cの赤青黒、フェーズ色を避けて選定）。
+const PATTERN_COLORS = ["#047857", "#6b21a8", "#78350f"]; // 緑・紫・茶
+function patternColor(id) {
+  if (!id) return "#444";
+  return PATTERN_COLORS[(Number(id) - 1) % PATTERN_COLORS.length] || "#444";
+}
+
+// パターン別の AB3C データを top-level に展開して、既存のレンダリングをそのまま使えるようにする。
+// （メイン側 page.js の buildShadowResultFromCombo と同じロジック）
+function buildShadowResultFromCombo(combo, companyCore) {
+  if (!combo) return null;
+  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+  const usedStrengths = usedIdx.length > 0
+    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+    : allStrengths;
+  return {
+    benefit: combo.benefit || {},
+    advantage: combo.advantage || {},
+    three_c: {
+      customer: combo.customer || {},
+      competitor: combo.competitor || { direct: [], indirect: [] },
+      company: {
+        strength: usedStrengths,
+        structure: companyCore?.structure || "",
+        passion: companyCore?.passion || "",
+      },
+    },
+    strategy_message: combo.strategy_message || {},
+    checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
+  };
+}
+
+// シェアページ用のパターン切替バー（メイン UI のピル型スイッチャーと同じ見た目）
+function CombinationSwitcher({ combinations, selectedId, recommendedId, onSelect }) {
+  if (!Array.isArray(combinations) || combinations.length === 0) return null;
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+  const selectedCombo = combinations.find(c => c?.id === selectedId);
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 14, color: "#444", marginBottom: 10, fontFamily: sansFont, fontWeight: 700 }}>
+          戦略パターンを切り替え
+          <span style={{ fontWeight: 400, color: "#777", marginLeft: 8, fontSize: 13 }}>
+            （AIが3案提案。ボタンで表示を切替）
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          {combinations.map(combo => {
+            const isSelected = combo.id === selectedId;
+            const isRecommended = combo.id === recommendedId;
+            const myColor = patternColor(combo.id);
+            return (
+              <button
+                key={combo.id}
+                onClick={() => onSelect && onSelect(combo.id)}
+                style={{
+                  background: isSelected ? myColor : "#ffffff",
+                  color: isSelected ? "#fff" : C.ink,
+                  border: isSelected ? `2px solid ${myColor}` : `2px solid #c8c8c4`,
+                  borderLeft: isSelected ? `2px solid ${myColor}` : `6px solid ${myColor}`,
+                  borderRadius: 999,
+                  padding: "10px 18px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: sansFont,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  lineHeight: 1.2,
+                }}
+              >
+                <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", opacity: 0.75, fontWeight: 700 }}>P{combo.id}</span>
+                <span>{trimRouteSuffix(combo.label)}</span>
+                {isRecommended && (
+                  <span style={{
+                    background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
+                    color: isSelected ? "#fff" : "#854d0e",
+                    fontSize: 11,
+                    padding: "3px 9px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                    border: isSelected ? "1px solid rgba(255,255,255,0.4)" : "1px solid #fbbf24",
+                  }}>
+                    ⭐ おすすめ
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      {selectedCombo && (
+        <div style={{
+          background: "#fff",
+          border: `1px solid ${C.border}`,
+          borderLeft: `6px solid ${patternColor(selectedCombo.id)}`,
+          padding: "18px 22px",
+          borderRadius: 4,
+        }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+              現在表示中
+            </span>
+            <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+              パターン{selectedCombo.id}：{trimRouteSuffix(selectedCombo.label)}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
+            このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）と改善レポートが下に表示されています。
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const Badge = ({ status }) => {
   const map = { ok: { bg: C.B, icon: "✓" }, warn: { bg: C.C, icon: "!" }, ng: { bg: C.red, icon: "✗" } };
@@ -51,8 +177,34 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
-export default function ShareContent({ input, result, improveResult, visualMock, error, expiredAt }) {
-  const d = result;
+export default function ShareContent({ input, result, improveResult, visualMock, improveResultsByCombination, visualMocksByCombination, error, expiredAt }) {
+  // 組み合わせパターンが含まれる新スキーマ対応。タブ切替で表示を変える。
+  const hasCombinations = !!(result?.combinations && Array.isArray(result.combinations) && result.combinations.length > 0);
+  const recommendedId = result?.recommended_combination_id;
+  const [selectedCombinationId, setSelectedCombinationId] = useState(
+    hasCombinations ? (recommendedId || result.combinations[0]?.id) : null
+  );
+
+  // 選択中パターンの AB3C データを top-level に展開した shadowResult を使う。
+  // 旧データ（combinations 無し）は result そのまま。
+  const d = useMemo(() => {
+    if (!hasCombinations) return result;
+    const combo = result.combinations.find(c => c?.id === selectedCombinationId) || result.combinations[0];
+    return buildShadowResultFromCombo(combo, result.company_core);
+  }, [hasCombinations, result, selectedCombinationId]);
+
+  // 改善レポート・ビジュアルモックも選択中パターンのものに切り替え。
+  // キャッシュにあればそれを、無ければ既定（recommended）の improveResult / visualMock にフォールバック。
+  const displayedImprove = useMemo(() => {
+    if (!hasCombinations || !improveResultsByCombination) return improveResult;
+    return improveResultsByCombination[selectedCombinationId] || improveResult;
+  }, [hasCombinations, improveResultsByCombination, improveResult, selectedCombinationId]);
+
+  const displayedVisual = useMemo(() => {
+    if (!hasCombinations || !visualMocksByCombination) return visualMock;
+    return visualMocksByCombination[selectedCombinationId] || visualMock;
+  }, [hasCombinations, visualMocksByCombination, visualMock, selectedCombinationId]);
+
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
 
@@ -108,6 +260,19 @@ export default function ShareContent({ input, result, improveResult, visualMock,
     )}
   </div>
 )}
+            {/* AB3C戦略分析レポート 大見出し（メインUIと同じ黒帯） */}
+            <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+            </div>
+            {hasCombinations && (
+              <CombinationSwitcher
+                combinations={result.combinations}
+                selectedId={selectedCombinationId}
+                recommendedId={recommendedId}
+                onSelect={setSelectedCombinationId}
+              />
+            )}
             <div style={{ marginBottom: 28 }}>
               <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${d.benefit.core}`} />
               <div style={g2}>
@@ -195,49 +360,68 @@ export default function ShareContent({ input, result, improveResult, visualMock,
                   </div>
                 ))}
               </div>
+              {/* AB3Cスコア（メインUIと同じ ok=2点 / warn=1点 / ng=0点 の合計）*/}
+              <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${C.border}`, textAlign: "right" }}>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink }}>
+                  AB3Cスコア：{(d.checkpoints || []).reduce(function(acc, cpi) { return acc + (cpi.status === "ok" ? 2 : cpi.status === "warn" ? 1 : 0); }, 0)} / 10
+                </span>
+              </div>
             </div>
           </div>
         )}
-{improveResult && (
-  <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px", marginTop: 32 }}>
-    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 24, borderBottom: `2px solid ${C.border}`, paddingBottom: 16 }}>🔧 ウェブサイト改善レポート</div>
-    {/* 5つのチェックポイントは上の AB3C セクションで既に表示されているためここには配置しない */}
-    {[
-      { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
-      { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
-      { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
-    ].map(section => (
-      <div key={section.key} style={{ marginBottom: 28 }}>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
-        {improveResult[section.key]?.map((item, i) => (
-          <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
-            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
-            <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+{displayedImprove && (
+  <div style={{ marginTop: 32 }}>
+    {/* ウェブサイト改善レポート 大見出し（メインUIと同じ黒帯） */}
+    <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+    </div>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "28px 32px" }}>
+      {/* 改善後のファーストビュー・イメージ（メインUIと同じ位置：3項目セクションより上） */}
+      {displayedVisual && (
+        <div className="visual-mock-section" style={{ marginBottom: 32 }}>
+          <style>{`
+            @media print {
+              .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
+              .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
+              .visual-mock-frame { break-before: avoid-page; page-break-before: avoid; }
+              .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
+            }
+          `}</style>
+          <div className="visual-mock-banner" style={{ borderLeft: `4px solid ${C.ink}`, padding: "6px 14px", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, letterSpacing: "0.15em", color: C.muted, marginBottom: 2 }}>IMPROVED FIRST-VIEW MOCKUP</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink }}>改善後のファーストビュー・イメージ</div>
           </div>
-        ))}
-      </div>
-    ))}
-    {visualMock && (
-      <div className="visual-mock-section" style={{ marginTop: 32, paddingTop: 24, borderTop: `2px solid ${C.border}` }}>
-        <style>{`
-          @media print {
-            .visual-mock-section { break-inside: avoid-page; page-break-inside: avoid; }
-            .visual-mock-banner { break-after: avoid-page; page-break-after: avoid; }
-            .visual-mock-caption { break-inside: avoid-page; page-break-inside: avoid; }
-          }
-        `}</style>
-        <div className="visual-mock-banner" style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 14 }}>改善後のファーストビュー・イメージ</div>
-        <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
-          <ShadowMock html={visualMock.visual_mock_html} style={{ display: "block", width: "100%" }} />
+          <div className="visual-mock-frame">
+            <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+              <ShadowMock html={displayedVisual.visual_mock_html} style={{ display: "block", width: "100%" }} />
+            </div>
+            {displayedVisual.caption && (
+              <div className="visual-mock-caption" style={{ marginTop: 12, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 15, color: C.ink, lineHeight: 1.7 }}>
+                <b style={{ color: C.A }}>💡 このビジュアルの意図：</b>{displayedVisual.caption}
+              </div>
+            )}
+          </div>
         </div>
-        {visualMock.caption && (
-          <div className="visual-mock-caption" style={{ marginTop: 10, padding: "12px 16px", background: C.highlight, borderLeft: `4px solid ${C.B}`, fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
-            <b style={{ color: C.B }}>💡 このビジュアルの意図：</b>{visualMock.caption}
-          </div>
-        )}
-      </div>
-    )}
+      )}
+      {/* 5つのチェックポイントは上の AB3C セクションで既に表示されているためここには配置しない */}
+      {[
+        { key: "contents", label: "📝 追加すべきコンテンツ", color: C.A },
+        { key: "design", label: "🎨 改善すべきデザイン・ビジュアル", color: C.B },
+        { key: "structure", label: "🏗️ サイト構造の改善", color: C.C },
+      ].map(section => (
+        <div key={section.key} style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 16, fontWeight: 700, color: section.color, marginBottom: 14, borderLeft: `3px solid ${section.color}`, paddingLeft: 12 }}>{section.label}</div>
+          {displayedImprove[section.key]?.map((item, i) => (
+            <div key={i} style={{ background: C.highlight, borderRadius: 6, padding: "14px 16px", marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.ink, marginBottom: 6 }}>{i + 1}. {item.title}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 6 }}><b>理由：</b>{item.reason}</div>
+              <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7 }}><b>実装例：</b>{item.example}</div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
   </div>
 )}
       </div>

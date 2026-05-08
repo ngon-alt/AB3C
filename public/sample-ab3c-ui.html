@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AB3C 組み合わせパターン UI レイアウト案</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    background: #f0f0e8;
+    padding: 0;
+    margin: 0;
+    color: #000;
+  }
+  .page-header {
+    padding: 32px 40px 24px;
+    background: #fff;
+    border-bottom: 2px solid #0d9488;
+  }
+  .page-header h1 {
+    font-family: "Noto Serif JP", serif;
+    font-size: 26px;
+    margin: 0 0 8px 0;
+  }
+  .page-header p {
+    font-size: 16px;
+    color: #555;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .nav {
+    padding: 16px 40px;
+    background: #1a1a14;
+    color: #fff;
+    display: flex;
+    gap: 24px;
+    font-size: 15px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    background: #333;
+  }
+  .nav a:hover { background: #0d9488; }
+  .layout-section {
+    padding: 40px;
+    border-bottom: 4px solid #ddd;
+  }
+  .layout-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 22px;
+    margin: 0 0 8px 0;
+  }
+  .layout-pros {
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0 0 24px 0;
+    padding: 12px 16px;
+    background: #fff;
+    border-left: 4px solid #0d9488;
+  }
+  .layout-pros strong { color: #0d9488; }
+
+  /* === Common app frame === */
+  .app-frame {
+    display: grid;
+    grid-template-columns: 180px 1fr 380px;
+    background: #fff;
+    border: 2px solid #1a1a14;
+    border-radius: 6px;
+    overflow: hidden;
+    min-height: 700px;
+  }
+  .sidebar {
+    background: #0d9488;
+    color: #fff;
+    padding: 16px 12px;
+    font-size: 12px;
+  }
+  .sidebar h3 {
+    font-size: 13px;
+    margin: 0 0 12px 0;
+    opacity: 0.8;
+  }
+  .sidebar-item {
+    background: rgba(255,255,255,0.15);
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  .sidebar-item.active {
+    background: #fff;
+    color: #0d9488;
+    font-weight: bold;
+  }
+  .main {
+    background: #f5f5f0;
+    padding: 24px;
+    overflow: hidden;
+  }
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ccc;
+  }
+  .main-header h2 {
+    font-size: 18px;
+    margin: 0;
+  }
+  .main-header .url {
+    font-size: 12px;
+    color: #777;
+  }
+  .chat-panel {
+    background: #a7e9e0;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chat-panel h3 {
+    font-size: 14px;
+    margin: 0 0 6px 0;
+    color: #0d9488;
+    font-weight: bold;
+  }
+  .chat-msg {
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .chat-msg.user {
+    background: #0d9488;
+    color: #fff;
+    align-self: flex-end;
+    max-width: 85%;
+  }
+  .chat-input {
+    margin-top: auto;
+    background: #fff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 12px;
+    color: #999;
+    border: 1px solid #ccc;
+  }
+  .chat-context-banner {
+    background: #fff;
+    border: 2px solid #0d9488;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .chat-context-banner strong { color: #0d9488; }
+
+  /* === Combination card (compact) === */
+  .combo-card {
+    background: #fff;
+    border: 2px solid #1a1a14;
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+  }
+  .combo-card.selected {
+    border-color: #ff0000;
+    box-shadow: 0 0 0 4px rgba(255,0,0,0.15);
+  }
+  .combo-label {
+    background: #1a1a14;
+    color: #fff;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 12px;
+    border-radius: 3px;
+  }
+  .combo-card.selected .combo-label {
+    background: #ff0000;
+  }
+  .mini-svg-wrap {
+    background: #fafafa;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+  .combo-rows {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .combo-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #ddd;
+  }
+  .combo-row:last-child { border-bottom: none; }
+  .combo-row .lbl { font-weight: bold; font-size: 11px; color: #555; }
+  .combo-row .lbl.b { color: #ff0000; }
+  .combo-row .lbl.a { color: #1a6fd4; }
+  .combo-msg {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: #1a1a14;
+    color: #fff;
+    border-radius: 4px;
+    font-family: "Noto Serif JP", serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .combo-msg .b { color: #ff8a8a; font-weight: bold; }
+  .combo-msg .a { color: #7eb6ed; font-weight: bold; }
+  .combo-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-primary {
+    background: #ff0000;
+    color: #fff;
+  }
+  .btn-secondary {
+    background: #555;
+    color: #fff;
+  }
+  .btn-outline {
+    background: #fff;
+    color: #1a1a14;
+    border: 1.5px solid #1a1a14;
+  }
+
+  /* === Layout 1: 縦並び全表示 === */
+  .layout1-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* === Layout 2: タブ切替 === */
+  .tabs-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 10px 18px;
+    background: #d0d0d0;
+    color: #555;
+    border-radius: 4px 4px 0 0;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: #1a1a14;
+    color: #fff;
+  }
+  .tab.active.b1 {
+    background: #ff0000;
+  }
+
+  /* === Layout 3: 一覧→拡大 === */
+  .layout3-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .mini-combo {
+    background: #fff;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mini-combo.selected {
+    border-color: #ff0000;
+    background: #fff5f5;
+  }
+  .mini-combo .combo-label-mini {
+    font-size: 11px;
+    background: #1a1a14;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .mini-combo.selected .combo-label-mini {
+    background: #ff0000;
+  }
+  .mini-combo h4 {
+    font-size: 13px;
+    margin: 0 0 6px 0;
+  }
+  .mini-combo p {
+    font-size: 11px;
+    color: #555;
+    margin: 4px 0;
+    line-height: 1.5;
+  }
+  .expanded-combo {
+    background: #fff;
+    border: 2px solid #ff0000;
+    border-radius: 6px;
+    padding: 18px;
+  }
+  .expanded-combo .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .expanded-combo h3 {
+    font-size: 16px;
+    margin: 0;
+  }
+  .expanded-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>AB3C 組み合わせパターン UI レイアウト案（3種）</h1>
+  <p>同じ会社で「組み合わせパターン」を3案AIが出して、ユーザーが1つ選んでチャットで深掘りする流れ。レイアウトの見せ方を3パターン比較。</p>
+</div>
+
+<div class="nav">
+  <span style="opacity:0.7;">レイアウト案:</span>
+  <a href="#layout1">案A 縦並び全表示</a>
+  <a href="#layout2">案B タブ切替</a>
+  <a href="#layout3">案C 一覧＋拡大</a>
+</div>
+
+<!-- ============ LAYOUT 1: 縦並び全表示 ============ -->
+<div class="layout-section" id="layout1">
+  <h2 class="layout-title">案A：縦並び全表示型（全パターンが大きく一覧で見える）</h2>
+  <div class="layout-pros">
+    <strong>向いている場面:</strong> 全パターンを比較しながら検討したい。印刷・PDF保存にも向く。<br>
+    <strong>欠点:</strong> 縦スクロールが長くなる。3つあると疲れる可能性。
+  </div>
+
+  <div class="app-frame">
+    <div class="sidebar">
+      <h3>分析履歴</h3>
+      <div class="sidebar-item active">足匠（あしたくみ）</div>
+      <div class="sidebar-item">前回の分析</div>
+      <h3 style="margin-top:20px;">＋ 新規分析</h3>
+    </div>
+
+    <div class="main">
+      <div class="main-header">
+        <h2>戦略策定 - 足匠（あしたくみ）</h2>
+        <div class="url">ashi-takumi.example.com</div>
+      </div>
+
+      <div style="background:#fff; padding:14px 18px; border-radius:6px; margin-bottom:18px; font-size:14px; line-height:1.7;">
+        <strong style="font-size:15px;">AIから3つの組み合わせパターンが提案されました。</strong><br>
+        それぞれを比較して、最も強い1案を選んでください。選んだパターンについてチャットで深掘りできます。
+      </div>
+
+      <div class="layout1-stack">
+
+        <!-- Pattern 1 - SELECTED -->
+        <div class="combo-card selected">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div class="combo-label">パターン①  足の悩み解消ルート　★選択中</div>
+            <div style="font-size:11px; color:#ff0000; font-weight:bold;">深掘り中</div>
+          </div>
+          <div class="combo-rows">
+            <div class="combo-row"><div class="lbl">ターゲット</div><div>幅広・甲高など既製品が合わない人</div></div>
+            <div class="combo-row"><div class="lbl b">ベネフィット</div><div>自分の足に完璧にフィットする履き心地</div></div>
+            <div class="combo-row"><div class="lbl">競合</div><div>大手量販店の既製靴</div></div>
+            <div class="combo-row"><div class="lbl">自社の強み</div><div>100以上の木型＋熟練職人の採寸</div></div>
+            <div class="combo-row"><div class="lbl a">優位点</div><div>一人ひとりの足を採寸し最適な木型から仕立てる</div></div>
+          </div>
+          <div class="combo-msg">
+            既製品では味わえない、<span class="b">あなたの足に完璧にフィットする履き心地</span>を、<span class="a">100以上の木型と職人の採寸</span>でお届けします。
+          </div>
+          <div class="combo-actions">
+            <button class="btn btn-primary">このパターンで深掘り中 ✓</button>
+            <button class="btn btn-outline">戦略を確定</button>
+          </div>
+        </div>
+
+        <!-- Pattern 2 -->
+        <div class="combo-card">
+          <div class="combo-label">パターン②  一生モノの相棒ルート</div>
+          <div class="combo-rows">
+            <div class="combo-row"><div class="lbl">ターゲット</div><div>長く使いたいビジネスパーソン</div></div>
+            <div class="combo-row"><div class="lbl b">ベネフィット</div><div>10年以上修理しながら履ける一生モノ</div></div>
+            <div class="combo-row"><div class="lbl">競合</div><div>欧州高級ブランド（買い替え前提）</div></div>
+            <div class="combo-row"><div class="lbl">自社の強み</div><div>修理工房併設＋経年変化を計算した設計</div></div>
+            <div class="combo-row"><div class="lbl a">優位点</div><div>修理込みの生涯サポート体制</div></div>
+          </div>
+          <div class="combo-msg">
+            買い替えではなく、共に歳を重ねる靴。<span class="b">10年以上履き続けられる一生モノ</span>を、<span class="a">自社修理工房の生涯サポート</span>で守ります。
+          </div>
+          <div class="combo-actions">
+            <button class="btn btn-secondary">このパターンに切り替え</button>
+          </div>
+        </div>
+
+        <!-- Pattern 3 -->
+        <div class="combo-card">
+          <div class="combo-label">パターン③  贈り物・記念ルート</div>
+          <div class="combo-rows">
+            <div class="combo-row"><div class="lbl">ターゲット</div><div>還暦・退職祝いを探す家族</div></div>
+            <div class="combo-row"><div class="lbl b">ベネフィット</div><div>世界に一足の特別な思い出を贈れる</div></div>
+            <div class="combo-row"><div class="lbl">競合</div><div>百貨店のギフト商品</div></div>
+            <div class="combo-row"><div class="lbl">自社の強み</div><div>名入れ・記念彫刻＋オーダー仕立て</div></div>
+            <div class="combo-row"><div class="lbl a">優位点</div><div>受注後3か月かけて作る完全別注</div></div>
+          </div>
+          <div class="combo-msg">
+            還暦のお祝いに、<span class="b">世界に一足の特別な思い出</span>を、<span class="a">3か月の完全別注仕立て</span>で贈ります。
+          </div>
+          <div class="combo-actions">
+            <button class="btn btn-secondary">このパターンに切り替え</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="chat-panel">
+      <h3>分析チャット</h3>
+      <div class="chat-context-banner">
+        <strong>パターン①</strong> について深掘り中<br>
+        <span style="color:#777; font-size:11px;">他のパターンに切り替え時はカードをクリック</span>
+      </div>
+      <div class="chat-msg user">パターン①のターゲット、もう少し具体的にできる？</div>
+      <div class="chat-msg">
+        <strong>AI:</strong> 例えば「45〜60代女性で、外反母趾や開帳足など長年の悩みを抱える人」「立ち仕事で足の疲れに困っている職場の方」など、悩みの深さで絞り込めます。
+      </div>
+      <div class="chat-msg user">外反母趾の方向けに絞ろう</div>
+      <div class="chat-msg">
+        <strong>AI:</strong> 承知しました。再分析するとAdvantageは「医療連携の有無」も問われそうです。整形外科との関係性は…
+      </div>
+      <div class="chat-input">パターン①について質問...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LAYOUT 2: タブ切替 ============ -->
+<div class="layout-section" id="layout2">
+  <h2 class="layout-title">案B：タブ切替型（1パターンずつ集中表示）</h2>
+  <div class="layout-pros">
+    <strong>向いている場面:</strong> 画面密度を抑えてスッキリ見せたい。スマホ対応もしやすい。<br>
+    <strong>欠点:</strong> 一覧性が低く、比較は頭の中でやる必要がある。
+  </div>
+
+  <div class="app-frame">
+    <div class="sidebar">
+      <h3>分析履歴</h3>
+      <div class="sidebar-item active">足匠（あしたくみ）</div>
+      <div class="sidebar-item">前回の分析</div>
+    </div>
+
+    <div class="main">
+      <div class="main-header">
+        <h2>戦略策定 - 足匠（あしたくみ）</h2>
+        <div class="url">ashi-takumi.example.com</div>
+      </div>
+
+      <div style="background:#fff; padding:12px 16px; border-radius:6px; margin-bottom:16px; font-size:14px;">
+        AIが3つの組み合わせパターンを提案。タブで切り替えて比較してください。
+      </div>
+
+      <div class="tabs-bar">
+        <div class="tab active b1">パターン①  足の悩み解消</div>
+        <div class="tab">パターン②  一生モノ</div>
+        <div class="tab">パターン③  贈り物・記念</div>
+      </div>
+
+      <div class="combo-card selected" style="border-radius: 0 6px 6px 6px; border-top-color:#ff0000;">
+        <div class="combo-rows">
+          <div class="combo-row"><div class="lbl">ターゲット</div><div>幅広・甲高など既製品が合わない人</div></div>
+          <div class="combo-row"><div class="lbl b">ベネフィット</div><div>自分の足に完璧にフィットする履き心地</div></div>
+          <div class="combo-row"><div class="lbl">競合</div><div>大手量販店の既製靴</div></div>
+          <div class="combo-row"><div class="lbl">自社の強み</div><div>100以上の木型＋熟練職人の採寸</div></div>
+          <div class="combo-row"><div class="lbl a">優位点</div><div>一人ひとりの足を採寸し最適な木型から仕立てる</div></div>
+        </div>
+        <div class="combo-msg">
+          既製品では味わえない、<span class="b">あなたの足に完璧にフィットする履き心地</span>を、<span class="a">100以上の木型と職人の採寸</span>でお届けします。
+        </div>
+        <div class="combo-actions">
+          <button class="btn btn-primary">このパターンで深掘り（チャット開始）</button>
+          <button class="btn btn-outline">戦略を確定</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; padding:10px 14px; background:#fff5f5; border-left:4px solid #ff0000; font-size:12px; line-height:1.6;">
+        💬 右のチャットで、選択中のパターン①について深掘りできます。タブを切り替えると、チャット内容もそのパターンに切り替わります。
+      </div>
+    </div>
+
+    <div class="chat-panel">
+      <h3>分析チャット</h3>
+      <div class="chat-context-banner">
+        <strong>パターン①</strong> について深掘り中
+      </div>
+      <div class="chat-msg user">ターゲットを外反母趾の方に絞り込みたい</div>
+      <div class="chat-msg">
+        <strong>AI:</strong> いいですね。その場合、整形外科との連携実績もAdvantageに加えると更に強くなりそうです。提携医はありますか？
+      </div>
+      <div class="chat-input">パターン①について質問...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LAYOUT 3: 一覧→拡大 ============ -->
+<div class="layout-section" id="layout3">
+  <h2 class="layout-title">案C：一覧＋拡大型（小カード3つ並びで比較しつつ、選択カードを拡大）</h2>
+  <div class="layout-pros">
+    <strong>向いている場面:</strong> 一覧性と詳細性を両立。比較のしやすさ重視。<br>
+    <strong>欠点:</strong> 1画面の情報量が多めになる。
+  </div>
+
+  <div class="app-frame">
+    <div class="sidebar">
+      <h3>分析履歴</h3>
+      <div class="sidebar-item active">足匠（あしたくみ）</div>
+      <div class="sidebar-item">前回の分析</div>
+    </div>
+
+    <div class="main">
+      <div class="main-header">
+        <h2>戦略策定 - 足匠（あしたくみ）</h2>
+        <div class="url">ashi-takumi.example.com</div>
+      </div>
+
+      <div style="background:#fff; padding:12px 16px; border-radius:6px; margin-bottom:16px; font-size:13px;">
+        <strong>3つの組み合わせパターンから1つ選んでください</strong>（クリックで詳細展開）
+      </div>
+
+      <div class="layout3-grid">
+        <div class="mini-combo selected">
+          <div class="combo-label-mini">パターン①</div>
+          <h4>足の悩み解消ルート</h4>
+          <p><strong style="color:#ff0000;">B:</strong> 完璧にフィットする履き心地</p>
+          <p><strong style="color:#1a6fd4;">A:</strong> 100の木型＋職人採寸</p>
+          <p style="color:#999; font-size:10px; margin-top:8px;">ターゲット: 既製品が合わない人</p>
+        </div>
+        <div class="mini-combo">
+          <div class="combo-label-mini">パターン②</div>
+          <h4>一生モノの相棒ルート</h4>
+          <p><strong style="color:#ff0000;">B:</strong> 10年以上履ける一生モノ</p>
+          <p><strong style="color:#1a6fd4;">A:</strong> 自社工房の生涯サポート</p>
+          <p style="color:#999; font-size:10px; margin-top:8px;">ターゲット: ビジネスパーソン</p>
+        </div>
+        <div class="mini-combo">
+          <div class="combo-label-mini">パターン③</div>
+          <h4>贈り物・記念ルート</h4>
+          <p><strong style="color:#ff0000;">B:</strong> 世界に一足の思い出</p>
+          <p><strong style="color:#1a6fd4;">A:</strong> 3か月の完全別注</p>
+          <p style="color:#999; font-size:10px; margin-top:8px;">ターゲット: 還暦祝いを探す家族</p>
+        </div>
+      </div>
+
+      <div class="expanded-combo">
+        <div class="header">
+          <span style="background:#ff0000; color:#fff; padding:4px 10px; border-radius:3px; font-size:12px; font-weight:bold;">パターン①</span>
+          <h3>足の悩み解消ルート - 詳細</h3>
+        </div>
+
+        <div class="combo-rows">
+          <div class="combo-row"><div class="lbl">ターゲット</div><div>幅広・甲高・左右差など、既製品が合わない悩みを抱える人</div></div>
+          <div class="combo-row"><div class="lbl b">ベネフィット</div><div>痛くない、疲れない、自分の足に完璧にフィットする履き心地</div></div>
+          <div class="combo-row"><div class="lbl">競合</div><div>大手量販店の既製靴（サイズ展開で対応）</div></div>
+          <div class="combo-row"><div class="lbl">自社の強み</div><div>100以上の木型ストック＋熟練職人による足型採寸</div></div>
+          <div class="combo-row"><div class="lbl a">優位点</div><div>一人ひとりの足を採寸し、最適な木型から仕立てる</div></div>
+        </div>
+
+        <div class="combo-msg">
+          既製品では味わえない、<span class="b">あなたの足に完璧にフィットする履き心地</span>を、<span class="a">100以上の木型と職人の採寸</span>でお届けします。
+        </div>
+
+        <div class="combo-actions">
+          <button class="btn btn-primary">このパターンで深掘り（チャット開始）</button>
+          <button class="btn btn-outline">戦略を確定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-panel">
+      <h3>分析チャット</h3>
+      <div class="chat-context-banner">
+        <strong>パターン①</strong> について深掘り中
+      </div>
+      <div class="chat-msg user">既製品が合わない人の中でも一番困ってるのは誰？</div>
+      <div class="chat-msg">
+        <strong>AI:</strong> 幅広・甲高に加えて、外反母趾・開帳足など医療的な悩みを抱える方が最も困っていて、価格よりフィット感を重視する傾向があります。
+      </div>
+      <div class="chat-input">パターン①について質問...</div>
+    </div>
+  </div>
+</div>
+
+<div style="padding:40px; background:#1a1a14; color:#fff;">
+  <h3 style="font-family: 'Noto Serif JP', serif; margin:0 0 16px 0;">使い分けの目安</h3>
+  <ul style="font-size:15px; line-height:1.9; margin:0; padding-left:20px;">
+    <li><strong style="color:#7eb6ed;">案A（縦並び全表示）</strong>: 比較重視。結果のPDF/印刷に強い。スクロール許容できるなら一番わかりやすい</li>
+    <li><strong style="color:#7eb6ed;">案B（タブ切替）</strong>: シンプル。スマホ対応に強い。ただし比較しづらい</li>
+    <li><strong style="color:#7eb6ed;">案C（一覧＋拡大）</strong>: 比較性とシンプルさのバランス。直感的で学習コストが低い</li>
+  </ul>
+  <p style="font-size:14px; line-height:1.7; margin-top:20px; opacity:0.8;">
+    どれが好みですか？要素の見せ方、AB3C図の有無（今のサンプルでは省略）、ボタン文言などまだ詰める余地があります。
+  </p>
+</div>
+
+</body>
+</html>

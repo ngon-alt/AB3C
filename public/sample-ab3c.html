@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AB3C 組み合わせパターン サンプル</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    background: #f5f5f0;
+    padding: 40px;
+    color: #000;
+    margin: 0;
+  }
+  h1 {
+    font-family: "Noto Serif JP", serif;
+    font-size: 28px;
+    margin: 0 0 8px 0;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .example-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 24px;
+    padding: 12px 20px;
+    background: #fef3c7;
+    display: inline-block;
+    border-radius: 4px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .card {
+    background: #fff;
+    border: 2px solid #1a1a14;
+    padding: 32px 28px;
+    border-radius: 8px;
+  }
+  .pattern-label {
+    background: #1a1a14;
+    color: #fff;
+    padding: 10px 18px;
+    font-size: 18px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 24px;
+    border-radius: 4px;
+  }
+  .detail {
+    font-size: 18px;
+    line-height: 1.7;
+    margin: 28px 0 0 0;
+  }
+  .detail-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0d8;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label {
+    font-weight: bold;
+    font-size: 16px;
+  }
+  .label-benefit { color: #ff0000; }
+  .label-advantage { color: #1a6fd4; }
+  .strategy-msg {
+    margin-top: 28px;
+    background: #1a1a14;
+    color: #fff;
+    padding: 20px 24px;
+    font-family: "Noto Serif JP", serif;
+    font-size: 20px;
+    line-height: 1.7;
+    border-radius: 4px;
+  }
+  .strategy-msg .b { color: #ff8a8a; font-weight: bold; }
+  .strategy-msg .a { color: #7eb6ed; font-weight: bold; }
+  .strategy-msg-label {
+    font-size: 13px;
+    color: #aaa;
+    font-family: system-ui, sans-serif;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+  .note {
+    margin-top: 40px;
+    padding: 20px 24px;
+    background: #fff;
+    border-left: 4px solid #0d9488;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .note strong { color: #0d9488; }
+</style>
+</head>
+<body>
+  <h1>AB3C 組み合わせパターン サンプル</h1>
+  <div class="subtitle">
+    同じ会社でも、ターゲットとベネフィットの組み合わせで、競合・自社の強み・戦略メッセージが変わる例。<br>
+    現在の分析結果は各要素を箇条書きで並列表示しているが、本来はこのように「組み合わせ」として絞り込むことで、戦略メッセージが短く強くなる。
+  </div>
+
+  <div class="example-title">例: オーダー靴専門店「足匠（あしたくみ）」</div>
+
+  <div class="grid">
+
+    <!-- ===== Pattern 1 ===== -->
+    <div class="card">
+      <div class="pattern-label">パターン①  足の悩み解消ルート</div>
+
+      <svg viewBox="0 0 480 380" width="100%">
+        <defs>
+          <marker id="arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+          </marker>
+          <marker id="arrowback1" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 10 0 L 0 5 L 10 10 z" fill="#999"/>
+          </marker>
+        </defs>
+
+        <!-- Arrows (drawn first, behind boxes) -->
+        <line x1="290" y1="90" x2="370" y2="220" stroke="#999" stroke-width="3" marker-end="url(#arrow1)" marker-start="url(#arrowback1)"/>
+        <line x1="190" y1="90" x2="110" y2="220" stroke="#999" stroke-width="3" marker-end="url(#arrow1)" marker-start="url(#arrowback1)"/>
+        <line x1="170" y1="260" x2="310" y2="260" stroke="#999" stroke-width="3" marker-end="url(#arrow1)" marker-start="url(#arrowback1)"/>
+
+        <!-- Customer (top) -->
+        <rect x="180" y="20" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="240" y="50" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">お客さま</text>
+        <text x="240" y="72" text-anchor="middle" font-size="12" fill="#777">Customer</text>
+
+        <!-- Competitor (bottom-left) -->
+        <rect x="40" y="220" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="100" y="250" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">競合他社</text>
+        <text x="100" y="272" text-anchor="middle" font-size="12" fill="#777">Competitor</text>
+
+        <!-- Company (bottom-right) -->
+        <rect x="320" y="220" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="380" y="250" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">自社の強み</text>
+        <text x="380" y="272" text-anchor="middle" font-size="12" fill="#777">Company</text>
+
+        <!-- Benefit label (red) -->
+        <g transform="translate(370, 145)">
+          <rect x="-65" y="-22" width="130" height="44" fill="#ff0000" rx="4"/>
+          <text x="0" y="-2" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">ベネフィット</text>
+          <text x="0" y="16" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">Benefit</text>
+        </g>
+
+        <!-- Advantage label (blue) -->
+        <g transform="translate(240, 340)">
+          <rect x="-78" y="-22" width="156" height="44" fill="#1a6fd4" rx="4"/>
+          <text x="0" y="-2" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">差別的優位点</text>
+          <text x="0" y="16" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">Advantage</text>
+        </g>
+      </svg>
+
+      <div class="detail">
+        <div class="detail-row">
+          <div class="detail-label">ターゲット</div>
+          <div>幅広・甲高・左右差など、既製品が合わない悩みを抱える人</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label label-benefit">ベネフィット</div>
+          <div>痛くない、疲れない、自分の足に完璧にフィットする履き心地</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">競合</div>
+          <div>大手量販店の既製靴（サイズ展開で対応）</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">自社の強み</div>
+          <div>100以上の木型ストック＋熟練職人による足型採寸</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label label-advantage">優位点</div>
+          <div>一人ひとりの足を採寸し、最適な木型から仕立てる</div>
+        </div>
+      </div>
+
+      <div class="strategy-msg">
+        <div class="strategy-msg-label">戦略メッセージ</div>
+        既製品では味わえない、<br>
+        <span class="b">あなたの足に完璧にフィットする履き心地</span>を、<br>
+        <span class="a">100以上の木型と職人の採寸</span>でお届けします。
+      </div>
+    </div>
+
+    <!-- ===== Pattern 2 ===== -->
+    <div class="card">
+      <div class="pattern-label">パターン②  一生モノの相棒ルート</div>
+
+      <svg viewBox="0 0 480 380" width="100%">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#999"/>
+          </marker>
+          <marker id="arrowback2" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M 10 0 L 0 5 L 10 10 z" fill="#999"/>
+          </marker>
+        </defs>
+
+        <line x1="290" y1="90" x2="370" y2="220" stroke="#999" stroke-width="3" marker-end="url(#arrow2)" marker-start="url(#arrowback2)"/>
+        <line x1="190" y1="90" x2="110" y2="220" stroke="#999" stroke-width="3" marker-end="url(#arrow2)" marker-start="url(#arrowback2)"/>
+        <line x1="170" y1="260" x2="310" y2="260" stroke="#999" stroke-width="3" marker-end="url(#arrow2)" marker-start="url(#arrowback2)"/>
+
+        <rect x="180" y="20" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="240" y="50" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">お客さま</text>
+        <text x="240" y="72" text-anchor="middle" font-size="12" fill="#777">Customer</text>
+
+        <rect x="40" y="220" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="100" y="250" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">競合他社</text>
+        <text x="100" y="272" text-anchor="middle" font-size="12" fill="#777">Competitor</text>
+
+        <rect x="320" y="220" width="120" height="70" fill="#fff" stroke="#1a1a14" stroke-width="2" rx="4"/>
+        <text x="380" y="250" text-anchor="middle" font-size="16" font-weight="bold" font-family="'Noto Serif JP', serif">自社の強み</text>
+        <text x="380" y="272" text-anchor="middle" font-size="12" fill="#777">Company</text>
+
+        <g transform="translate(370, 145)">
+          <rect x="-65" y="-22" width="130" height="44" fill="#ff0000" rx="4"/>
+          <text x="0" y="-2" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">ベネフィット</text>
+          <text x="0" y="16" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">Benefit</text>
+        </g>
+
+        <g transform="translate(240, 340)">
+          <rect x="-78" y="-22" width="156" height="44" fill="#1a6fd4" rx="4"/>
+          <text x="0" y="-2" text-anchor="middle" font-size="13" fill="#fff" font-weight="bold">差別的優位点</text>
+          <text x="0" y="16" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">Advantage</text>
+        </g>
+      </svg>
+
+      <div class="detail">
+        <div class="detail-row">
+          <div class="detail-label">ターゲット</div>
+          <div>良いものを長く使いたいビジネスパーソン（30〜50代）</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label label-benefit">ベネフィット</div>
+          <div>10年以上、修理しながら履き続けられる一生モノ</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">競合</div>
+          <div>欧州高級ブランド（買い替え前提の販売モデル）</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">自社の強み</div>
+          <div>自社修理工房併設＋経年変化を計算した設計</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label label-advantage">優位点</div>
+          <div>修理込みの生涯サポート体制</div>
+        </div>
+      </div>
+
+      <div class="strategy-msg">
+        <div class="strategy-msg-label">戦略メッセージ</div>
+        買い替えではなく、共に歳を重ねる靴。<br>
+        <span class="b">10年以上履き続けられる一生モノ</span>を、<br>
+        <span class="a">自社修理工房の生涯サポート</span>で守ります。
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>ポイント</strong><br>
+    同じ会社でも、ターゲットとベネフィットの組み合わせを切り替えると、戦略メッセージは短く・強く・別物になる。<br>
+    現在は1つの分析結果ですべての要素を並列に出しているが、<strong>「組み合わせパターン」を2〜3案AIに出させて、最強の1組を選ぶ</strong>仕組みに変えると、戦略メッセージは自然と絞り込まれる。
+  </div>
+
+</body>
+</html>
