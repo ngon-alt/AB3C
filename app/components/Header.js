@@ -173,7 +173,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: C.ink, fontFamily: NAV_FONT, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 4 }}
                   title="マイアカウントメニューを開く"
                 >
-                  {session.user?.name}
+                  <span style={{ textDecoration: "underline" }}>{session.user?.name}</span>
                   <span style={{ fontSize: 10 }}>▼</span>
                 </button>
                 {showUserDropdown && (
