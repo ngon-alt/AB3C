@@ -856,16 +856,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
         </div>
       </div>
       <Divider />
-      {/* === 戦略メッセージ === */}
-      <VersionTabBar versions={versions} sectionKey="strategy_message" sectionPaths={["strategy_message"]} active={avps.strategy_message || 0} onChange={onSectionTabChange} />
-      <div style={{ background: C.phase1, borderRadius: 4, padding: "28px 32px", marginBottom: 28, position: "relative", ...(!hasVersions && cp.has && cp.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + (["#ffc107","#28a745","#007bff","#dc3545","#6f42c1"][Math.min((cp.get("strategy_message.message")||1)-1, 4)]) } : {}), ...(hasVersions && smChanges.changed.has("strategy_message.message") ? { boxShadow: "0 0 0 3px " + smChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
-        {onChat && <ChatBtn onClick={() => onChat("戦略メッセージの改善案を提案してください")} abs />}
-<div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 12 }}>戦略メッセージ = Benefit + Advantage</div>        <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.65, color: "#fff", marginBottom: 18 }}>{smData.message}</div>
-        <div style={{ fontSize: 14, lineHeight: 1.8, opacity: 0.85, color: "#fff", borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 16 }}>
-          <b>Benefit：</b>{smData.benefit_part}<br />
-          <b>Advantage：</b>{smData.advantage_part}
-        </div>
-      </div>
+      {/* 戦略メッセージは選択中Pカード内（上部）に統合済みのため、ここでの重複表示は廃止 */}
       {/* === チェックポイント === */}
       <VersionTabBar versions={versions} sectionKey="checkpoints" sectionPaths={["checkpoints"]} active={avps.checkpoints || 0} onChange={onSectionTabChange} />
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative", ...(hasVersions && cpChanges.changed.has("checkpoints") ? { boxShadow: "0 0 0 2px " + cpChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
