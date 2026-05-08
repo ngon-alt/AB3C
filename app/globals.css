@@ -38,3 +38,13 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
+
+/* 「次へ進める」ことを伝える穏やかなパルス。ヘッダー②タブが enabled かつ未アクティブのときに付与する */
+@keyframes nextStepPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(42, 42, 38, 0.45); }
+  70%  { box-shadow: 0 0 0 8px rgba(42, 42, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(42, 42, 38, 0); }
+}
+.next-step-pulse {
+  animation: nextStepPulse 2s ease-out infinite;
+}

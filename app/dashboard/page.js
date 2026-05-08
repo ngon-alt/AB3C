@@ -348,7 +348,7 @@ export default function DashboardPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 32 }}>
             {[
               { label: "発行済みURL", count: shares.length, color: C.ink },
-              { label: "有効", count: validShares.length, color: C.phase1 || "#0d9488" },
+              { label: "有効", count: validShares.length, color: C.phase1 || "#2a2a26" },
               { label: "期限切れ", count: expiredShares.length, color: C.muted },
             ].map(({ label, count, color }) => (
               <div key={label} style={{ background: C.surface, border: `1px solid ${C.border}`, borderTop: `3px solid ${color}`, borderRadius: 6, padding: "16px 20px", textAlign: "center" }}>

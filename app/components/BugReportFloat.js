@@ -10,8 +10,8 @@ const C = {
   border: "#e5e5e0",
   surface: "#ffffff",
   highlight: "#fef3c7",
-  phase1: "#0d9488",
-  phase1Bg: "#a7e9e0",
+  phase1: "#2a2a26",
+  phase1Bg: "#faf8f4",
   B: "#FF0000",
   A: "#1a6fd4",
 };
