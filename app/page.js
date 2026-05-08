@@ -2028,7 +2028,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
         // 復元されないバグの根本原因はこれ（URL末尾スラッシュ等の差で fallback も失敗するケース）。
         var site = sid ? sites.find(function(s) { return String(s.id) === String(sid); }) : null;
         if (!site && urlParam) {
-          site = sites.find(function(s) { return s.site_url === urlParam; });
+          // URL 末尾スラッシュ・https/http・大文字小文字の差を正規化して照合する。
+          // 直接 URL で開いた時に DB と string-equal で一致せず、確定履歴やフラグが
+          // 復元されないバグの修正（権さん指摘）。API 側 (POST /api/sites) と同じ正規化を使う。
+          var normalizeUrl = function(u) { return u ? String(u).replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase() : ""; };
+          var nUrlParam = normalizeUrl(urlParam);
+          site = sites.find(function(s) { return normalizeUrl(s.site_url) === nUrlParam; });
         }
         if (site) {
           setSiteId(site.id);
