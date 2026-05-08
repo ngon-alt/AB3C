@@ -13,8 +13,9 @@ const C = {
   muted: "#78716c",
   A: "#1a6fd4",
   B: "#FF0000",
-  phase1: "#0d9488",
-  phase2: "#ea580c",
+  // フェーズ色は廃止し「墨色」で統一。タブの番号①②と矢印で進行方向を表現する
+  phase1: "#2a2a26",
+  phase2: "#2a2a26",
 };
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
@@ -23,9 +24,8 @@ const ACTIVE_PLAN_STORAGE_KEY = "ab3c_active_plan_id";
 
 export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, previousSiteId, previousSiteUrl, previousSiteConfirmed, phase, strategyConfirmed, onConfirmStrategy, canAccessBansou: canAccessBansouProp, onNewAnalysis, onSwitchToAnalysis, onSwitchToAction }) {
   const { data: session, status: sessionStatus } = useSession();
-  // TOPページではキャッチコピーがあるためヘッダーサブタイトルは非表示にする（重複解消）
+  // 全ページでヘッダー直下に共通サブタイトルを表示する（権さん指示で統一）
   const pathname = usePathname();
-  const isHomePage = pathname === "/";
   // sessionStorage キャッシュから初期化（ページ遷移後の「無料→指南15」のチラつき防止）
   const readPlanCache = () => {
     if (typeof window === "undefined") return null;
@@ -155,11 +155,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               on <span style={{ color: C.A }}>A</span><span style={{ color: C.B }}>B</span><span style={{ color: C.ink }}>3C</span>
             </span>
           </div>
-          {!isHomePage && (
-            <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
-              選ばれる理由を言語化する 戦略策定AI
-            </div>
-          )}
+          <div style={{ fontFamily: "'Noto Sans JP', sans-serif", fontSize: 14, color: C.ink, letterSpacing: "0.05em", marginTop: 2 }}>
+            選ばれる理由を言語化する 戦略策定AI
+          </div>
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
           {sessionStatus === "loading" ? (
@@ -175,7 +173,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   style={{ background: "transparent", border: "none", padding: 0, cursor: "pointer", color: C.ink, fontFamily: NAV_FONT, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 4 }}
                   title="マイアカウントメニューを開く"
                 >
-                  {session.user?.name}
+                  <span style={{ textDecoration: "underline" }}>{session.user?.name}</span>
                   <span style={{ fontSize: 10 }}>▼</span>
                 </button>
                 {showUserDropdown && (
@@ -295,7 +293,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   style={{
                     position: "absolute", top: -4, right: -8,
                     width: 10, height: 10, borderRadius: "50%",
-                    background: "#ea580c", border: "2px solid #fff",
+                    background: "#c0392b", border: "2px solid #fff",
                   }}
                 />
               )}
@@ -313,22 +311,21 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
       </div>
       {/* 下段: メインナビ（ピル型ステッパー） */}
       <nav style={{ padding: "12px 24px 14px", display: "flex", alignItems: "center", gap: 6, background: "#fff", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
-        {/* ⓪ 新規戦略診断 — 「入口」のニュートラルなスレート色（Benefit赤/Advantage青/teal/orangeと衝突しない） */}
+        {/* ⓪ 新規戦略診断 — ①② と同じ墨色＋中立グレーで統一 */}
         {(() => {
           const active = phase === "input";
-          const PHASE0 = "#64748b"; // slate-500 系: 中立で「まだ選択前」を表現
           return (
             <button onClick={() => { if (onNewAnalysis) onNewAnalysis(); else window.location.href = "/"; }}
               title="URL or テキスト入力から新規に戦略診断を実行します（戦略診断チケットはこのステップのみが対象です）"
               style={{
                 padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
-                background: active ? PHASE0 : "#e2e8f0",
-                color: active ? "#fff" : "#475569",
-                border: active ? `2px solid ${PHASE0}` : `2px solid transparent`,
+                background: active ? "#2a2a26" : "#e5e5e0",
+                color: active ? "#fff" : "#2a2a26",
+                border: active ? `2px solid #2a2a26` : `2px solid transparent`,
                 borderRadius: 999,
                 display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer",
               }}>
-              <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#94a3b8", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
+              <span style={{ background: active ? "rgba(255,255,255,0.25)" : "#2a2a26", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, fontFamily: "'Space Mono', monospace", fontWeight: 700 }}>0</span>
               新規戦略診断
             </button>
           );
@@ -359,7 +356,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
               }}
                 style={{
                   padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
-                  background: active ? C.phase1 : enabled ? "#d8eeeb" : "#f0f0ec",
+                  background: active ? C.phase1 : enabled ? "#e5e5e0" : "#f0f0ec",
                   color: active ? "#fff" : enabled ? C.phase1 : "#999",
                   border: active ? `2px solid ${C.phase1}` : `2px solid transparent`,
                   borderRadius: 999,
@@ -400,9 +397,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   window.location.href = `/?${params.join("&")}`;
                 }
               }}
+                className={enabled && !active ? "next-step-pulse" : undefined}
                 style={{
                   padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, whiteSpace: "nowrap", fontWeight: 700, letterSpacing: "0.03em",
-                  background: active ? C.phase2 : enabled ? "#fde4cc" : "#f0f0ec",
+                  background: active ? C.phase2 : enabled ? "#e5e5e0" : "#f0f0ec",
                   color: active ? "#fff" : enabled ? C.phase2 : "#999",
                   border: active ? `2px solid ${C.phase2}` : `2px solid transparent`,
                   borderRadius: 999,
@@ -429,7 +427,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           style={{
             padding: "8px 16px", fontSize: 14, fontFamily: NAV_FONT, textDecoration: "none", whiteSpace: "nowrap", fontWeight: 600,
             color: "#fff", display: "inline-flex", alignItems: "center", gap: 6,
-            background: C.ink, border: "2px solid transparent", borderRadius: 999,
+            background: "#2a2a26", border: "2px solid transparent", borderRadius: 999,
           }}>
           📋 サイト管理
         </a>

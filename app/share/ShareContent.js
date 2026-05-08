@@ -284,10 +284,10 @@ export default function ShareContent({ input, result, improveResult, visualMock,
     )}
   </div>
 )}
-            {/* AB3C戦略分析レポート 大見出し（メインUIと同じ黒帯） */}
-            <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
-              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
-              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+            {/* AB3C戦略分析レポート 大見出し（看板らしさを保つ：太い墨色上罫線＋細い下罫線＋大きな見出し） */}
+            <div style={{ borderTop: "6px solid #2a2a26", borderBottom: "1px solid #2a2a26", padding: "18px 8px 16px", marginBottom: 28 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.18em", color: "#2a2a26", marginBottom: 6 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: "#2a2a26", letterSpacing: "0.02em" }}>AB3C戦略分析レポート</div>
             </div>
             {hasCombinations && (
               <CombinationSwitcher

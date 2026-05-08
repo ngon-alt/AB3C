@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 const C = {
   bg: "#f5f2eb", surface: "#ffffff", border: "#e5e5e0",
   ink: "#1a1a14", muted: "#78716c", A: "#1a6fd4",
-  phase1: "#0d9488", phase2: "#ea580c",
+  phase1: "#2a2a26", phase2: "#2a2a26",
 };
 
 const faqs = [
