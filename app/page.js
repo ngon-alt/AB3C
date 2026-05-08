@@ -3238,11 +3238,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
 <div id="result-area">
-  <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 24 }}>
+  <div style={{ borderTop: "6px solid #2a2a26", borderBottom: "1px solid #2a2a26", padding: "18px 8px 16px", marginBottom: 24 }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>AB3C STRATEGY ANALYSIS REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>AB3C戦略分析レポート</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.18em", color: "#2a2a26", marginBottom: 6 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: "#2a2a26", letterSpacing: "0.02em" }}>AB3C戦略分析レポート</div>
       </div>
       {analyzedAt && (
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", textAlign: "right" }}>
@@ -3311,9 +3311,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   {/* 改善レポートの見出し＋パターン切替（combinations がある場合は常に表示。ローディング中も切替できるよう外出し） */}
   {currentInput?.startsWith("http") && Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 && (
     <div style={{ marginTop: 48 }}>
-      <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 16 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>WEBSITE IMPROVEMENT REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>ウェブサイト改善レポート</div>
+      <div style={{ borderTop: "6px solid #2a2a26", borderBottom: "1px solid #2a2a26", padding: "18px 8px 16px", marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.18em", color: "#2a2a26", marginBottom: 6 }}>WEBSITE IMPROVEMENT REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: "#2a2a26", letterSpacing: "0.02em" }}>ウェブサイト改善レポート</div>
       </div>
       <CombinationTabBar
         combinations={currentResult.combinations}
@@ -3360,9 +3360,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div id="improve-area" style={{ marginTop: Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 ? 16 : 48 }}>
       {/* combinations が無い旧データの場合のみ、ここで見出しを表示。新データは上で表示済み */}
       {!(Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0) && (
-        <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 28 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>WEBSITE IMPROVEMENT REPORT</div>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>ウェブサイト改善レポート</div>
+        <div style={{ borderTop: "6px solid #2a2a26", borderBottom: "1px solid #2a2a26", padding: "18px 8px 16px", marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, letterSpacing: "0.18em", color: "#2a2a26", marginBottom: 6 }}>WEBSITE IMPROVEMENT REPORT</div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: "#2a2a26", letterSpacing: "0.02em" }}>ウェブサイト改善レポート</div>
         </div>
       )}
       {/* 5つのチェックポイントは上の AB3C 分析セクションで既に表示されているため、
