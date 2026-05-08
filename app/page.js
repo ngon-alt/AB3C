@@ -609,7 +609,7 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
         </div>
       </div>
 
-      {/* 現在表示中の見出し帯：上部に太いストライプ＋「PX」を色付きバッジに */}
+      {/* 選択中パターンの紹介＋戦略メッセージ（タイトル）を一体化したカード */}
       {selectedCombo && (
         <div style={{
           background: "#fff",
@@ -619,10 +619,8 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
         }}>
           <div style={{ background: patternColor(selectedCombo.id), height: 10 }} />
           <div style={{ padding: "16px 22px" }}>
+            {/* パターン識別行：P{id} バッジ + ターゲット説明（誰向け？） */}
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
-                現在表示中
-              </span>
               <span style={{
                 background: patternColor(selectedCombo.id),
                 color: "#fff",
@@ -635,13 +633,29 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
               }}>
                 P{selectedCombo.id}
               </span>
-              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
+              <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
                 {trimRouteSuffix(selectedCombo.label)}
               </span>
             </div>
-            <div style={{ fontSize: 14, color: "#555", marginTop: 8, lineHeight: 1.7, fontFamily: sansFont }}>
-              このパターンに合わせた AB3C 分析（ターゲット・競合・自社強み・市場規模）が下に表示されています。
-            </div>
+            {/* 戦略メッセージ（タイトル）：このパターンの提供価値の核心 */}
+            {selectedCombo.strategy_message?.message && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", color: "#888", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+                <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
+                  {selectedCombo.strategy_message.message}
+                </div>
+                {(selectedCombo.strategy_message.benefit_part || selectedCombo.strategy_message.advantage_part) && (
+                  <div style={{ marginTop: 10, fontSize: 13, lineHeight: 1.8, color: "#555", fontFamily: sansFont }}>
+                    {selectedCombo.strategy_message.benefit_part && (
+                      <div><b style={{ color: C.B }}>Benefit：</b>{selectedCombo.strategy_message.benefit_part}</div>
+                    )}
+                    {selectedCombo.strategy_message.advantage_part && (
+                      <div><b style={{ color: C.A }}>Advantage：</b>{selectedCombo.strategy_message.advantage_part}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -3194,7 +3208,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
 {(currentInput || chatSummaries.length > 0) && (
   <div style={{ background: "#e8e8e8", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>分析情報</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>{currentInput?.startsWith("http") ? "分析URL" : "分析テキスト"}</div>
     <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>
 {currentInput?.startsWith("http") ? (
         <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
@@ -3211,12 +3225,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     )}
   </div>
 )}
-                    
-              <TitleEditor title={historyTitle} onChange={e => {
-                setHistoryTitle(e.target.value);
-                const newHistory = [...history];
-                if (newHistory.length > 0 && !selectedHistory) { newHistory[0].preview = e.target.value; setHistory(newHistory); localStorage.setItem("ab3c_history", JSON.stringify(newHistory)); }
-              }} />
+              {/* 全体タイトル編集欄は廃止：戦略メッセージは各パターンに紐づくため、選択中Pカード内に表示する */}
               {shareUrl && (
                 <div style={{ background: "#e8e8e8", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.B, marginBottom: 6 }}>
