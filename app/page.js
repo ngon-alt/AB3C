@@ -2490,6 +2490,24 @@ useEffect(() => {
           alert(errMsg + "\n再度お試しいただくか、ページを再読み込みしてください。");
           return;
         }
+        // レスポンス本文から「実際に DB に確定状態が反映されたか」を検証する。
+        // 200 OK でも WHERE 句で 0 件マッチ（例: targetSiteId が他ユーザー所有・既に削除済み）の場合、
+        // site が null/undefined で返ってきて UI だけ確定済みになる silent bug を防ぐ。
+        try {
+          const respJson = await resp.json();
+          const savedSite = respJson?.site;
+          if (!savedSite) {
+            alert("保存に失敗しました（サーバーから対象サイトのデータが返ってきませんでした）。\nサイトIDが正しいか、サイトが削除されていないか確認してください。\n対象ID: " + targetSiteId);
+            return;
+          }
+          if (savedSite.strategy_confirmed !== true) {
+            alert("保存に失敗しました（DB に確定フラグが反映されませんでした）。\nもう一度お試しください。\n返却された strategy_confirmed: " + JSON.stringify(savedSite.strategy_confirmed));
+            return;
+          }
+        } catch (e) {
+          // 本文パースに失敗しても 200 は返ったので、警告だけ出して続行（保守的）
+          console.warn("確定後のレスポンス本文パース失敗:", e);
+        }
         setStrategyConfirmed(true);
         // 世代タブの最新世代を確定済みマークに
         setAnalysisVersions(function (prev) {
