@@ -2481,7 +2481,15 @@ useEffect(() => {
         try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
         existing2.push(snapshot);
         // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
-        await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
+        // レスポンスステータスを必ず検証する。HTTP エラー（401/403/500 等）でも fetch は throw しないため、
+        // 検証なしで進めると「ローカル UI は確定済み・DB は未確定」のズレが発生する（過去にこれで履歴消失バグ発生）。
+        const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: targetSiteId, latest_analysis: currentResult, strategy_confirmed: true, confirmations: existing2 }) });
+        if (!resp.ok) {
+          let errMsg = "保存に失敗しました（HTTP " + resp.status + "）。";
+          try { const errBody = await resp.json(); if (errBody?.error) errMsg = errBody.error; } catch (e) {}
+          alert(errMsg + "\n再度お試しいただくか、ページを再読み込みしてください。");
+          return;
+        }
         setStrategyConfirmed(true);
         // 世代タブの最新世代を確定済みマークに
         setAnalysisVersions(function (prev) {
@@ -2498,7 +2506,10 @@ useEffect(() => {
           localStorage.setItem(chKey2, JSON.stringify(existing2));
           setConfirmHistory(existing2);
         } catch (e) {}
-      } catch (e) { alert("保存に失敗しました。"); }
+      } catch (e) {
+        // ネットワーク断・JSONパースエラー等
+        alert("保存に失敗しました。ネットワーク接続を確認して再度お試しください。\n\n" + (e?.message || ""));
+      }
     }
   };
 
@@ -2599,16 +2610,24 @@ useEffect(() => {
     if (!ok) return;
     try {
       if (siteId) {
-        await fetch("/api/sites", {
+        const resp = await fetch("/api/sites", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: siteId, strategy_confirmed: false }),
         });
+        if (!resp.ok) {
+          let errMsg = "解除に失敗しました（HTTP " + resp.status + "）。";
+          try { const errBody = await resp.json(); if (errBody?.error) errMsg = errBody.error; } catch (e) {}
+          alert(errMsg + "\n再度お試しいただくか、ページを再読み込みしてください。");
+          return;
+        }
       }
       setStrategyConfirmed(false);
       setViewOverride("analysis"); // フェーズを①に戻す
       window.scrollTo(0, 0);
-    } catch (e) { alert("解除に失敗しました。"); }
+    } catch (e) {
+      alert("解除に失敗しました。ネットワーク接続を確認して再度お試しください。\n\n" + (e?.message || ""));
+    }
   };
 
  const notify = (text) => {
