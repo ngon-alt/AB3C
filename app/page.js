@@ -3265,26 +3265,42 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       ✏️ このテキストを修正して再分析
     </button>
   )}
-  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
-    {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
-  </button>
-  <button
-    onClick={() => {
-      var origTitle = document.title;
-      var printName = "AB3C分析";
-      try {
-        if (currentInput?.startsWith("http")) printName = new URL(currentInput).hostname.replace(/^www\./, "");
-      } catch (e) {}
-      if (historyTitle) printName += " — " + historyTitle.slice(0, 60);
-      document.title = printName;
-      window.print();
-      document.title = origTitle;
-    }}
-    style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
-    title="現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"
-  >
-🖨️ 表示中のパターンを印刷・ＰＤＦ
-  </button>
+  {(() => {
+    // 改善レポート/ビジュアルモック生成中は state が未完了なので、シェアや印刷を押されると
+    // AB3C分析だけが共有/出力されてしまう（権さん指摘）。生成中はボタンを無効化する。
+    const isGenerating = improveLoading || improveSwitchLoading || visualLoading;
+    const genTip = "ウェブサイト改善レポートを生成中です。完了までお待ちください。";
+    const shareDisabled = sharing || isGenerating;
+    return (
+      <>
+        <button
+          onClick={() => shareResult(currentInput || "", currentResult)}
+          disabled={shareDisabled}
+          title={isGenerating ? genTip : undefined}
+          style={{ background: shareDisabled ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: shareDisabled ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", opacity: shareDisabled ? 0.7 : 1 }}>
+          {sharing ? "作成中…" : isGenerating ? "🔗 生成完了までお待ちください" : "🔗 シェアＵＲＬを発行"}
+        </button>
+        <button
+          onClick={() => {
+            var origTitle = document.title;
+            var printName = "AB3C分析";
+            try {
+              if (currentInput?.startsWith("http")) printName = new URL(currentInput).hostname.replace(/^www\./, "");
+            } catch (e) {}
+            if (historyTitle) printName += " — " + historyTitle.slice(0, 60);
+            document.title = printName;
+            window.print();
+            document.title = origTitle;
+          }}
+          disabled={isGenerating}
+          style={{ background: isGenerating ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: isGenerating ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", opacity: isGenerating ? 0.7 : 1 }}
+          title={isGenerating ? genTip : "現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"}
+        >
+          {isGenerating ? "🖨️ 生成完了までお待ちください" : "🖨️ 表示中のパターンを印刷・ＰＤＦ"}
+        </button>
+      </>
+    );
+  })()}
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
     // 古い世代を見ている時は確定ボタンを非表示にする
