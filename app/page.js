@@ -1652,12 +1652,21 @@ const [chatSummaries, setChatSummaries] = useState([]);
     // パターン切替で生成した改善レポート/ビジュアルモックを DB に永続化する。
     // 過去はメモリのみで、確定タイミングや次回訪問時に消えていた（権さん指摘）。
     // siteId が確定している（既存サイトを開いている）場合のみ実行。
-    // fire-and-forget（背景で書き込み、UI は止めない）
+    // fire-and-forget（背景で書き込み、UI は止めない）。
+    // 全パターン分のキャッシュ（improve_results_by_combination 等）も同時に保存して、
+    // 次回ページ訪問時に再生成不要にする（権さん指摘 — パターン切替で毎回生成は遅すぎる）。
     try {
       if (siteId) {
         const persistBody = { id: siteId };
         if (improveData && !improveData.error) persistBody.improve_result = improveData;
         if (visualData && !visualData.error) persistBody.visual_mock = visualData;
+        // 今回生成完了したパターンを by_combination キャッシュに上書き登録
+        const nextImproveByCombo = { ...improveResultsByCombination };
+        if (improveData && !improveData.error) nextImproveByCombo[combinationId] = improveData;
+        const nextVisualByCombo = { ...visualMocksByCombination };
+        if (visualData && !visualData.error) nextVisualByCombo[combinationId] = visualData;
+        if (Object.keys(nextImproveByCombo).length > 0) persistBody.improve_results_by_combination = nextImproveByCombo;
+        if (Object.keys(nextVisualByCombo).length > 0) persistBody.visual_mocks_by_combination = nextVisualByCombo;
         if (Object.keys(persistBody).length > 1) {
           fetch("/api/sites", {
             method: "PUT",
@@ -1777,6 +1786,13 @@ const [chatSummaries, setChatSummaries] = useState([]);
           if (!match) return;
           setSiteId(match.id);
           if (match.strategy_confirmed) setStrategyConfirmed(true);
+          // 全パターンキャッシュ復元（reload 後のパターン切替を即時表示）
+          if (match.improve_results_by_combination && typeof match.improve_results_by_combination === "object") {
+            setImproveResultsByCombination(match.improve_results_by_combination);
+          }
+          if (match.visual_mocks_by_combination && typeof match.visual_mocks_by_combination === "object") {
+            setVisualMocksByCombination(match.visual_mocks_by_combination);
+          }
           if (Array.isArray(match.confirmations) && match.confirmations.length > 0) {
             try { localStorage.setItem("ab3c_confirmations_" + match.id, JSON.stringify(match.confirmations)); } catch (e) {}
             setConfirmHistory(match.confirmations);
@@ -2169,6 +2185,13 @@ const [chatSummaries, setChatSummaries] = useState([]);
             }
             if (site.improve_result) setImproveResult(site.improve_result);
             if (site.visual_mock) setVisualMock(site.visual_mock);
+            // 全パターン分のキャッシュ復元（reload 後のパターン切替を即時表示できるように）
+            if (site.improve_results_by_combination && typeof site.improve_results_by_combination === "object") {
+              setImproveResultsByCombination(site.improve_results_by_combination);
+            }
+            if (site.visual_mocks_by_combination && typeof site.visual_mocks_by_combination === "object") {
+              setVisualMocksByCombination(site.visual_mocks_by_combination);
+            }
             if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
             if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
             if (site.strategy_confirmed) setStrategyConfirmed(true);
@@ -2410,6 +2433,12 @@ useEffect(() => {
       }
       if (site.improve_result) setImproveResult(site.improve_result);
       if (site.visual_mock) setVisualMock(site.visual_mock);
+      if (site.improve_results_by_combination && typeof site.improve_results_by_combination === "object") {
+        setImproveResultsByCombination(site.improve_results_by_combination);
+      }
+      if (site.visual_mocks_by_combination && typeof site.visual_mocks_by_combination === "object") {
+        setVisualMocksByCombination(site.visual_mocks_by_combination);
+      }
       if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
       if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
       if (site.strategy_confirmed) setStrategyConfirmed(true);
@@ -2906,6 +2935,16 @@ if (tab === "url" && savedText.startsWith("http")) {
     }
     // 既存サイト または 新規サイト作成成功時に全データ保存
     if (targetSid) {
+      // 初回分析の改善レポート/ビジュアルは推奨パターン分のみ生成されているので、
+      // by_combination キャッシュにも recommended_combination_id をキーで登録しておく。
+      // これで再ロード時に推奨パターンを表示すれば即時キャッシュヒット。
+      const recommendedId = data?.recommended_combination_id || data?.combinations?.[0]?.id;
+      const initImproveByCombo = (improveData && !improveData.error && recommendedId)
+        ? { [recommendedId]: improveData }
+        : null;
+      const initVisualByCombo = (visualData && !visualData.error && recommendedId)
+        ? { [recommendedId]: visualData }
+        : null;
       await fetch("/api/sites", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -2914,6 +2953,8 @@ if (tab === "url" && savedText.startsWith("http")) {
           latest_analysis: data,
           improve_result: improveData && !improveData.error ? improveData : null,
           visual_mock: visualData && !visualData.error ? visualData : null,
+          improve_results_by_combination: initImproveByCombo,
+          visual_mocks_by_combination: initVisualByCombo,
           analyzed_at: Date.now(),
         }),
       });
