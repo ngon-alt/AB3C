@@ -105,7 +105,7 @@ function HelpTip({ text }) {
         <span
           style={{
             position: "absolute", top: "calc(100% + 6px)", left: "0",
-            background: "#1a1a14", color: "#fff",
+            background: "#2a2a26", color: "#fff",
             fontSize: 13, lineHeight: 1.7, fontWeight: 400,
             padding: "10px 14px", borderRadius: 4,
             width: 300, maxWidth: "min(60vw, 360px)",
@@ -474,7 +474,7 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
       </div>
 
       {/* 戦略メッセージ */}
-      <div style={{ background: C.ink, color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
+      <div style={{ background: "#2a2a26", color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>STRATEGY MESSAGE</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{strategyMessageText || "—"}</div>
       </div>
@@ -2912,7 +2912,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
         {sidebarOpen && phase !== "input" && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
+  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: "#2a2a26", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 18, fontWeight: 400, color: "#fff" }}>
@@ -3129,11 +3129,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             <div>
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
   {currentInput && !currentInput.startsWith("http") && (
-    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
+    <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
       ✏️ このテキストを修正して再分析
     </button>
   )}
-  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
+  <button onClick={() => shareResult(currentInput || "", currentResult)} disabled={sharing} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: sharing ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
     {sharing ? "作成中…" : "🔗 シェアＵＲＬを発行"}
   </button>
   <button
@@ -3148,7 +3148,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       window.print();
       document.title = origTitle;
     }}
-    style={{ background: "#555", border: "none", borderRadius: 2, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
+    style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}
     title="現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"
   >
 🖨️ 表示中のパターンを印刷・ＰＤＦ
@@ -3164,8 +3164,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           disabled={!canConfirm || strategyConfirmed}
           title={isDiagnosisActive ? "戦略診断チケットでは戦略確定はご利用いただけません" : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
           style={{
-            background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : C.phase1,
-            border: "none", borderRadius: 2,
+            background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : "#2a2a26",
+            border: "none", borderRadius: 999,
             color: "#fff",
             cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
             fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
@@ -3238,7 +3238,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
 <div id="result-area">
-  <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+  <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
       <div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
@@ -3311,7 +3311,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   {/* 改善レポートの見出し＋パターン切替（combinations がある場合は常に表示。ローディング中も切替できるよう外出し） */}
   {currentInput?.startsWith("http") && Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 && (
     <div style={{ marginTop: 48 }}>
-      <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 16 }}>
+      <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 16 }}>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
       </div>
@@ -3360,7 +3360,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div id="improve-area" style={{ marginTop: Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 ? 16 : 48 }}>
       {/* combinations が無い旧データの場合のみ、ここで見出しを表示。新データは上で表示済み */}
       {!(Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0) && (
-        <div style={{ background: C.ink, borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+        <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
         </div>
@@ -3493,7 +3493,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
         {/* 右カラム: チャットパネル（リサイズ可能） */}
         {phase !== "input" && !chatMinimized && (
-            <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: phase === "action" ? C.phase2Bg : phase === "analysis" ? C.phase1Bg : "#ecebe6", display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
+            <div id="chat-column" style={{ position: "relative", borderLeft: `1px solid ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, zIndex: 100 }}>
               {/* リサイズハンドル */}
               <div
                 onMouseDown={function() {
@@ -3514,7 +3514,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 onMouseLeave={function(e) { if (!chatResizing.current) e.currentTarget.style.background = "transparent"; }}
               />
               {/* チャットヘッダー */}
-              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: phase === "action" ? C.phase2 : phase === "analysis" ? C.phase1 : "#555", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, background: "#2a2a26", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>
                   {phase === "action" ? `アクションリスト${actions.length > 0 ? `（${actions.length}）` : ""}` : "戦略策定チャット"}
                 </span>
