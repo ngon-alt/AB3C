@@ -2481,8 +2481,22 @@ useEffect(() => {
           url: siteUrl || currentInput || "",
         };
         var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
+        // DB を真実の源として既存 confirmations を取得（LS だけに頼ると別ブラウザ・キャッシュクリア後に
+        // DB が空配列で上書きされて過去履歴が消失する事故が起きる）。
+        // DB 取得失敗時のみ LS にフォールバック。
         var existing2 = [];
-        try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
+        var dbFetchFailed = false;
+        try {
+          const dbRes = await fetch("/api/sites");
+          const dbData = await dbRes.json();
+          const dbSite = (dbData.sites || []).find(function(s) { return String(s.id) === String(targetSiteId); });
+          if (dbSite && Array.isArray(dbSite.confirmations)) {
+            existing2 = dbSite.confirmations.slice();
+          }
+        } catch (e) { dbFetchFailed = true; }
+        if (dbFetchFailed) {
+          try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
+        }
         existing2.push(snapshot);
         // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
         // レスポンスステータスを必ず検証する。HTTP エラー（401/403/500 等）でも fetch は throw しないため、
