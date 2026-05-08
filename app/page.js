@@ -3005,7 +3005,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "url" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "url" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 32px 12px 16px",
+        padding: "18px 32px 16px 18px",
         cursor: "pointer",
         textAlign: "left",
         flex: "0 0 auto"
@@ -3022,7 +3022,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         borderTop: `4px solid ${tab === "text" ? C.ink : "#c4c4c0"}`,
         borderBottom: tab === "text" ? "none" : `1px solid ${C.border}`,
         borderRadius: "6px 6px 0 0",
-        padding: "12px 32px 12px 16px",
+        padding: "18px 32px 16px 18px",
         cursor: "pointer",
         textAlign: "left",
         flex: "0 0 auto"
@@ -3450,7 +3450,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
 )}
-          <Footer />
           </div>{/* end inner padding wrapper */}
         </div>{/* end main content column */}
 
@@ -3624,6 +3623,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             </div>
         )}
       </div>{/* end grid */}
+      <Footer />
     </div>
   );
 }
