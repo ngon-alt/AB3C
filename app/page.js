@@ -2912,13 +2912,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
         {sidebarOpen && phase !== "input" && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: "#2a2a26", display: "flex", flexDirection: "column", color: "#fff", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
+  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", color: "#2a2a26", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
             {/* カラム見出し + 開閉ボタン */}
-            <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.15)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 18, fontWeight: 400, color: "#fff" }}>
+            <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 18, fontWeight: 400, color: "#2a2a26" }}>
                 {phase === "action" ? "施策一覧" : "戦略確定履歴"}
               </div>
-              <button onClick={function() { setSidebarOpen(false); }} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", fontSize: 14, padding: "2px 4px" }}>◀ 閉じる</button>
+              <button onClick={function() { setSidebarOpen(false); }} style={{ background: "transparent", border: "none", color: "#2a2a26", cursor: "pointer", fontSize: 14, padding: "2px 4px" }}>◀ 閉じる</button>
             </div>
 
             {/* フェーズ別サイドバーコンテンツ */}
@@ -2929,7 +2929,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   {threads.map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
-                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: 18, color: "#fff", background: activeThemeId === t.id ? "rgba(255,255,255,0.15)" : "transparent", display: "flex", alignItems: "center", gap: 8, borderLeft: activeThemeId === t.id ? "3px solid #fff" : "3px solid transparent", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: 18, color: "#2a2a26", background: activeThemeId === t.id ? "rgba(0,0,0,0.06)" : "transparent", display: "flex", alignItems: "center", gap: 8, borderLeft: activeThemeId === t.id ? "3px solid #2a2a26" : "3px solid transparent", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
                         <span style={{ fontSize: 18 }}>{t.icon}</span>
                         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</span>
                       </div>
@@ -2938,13 +2938,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         <div style={{ paddingLeft: 24 }}>
                           {themeChats[t.id].map(chat => (
                             <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
-                              style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: activeChatId === chat.id ? "#fff" : "rgba(255,255,255,0.6)", background: activeChatId === chat.id ? "rgba(255,255,255,0.1)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 5, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-                              {activeChatId === chat.id && <span style={{ fontSize: 8, color: "#6db3f8" }}>●</span>}
+                              style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: activeChatId === chat.id ? "#2a2a26" : "#888", background: activeChatId === chat.id ? "rgba(0,0,0,0.05)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 5, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                              {activeChatId === chat.id && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
                               <span>{chat.label}</span>
                             </div>
                           ))}
                           <div onClick={() => addSubChat(t.id)}
-                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "rgba(255,255,255,0.4)", fontFamily: "system-ui, sans-serif" }}>
+                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "#888", fontFamily: "system-ui, sans-serif" }}>
                             + チャット追加
                           </div>
                         </div>
@@ -2953,15 +2953,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   ))}
                 </div>
                 {/* 施策追加 */}
-                <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+                <div style={{ padding: "8px 14px", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
                   <button onClick={() => { const label = prompt("施策名を入力してください"); if (label?.trim()) { const newThread = { id: `custom_${Date.now()}`, label: label.trim(), icon: "💬", preset: false }; setThreads(prev => [...prev, newThread]); selectTheme(newThread.id); } }}
-                    style={{ width: "100%", background: "rgba(255,255,255,0.15)", border: "none", borderRadius: 3, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>+ 施策を追加</button>
+                    style={{ width: "100%", background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontSize: 16, padding: "10px" }}>+ 施策を追加</button>
                 </div>
               </>
             ) : (
               <div style={{ flex: 1, overflowY: "auto" }}>
                 {confirmHistory.length === 0 ? (
-                  <div style={{ padding: 16, fontSize: 14, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.6 }}>
+                  <div style={{ padding: 16, fontSize: 14, color: "#888", textAlign: "center", lineHeight: 1.6 }}>
                     戦略を確定すると<br/>ここに履歴が残ります
                   </div>
                 ) : (
@@ -2990,11 +2990,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         } catch (e) {}
                         setChangedPaths(new Map());
                       }}
-                        style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", background: isActive ? "rgba(255,255,255,0.15)" : "transparent", borderLeft: isActive ? "3px solid #6db3f8" : "3px solid transparent" }}>
-                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                        <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
+                        style={{ padding: "10px 14px", borderBottom: "1px solid rgba(0,0,0,0.06)", cursor: "pointer", background: isActive ? "rgba(0,0,0,0.06)" : "transparent", borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent" }}>
+                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
+                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                         {ch.chatSummaries && ch.chatSummaries.length > 0 && (
-                          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
+                          <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
                         )}
                       </div>
                     );
@@ -3238,16 +3238,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               )}
 <div id="result-area">
-  <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
+  <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 24 }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
       <div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>AB3C STRATEGY ANALYSIS REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>AB3C戦略分析レポート</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>AB3C STRATEGY ANALYSIS REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>AB3C戦略分析レポート</div>
       </div>
       {analyzedAt && (
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "right" }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#888", textAlign: "right" }}>
           分析日時<br />
-          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.9)" }}>{new Date(analyzedAt).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+          <span style={{ fontSize: 14, color: "#2a2a26" }}>{new Date(analyzedAt).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
         </div>
       )}
     </div>
@@ -3311,9 +3311,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   {/* 改善レポートの見出し＋パターン切替（combinations がある場合は常に表示。ローディング中も切替できるよう外出し） */}
   {currentInput?.startsWith("http") && Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 && (
     <div style={{ marginTop: 48 }}>
-      <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 16 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+      <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>WEBSITE IMPROVEMENT REPORT</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>ウェブサイト改善レポート</div>
       </div>
       <CombinationTabBar
         combinations={currentResult.combinations}
@@ -3360,9 +3360,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     <div id="improve-area" style={{ marginTop: Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0 ? 16 : 48 }}>
       {/* combinations が無い旧データの場合のみ、ここで見出しを表示。新データは上で表示済み */}
       {!(Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0) && (
-        <div style={{ background: "#2a2a26", borderRadius: 6, padding: "24px 28px", marginBottom: 28 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>WEBSITE IMPROVEMENT REPORT</div>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: "#fff" }}>ウェブサイト改善レポート</div>
+        <div style={{ borderTop: "3px solid #2a2a26", padding: "14px 4px 0", marginBottom: 28 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, letterSpacing: "0.15em", color: "#888", marginBottom: 4 }}>WEBSITE IMPROVEMENT REPORT</div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: "#2a2a26" }}>ウェブサイト改善レポート</div>
         </div>
       )}
       {/* 5つのチェックポイントは上の AB3C 分析セクションで既に表示されているため、
