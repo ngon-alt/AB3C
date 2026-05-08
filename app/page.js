@@ -475,7 +475,7 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
 
       {/* 戦略メッセージ */}
       <div style={{ background: "#2a2a26", color: "#fff", padding: "16px 20px", borderRadius: 4, marginBottom: 16 }}>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.6)", letterSpacing: "0.1em", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", letterSpacing: "0.05em", marginBottom: 6, fontWeight: 600 }}>戦略メッセージ</div>
         <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, lineHeight: 1.6, fontWeight: 700 }}>{strategyMessageText || "—"}</div>
       </div>
 
@@ -640,7 +640,7 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
             {/* 戦略メッセージ（タイトル）：このパターンの提供価値の核心 */}
             {selectedCombo.strategy_message?.message && (
               <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", color: "#888", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+                <div style={{ fontSize: 12, letterSpacing: "0.05em", color: "#888", marginBottom: 6, fontWeight: 600 }}>戦略メッセージ</div>
                 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
                   {selectedCombo.strategy_message.message}
                 </div>
@@ -3476,7 +3476,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   )}
                   {sm?.message && (
                     <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.12em", color: "#888", marginBottom: 6 }}>STRATEGY MESSAGE</div>
+                      <div style={{ fontSize: 12, letterSpacing: "0.05em", color: "#888", marginBottom: 6, fontWeight: 600 }}>戦略メッセージ</div>
                       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
                         {sm.message}
                       </div>
