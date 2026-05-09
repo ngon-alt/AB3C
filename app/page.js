@@ -3167,9 +3167,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     戦略を確定すると<br/>ここに履歴が残ります
                   </div>
                 ) : (
-                  confirmHistory.slice().reverse().map(function(ch, i) {
+                  // 「現在の戦略」= confirmHistory の最終エントリ（最新確定）。
+                  // strategy_confirmed=true の時のみ「現在の」マーカーを表示する
+                  // （未確定状態だとすべてが「過去の履歴」扱い）。
+                  (function() {
+                    var liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
+                      ? confirmHistory[confirmHistory.length - 1].id
+                      : null;
+                    return confirmHistory.slice().reverse().map(function(ch, i) {
                     // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
                     var isActive = activeConfirmId === ch.id;
+                    var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
                         setActiveConfirmId(ch.id);
@@ -3215,14 +3223,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           position: "relative",
                           zIndex: isActive ? 2 : 1,
                         }}>
-                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
+                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span>#{confirmHistory.length - i} · {ch.date}</span>
+                          {isLive && (
+                            <span style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
+                              現在
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isLive ? 700 : 400 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                         {ch.chatSummaries && ch.chatSummaries.length > 0 && (
                           <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
                         )}
                       </div>
                     );
-                  })
+                    });
+                  })()
                 )}
               </div>
             )}
@@ -3351,24 +3367,28 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
-              {/* 履歴閲覧中バナー: activeConfirmId が立っていれば過去スナップショットを表示中。
-                  確定状態の UI 表示と混同しないよう、明示的に「閲覧モードである」ことを伝える。 */}
-              {activeConfirmId && (() => {
+              {/* 履歴閲覧中バナー: 過去スナップショット（live でない方）を表示している時のみ表示。
+                  「現在の戦略」を選択している時はバナー出さない（live 状態と等価）。
+                  シンプルに「過去の戦略を表示中」だけ伝え、戻るボタンを大きく置く。 */}
+              {(() => {
+                const liveSnapId = strategyConfirmed && confirmHistory.length > 0
+                  ? confirmHistory[confirmHistory.length - 1].id
+                  : null;
+                const showBanner = activeConfirmId && activeConfirmId !== liveSnapId;
+                if (!showBanner) return null;
                 const viewingItem = confirmHistory.find(c => c.id === activeConfirmId);
                 const dateStr = viewingItem?.date || "";
+                const hasLive = liveSnapId != null;
                 return (
-                  <div style={{ background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
-                      📜 <b>履歴を閲覧中</b>{dateStr ? `（${dateStr} に確定）` : ""}<br/>
-                      <span style={{ fontSize: 13, color: C.muted }}>
-                        ※ これは過去のスナップショットです。この戦略を再度確定したい場合は下の「この履歴の戦略で再確定する →」を押してください。
-                      </span>
+                  <div style={{ background: "#fff8e1", borderLeft: "4px solid #f0a020", borderRadius: 4, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.5, fontFamily: "system-ui, sans-serif" }}>
+                      📜 <b>過去の戦略を表示中</b>{dateStr ? `（${dateStr} 確定分）` : ""}
                     </div>
                     <button
                       onClick={exitHistoryView}
-                      style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 999, color: C.ink, cursor: "pointer", fontFamily: "system-ui, sans-serif", fontSize: 13, fontWeight: 700, padding: "8px 16px", whiteSpace: "nowrap", flexShrink: 0 }}
+                      style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "system-ui, sans-serif", fontSize: 13, fontWeight: 700, padding: "8px 18px", whiteSpace: "nowrap", flexShrink: 0 }}
                     >
-                      ✕ 閲覧をやめて最新に戻る
+                      {hasLive ? "→ 現在の戦略に戻る" : "✕ 閲覧をやめる"}
                     </button>
                   </div>
                 );
@@ -3421,7 +3441,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     if (isViewingOldVersion) return null;
     // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
     // 「この履歴で再確定」ボタンに切替、解除ボタンは隠す（live でないので解除対象外）。
-    const isViewingHistory = activeConfirmId != null;
+    // 「現在の戦略」（confirmHistory の最終 = 最新確定）を選択中の場合は live 状態と等価なので
+    // 履歴閲覧モードとは扱わない。古いスナップショットを開いている時だけ「閲覧モード」として扱う。
+    const liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
+      ? confirmHistory[confirmHistory.length - 1].id
+      : null;
+    const isViewingHistory = activeConfirmId != null && activeConfirmId !== liveConfirmedSnapId;
     const confirmDisabled = !canConfirm || (strategyConfirmed && !isViewingHistory);
     const confirmLabel = isViewingHistory
       ? "この履歴の戦略で再確定する →"
