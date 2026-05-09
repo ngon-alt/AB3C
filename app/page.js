@@ -3120,7 +3120,18 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   {threads.map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
-                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: 18, color: "#2a2a26", background: activeThemeId === t.id ? "rgba(0,0,0,0.06)" : "transparent", display: "flex", alignItems: "center", gap: 8, borderLeft: activeThemeId === t.id ? "3px solid #2a2a26" : "3px solid transparent", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                        style={{
+                          padding: "8px 14px",
+                          paddingRight: activeThemeId === t.id ? "15px" : "14px",
+                          marginRight: activeThemeId === t.id ? "-1px" : "0",
+                          cursor: "pointer", fontSize: 18, color: "#2a2a26",
+                          background: activeThemeId === t.id ? C.bg : "transparent",
+                          display: "flex", alignItems: "center", gap: 8,
+                          borderLeft: activeThemeId === t.id ? "3px solid #2a2a26" : "3px solid transparent",
+                          position: "relative",
+                          zIndex: activeThemeId === t.id ? 2 : 1,
+                          fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
+                        }}>
                         <span style={{ fontSize: 18 }}>{t.icon}</span>
                         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</span>
                       </div>
@@ -3193,7 +3204,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         } catch (e) {}
                         setChangedPaths(new Map());
                       }}
-                        style={{ padding: "10px 14px", borderBottom: "1px solid rgba(0,0,0,0.06)", cursor: "pointer", background: isActive ? "rgba(0,0,0,0.06)" : "transparent", borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent" }}>
+                        style={{
+                          padding: "10px 14px",
+                          paddingRight: isActive ? "15px" : "14px",  // 選択中は +1px してメイン領域へ視覚的に繋ぐ
+                          marginRight: isActive ? "-1px" : "0",       // サイドバー右枠線を覆って「タブ」感を出す
+                          borderBottom: "1px solid rgba(0,0,0,0.06)",
+                          cursor: "pointer",
+                          background: isActive ? C.bg : "transparent",  // メイン領域と同じグレーで選択中を明示
+                          borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent",
+                          position: "relative",
+                          zIndex: isActive ? 2 : 1,
+                        }}>
                         <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
                         <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                         {ch.chatSummaries && ch.chatSummaries.length > 0 && (
