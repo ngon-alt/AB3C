@@ -3116,7 +3116,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {phase === "action" ? (
               <>
                 {/* 施策ナビ */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
+                <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
                   {threads.map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
@@ -3161,7 +3161,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               </>
             ) : (
-              <div style={{ flex: 1, overflowY: "auto" }}>
+              <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto" }}>
                 {confirmHistory.length === 0 ? (
                   <div style={{ padding: 16, fontSize: 14, color: "#888", textAlign: "center", lineHeight: 1.6 }}>
                     戦略を確定すると<br/>ここに履歴が残ります

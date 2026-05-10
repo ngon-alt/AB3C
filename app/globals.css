@@ -48,3 +48,15 @@ h1, h2, h3, h4, h5, h6 {
 .next-step-pulse {
   animation: nextStepPulse 2s ease-out infinite;
 }
+
+/* スクロールバーを非表示（コンテンツのスクロール自体は維持）。
+ * サイドバーの確定履歴リスト等で、スクロールバーがタブデザインの右端境界線を
+ * 破壊しないようにするため。マウスホイール/トラックパッドでスクロール可能。
+ */
+.hide-scrollbar {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE / Edge legacy */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;               /* Chrome / Safari / WebKit */
+}
