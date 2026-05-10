@@ -110,9 +110,12 @@ async function getSiteLimit(sql, email) {
 // 戦略指南プラン契約者の月次登録上限情報を取得
 // - 対象: 戦略指南プラン（type='support'）のみ。戦略診断チケットは対象外。
 // - 上限: 契約サイト数 × 2（初期登録1 + 月1回までの入れ替え）
+// - 24h トライアルのみのユーザー: 入れ替え不可（上限 = 契約サイト数 = 1）。
+//   削除→再登録の繰り返しで実質無制限分析されるのを防ぐ。
 async function getMonthlyRegistrationInfo(sql, email) {
   const plans = await sql`
-    SELECT id, site_limit, COALESCE(monthly_registrations_used, 0) as used
+    SELECT id, site_limit, COALESCE(monthly_registrations_used, 0) as used,
+           COALESCE(is_trial, FALSE) as is_trial
     FROM user_plans
     WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
       AND (is_trial IS NOT TRUE OR expires_at > NOW())
@@ -121,12 +124,16 @@ async function getMonthlyRegistrationInfo(sql, email) {
   if (plans.length === 0) return { isSupport: false, limit: 0, used: 0, plans: [] };
   const totalSiteLimit = plans.reduce((s, p) => s + parseInt(p.site_limit || 0), 0);
   const totalUsed = plans.reduce((s, p) => s + parseInt(p.used || 0), 0);
+  // 全てトライアル行のみの場合は入れ替え不可（×1）。有料プランが1つでもあれば通常通り×2。
+  const allTrial = plans.length > 0 && plans.every(p => p.is_trial);
+  const limit = allTrial ? totalSiteLimit : totalSiteLimit * 2;
   return {
     isSupport: true,
-    limit: totalSiteLimit * 2,
+    limit,
     used: totalUsed,
-    remaining: Math.max(0, totalSiteLimit * 2 - totalUsed),
+    remaining: Math.max(0, limit - totalUsed),
     plans,
+    allTrial,
   };
 }
 
@@ -207,13 +214,18 @@ export async function POST(req) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
     }
 
-    // 月次登録上限チェック（戦略指南プラン契約者のみ: 契約サイト数 × 3）
+    // 月次登録上限チェック（戦略指南プラン契約者のみ: 契約サイト数 × 2）
+    // トライアルユーザーは × 1（入れ替え不可）
     const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
     if (monthly.isSupport && monthly.used >= monthly.limit) {
+      const errorMessage = monthly.allTrial
+        ? `24時間無料体験では1サイトのみ登録可能です。続けてご利用いただくには戦略指南プランへのご加入をお願いします。`
+        : `今月のサイト登録上限に達しました。次回のご契約更新日以降、新しいサイトを登録できます。`;
       return NextResponse.json({
-        error: `今月のサイト登録上限に達しました。次回のご契約更新日以降、新しいサイトを登録できます。`,
+        error: errorMessage,
         monthlyLimit: monthly.limit,
         monthlyUsed: monthly.used,
+        isTrial: monthly.allTrial,
       }, { status: 403 });
     }
 
