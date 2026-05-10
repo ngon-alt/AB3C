@@ -66,6 +66,11 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`;
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_used INTEGER DEFAULT 0`;
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_reset_at TIMESTAMPTZ`;
+    // 24h 無料トライアル（戦略指南プラン体験）用フラグ
+    // is_trial=TRUE の行は expires_at を厳格にチェックする（期限切れで自動失効）
+    // 既存の有料プランは expires_at を過ぎても active のままで月次更新される設計のため、
+    // 既存挙動への影響を避けるためトライアル行のみ期限チェックを適用する
+    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`;
     // 既存の戦略指南プラン契約者に対する初回バックフィル:
     // 既に登録済みのサイト数分を「月次登録済み」としてカウントし、
     // 月初からの登録猶予が過剰に付与されないようにする。
@@ -94,6 +99,7 @@ async function getSiteLimit(sql, email) {
   const supportPlans = await sql`
     SELECT COALESCE(SUM(site_limit), 0) as total_sites FROM user_plans
     WHERE user_email = ${email} AND status = 'active' AND plan_type = 'support'
+      AND (is_trial IS NOT TRUE OR expires_at > NOW())
   `;
   const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
   if (supportPlans[0]?.total_sites > 0) return parseInt(supportPlans[0].total_sites);
@@ -109,6 +115,7 @@ async function getMonthlyRegistrationInfo(sql, email) {
     SELECT id, site_limit, COALESCE(monthly_registrations_used, 0) as used
     FROM user_plans
     WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+      AND (is_trial IS NOT TRUE OR expires_at > NOW())
     ORDER BY purchased_at ASC
   `;
   if (plans.length === 0) return { isSupport: false, limit: 0, used: 0, plans: [] };

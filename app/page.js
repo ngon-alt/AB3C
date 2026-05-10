@@ -3049,7 +3049,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteId={siteId}
         phase={phase}
         strategyConfirmed={strategyConfirmed}
-        canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0)}
+        canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0)}
         previousSiteId={previousSiteId}
         previousSiteUrl={previousSiteUrl}
         previousSiteConfirmed={previousSiteConfirmed}
@@ -3096,7 +3096,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             await restorePreviousSite("action");
           }
         }}
-        onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+        onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
       />
 
 
@@ -3414,7 +3414,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     );
   })()}
   {(() => {
-    const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
+    const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
     // 古い世代を見ている時は確定ボタンを非表示にする
     if (isViewingOldVersion) return null;
     // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
@@ -3854,13 +3854,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               )}
 
               {phase === "analysis" ? (
-                (isPro || chatTickets > 0) ? (
+                (isPro || chatTickets > 0 || trialChats > 0) ? (
                 <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
                     /* 確定履歴クリック時にチャットも切り替えるため、activeConfirmId を含めて key を変える。
                        これで AnalysisChatPanel が再マウントされ、復元された localStorage を読み直す。 */
                     key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
-                    isPro={isPro || chatTickets > 0}
+                    isPro={isPro || chatTickets > 0 || trialChats > 0}
                     analysisResult={currentResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
@@ -3892,7 +3892,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       }
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+                    onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
                   />
                 </div>
                 ) : (
