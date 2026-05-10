@@ -3103,7 +3103,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
         {sidebarOpen && phase !== "input" && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", color: "#2a2a26", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflow: "visible" }}>
+  <div id="sidebar" style={{ boxShadow: `inset -1px 0 0 ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", color: "#2a2a26", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflow: "visible" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 18, fontWeight: 400, color: "#2a2a26" }}>
