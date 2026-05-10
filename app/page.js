@@ -1887,13 +1887,14 @@ const [chatSummaries, setChatSummaries] = useState([]);
 
   // サブチャット追加
   const addSubChat = (themeId) => {
-    const label = prompt("チャット名を入力してください（例: TOPページのSEO）");
+    // 過去は label と description の2段プロンプトだったが、
+    // 「OKを押してもまたウィンドウが出る」と戸惑う声があったので
+    // 1つのプロンプトに統合。入力したテキストがチャット名 = AI への
+    // 相談トピックになる仕様にする。
+    const label = prompt("このチャットで相談したい内容を入力してください\n（例: TOPページのSEOを改善したい）");
     if (!label?.trim()) return;
-    // 概要はオプション。キャンセル/空白でもチャットは作成する
-    // （二段プロンプトで2回目を「先のキャンセル」と勘違いしてキャンセルすると、
-    //  作成されないため戸惑う声があったので、概要なしでも作成する仕様に変更）
-    const description = prompt("話し合いたい内容の概要を入力してください（任意・空でもOK）\n（例: TOPページのタイトルとメタディスクリプションを改善したい）");
-    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim(), description: description?.trim() || "" };
+    const trimmed = label.trim();
+    const newChat = { id: `${themeId}_${Date.now()}`, label: trimmed, description: trimmed };
     setThemeChats(prev => ({ ...prev, [themeId]: [...(prev[themeId] || []), newChat] }));
     setActiveChatId(newChat.id);
   };
