@@ -1889,9 +1889,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const addSubChat = (themeId) => {
     const label = prompt("チャット名を入力してください（例: TOPページのSEO）");
     if (!label?.trim()) return;
-    const description = prompt("話し合いたい内容の概要を入力してください\n（例: TOPページのタイトルとメタディスクリプションを改善したい）");
-    if (!description?.trim()) return;
-    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim(), description: description.trim() };
+    // 概要はオプション。キャンセル/空白でもチャットは作成する
+    // （二段プロンプトで2回目を「先のキャンセル」と勘違いしてキャンセルすると、
+    //  作成されないため戸惑う声があったので、概要なしでも作成する仕様に変更）
+    const description = prompt("話し合いたい内容の概要を入力してください（任意・空でもOK）\n（例: TOPページのタイトルとメタディスクリプションを改善したい）");
+    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim(), description: description?.trim() || "" };
     setThemeChats(prev => ({ ...prev, [themeId]: [...(prev[themeId] || []), newChat] }));
     setActiveChatId(newChat.id);
   };
@@ -3137,16 +3139,29 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       </div>
                       {/* サブチャット一覧（施策展開時） */}
                       {activeThemeId === t.id && themeChats[t.id] && (
-                        <div style={{ paddingLeft: 24 }}>
-                          {themeChats[t.id].map(chat => (
-                            <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
-                              style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: activeChatId === chat.id ? "#2a2a26" : "#888", background: activeChatId === chat.id ? "rgba(0,0,0,0.05)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 5, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-                              {activeChatId === chat.id && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
-                              <span>{chat.label}</span>
-                            </div>
-                          ))}
+                        <div>
+                          {themeChats[t.id].map(chat => {
+                            const isChatActive = activeChatId === chat.id;
+                            return (
+                              <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
+                                style={{
+                                  padding: "6px 10px 6px 34px",  // left=34 (24 indent + 10 標準padding) で施策よりインデント
+                                  cursor: "pointer", fontSize: 16,
+                                  color: isChatActive ? "#2a2a26" : "#888",
+                                  // 選択中はメイン領域グレーで境界線をタブのように貫通させる
+                                  background: isChatActive ? C.bg : "transparent",
+                                  display: "flex", alignItems: "center", gap: 5,
+                                  fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
+                                  position: "relative",
+                                  zIndex: isChatActive ? 2 : 1,
+                                }}>
+                                {isChatActive && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
+                                <span>{chat.label}</span>
+                              </div>
+                            );
+                          })}
                           <div onClick={() => addSubChat(t.id)}
-                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "#888", fontFamily: "system-ui, sans-serif" }}>
+                            style={{ padding: "6px 10px 6px 34px", cursor: "pointer", fontSize: 16, color: "#888", fontFamily: "system-ui, sans-serif" }}>
                             + チャット追加
                           </div>
                         </div>
