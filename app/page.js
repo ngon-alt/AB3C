@@ -2724,6 +2724,36 @@ useEffect(() => {
     }
   };
 
+  // 履歴閲覧モードを抜けて、現在のライブ状態（DB の latest_analysis）に戻す。
+  // activeConfirmId が立っている = 過去のスナップショットを閲覧中なので、
+  // currentResult が古い snap になっている → DB から最新を読み直して同期する。
+  const exitHistoryView = async () => {
+    setActiveConfirmId(null);
+    if (!siteId) return;
+    try {
+      const res = await fetch("/api/sites");
+      const d = await res.json();
+      const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
+      const live = (d.sites || []).find(s => String(s.id) === String(siteId));
+      if (!live) return;
+      if (live.latest_analysis) {
+        setCurrentResult(live.latest_analysis);
+        setResult(live.latest_analysis);
+        setHistoryTitle(live.latest_analysis.strategy_message?.message || "");
+        // 確定パターン（confirmed_combination_id）も連動
+        if (live.latest_analysis.confirmed_combination_id) {
+          setSelectedCombinationId(live.latest_analysis.confirmed_combination_id);
+        }
+      }
+      // 確定状態は DB 値を反映
+      if (live.strategy_confirmed) setStrategyConfirmed(true);
+      else setStrategyConfirmed(false);
+    } catch (e) {
+      // 失敗時は activeConfirmId だけ解除して警告
+      console.error("exitHistoryView failed:", e);
+    }
+  };
+
   // 戦略の確定を解除（確定履歴は保持、フェーズだけ analysis に戻す）
   const unconfirmStrategy = async () => {
     const ok = confirm(
@@ -3073,7 +3103,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
         {sidebarOpen && phase !== "input" && (
-  <div id="sidebar" style={{ borderRight: `1px solid ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", color: "#2a2a26", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflowY: "auto" }}>
+  <div id="sidebar" style={{ boxShadow: `inset -1px 0 0 ${C.border}`, background: "#faf8f4", display: "flex", flexDirection: "column", color: "#2a2a26", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight, overflow: "visible" }}>
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 18, fontWeight: 400, color: "#2a2a26" }}>
@@ -3086,11 +3116,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {phase === "action" ? (
               <>
                 {/* 施策ナビ */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
+                <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
                   {threads.map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
-                        style={{ padding: "8px 14px", cursor: "pointer", fontSize: 18, color: "#2a2a26", background: activeThemeId === t.id ? "rgba(0,0,0,0.06)" : "transparent", display: "flex", alignItems: "center", gap: 8, borderLeft: activeThemeId === t.id ? "3px solid #2a2a26" : "3px solid transparent", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                        style={{
+                          padding: "8px 14px",
+                          paddingRight: activeThemeId === t.id ? "15px" : "14px",
+                          marginRight: activeThemeId === t.id ? "-1px" : "0",
+                          cursor: "pointer", fontSize: 18, color: "#2a2a26",
+                          background: activeThemeId === t.id ? C.bg : "transparent",
+                          display: "flex", alignItems: "center", gap: 8,
+                          borderLeft: activeThemeId === t.id ? "3px solid #2a2a26" : "3px solid transparent",
+                          position: "relative",
+                          zIndex: activeThemeId === t.id ? 2 : 1,
+                          fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
+                        }}>
                         <span style={{ fontSize: 18 }}>{t.icon}</span>
                         <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.label}</span>
                       </div>
@@ -3120,15 +3161,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               </>
             ) : (
-              <div style={{ flex: 1, overflowY: "auto" }}>
+              <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto" }}>
                 {confirmHistory.length === 0 ? (
                   <div style={{ padding: 16, fontSize: 14, color: "#888", textAlign: "center", lineHeight: 1.6 }}>
                     戦略を確定すると<br/>ここに履歴が残ります
                   </div>
                 ) : (
-                  confirmHistory.slice().reverse().map(function(ch, i) {
+                  // 「現在の戦略」= confirmHistory の最終エントリ（最新確定）。
+                  // strategy_confirmed=true の時のみ「現在の」マーカーを表示する
+                  // （未確定状態だとすべてが「過去の履歴」扱い）。
+                  (function() {
+                    var liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
+                      ? confirmHistory[confirmHistory.length - 1].id
+                      : null;
+                    return confirmHistory.slice().reverse().map(function(ch, i) {
                     // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
                     var isActive = activeConfirmId === ch.id;
+                    var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
                         setActiveConfirmId(ch.id);
@@ -3163,15 +3212,33 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         } catch (e) {}
                         setChangedPaths(new Map());
                       }}
-                        style={{ padding: "10px 14px", borderBottom: "1px solid rgba(0,0,0,0.06)", cursor: "pointer", background: isActive ? "rgba(0,0,0,0.06)" : "transparent", borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent" }}>
-                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3 }}>#{confirmHistory.length - i} · {ch.date}</div>
-                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
+                        style={{
+                          padding: "10px 14px",
+                          paddingRight: isActive ? "15px" : "14px",  // 選択中は +1px してメイン領域へ視覚的に繋ぐ
+                          marginRight: isActive ? "-1px" : "0",       // サイドバー右枠線を覆って「タブ」感を出す
+                          borderBottom: "1px solid rgba(0,0,0,0.06)",
+                          cursor: "pointer",
+                          background: isActive ? C.bg : "transparent",  // メイン領域と同じグレーで選択中を明示
+                          borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent",
+                          position: "relative",
+                          zIndex: isActive ? 2 : 1,
+                        }}>
+                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span>#{confirmHistory.length - i} · {ch.date}</span>
+                          {isLive && (
+                            <span style={{ display: "inline-block", background: C.B, color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
+                              確定中
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isLive ? 700 : 400 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
                         {ch.chatSummaries && ch.chatSummaries.length > 0 && (
                           <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
                         )}
                       </div>
                     );
-                  })
+                    });
+                  })()
                 )}
               </div>
             )}
@@ -3300,6 +3367,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
+              {/* 履歴閲覧中バナーは削除済み: サイドバーの「確定中」ピルとタブ選択で
+                  「現在どこを見ているか」「どれが確定中か」が視覚的に明確になったため、
+                  説明バナーは冗長と判断（権さん指示）。
+                  「履歴で再確定する」ボタンは薄い赤として下に並ぶ。 */}
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
   {currentInput && !currentInput.startsWith("http") && (
     <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
@@ -3346,24 +3417,48 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
     // 古い世代を見ている時は確定ボタンを非表示にする
     if (isViewingOldVersion) return null;
+    // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
+    // 「この履歴で再確定」ボタンに切替、解除ボタンは隠す（live でないので解除対象外）。
+    // 「現在の戦略」（confirmHistory の最終 = 最新確定）を選択中の場合は live 状態と等価なので
+    // 履歴閲覧モードとは扱わない。古いスナップショットを開いている時だけ「閲覧モード」として扱う。
+    const liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
+      ? confirmHistory[confirmHistory.length - 1].id
+      : null;
+    const isViewingHistory = activeConfirmId != null && activeConfirmId !== liveConfirmedSnapId;
+    const confirmDisabled = !canConfirm || (strategyConfirmed && !isViewingHistory);
+    const confirmLabel = isViewingHistory
+      ? "この履歴の戦略で再確定する →"
+      : strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →";
+    const confirmTitle = isDiagnosisActive
+      ? "戦略診断チケットでは戦略確定はご利用いただけません"
+      : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可"
+      : isViewingHistory ? "この履歴のスナップショットで再確定します（履歴に新エントリが追加されます）"
+      : strategyConfirmed ? "戦略確定済み"
+      : "戦略を確定して戦略アクションへ進む";
     return (
       <>
         <button
-          onClick={canConfirm ? confirmStrategy : null}
-          disabled={!canConfirm || strategyConfirmed}
-          title={isDiagnosisActive ? "戦略診断チケットでは戦略確定はご利用いただけません" : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可" : strategyConfirmed ? "戦略確定済み" : "戦略を確定して戦略アクションへ進む"}
+          onClick={confirmDisabled ? null : confirmStrategy}
+          disabled={confirmDisabled}
+          title={confirmTitle}
           style={{
-            background: !canConfirm ? "#cccccc" : strategyConfirmed ? "#888" : "#2a2a26",
-            border: "none", borderRadius: 999,
-            color: "#fff",
-            cursor: (!canConfirm || strategyConfirmed) ? "not-allowed" : "pointer",
+            // 履歴閲覧中の「再確定」ボタンは「薄い赤」: 押すと濃い赤（=確定中）になる予感を視覚化
+            // （権さん指示: 確定中ピル/解除ボタンの赤と統一）
+            background: !canConfirm ? "#cccccc"
+              : isViewingHistory ? "#ffe5e5"
+              : (strategyConfirmed && !isViewingHistory) ? "#888"
+              : "#2a2a26",
+            border: isViewingHistory ? `1px solid ${C.B}` : "none",
+            borderRadius: 999,
+            color: isViewingHistory ? C.B : "#fff",
+            cursor: confirmDisabled ? "not-allowed" : "pointer",
             fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
             opacity: !canConfirm ? 0.7 : 1,
           }}
         >
-          {strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →"}
+          {confirmLabel}
         </button>
-        {strategyConfirmed && (
+        {strategyConfirmed && !isViewingHistory && (
           <button
             onClick={unconfirmStrategy}
             title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
