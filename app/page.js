@@ -1898,6 +1898,18 @@ const [chatSummaries, setChatSummaries] = useState([]);
     setActiveChatId(newChat.id);
   };
 
+  // サブチャットを削除（壊れたチャット救済用）
+  const deleteSubChat = (themeId, chatId) => {
+    if (!confirm("このチャットを削除しますか？\n（このチャットでの会話履歴も消えます）")) return;
+    setThemeChats(prev => ({ ...prev, [themeId]: (prev[themeId] || []).filter(c => c.id !== chatId) }));
+    if (activeChatId === chatId) setActiveChatId(null);
+    // localStorage のチャット履歴もクリア
+    try {
+      const key = `ab3c_thread_${siteId || "default"}_${chatId}`;
+      localStorage.removeItem(key);
+    } catch (e) {}
+  };
+
   // スレッド永続化（LS）
   useEffect(() => {
     if (threads.length > 0) {
@@ -3143,7 +3155,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           {themeChats[t.id].map(chat => {
                             const isChatActive = activeChatId === chat.id;
                             return (
-                              <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
+                              <div key={chat.id}
+                                onMouseEnter={e => { const x = e.currentTarget.querySelector(".sub-chat-delete"); if (x) x.style.opacity = "1"; }}
+                                onMouseLeave={e => { const x = e.currentTarget.querySelector(".sub-chat-delete"); if (x) x.style.opacity = "0"; }}
+                                onClick={() => setActiveChatId(chat.id)}
                                 style={{
                                   padding: "6px 10px 6px 34px",  // left=34 (24 indent + 10 標準padding) で施策よりインデント
                                   cursor: "pointer", fontSize: 16,
@@ -3156,7 +3171,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                                   zIndex: isChatActive ? 2 : 1,
                                 }}>
                                 {isChatActive && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
-                                <span>{chat.label}</span>
+                                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chat.label}</span>
+                                <button
+                                  className="sub-chat-delete"
+                                  onClick={e => { e.stopPropagation(); deleteSubChat(t.id, chat.id); }}
+                                  title="このチャットを削除"
+                                  style={{ background: "transparent", border: "none", cursor: "pointer", color: "#888", fontSize: 16, padding: "0 4px", opacity: 0, transition: "opacity 0.15s", flexShrink: 0 }}
+                                >×</button>
                               </div>
                             );
                           })}
