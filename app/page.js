@@ -3226,8 +3226,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                           <span>#{confirmHistory.length - i} · {ch.date}</span>
                           {isLive && (
-                            <span style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
-                              現在
+                            <span style={{ display: "inline-block", background: C.B, color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
+                              確定中
                             </span>
                           )}
                         </div>
@@ -3367,32 +3367,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
-              {/* 履歴閲覧中バナー: 過去スナップショット（live でない方）を表示している時のみ表示。
-                  「現在の戦略」を選択している時はバナー出さない（live 状態と等価）。
-                  シンプルに「過去の戦略を表示中」だけ伝え、戻るボタンを大きく置く。 */}
-              {(() => {
-                const liveSnapId = strategyConfirmed && confirmHistory.length > 0
-                  ? confirmHistory[confirmHistory.length - 1].id
-                  : null;
-                const showBanner = activeConfirmId && activeConfirmId !== liveSnapId;
-                if (!showBanner) return null;
-                const viewingItem = confirmHistory.find(c => c.id === activeConfirmId);
-                const dateStr = viewingItem?.date || "";
-                const hasLive = liveSnapId != null;
-                return (
-                  <div style={{ background: "#fff8e1", borderLeft: "4px solid #f0a020", borderRadius: 4, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.5, fontFamily: "system-ui, sans-serif" }}>
-                      📜 <b>過去の戦略を表示中</b>{dateStr ? `（${dateStr} 確定分）` : ""}
-                    </div>
-                    <button
-                      onClick={exitHistoryView}
-                      style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "system-ui, sans-serif", fontSize: 13, fontWeight: 700, padding: "8px 18px", whiteSpace: "nowrap", flexShrink: 0 }}
-                    >
-                      {hasLive ? "→ 現在の戦略に戻る" : "✕ 閲覧をやめる"}
-                    </button>
-                  </div>
-                );
-              })()}
+              {/* 履歴閲覧中バナーは削除済み: サイドバーの「確定中」ピルとタブ選択で
+                  「現在どこを見ているか」「どれが確定中か」が視覚的に明確になったため、
+                  説明バナーは冗長と判断（権さん指示）。
+                  「履歴で再確定する」ボタンは薄い赤として下に並ぶ。 */}
              <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
   {currentInput && !currentInput.startsWith("http") && (
     <button onClick={() => editAndReanalyze(currentInput)} style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px" }}>
@@ -3464,9 +3442,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           disabled={confirmDisabled}
           title={confirmTitle}
           style={{
-            background: !canConfirm ? "#cccccc" : (strategyConfirmed && !isViewingHistory) ? "#888" : "#2a2a26",
-            border: "none", borderRadius: 999,
-            color: "#fff",
+            // 履歴閲覧中の「再確定」ボタンは「薄い赤」: 押すと濃い赤（=確定中）になる予感を視覚化
+            // （権さん指示: 確定中ピル/解除ボタンの赤と統一）
+            background: !canConfirm ? "#cccccc"
+              : isViewingHistory ? "#ffe5e5"
+              : (strategyConfirmed && !isViewingHistory) ? "#888"
+              : "#2a2a26",
+            border: isViewingHistory ? `1px solid ${C.B}` : "none",
+            borderRadius: 999,
+            color: isViewingHistory ? C.B : "#fff",
             cursor: confirmDisabled ? "not-allowed" : "pointer",
             fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px",
             opacity: !canConfirm ? 0.7 : 1,
