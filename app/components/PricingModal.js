@@ -251,7 +251,7 @@ export default function PricingModal({ onClose }) {
                     </div>
                     <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                       ¥{plan.annual.toLocaleString()}
-                      <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
+                      <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（税込・有効期限1年）</span>
                     </div>
                     <button
                       onClick={() => handleCheckout(analysisPrices[plan.sites])}
@@ -405,7 +405,7 @@ export default function PricingModal({ onClose }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
               <div style={{ background: "#fff8f8", border: `1px solid #ffcccc`, borderRadius: 8, padding: "16px 20px" }}>
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.B, marginBottom: 8, letterSpacing: "0.08em" }}>YOUR COST</div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>/年〜</span></div>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, fontWeight: 700, color: C.ink }}>¥22,000<span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>〜</span></div>
                 <div style={{ fontSize: 12, color: C.muted, marginTop: 4, lineHeight: 1.6 }}>戦略診断チケット 1サイト</div>
               </div>
               <div style={{ background: "#f0fff4", border: `1px solid #86efac`, borderRadius: 8, padding: "16px 20px" }}>

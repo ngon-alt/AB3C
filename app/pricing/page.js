@@ -229,7 +229,7 @@ export default function PricingPage() {
             <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.A, marginBottom: 14, lineHeight: 1.2 }}>
               <span style={{ fontSize: 13, color: C.muted, fontWeight: 400 }}>1サイト</span>
               <span style={{ fontSize: 26, marginLeft: 6 }}>¥22,000</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>〜/年（税込）</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>〜（税込）</span>
             </div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
               URLから1発でAB3C分析＋ウェブサイト改善レポートを生成し、<strong>PDF・印刷・シェアURL</strong>で持ち帰るプラン。
@@ -282,7 +282,7 @@ export default function PricingPage() {
                 </th>
                 <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "20%", background: "#0a4a8a" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略診断チケット</div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#cce4ff" }}>¥22,000〜/年</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#cce4ff" }}>¥22,000〜（1回）</div>
                 </th>
                 <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "22%", background: "#7a0c1e" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略指南サブスク</div>
@@ -346,7 +346,7 @@ export default function PricingPage() {
               </div>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
                 ¥{plan.annual.toLocaleString()}
-                <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>/年（税込）</span>
+                <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（税込・有効期限1年）</span>
               </div>
               <CheckoutButton label={`この${plan.sites}サイトプランにする →`} onClick={() => handleCheckout(analysisPrices[plan.sites])} bg={C.A} />
             </div>
