@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // - pro_users / user_plans: 契約状況
 // - sites: 登録サイト数
 // - tickets: 残チャットチケット数（has 月次リセット）
-// - 月次サイト登録枠の残数（戦略指南プラン）
+// - 月次サイト登録枠の残数（戦略指南サブスク）
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) {

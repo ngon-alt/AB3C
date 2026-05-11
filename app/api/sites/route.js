@@ -66,12 +66,12 @@ async function ensureTable(sql) {
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`;
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_used INTEGER DEFAULT 0`;
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_reset_at TIMESTAMPTZ`;
-    // 24h 無料トライアル（戦略指南プラン体験）用フラグ
+    // 24h 無料トライアル（戦略指南サブスク体験）用フラグ
     // is_trial=TRUE の行は expires_at を厳格にチェックする（期限切れで自動失効）
     // 既存の有料プランは expires_at を過ぎても active のままで月次更新される設計のため、
     // 既存挙動への影響を避けるためトライアル行のみ期限チェックを適用する
     await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`;
-    // 既存の戦略指南プラン契約者に対する初回バックフィル:
+    // 既存の戦略指南サブスク契約者に対する初回バックフィル:
     // 既に登録済みのサイト数分を「月次登録済み」としてカウントし、
     // 月初からの登録猶予が過剰に付与されないようにする。
     // monthly_registrations_reset_at が NULL のプランにのみ適用（＝未バックフィル）。
@@ -92,7 +92,7 @@ async function ensureTable(sql) {
 }
 
 // ユーザーのサイト登録上限を取得
-//  - 戦略指南プラン（support）の site_limit が登録可能サイト数の上限
+//  - 戦略指南サブスク（support）の site_limit が登録可能サイト数の上限
 //  - 戦略診断チケット（analysis）は「回数チケット」のためサイトスロットにはカウントしない
 //  - PRO会員は無制限
 async function getSiteLimit(sql, email) {
@@ -107,8 +107,8 @@ async function getSiteLimit(sql, email) {
   return 1; // 支援プランなし = 1サイト（無料 or 診断のみ）
 }
 
-// 戦略指南プラン契約者の月次登録上限情報を取得
-// - 対象: 戦略指南プラン（type='support'）のみ。戦略診断チケットは対象外。
+// 戦略指南サブスク契約者の月次登録上限情報を取得
+// - 対象: 戦略指南サブスク（type='support'）のみ。戦略診断チケットは対象外。
 // - 上限: 契約サイト数 × 2（初期登録1 + 月1回までの入れ替え）
 // - 24h トライアル（site_limit=1）も同じ計算なので 1 × 2 = 2 サイトまで分析可能
 async function getMonthlyRegistrationInfo(sql, email) {
@@ -208,7 +208,7 @@ export async function POST(req) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
     }
 
-    // 月次登録上限チェック（戦略指南プラン契約者のみ: 契約サイト数 × 2）
+    // 月次登録上限チェック（戦略指南サブスク契約者のみ: 契約サイト数 × 2）
     const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
     if (monthly.isSupport && monthly.used >= monthly.limit) {
       return NextResponse.json({
@@ -234,7 +234,7 @@ export async function POST(req) {
       RETURNING *
     `;
 
-    // 戦略指南プラン契約者は月次登録カウンタを +1（購入日が古いプランから消費）
+    // 戦略指南サブスク契約者は月次登録カウンタを +1（購入日が古いプランから消費）
     if (monthly.isSupport && monthly.plans.length > 0) {
       const targetPlan = monthly.plans.find(p => parseInt(p.used || 0) < parseInt(p.site_limit || 0) * 3) || monthly.plans[0];
       await sql`

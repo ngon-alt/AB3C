@@ -24,7 +24,7 @@ function formatDate(s) {
 }
 
 function planTypeLabel(t) {
-  if (t === "support") return "戦略指南プラン";
+  if (t === "support") return "戦略指南サブスク";
   if (t === "analysis") return "戦略診断チケット";
   return t || "—";
 }
@@ -214,8 +214,8 @@ export default function AccountPage() {
 
           {/* === セクション3: ご利用状況 === */}
           <Section title="ご利用状況" icon="📊">
-            <StatRow label="登録サイト数" value={`${data?.siteCount ?? 0} サイト`} sub={data?.isPro ? "無制限" : supportTotalLimit > 0 ? `（契約上限: ${supportTotalLimit} サイト）` : "（戦略指南プランで上限を増やせます）"} />
-            <StatRow label="今月のチャット残回数" value={`${data?.chatTickets ?? 0} 回`} sub={supportTotalLimit > 0 ? `（毎月 ${supportTotalLimit * 100} 回まで補充）` : "戦略指南プラン契約者向け"} />
+            <StatRow label="登録サイト数" value={`${data?.siteCount ?? 0} サイト`} sub={data?.isPro ? "無制限" : supportTotalLimit > 0 ? `（契約上限: ${supportTotalLimit} サイト）` : "（戦略指南サブスクで上限を増やせます）"} />
+            <StatRow label="今月のチャット残回数" value={`${data?.chatTickets ?? 0} 回`} sub={supportTotalLimit > 0 ? `（毎月 ${supportTotalLimit * 100} 回まで補充）` : "戦略指南サブスク契約者向け"} />
             {data?.monthly?.isSupport && (
               <StatRow label="今月のサイト登録残数" value={`${data.monthly.remaining} / ${data.monthly.limit} サイト`} sub="次回ご契約更新日にリセットされます" />
             )}

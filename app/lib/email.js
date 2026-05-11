@@ -66,7 +66,7 @@ export async function sendWelcomeEmailAgency({ email, name }) {
 }
 
 // 分析完了通知メール
-//  - planKind = 'support'  : 戦略指南プラン / PRO（ダッシュボードに履歴保存される）
+//  - planKind = 'support'  : 戦略指南サブスク / PRO（ダッシュボードに履歴保存される）
 //  - planKind = 'diagnosis': 戦略診断チケット / 無料トライアル（履歴保存なし＝持ち帰り必須）
 //  - siteId                : 既存サイト再分析時のサイトID（指南プランの場合、メール内リンクを分析結果ページに直接飛ばすのに使用）
 export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis', siteId = null }) {
@@ -101,13 +101,13 @@ export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagn
 
     <hr style="border:none;border-top:1px solid #e5e5e0;margin:32px 0">
 
-    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 12px">継続的に戦略を磨きたい場合は <strong>戦略指南プラン</strong> もご検討ください。</p>
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 12px">継続的に戦略を磨きたい場合は <strong>戦略指南サブスク</strong> もご検討ください。</p>
     <ul style="font-size:13px;line-height:1.8;color:#555;margin:0 0 16px;padding-left:20px">
       <li>分析結果・戦略確定履歴がダッシュボードに保存</li>
       <li>AIチャットで戦略を磨ける（月100回/サイト）</li>
       <li>10施策テーマでアクションを検討できる</li>
     </ul>
-    <a href="https://senryaku.ai/pricing" style="display:inline-block;color:#1a6fd4;text-decoration:underline;font-size:14px">戦略指南プランの詳細を見る →</a>
+    <a href="https://senryaku.ai/pricing" style="display:inline-block;color:#1a6fd4;text-decoration:underline;font-size:14px">戦略指南サブスクの詳細を見る →</a>
 
     <p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p>
   </div>`;
@@ -151,7 +151,7 @@ export async function sendPaymentNotificationEmail({
 
   const planLabel =
     planType === 'analysis' ? '戦略診断チケット（1年）' :
-    planType === 'support'  ? `戦略指南プラン（${interval === 'year' ? '年額' : '月額'}）` :
+    planType === 'support'  ? `戦略指南サブスク（${interval === 'year' ? '年額' : '月額'}）` :
     '不明プラン';
   const purposeLabel = purpose === 'self' ? '自社利用' : purpose === 'agency' ? 'クライアント提供（代理店）' : '未回答';
   const amountStr = typeof amountJpy === 'number' ? `¥${amountJpy.toLocaleString('ja-JP')}` : '—';
@@ -238,7 +238,7 @@ export async function sendContactNotificationEmail({
   return sendEmail(NOTIFY_TO, subject, html, { replyTo: email, attachments });
 }
 
-// 戦略指南プランのダウングレードに伴い、古いサイトを自動削除した旨を通知
+// 戦略指南サブスクのダウングレードに伴い、古いサイトを自動削除した旨を通知
 //  - email: 通知先（契約者本人）
 //  - deletedSites: [{ site_name, site_url }, ...]
 //  - oldLimit / newLimit: 旧サイト上限 / 新サイト上限
@@ -252,7 +252,7 @@ export async function sendPlanDowngradeEmail({ email, name, deletedSites, oldLim
   }).join('');
   const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:40px 20px;color:#1a1a14">
     <div style="font-size:24px;font-weight:bold;margin-bottom:24px">戦略指南 AI</div>
-    <p style="font-size:16px;line-height:1.8">${esc(name) || 'お客様'}さん、戦略指南プランの変更を承りました。</p>
+    <p style="font-size:16px;line-height:1.8">${esc(name) || 'お客様'}さん、戦略指南サブスクの変更を承りました。</p>
 
     <div style="background:#fff3cd;border-left:4px solid #dc2626;border-radius:6px;padding:16px 20px;margin:24px 0">
       <p style="font-size:14px;font-weight:bold;color:#dc2626;margin:0 0 8px">⚠️ サイトの自動削除について</p>
@@ -276,7 +276,7 @@ export async function sendPlanDowngradeEmail({ email, name, deletedSites, oldLim
 
     <a href="https://senryaku.ai/contact?type=bug" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:12px 24px;border-radius:4px;font-size:14px;font-weight:bold;margin-top:8px">お問い合わせはこちら →</a>
 
-    <p style="font-size:12px;color:#78716c;margin-top:40px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは戦略指南プランのダウングレード処理に伴い自動送信されています。</p>
+    <p style="font-size:12px;color:#78716c;margin-top:40px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは戦略指南サブスクのダウングレード処理に伴い自動送信されています。</p>
   </div>`;
   return sendEmail(email, subject, html);
 }

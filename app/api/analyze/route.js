@@ -8,7 +8,7 @@ import { sendAnalysisCompleteEmail } from "@/app/lib/email";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ユーザーの契約プラン種別を判定（メール分岐用）
-//  - 'support'  : 戦略指南プラン or PRO（分析結果が履歴保存される）
+//  - 'support'  : 戦略指南サブスク or PRO（分析結果が履歴保存される）
 //  - 'diagnosis': 戦略診断チケット or 無料トライアル（履歴保存されないため持ち帰り必須）
 async function resolveUserPlanKind(email) {
   if (!email) return 'diagnosis';

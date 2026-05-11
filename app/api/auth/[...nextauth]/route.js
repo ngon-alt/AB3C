@@ -36,7 +36,7 @@ export const authOptions = {
         ON CONFLICT (email) DO UPDATE SET name = ${user.name}
       `;
 
-      // 新規ユーザー処理: 24時間フリーパス（戦略指南プラン1サイト体験）を発行
+      // 新規ユーザー処理: 24時間フリーパス（戦略指南サブスク1サイト体験）を発行
       // - user_plans に is_trial=TRUE / plan_type='support' / site_limit=1 / expires_at=NOW()+24h
       // - tickets に is_trial=TRUE / remaining_chats=100（既存の判定ロジックを再利用）
       // 期限切れ後は user_plans 側のクエリで自動的に除外される。sites データは温存し、

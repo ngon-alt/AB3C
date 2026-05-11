@@ -3468,7 +3468,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       : strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →";
     const confirmTitle = isDiagnosisActive
       ? "戦略診断チケットでは戦略確定はご利用いただけません"
-      : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可"
+      : !canConfirm ? "戦略指南サブスクで戦略確定・戦略アクションが利用可"
       : isViewingHistory ? "この履歴のスナップショットで再確定します（履歴に新エントリが追加されます）"
       : strategyConfirmed ? "戦略確定済み"
       : "戦略を確定して戦略アクションへ進む";
@@ -3939,13 +3939,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     AIチャットで戦略を磨きませんか？
                   </div>
                   <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
-                    <b>戦略指南プラン</b>（戦略診断・策定・アクション）なら、<br/>
+                    <b>戦略指南サブスク</b>（戦略診断・策定・アクション）なら、<br/>
                     AIと対話しながら戦略を何度でも練り直せます。<br/>
                     確定した戦略から具体的なアクション計画も<br/>
                     自動で生成できます。
                   </div>
                   <a href="/pricing" style={{ display: "inline-block", background: C.A, color: "#fff", fontSize: 16, fontWeight: 700, padding: "12px 24px", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace" }}>
-                    戦略指南プランを見る →
+                    戦略指南サブスクを見る →
                   </a>
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
                     現在のプランでは<br/>分析結果のPDF保存・シェアURL発行が可能です

@@ -107,7 +107,7 @@ export default function PricingPage() {
     return null;
   };
 
-  const planKindLabel = (t) => t === 'support' ? '戦略指南プラン' : t === 'analysis' ? '戦略診断チケット' : '';
+  const planKindLabel = (t) => t === 'support' ? '戦略指南サブスク' : t === 'analysis' ? '戦略診断チケット' : '';
 
   const handleCheckout = async (priceId) => {
     const buyingType = resolvePlanType(priceId);
@@ -127,15 +127,15 @@ export default function PricingPage() {
           lines.push('', '※既存の戦略診断チケットの残り回数と今回の購入分は合算されます。');
         }
         if (hasSupport) {
-          lines.push('', '※戦略指南プランは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+          lines.push('', '※戦略指南サブスクは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで戦略指南サブスクと戦略診断チケットを切り替えながらご利用いただけます。');
         }
       } else {
         // 支援プラン（指南）購入
         if (hasSupport) {
-          lines.push('', '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。');
+          lines.push('', '※既存の戦略指南サブスクは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。');
         }
         if (hasAnalysis) {
-          lines.push('', '※戦略診断チケットは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで新しい戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+          lines.push('', '※戦略診断チケットは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで新しい戦略指南サブスクと戦略診断チケットを切り替えながらご利用いただけます。');
         }
       }
       const ok = confirm(lines.join('\n'));
@@ -158,60 +158,173 @@ export default function PricingPage() {
 
   const perSite = (total, sites) => Math.round(total / sites);
 
+  // 機能比較表のデータ
+  // 無料お試し: 戦略指南サブスクのフル機能を24時間限定で利用可能
+  const featureRows = [
+    {
+      feature: "AB3C分析レポート",
+      description: "あなたのビジネスが「選ばれる理由」をベネフィット（B）・アドバンテージ（A）・3C（顧客／競合／自社）の戦略フレームワークで可視化。",
+      free: "○（24時間）", analysis: "○", growth: "○",
+    },
+    {
+      feature: "ウェブサイト改善レポート",
+      description: "URL分析時、現在のサイトをAB3C分析と照らし合わせて、コンテンツ・デザイン・構造の改善優先事項を提示。",
+      free: "○（24時間）", analysis: "○", growth: "○",
+    },
+    {
+      feature: "シェアURL・PDF・印刷",
+      description: "分析結果を共有用URL発行・PDF保存・印刷出力で社内共有や提案資料として持ち帰り可能。",
+      free: "○（24時間）", analysis: "○", growth: "○",
+    },
+    {
+      feature: "戦略策定チャット（戦略を磨く）",
+      description: "AB3C分析結果をAIと対話しながら反復的に磨き上げ。深掘り質問→再分析で戦略の精度を高めます。",
+      free: "○（24時間）", analysis: "✕", growth: "○（月100回/サイト）",
+    },
+    {
+      feature: "戦略確定・履歴保存",
+      description: "確定した戦略と全チャット履歴をデータベースに保存。後日いつでも続きから利用可能。",
+      free: "○（24時間）", analysis: "✕", growth: "○",
+    },
+    {
+      feature: "AI秘書",
+      description: "あなたの事業戦略を熟知した万能AIアシスタント。文章作成・アイデア出し・経営判断の壁打ちなど日々の業務相談に。ChatGPT・Claudeの代わりに一本化してご利用いただけます。",
+      free: "○（24時間）", analysis: "✕", growth: "○",
+    },
+    {
+      feature: "アクション施策チャット（10テーマ）",
+      description: "戦略を踏まえた施策をテーマ別チャットで検討。SEO対策／SNS運用／Web広告／Googleマップ／チラシ・DM／プレスリリース／ウェブサイト改善／採用コンテンツ企画／補助金申請／営業資料・提案書。",
+      free: "○（24時間）", analysis: "✕", growth: "○",
+    },
+    {
+      feature: "サイト登録可能数",
+      description: "管理できるサイト（事業）の数。一度登録したサイトは継続的に分析・管理でき、不要になれば削除して枠を空けられます。",
+      free: "1サイト", analysis: "契約サイト数まで", growth: "契約サイト数まで",
+    },
+    {
+      feature: "契約期間",
+      description: "ご利用いただける期間。診断チケットは1年内に使い切り、戦略指南サブスクは月額または年額の継続契約。",
+      free: "24時間", analysis: "購入後1年間", growth: "月額 / 年額",
+    },
+  ];
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <Header />
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px 80px" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px 80px" }}>
 
-        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 24 }}>料金とプラン</div>
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink, marginBottom: 8 }}>料金とプラン</div>
+        <div style={{ fontSize: 15, color: C.muted, marginBottom: 32, lineHeight: 1.7 }}>
+          ご利用シーンに合わせて、2つのプランからお選びいただけます。
+        </div>
 
-        {/* 機能比較表 */}
-        <div style={{ marginBottom: 24, overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, fontFamily: "sans-serif" }}>
+        {/* === セクション1: 2プランの概要 === */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 40 }}>
+          {/* 戦略診断チケット 概要カード */}
+          <div style={{ background: "#e3f2fd", borderRadius: 10, padding: 24, border: `2px solid ${C.A}`, display: "flex", flexDirection: "column" }}>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
+              戦略診断チケット
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>ワンショット利用 / 有効期限1年</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.A, marginBottom: 14, lineHeight: 1.2 }}>
+              <span style={{ fontSize: 13, color: C.muted, fontWeight: 400 }}>1サイト</span>
+              <span style={{ fontSize: 26, marginLeft: 6 }}>¥22,000</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>〜/年（税込）</span>
+            </div>
+            <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
+              URLから1発でAB3C分析＋ウェブサイト改善レポートを生成し、<strong>PDF・印刷・シェアURL</strong>で持ち帰るプラン。
+              <br /><br />
+              <span style={{ color: C.muted, fontSize: 13 }}>
+                見込み客への新規提案や、「まず1回試したい」方向け。AIチャット・履歴保存は付きません。
+              </span>
+            </div>
+            <a href="#analysis-prices" style={{ display: "block", marginTop: 16, padding: "12px", background: C.A, color: "#fff", textAlign: "center", borderRadius: 6, textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
+              料金プランを見る ↓
+            </a>
+          </div>
+
+          {/* 戦略指南サブスク 概要カード */}
+          <div style={{ background: "#fce4ec", borderRadius: 10, padding: 24, border: `2px solid ${C.B}`, display: "flex", flexDirection: "column" }}>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
+              戦略指南サブスク
+            </div>
+            <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>継続支援 / 月額または年額</div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.B, marginBottom: 14, lineHeight: 1.2 }}>
+              <span style={{ fontSize: 13, color: C.muted, fontWeight: 400 }}>1サイト</span>
+              <span style={{ fontSize: 26, marginLeft: 6 }}>¥66,000</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>〜/月（税込）</span>
+            </div>
+            <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
+              <strong>戦略診断 → 戦略策定 → アクション実行</strong>の3段階を継続的に支援。AIチャットで戦略を磨き、10テーマで施策を検討、AI秘書が日常業務も伴走。
+              <br /><br />
+              <span style={{ color: C.muted, fontSize: 13 }}>
+                経営者さんが直接使う方や、継続的な戦略運用が必要な代理店向け。
+              </span>
+            </div>
+            <a href="#support-prices" style={{ display: "block", marginTop: 16, padding: "12px", background: C.B, color: "#fff", textAlign: "center", borderRadius: 6, textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
+              料金プランを見る ↓
+            </a>
+          </div>
+        </div>
+
+        {/* === セクション2: 機能比較表 === */}
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 16 }}>機能比較</div>
+        <div style={{ marginBottom: 40, overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
             <thead>
               <tr style={{ background: C.ink, color: "#fff" }}>
-                <th style={{ padding: "10px 12px", textAlign: "left" }}>機能</th>
-                <th style={{ padding: "10px 12px", textAlign: "center" }}>無料お試し</th>
-                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略診断チケット</th>
-                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略指南プラン<br/>（戦略診断・策定・アクション）</th>
+                <th style={{ padding: "16px 12px", textAlign: "left", width: "44%", verticalAlign: "top" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>機能</div>
+                </th>
+                <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "14%", background: "#555555" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>無料お試し</div>
+                  <div style={{ fontSize: 11, color: "#ddd" }}>24時間限定 ¥0</div>
+                </th>
+                <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "20%", background: "#0a4a8a" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略診断チケット</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#cce4ff" }}>¥22,000〜/年</div>
+                </th>
+                <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "22%", background: "#7a0c1e" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略指南サブスク</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#ffcccc" }}>¥66,000〜/月</div>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {[
-                { feature: "AB3C分析レポート", free: "○（1回限り）", analysis: "○", growth: "○" },
-                { feature: "ウェブサイト改善レポート", free: "○（1回限り）", analysis: "○", growth: "○" },
-                { feature: "サイト登録可能数", free: "1サイト", analysis: "契約サイト数まで", growth: "契約サイト数まで" },
-                { feature: "AIチャットで戦略を磨く", free: "✕", analysis: "✕", growth: "○（月100回/サイト）" },
-                { feature: "戦略確定・履歴保存", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "SEO対策チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "SNS運用チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "Web広告チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "Googleマップチャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "チラシ・DMチャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "プレスリリースチャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "ウェブサイト改善チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "採用コンテンツ企画チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "補助金申請チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "営業資料・提案書チャット", free: "✕", analysis: "✕", growth: "○" },
-                { feature: "シェアURL発行", free: "○", analysis: "○", growth: "○" },
-                { feature: "印刷・PDF保存", free: "○", analysis: "○", growth: "○" },
-                { feature: "契約期間", free: "—", analysis: "購入後1年間", growth: "月額 or 年額" },
-              ].map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? C.highlight : C.surface, borderBottom: `1px solid ${C.border}` }}>
-                  <td style={{ padding: "10px 12px", color: "#000" }}>{row.feature}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.free}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000" }}>{row.analysis}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", color: "#000", fontWeight: 700 }}>{row.growth}</td>
+              {featureRows.map((row, i) => (
+                <tr key={i} style={{ background: i % 2 === 0 ? "#faf8f3" : "#fff", borderBottom: `1px solid ${C.border}` }}>
+                  <td style={{ padding: "12px", color: "#000", verticalAlign: "top" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{row.feature}</div>
+                    <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>{row.description}</div>
+                  </td>
+                  <td style={{ padding: "12px 8px", textAlign: "center", color: "#000", fontSize: 13, verticalAlign: "middle" }}>{row.free}</td>
+                  <td style={{ padding: "12px 8px", textAlign: "center", color: "#000", fontSize: 13, verticalAlign: "middle" }}>{row.analysis}</td>
+                  <td style={{ padding: "12px 8px", textAlign: "center", color: "#000", fontSize: 13, fontWeight: 700, verticalAlign: "middle" }}>{row.growth}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {/* 無料お試しについての注釈 */}
+          <div style={{
+            marginTop: 12,
+            padding: "12px 16px",
+            background: "#fffbe8",
+            border: `1px solid #f0d97a`,
+            borderRadius: 6,
+            fontSize: 13,
+            color: C.ink,
+            lineHeight: 1.7,
+          }}>
+            <strong>🎁 無料お試しについて</strong>: 分析開始から<strong>24時間</strong>、戦略指南サブスクのすべての機能をテストいただけます。お試しいただけるのは<strong>お一人さま1回のみ</strong>です。
+          </div>
         </div>
 
-        {/* プラン詳細: 縦積みレイアウト（タブなし） */}
+        {/* === セクション3: 料金詳細と購入ボタン === */}
+        <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
 
         {/* ── 戦略診断チケット セクション ── */}
-        <section style={{ background: "#e3f2fd", borderRadius: 8, padding: "24px", marginBottom: 28 }}>
+        <section id="analysis-prices" style={{ background: "#e3f2fd", borderRadius: 8, padding: "24px", marginBottom: 28, scrollMarginTop: 80 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
             戦略診断チケット <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（有効期限1年）</span>
           </div>
@@ -222,7 +335,7 @@ export default function PricingPage() {
             購入したサイト数分の診断を1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/><br/>
             <strong style={{ color: C.red }}>⚠️ 診断結果は履歴保存されません</strong><br/>
             ブラウザを閉じると結果は消えるため、必ず<strong>PDF保存・シェアURL発行・印刷</strong>のいずれかで持ち帰ってください。<br/><br/>
-            <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存は戦略指南プランで利用可能です</span>
+            <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存は戦略指南サブスクで利用可能です</span>
           </div>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
           {analysisPlanDetails.map((plan, i) => (
@@ -246,13 +359,13 @@ export default function PricingPage() {
           </div>
         </section>
 
-        {/* ── 戦略指南プラン セクション ── */}
-        <section style={{ background: "#fce4ec", borderRadius: 8, padding: "24px", marginBottom: 28 }}>
+        {/* ── 戦略指南サブスク セクション ── */}
+        <section id="support-prices" style={{ background: "#fce4ec", borderRadius: 8, padding: "24px", marginBottom: 28, scrollMarginTop: 80 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 4 }}>
-            戦略指南プラン <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（戦略診断・策定・アクション・月額/年額）</span>
+            戦略指南サブスク <span style={{ fontSize: 14, fontWeight: 400, color: C.muted }}>（戦略診断・策定・アクション・月額/年額）</span>
           </div>
           <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
-            <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援する戦略指南プランです。
+            <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援する戦略指南サブスクです。
             経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
             <span style={{ color: C.A, fontWeight: 600 }}>✓ 戦略診断・チャットで戦略を磨く・戦略アクション実行支援</span><br/>
             <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます（1サイトあたり月100回）</span><br/>
@@ -264,7 +377,7 @@ export default function PricingPage() {
             <div style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🎟️</div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
               <strong style={{ color: C.A, fontSize: 15 }}>デジ革（一般社団法人デジタル経営革新協会）会員特典</strong><br/>
-              戦略指南プランを<strong>月額契約 ¥10,000オフ ／ 年額契約 ¥100,000オフ</strong>でご利用いただけます。
+              戦略指南サブスクを<strong>月額契約 ¥10,000オフ ／ 年額契約 ¥100,000オフ</strong>でご利用いただけます。
               会員向けに別途お知らせしているプロモーションコードを、チェックアウト画面でご入力ください。
             </div>
           </div>
@@ -287,7 +400,7 @@ export default function PricingPage() {
                 <div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
                     <span style={{ fontSize: 13, color: C.muted }}>年額契約</span>
-                    <span style={{ fontSize: 12, color: '#1a6fd4', fontWeight: 600 }}>+2ヶ月無料</span>
+                    <span style={{ fontSize: 12, color: '#1a6fd4', fontWeight: 700 }}>2ヶ月分が無料に！</span>
                   </div>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
                     ¥{plan.annual.toLocaleString()}<span style={{ fontSize: 13, fontWeight: 400, color: C.muted }}>/年</span>
@@ -299,7 +412,7 @@ export default function PricingPage() {
           ))}
           <div style={{ marginTop: 16, padding: "12px 16px", background: "#fff", borderRadius: 6, fontSize: 13, color: C.muted, lineHeight: 1.8 }}>
             ※ 全て税込価格です。<br/>
-            ※ 戦略指南プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+            ※ 戦略指南サブスクの年額契約は月額×10（2ヶ月分無料）です。<br/>
             ※ チャット上限：1サイトあたり月100回<br/>
             ※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
           </div>
