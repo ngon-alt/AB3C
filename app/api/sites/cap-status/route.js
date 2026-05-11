@@ -26,6 +26,7 @@ export async function GET() {
       SELECT COALESCE(SUM(site_limit), 0) as total
       FROM user_plans
       WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
+        AND (is_trial IS NOT TRUE OR expires_at > NOW())
     `;
     const supportCap = parseInt(supportRows[0]?.total || 0);
 

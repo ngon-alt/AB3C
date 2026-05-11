@@ -46,6 +46,15 @@ export async function POST(req) {
   `;
   if (ticketRows.length > 0) return NextResponse.json({ ok: true });
 
+  // 24時間トライアル中のユーザーも分析実行可（永久1回の無料枠を消費させない）
+  const trialTicketRows = await sql`
+    SELECT id FROM tickets
+    WHERE email = ${session.user.email} AND remaining_chats > 0 AND is_trial = TRUE
+      AND (expires_at IS NULL OR expires_at > NOW())
+    LIMIT 1
+  `;
+  if (trialTicketRows.length > 0) return NextResponse.json({ ok: true });
+
   // 戦略診断チケット: 残り回数がある限り実行可能（消費は全レポート成功後に /api/analyses/consume で）
   const analysisPlanRows = await sql`
     SELECT site_limit, analyses_used FROM user_plans
