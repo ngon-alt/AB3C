@@ -16,7 +16,7 @@ async function resolveUserPlanKind(email) {
     const sql = neon(process.env.DATABASE_URL);
     const [proRows, planRows] = await Promise.all([
       sql`SELECT email FROM pro_users WHERE email = ${email} LIMIT 1`,
-      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' ORDER BY purchased_at DESC LIMIT 1`,
+      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' AND (is_trial IS NOT TRUE OR expires_at > NOW()) ORDER BY purchased_at DESC LIMIT 1`,
     ]);
     if (planRows.length > 0 && planRows[0].plan_type === 'support') return 'support';
     if (proRows.length > 0) return 'support'; // PRO直接登録ユーザーもsupport扱い

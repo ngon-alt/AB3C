@@ -28,10 +28,11 @@ export async function POST(req) {
   `;
   const hasTicket = ticketRows.length > 0;
 
-  // トライアルチケットチェック
+  // トライアルチケットチェック（24時間フリーパス: expires_at > NOW() のみ有効）
   const trialRows = await sql`
     SELECT id, remaining_chats FROM tickets
     WHERE email = ${session.user.email} AND remaining_chats > 0 AND is_trial = TRUE
+      AND (expires_at IS NULL OR expires_at > NOW())
     ORDER BY purchased_at ASC
     LIMIT 1
   `;
