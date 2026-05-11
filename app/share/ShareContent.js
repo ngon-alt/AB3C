@@ -262,7 +262,7 @@ export default function ShareContent({ input, result, improveResult, visualMock,
                   期限日: {new Date(expiredAt).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
                 </div>
                 <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.8 }}>
-                  新しく分析を実行してシェアURLを発行するか、戦略指南プランで履歴保存された結果をダッシュボードから呼び出してください。
+                  新しく分析を実行してシェアURLを発行するか、戦略指南サブスクで履歴保存された結果をダッシュボードから呼び出してください。
                 </div>
                 <a href="https://senryaku.ai" style={{ display: "inline-block", marginTop: 12, background: "#1a6fd4", color: "#fff", textDecoration: "none", padding: "10px 20px", borderRadius: 4, fontSize: 14, fontWeight: 700 }}>
                   新しく分析する →

@@ -133,9 +133,9 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   };
 
   const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
-  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南プランで利用可
+  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南サブスクで利用可
   const showBansouTip = !canAccessBansou || (canAccessBansou && phase !== "action");
-  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "戦略指南プランで利用可" : "戦略確定後に利用可";
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "戦略指南サブスクで利用可" : "戦略確定後に利用可";
 
   const isActive = (key) => {
     if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));

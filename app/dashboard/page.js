@@ -262,7 +262,7 @@ export default function DashboardPage() {
     const site = sites.find(s => s.id === id);
     const baseMsg = `「${site?.site_name || "このサイト"}」を削除しますか？\n分析結果・チャット履歴も全て削除されます。`;
     const warning = isSupport
-      ? `\n\n⚠️ 戦略指南プランのご注意\nサイトを削除しても、その枠に新しいサイトを無制限に追加できるわけではありません。次回のご契約更新日まで、新規登録が制限される場合があります。`
+      ? `\n\n⚠️ 戦略指南サブスクのご注意\nサイトを削除しても、その枠に新しいサイトを無制限に追加できるわけではありません。次回のご契約更新日まで、新規登録が制限される場合があります。`
       : "";
     if (!confirm(baseMsg + warning)) return;
     try {

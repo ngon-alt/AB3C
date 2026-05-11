@@ -13,7 +13,7 @@ const PRICE_PLANS = {
   'price_1TMov9CYHZ66REnUE9yV6bwO': { type: 'analysis', sites: 10,  interval: 'year' },
   'price_1TMovUCYHZ66REnUdqdw3Jcc': { type: 'analysis', sites: 100, interval: 'year' },
 
-  // 戦略指南プラン（戦略診断・策定・アクションプラン・月額）
+  // 戦略指南サブスク（戦略診断・策定・アクションプラン・月額）
   'price_1TMQJECYHZ66REnUvdtin0z3':  { type: 'support', sites: 1,   interval: 'month' },
   'price_1TMQJVCYHZ66REnUYOy5mlL4':  { type: 'support', sites: 5,   interval: 'month' },
   'price_1TMQJjCYHZ66REnUmEgb5GGN':  { type: 'support', sites: 15,  interval: 'month' },
@@ -21,7 +21,7 @@ const PRICE_PLANS = {
   'price_1TMQKGCYHZ66REnUAg6NOSOK':  { type: 'support', sites: 60,  interval: 'month' },
   'price_1TMQKYCYHZ66REnUSM8rKr2n':  { type: 'support', sites: 120, interval: 'month' },
 
-  // 戦略指南プラン（戦略診断・策定・アクションプラン・年額＝月額×10）
+  // 戦略指南サブスク（戦略診断・策定・アクションプラン・年額＝月額×10）
   'price_1TMQKvCYHZ66REnUomf2PJMh':  { type: 'support', sites: 1,   interval: 'year' },
   'price_1TMQLDCYHZ66REnU2w53yUAE':  { type: 'support', sites: 5,   interval: 'year' },
   'price_1TMQLYCYHZ66REnU9T2AlDh6':  { type: 'support', sites: 15,  interval: 'year' },
@@ -86,14 +86,14 @@ export async function POST(req) {
         console.error(`PRICE_PLANS に未登録の priceId: ${priceId} (email=${email}, sessionId=${session.id})`);
       }
 
-      // === 戦略指南プラン置き換え処理 ===
+      // === 戦略指南サブスク置き換え処理 ===
       // 新規購入が support タイプの場合、既存 active な support プランを
       //   ・Stripe の subscription をキャンセル
       //   ・DB で status='replaced' にマーク
       //   ・ダウングレードなら古いサイトを自動削除（keep newest N）
       //   ・指南プランに紐づく既存チケットも一旦削除（下の INSERT で新数量に再発行）
       // 診断チケット（analysis）は合算仕様のため対象外。
-      // === 戦略指南プラン置き換え処理 ===
+      // === 戦略指南サブスク置き換え処理 ===
       // 新規購入が support タイプの場合、既存 active な support プランを Stripe 側でキャンセルし、
       // DB で status='replaced' にマーク、関連チケットもクリア。
       // ※ 超過サイトの削除はユーザー選択型 UI（/api/sites/cap-resolve）で実施
@@ -128,11 +128,11 @@ export async function POST(req) {
         VALUES (${email}, ${chatCount}, FALSE)
       `;
 
-      // ※ 戦略指南プラン契約者を pro_users に自動追加していた処理は廃止。
+      // ※ 戦略指南サブスク契約者を pro_users に自動追加していた処理は廃止。
       //   理由:
       //    - pro_users は「テスト用無制限ユーザー」を表す管理テーブルで、
       //      有料契約者と混在すると管理画面の一覧で見分けがつかなくなる
-      //    - 戦略指南プラン契約者には tickets（サイト数×100回/月）が付与されるため、
+      //    - 戦略指南サブスク契約者には tickets（サイト数×100回/月）が付与されるため、
       //      無制限チャット相当の体験は維持される（CLAUDE.md「1サイト月100回上限」を機能させる）
       //    - getSiteLimit() は user_plans の support を優先するためサイト上限への影響なし
 
@@ -159,7 +159,7 @@ export async function POST(req) {
           // 戦略診断チケット: 1年後に有効期限
           expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
         } else if (subscriptionId) {
-          // 戦略指南プラン: Stripeから次回更新日を取得
+          // 戦略指南サブスク: Stripeから次回更新日を取得
           try {
             const sub = await stripe.subscriptions.retrieve(subscriptionId);
             if (sub.current_period_end) {
@@ -228,7 +228,7 @@ export async function POST(req) {
     console.log(`サブスクリプション解約: ${subscription.id}`);
   }
 
-  // 月次/年次更新（戦略指南プランのチャットチケットを強制リセット）
+  // 月次/年次更新（戦略指南サブスクのチャットチケットを強制リセット）
   // - billing_reason === 'subscription_create' は初回（checkout.session.completedで処理済）なのでスキップ
   // - billing_reason === 'subscription_cycle' or 'subscription_update' のみ処理
   if (event.type === 'invoice.paid') {
@@ -252,7 +252,7 @@ export async function POST(req) {
           INSERT INTO tickets (email, remaining_chats, is_trial)
           VALUES (${p.user_email}, ${newChatCount}, FALSE)
         `;
-        // 月次サイト登録カウンタをリセット（戦略指南プランのみ該当）
+        // 月次サイト登録カウンタをリセット（戦略指南サブスクのみ該当）
         await sql`
           UPDATE user_plans SET
             monthly_registrations_used = 0,

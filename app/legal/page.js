@@ -94,7 +94,7 @@ export default function Legal() {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">戦略指南プラン（戦略診断・策定・アクション・月額/年額・チャット機能付き）</h3>
+                <h3 className="font-semibold mb-2">戦略指南サブスク（戦略診断・策定・アクション・月額/年額・チャット機能付き）</h3>
                 <ul className="list-disc list-inside ml-4 space-y-1">
                   <li>1サイト：66,000円/月（年額：660,000円）</li>
                   <li>5サイト：165,000円/月（年額：1,650,000円）</li>
@@ -110,7 +110,7 @@ export default function Legal() {
 
               <p className="text-sm text-gray-600 mt-4">
                 ※上記金額は全て税込表示です。<br />
-                ※戦略指南プランの年額は月額×10ヶ月分の料金で12ヶ月ご利用いただけます（2ヶ月分無料）。
+                ※戦略指南サブスクの年額は月額×10ヶ月分の料金で12ヶ月ご利用いただけます（2ヶ月分無料）。
               </p>
             </div>
           </section>

@@ -31,7 +31,7 @@ export async function GET() {
 
     // 契約プラン情報（複数 active な場合に備えて全件取得し、表示向けに整形）
     // 【診断チケット】複数購入分を合算して「診断 残り合計/総合計」として 1 つのエントリに集約
-    // 【戦略指南プラン】それぞれ独立したエントリ（Step 2 で一本化予定）
+    // 【戦略指南サブスク】それぞれ独立したエントリ（Step 2 で一本化予定）
     let planLabel = null;
     let planType = null;
     let nextRenewalAt = null;

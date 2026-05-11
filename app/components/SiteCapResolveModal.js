@@ -94,7 +94,7 @@ export default function SiteCapResolveModal({ open, sites, cap, currentCount, re
 
   const explainText = (() => {
     if (reason === "analysis_only") {
-      return "戦略診断チケットは「ワンショット利用」のためサイト履歴を保持しません。これまで蓄積したサイトは削除されます。サイト履歴を残したい場合は戦略指南プランへの変更をご検討ください。";
+      return "戦略診断チケットは「ワンショット利用」のためサイト履歴を保持しません。これまで蓄積したサイトは削除されます。サイト履歴を残したい場合は戦略指南サブスクへの変更をご検討ください。";
     }
     if (reason === "no_plan") {
       return "現在ご契約中のプランがないため、サイトを保持できません。プランをご確認ください。";

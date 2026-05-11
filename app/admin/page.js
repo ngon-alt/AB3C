@@ -172,7 +172,7 @@ useEffect(() => {
                 <option value="analysis_10">診断 10サイト</option>
                 <option value="analysis_100">診断 100サイト</option>
               </optgroup>
-              <optgroup label="戦略指南プラン">
+              <optgroup label="戦略指南サブスク">
                 <option value="support_1">指南1サイト</option>
                 <option value="support_5">指南5サイト</option>
                 <option value="support_15">指南15サイト</option>

@@ -19,7 +19,7 @@ export async function POST(req) {
 
     const sql = neon(process.env.DATABASE_URL);
 
-    // 上限を計算（戦略指南プランの合計 site_limit）
+    // 上限を計算（戦略指南サブスクの合計 site_limit）
     const supportRows = await sql`
       SELECT COALESCE(SUM(site_limit), 0) as total
       FROM user_plans
@@ -27,7 +27,7 @@ export async function POST(req) {
     `;
     const cap = parseInt(supportRows[0]?.total || 0);
 
-    // 戦略指南プランがない & PRO のみのユーザーは削除対象外（実質無制限のため）
+    // 戦略指南サブスクがない & PRO のみのユーザーは削除対象外（実質無制限のため）
     if (cap === 0) {
       const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
       if (proRows.length > 0) {

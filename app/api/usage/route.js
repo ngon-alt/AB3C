@@ -72,7 +72,7 @@ export async function POST(req) {
 
   if (usageCount >= 1) {
     return NextResponse.json({
-      error: "無料お試しは1回のみご利用いただけます。引き続きご利用いただくには、戦略診断チケットまたは戦略指南プランをご購入ください。"
+      error: "無料お試しは1回のみご利用いただけます。引き続きご利用いただくには、戦略診断チケットまたは戦略指南サブスクをご購入ください。"
     }, { status: 429 });
   }
 
