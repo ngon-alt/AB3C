@@ -21,25 +21,29 @@ export async function GET() {
     `;
     const chatTickets = parseInt(ticketResult[0].total);
 
-    // トライアルチャット残数
+    // トライアルチャット残数（24時間フリーパス: expires_at > NOW() のみ有効）
     const trialResult = await sql`
       SELECT COALESCE(SUM(remaining_chats), 0) as total
       FROM tickets
       WHERE email = ${session.user.email} AND remaining_chats > 0 AND is_trial = TRUE
+        AND (expires_at IS NULL OR expires_at > NOW())
     `;
     const trialChats = parseInt(trialResult[0].total);
 
     // 契約プラン情報（複数 active な場合に備えて全件取得し、表示向けに整形）
     // 【診断チケット】複数購入分を合算して「診断 残り合計/総合計」として 1 つのエントリに集約
-    // 【戦略指南プラン】それぞれ独立したエントリ（Step 2 で一本化予定）
+    // 【戦略指南サブスク】それぞれ独立したエントリ（Step 2 で一本化予定）
     let planLabel = null;
     let planType = null;
     let nextRenewalAt = null;
     let activePlans = []; // [{ id, planType, planLabel, expiresAt, ... }]
     try {
       const planResult = await sql`
-        SELECT id, plan_type, site_limit, analyses_used, expires_at, interval, purchased_at FROM user_plans
+        SELECT id, plan_type, site_limit, analyses_used, expires_at, interval, purchased_at,
+               COALESCE(is_trial, FALSE) as is_trial
+        FROM user_plans
         WHERE user_email = ${session.user.email} AND status = 'active'
+          AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
         ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, site_limit DESC
       `;
       // 支援プランはそのまま、診断プランは集約
@@ -47,13 +51,16 @@ export async function GET() {
       const analysisRows = planResult.filter(p => p.plan_type === 'analysis');
 
       // 指南プラン（支援）— 個別エントリ
+      // is_trial=TRUE の場合は「無料体験」ラベル + isTrial フラグを返す。
+      // 残り時間表示はクライアント側で expiresAt から計算（毎分更新）。
       const supportEntries = supportRows.map(p => ({
         id: p.id,
         planType: p.plan_type,
-        planLabel: `指南${p.site_limit}`,
+        planLabel: p.is_trial ? '無料体験' : `指南${p.site_limit}`,
         siteLimit: p.site_limit,
         expiresAt: p.expires_at,
         interval: p.interval,
+        isTrial: !!p.is_trial,
       }));
 
       // 診断プラン — 全行を合算して1エントリ化

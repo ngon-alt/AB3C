@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 // - pro_users / user_plans: 契約状況
 // - sites: 登録サイト数
 // - tickets: 残チャットチケット数（has 月次リセット）
-// - 月次サイト登録枠の残数（戦略指南プラン）
+// - 月次サイト登録枠の残数（戦略指南サブスク）
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -44,9 +44,11 @@ export async function GET() {
       plans = await sql`
         SELECT id, plan_type, site_limit, analyses_used, expires_at, interval, purchased_at,
                stripe_subscription_id,
-               COALESCE(monthly_registrations_used, 0) as monthly_registrations_used
+               COALESCE(monthly_registrations_used, 0) as monthly_registrations_used,
+               COALESCE(is_trial, FALSE) as is_trial
         FROM user_plans
         WHERE user_email = ${email} AND status = 'active'
+          AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
         ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, purchased_at DESC
       `;
     } catch (e) { console.error("user_plans read error:", e?.message); }
@@ -81,6 +83,7 @@ export async function GET() {
       const r = await sql`
         SELECT COALESCE(SUM(remaining_chats), 0) as total FROM tickets
         WHERE email = ${email} AND remaining_chats > 0 AND is_trial = TRUE
+          AND (expires_at IS NULL OR expires_at > NOW())
       `;
       trialChats = parseInt(r[0]?.total || 0);
     } catch (e) {}

@@ -74,7 +74,7 @@ export default function PricingModal({ onClose }) {
     if (Object.values(supportPricesAnnual).includes(priceId)) return 'support';
     return null;
   };
-  const planKindLabel = (t) => t === 'support' ? '戦略指南プラン' : t === 'analysis' ? '戦略診断チケット' : '';
+  const planKindLabel = (t) => t === 'support' ? '戦略指南サブスク' : t === 'analysis' ? '戦略診断チケット' : '';
 
   const handleCheckout = async (priceId) => {
     if (priceId.startsWith("price_ANALYSIS_") || priceId.startsWith("price_SUPPORT_")) {
@@ -98,14 +98,14 @@ export default function PricingModal({ onClose }) {
           lines.push('', '※既存の戦略診断チケットの残り回数と今回の購入分は合算されます。');
         }
         if (hasSupport) {
-          lines.push('', '※戦略指南プランは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+          lines.push('', '※戦略指南サブスクは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで戦略指南サブスクと戦略診断チケットを切り替えながらご利用いただけます。');
         }
       } else {
         if (hasSupport) {
-          lines.push('', '※既存の戦略指南プランは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。');
+          lines.push('', '※既存の戦略指南サブスクは新しいご契約に差し替わり、自動キャンセルされます。サイト数が減る場合は古いサイトから自動的に削除されます。');
         }
         if (hasAnalysis) {
-          lines.push('', '※戦略診断チケットは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで新しい戦略指南プランと戦略診断チケットを切り替えながらご利用いただけます。');
+          lines.push('', '※戦略診断チケットは引き続きご利用いただけます。ご契約後は、ヘッダーのプラン切り替えメニューで新しい戦略指南サブスクと戦略診断チケットを切り替えながらご利用いただけます。');
         }
       }
       const ok = confirm(lines.join('\n'));
@@ -159,7 +159,7 @@ export default function PricingModal({ onClose }) {
                 <th style={{ padding: "10px 12px", textAlign: "left" }}>機能</th>
                 <th style={{ padding: "10px 12px", textAlign: "center" }}>無料お試し</th>
                 <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略診断チケット</th>
-                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略指南プラン<br/>（戦略診断・策定・アクション）</th>
+                <th style={{ padding: "10px 12px", textAlign: "center" }}>戦略指南サブスク<br/>（戦略診断・策定・アクション）</th>
               </tr>
             </thead>
             <tbody>
@@ -217,7 +217,7 @@ export default function PricingModal({ onClose }) {
                 fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, transition: "all 0.2s"
               }}
             >
-              戦略指南プラン（戦略診断・策定・アクション・月額/年額）
+              戦略指南サブスク（戦略診断・策定・アクション・月額/年額）
             </button>
           </div>
 
@@ -235,7 +235,7 @@ export default function PricingModal({ onClose }) {
                   購入したサイト数分の診断を1年以内に使い切ってください。期限を過ぎた未使用分は失効します。<br/><br/>
                   <strong style={{ color: C.red }}>⚠️ 診断結果は履歴保存されません</strong><br/>
                   ブラウザを閉じると結果は消えるため、必ず<strong>PDF保存・シェアURL発行・印刷</strong>のいずれかで持ち帰ってください。<br/><br/>
-                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存は戦略指南プランで利用可能です</span>
+                  <span style={{ color: C.muted, fontWeight: 600 }}>※AIチャットや戦略アクション機能、診断結果の履歴保存は戦略指南サブスクで利用可能です</span>
                 </div>
 
                 <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16 }}>料金一覧</div>
@@ -268,11 +268,11 @@ export default function PricingModal({ onClose }) {
               </div>
             )}
 
-            {/* ===== 戦略指南プラン（戦略診断・策定・アクション） ===== */}
+            {/* ===== 戦略指南サブスク（戦略診断・策定・アクション） ===== */}
             {showGrowth && (
               <div>
                 <div style={{ fontSize: 15, color: C.muted, lineHeight: 1.8, marginBottom: 20 }}>
-                  <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援する戦略指南プランです。
+                  <strong>戦略診断・策定・アクション</strong>の3段階すべてを継続的に支援する戦略指南サブスクです。
                   経営者さんが直接使う場合もこちらをお勧めします。<br/><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ 戦略診断・チャットで戦略を磨く・戦略アクション実行支援</span><br/>
                   <span style={{ color: C.A, fontWeight: 600 }}>✓ AIチャット相談が使えます（1サイトあたり月100回）</span><br/>
@@ -284,7 +284,7 @@ export default function PricingModal({ onClose }) {
                   <div style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>🎟️</div>
                   <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>
                     <strong style={{ color: C.A, fontSize: 15 }}>デジ革（一般社団法人デジタル経営革新協会）会員特典</strong><br/>
-                    戦略指南プランを<strong>月額契約 ¥10,000オフ ／ 年額契約 ¥100,000オフ</strong>でご利用いただけます。
+                    戦略指南サブスクを<strong>月額契約 ¥10,000オフ ／ 年額契約 ¥100,000オフ</strong>でご利用いただけます。
                     会員向けに別途お知らせしているプロモーションコードを、チェックアウト画面でご入力ください。
                   </div>
                 </div>
@@ -356,7 +356,7 @@ export default function PricingModal({ onClose }) {
               )}
               {showGrowth && (
                 <>
-                  ※ 戦略指南プランの年額契約は月額×10（2ヶ月分無料）です。<br/>
+                  ※ 戦略指南サブスクの年額契約は月額×10（2ヶ月分無料）です。<br/>
                   ※ チャット上限：1サイトあたり月100回<br/>
                   ※ 120サイトを超えるプランをご希望の場合は<a href="/contact" style={{ color: C.A, textDecoration: "underline" }}>お問い合わせ</a>ください。
                 </>

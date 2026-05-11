@@ -8,7 +8,7 @@ import { sendAnalysisCompleteEmail } from "@/app/lib/email";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ユーザーの契約プラン種別を判定（メール分岐用）
-//  - 'support'  : 戦略指南プラン or PRO（分析結果が履歴保存される）
+//  - 'support'  : 戦略指南サブスク or PRO（分析結果が履歴保存される）
 //  - 'diagnosis': 戦略診断チケット or 無料トライアル（履歴保存されないため持ち帰り必須）
 async function resolveUserPlanKind(email) {
   if (!email) return 'diagnosis';
@@ -16,7 +16,7 @@ async function resolveUserPlanKind(email) {
     const sql = neon(process.env.DATABASE_URL);
     const [proRows, planRows] = await Promise.all([
       sql`SELECT email FROM pro_users WHERE email = ${email} LIMIT 1`,
-      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' ORDER BY purchased_at DESC LIMIT 1`,
+      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' AND (is_trial IS NOT TRUE OR expires_at > NOW()) ORDER BY purchased_at DESC LIMIT 1`,
     ]);
     if (planRows.length > 0 && planRows[0].plan_type === 'support') return 'support';
     if (proRows.length > 0) return 'support'; // PRO直接登録ユーザーもsupport扱い

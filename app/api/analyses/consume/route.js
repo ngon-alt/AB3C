@@ -23,7 +23,7 @@ export async function POST(req) {
     `;
 
     if (planRows.length === 0) {
-      // 診断チケットを持っていない（戦略指南プラン or 無料）→ 消費処理不要
+      // 診断チケットを持っていない（戦略指南サブスク or 無料）→ 消費処理不要
       return NextResponse.json({ ok: true, consumed: false, reason: "not_analysis_plan" });
     }
 

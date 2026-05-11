@@ -38,8 +38,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const cached = typeof window !== "undefined" ? readPlanCache() : null;
   const [isPro, setIsPro] = useState(cached?.isPro || false);
   const [chatTickets, setChatTickets] = useState(cached?.chatTickets || 0);
+  const [trialChats, setTrialChats] = useState(cached?.trialChats || 0);
   const [activePlans, setActivePlans] = useState(Array.isArray(cached?.activePlans) ? cached.activePlans : []); // check-pro が返す全 active プラン
   const [planLoaded, setPlanLoaded] = useState(!!cached); // プラン情報読込完了フラグ
+  // 24h トライアル用: 残り時間表示を毎分更新するためのティック
+  const [trialNowTick, setTrialNowTick] = useState(0);
   const [activePlanId, setActivePlanId] = useState(null); // localStorage で選択中のプラン ID
   const [currentPath, setCurrentPath] = useState("/");
   const [sites, setSites] = useState([]);
@@ -95,15 +98,17 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         .then((d) => {
           const isProV = !!d.isPro;
           const chatTicketsV = d.chatTickets || 0;
+          const trialChatsV = d.trialChats || 0;
           const activePlansV = Array.isArray(d.activePlans) ? d.activePlans : [];
           setIsPro(isProV);
           setChatTickets(chatTicketsV);
+          setTrialChats(trialChatsV);
           setActivePlans(activePlansV);
           setPlanLoaded(true);
           // sessionStorage にキャッシュ（次のページ遷移で同期復元される）
           try {
             sessionStorage.setItem("ab3c_check_pro", JSON.stringify({
-              isPro: isProV, chatTickets: chatTicketsV, activePlans: activePlansV,
+              isPro: isProV, chatTickets: chatTicketsV, trialChats: trialChatsV, activePlans: activePlansV,
             }));
           } catch (e) {}
         })
@@ -122,7 +127,26 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const planLabel = currentPlan?.planLabel || null;
   const planType = currentPlan?.planType || null;
   const nextRenewalAt = currentPlan?.expiresAt || null;
+  const isTrialPlan = !!currentPlan?.isTrial;
   const hasMultiplePlans = activePlans.length >= 2;
+
+  // 24h トライアルの残り時間表示（毎分更新）
+  // void trialNowTick: 依存させて再計算させるためのダミー参照
+  void trialNowTick;
+  useEffect(() => {
+    if (!isTrialPlan) return;
+    const id = setInterval(() => setTrialNowTick(t => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [isTrialPlan]);
+  const trialRemainingLabel = (() => {
+    if (!isTrialPlan || !nextRenewalAt) return null;
+    const ms = new Date(nextRenewalAt).getTime() - Date.now();
+    if (ms <= 0) return "まもなく終了";
+    const totalMin = Math.floor(ms / 60000);
+    if (totalMin < 60) return `残り${totalMin}分`;
+    const hours = Math.floor(totalMin / 60);
+    return `残り${hours}時間`;
+  })();
 
   const handleSelectPlan = (planId) => {
     setActivePlanId(planId);
@@ -132,10 +156,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
     try { window.dispatchEvent(new Event("ab3c-plan-changed")); } catch (e) {}
   };
 
-  const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0);
-  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南プランで利用可
+  const canAccessBansou = canAccessBansouProp !== undefined ? canAccessBansouProp : (isPro || chatTickets > 0 || trialChats > 0);
+  // 戦略アクションタブのツールチップ: PRO/有料→戦略確定後に利用可、それ以外→戦略指南サブスクで利用可
   const showBansouTip = !canAccessBansou || (canAccessBansou && phase !== "action");
-  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "戦略指南プランで利用可" : "戦略確定後に利用可";
+  const bansouTooltip = !session ? "ログインが必要です" : !canAccessBansou ? "戦略指南サブスクで利用可" : "戦略確定後に利用可";
 
   const isActive = (key) => {
     if (key === "analysis") return currentPath === "/" && (!currentPath.includes("phase=action"));
@@ -205,7 +229,12 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                   </div>
                 )}
                 {planLoaded && planLabel && !hasMultiplePlans && (
-                  <span style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{planLabel}</span>
+                  <span style={{
+                    background: isTrialPlan ? "#0d9488" : (planLabel.startsWith("指南") ? C.B : C.A),
+                    color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace"
+                  }}>
+                    {planLabel}{isTrialPlan && trialRemainingLabel ? ` ${trialRemainingLabel}` : ""}
+                  </span>
                 )}
                 {planLoaded && planLabel && hasMultiplePlans && (
                   <span style={{ position: "relative" }}>
@@ -242,7 +271,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 )}
                 {planLoaded && isPro && !planLabel && <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>無制限</span>}
                 {planLoaded && !planLabel && !isPro && <span style={{ background: "#fff", color: C.ink, fontSize: 14, padding: "2px 8px", borderRadius: 3, border: `1px solid ${C.border}`, fontFamily: "'Space Mono', monospace" }}>無料</span>}
-                {planLoaded && nextRenewalAt && (
+                {planLoaded && nextRenewalAt && !isTrialPlan && (
                   <span style={{ fontSize: 12, color: C.muted, fontFamily: NAV_FONT }}>
                     {planType === "support" ? "次回更新" : "有効期限"}: {new Date(nextRenewalAt).toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
                   </span>

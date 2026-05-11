@@ -1887,13 +1887,28 @@ const [chatSummaries, setChatSummaries] = useState([]);
 
   // サブチャット追加
   const addSubChat = (themeId) => {
-    const label = prompt("チャット名を入力してください（例: TOPページのSEO）");
+    // 過去は label と description の2段プロンプトだったが、
+    // 「OKを押してもまたウィンドウが出る」と戸惑う声があったので
+    // 1つのプロンプトに統合。入力したテキストがチャット名 = AI への
+    // 相談トピックになる仕様にする。
+    const label = prompt("このチャットで相談したい内容を入力してください\n（例: TOPページのSEOを改善したい）");
     if (!label?.trim()) return;
-    const description = prompt("話し合いたい内容の概要を入力してください\n（例: TOPページのタイトルとメタディスクリプションを改善したい）");
-    if (!description?.trim()) return;
-    const newChat = { id: `${themeId}_${Date.now()}`, label: label.trim(), description: description.trim() };
+    const trimmed = label.trim();
+    const newChat = { id: `${themeId}_${Date.now()}`, label: trimmed, description: trimmed };
     setThemeChats(prev => ({ ...prev, [themeId]: [...(prev[themeId] || []), newChat] }));
     setActiveChatId(newChat.id);
+  };
+
+  // サブチャットを削除（壊れたチャット救済用）
+  const deleteSubChat = (themeId, chatId) => {
+    if (!confirm("このチャットを削除しますか？\n（このチャットでの会話履歴も消えます）")) return;
+    setThemeChats(prev => ({ ...prev, [themeId]: (prev[themeId] || []).filter(c => c.id !== chatId) }));
+    if (activeChatId === chatId) setActiveChatId(null);
+    // localStorage のチャット履歴もクリア
+    try {
+      const key = `ab3c_thread_${siteId || "default"}_${chatId}`;
+      localStorage.removeItem(key);
+    } catch (e) {}
   };
 
   // スレッド永続化（LS）
@@ -3049,7 +3064,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         currentSiteId={siteId}
         phase={phase}
         strategyConfirmed={strategyConfirmed}
-        canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0)}
+        canAccessBansou={!isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0)}
         previousSiteId={previousSiteId}
         previousSiteUrl={previousSiteUrl}
         previousSiteConfirmed={previousSiteConfirmed}
@@ -3096,7 +3111,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             await restorePreviousSite("action");
           }
         }}
-        onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+        onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
       />
 
 
@@ -3137,16 +3152,38 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       </div>
                       {/* サブチャット一覧（施策展開時） */}
                       {activeThemeId === t.id && themeChats[t.id] && (
-                        <div style={{ paddingLeft: 24 }}>
-                          {themeChats[t.id].map(chat => (
-                            <div key={chat.id} onClick={() => setActiveChatId(chat.id)}
-                              style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: activeChatId === chat.id ? "#2a2a26" : "#888", background: activeChatId === chat.id ? "rgba(0,0,0,0.05)" : "transparent", borderRadius: 3, marginBottom: 1, display: "flex", alignItems: "center", gap: 5, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-                              {activeChatId === chat.id && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
-                              <span>{chat.label}</span>
-                            </div>
-                          ))}
+                        <div>
+                          {themeChats[t.id].map(chat => {
+                            const isChatActive = activeChatId === chat.id;
+                            return (
+                              <div key={chat.id}
+                                onMouseEnter={e => { const x = e.currentTarget.querySelector(".sub-chat-delete"); if (x) x.style.opacity = "1"; }}
+                                onMouseLeave={e => { const x = e.currentTarget.querySelector(".sub-chat-delete"); if (x) x.style.opacity = "0"; }}
+                                onClick={() => setActiveChatId(chat.id)}
+                                style={{
+                                  padding: "6px 10px 6px 34px",  // left=34 (24 indent + 10 標準padding) で施策よりインデント
+                                  cursor: "pointer", fontSize: 16,
+                                  color: isChatActive ? "#2a2a26" : "#888",
+                                  // 選択中はメイン領域グレーで境界線をタブのように貫通させる
+                                  background: isChatActive ? C.bg : "transparent",
+                                  display: "flex", alignItems: "center", gap: 5,
+                                  fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif",
+                                  position: "relative",
+                                  zIndex: isChatActive ? 2 : 1,
+                                }}>
+                                {isChatActive && <span style={{ fontSize: 8, color: "#2a2a26" }}>●</span>}
+                                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{chat.label}</span>
+                                <button
+                                  className="sub-chat-delete"
+                                  onClick={e => { e.stopPropagation(); deleteSubChat(t.id, chat.id); }}
+                                  title="このチャットを削除"
+                                  style={{ background: "transparent", border: "none", cursor: "pointer", color: "#888", fontSize: 16, padding: "0 4px", opacity: 0, transition: "opacity 0.15s", flexShrink: 0 }}
+                                >×</button>
+                              </div>
+                            );
+                          })}
                           <div onClick={() => addSubChat(t.id)}
-                            style={{ padding: "6px 10px", cursor: "pointer", fontSize: 16, color: "#888", fontFamily: "system-ui, sans-serif" }}>
+                            style={{ padding: "6px 10px 6px 34px", cursor: "pointer", fontSize: 16, color: "#888", fontFamily: "system-ui, sans-serif" }}>
                             + チャット追加
                           </div>
                         </div>
@@ -3414,7 +3451,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     );
   })()}
   {(() => {
-    const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0);
+    const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
     // 古い世代を見ている時は確定ボタンを非表示にする
     if (isViewingOldVersion) return null;
     // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
@@ -3431,7 +3468,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       : strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →";
     const confirmTitle = isDiagnosisActive
       ? "戦略診断チケットでは戦略確定はご利用いただけません"
-      : !canConfirm ? "戦略指南プランで戦略確定・戦略アクションが利用可"
+      : !canConfirm ? "戦略指南サブスクで戦略確定・戦略アクションが利用可"
       : isViewingHistory ? "この履歴のスナップショットで再確定します（履歴に新エントリが追加されます）"
       : strategyConfirmed ? "戦略確定済み"
       : "戦略を確定して戦略アクションへ進む";
@@ -3854,13 +3891,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               )}
 
               {phase === "analysis" ? (
-                (isPro || chatTickets > 0) ? (
+                (isPro || chatTickets > 0 || trialChats > 0) ? (
                 <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
                   <AnalysisChatPanel
                     /* 確定履歴クリック時にチャットも切り替えるため、activeConfirmId を含めて key を変える。
                        これで AnalysisChatPanel が再マウントされ、復元された localStorage を読み直す。 */
                     key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
-                    isPro={isPro || chatTickets > 0}
+                    isPro={isPro || chatTickets > 0 || trialChats > 0}
                     analysisResult={currentResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
@@ -3892,7 +3929,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       }
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
-                    onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0) ? confirmStrategy : null}
+                    onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
                   />
                 </div>
                 ) : (
@@ -3902,13 +3939,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     AIチャットで戦略を磨きませんか？
                   </div>
                   <div style={{ fontSize: 15, color: C.ink, marginBottom: 24, lineHeight: 1.7 }}>
-                    <b>戦略指南プラン</b>（戦略診断・策定・アクション）なら、<br/>
+                    <b>戦略指南サブスク</b>（戦略診断・策定・アクション）なら、<br/>
                     AIと対話しながら戦略を何度でも練り直せます。<br/>
                     確定した戦略から具体的なアクション計画も<br/>
                     自動で生成できます。
                   </div>
                   <a href="/pricing" style={{ display: "inline-block", background: C.A, color: "#fff", fontSize: 16, fontWeight: 700, padding: "12px 24px", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace" }}>
-                    戦略指南プランを見る →
+                    戦略指南サブスクを見る →
                   </a>
                   <div style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
                     現在のプランでは<br/>分析結果のPDF保存・シェアURL発行が可能です
