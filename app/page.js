@@ -3009,6 +3009,16 @@ if (tab === "url" && savedText.startsWith("http")) {
       if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); }
       else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); }
       else if (cd.error) { console.error("サイト作成エラー:", cd.error); }
+    } else if (!targetSid && tab === "text" && data && !data.error) {
+      // テキスト分析の場合: URL 分析と違い改善レポート/ビジュアルが無いので、
+      // AB3C 成功時点でサイトを作成する。これがないとサイト管理一覧に表示されない。
+      // サイト名は戦略メッセージから先頭40字、無ければ入力テキストの先頭40字。
+      var textSn = ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
+      var cr2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: textSn, site_url: null }) });
+      var cd2 = await cr2.json();
+      if (cd2.existingSite) { targetSid = cd2.existingSite.id; setSiteId(targetSid); }
+      else if (cd2.site) { targetSid = cd2.site.id; setSiteId(targetSid); }
+      else if (cd2.error) { console.error("テキスト分析サイト作成エラー:", cd2.error); }
     }
     // 既存サイト または 新規サイト作成成功時に全データ保存
     if (targetSid) {
@@ -3037,8 +3047,10 @@ if (tab === "url" && savedText.startsWith("http")) {
       });
     }
     // 戦略診断チケットの場合、分析回数を1消費（再分析も含めて毎回）
-    // 全3レポート成功時のみ消費、失敗時は消費しない
-    if (allReportsSucceeded) {
+    // URL分析: 全3レポート（AB3C+改善+ビジュアル）成功時のみ消費、失敗時は消費しない
+    // テキスト分析: 改善/ビジュアルが無いので AB3C 成功時に消費
+    const shouldConsume = (tab === "text" && data && !data.error) || allReportsSucceeded;
+    if (shouldConsume) {
       try {
         await fetch("/api/analyses/consume", { method: "POST" });
       } catch (e) { console.error("診断回数消費エラー:", e); }
