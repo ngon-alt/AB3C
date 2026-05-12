@@ -384,11 +384,37 @@ function getChangedCardPathsAt(versions, cardPaths, activeIdx) {
   return changed;
 }
 
+// セクション → そのセクションの差分判定に使うパス（module level でも参照したいので外出し）
+const SECTION_PATHS_MAP = {
+  benefit: ["benefit.needs", "benefit.wants"],
+  advantage: ["advantage.what", "advantage.why_good", "advantage.why_hard_to_copy"],
+  customer: ["three_c.customer.target", "three_c.customer.profile", "three_c.customer.stage", "three_c.customer.cutoff", "three_c.customer.market"],
+  competitor: ["three_c.competitor.direct", "three_c.competitor.indirect"],
+  company: ["three_c.company.strength", "three_c.company.structure", "three_c.company.passion"],
+  strategy_message: ["strategy_message.message", "strategy_message.benefit_part", "strategy_message.advantage_part"],
+  checkpoints: ["checkpoints"],
+};
+
+// セクション単位で「実際に切替可能な世代タブが存在するか」を判定するヘルパー。
+// idx === 0 は常に「最新表示中」。idx > 0 でもタブが1個以下なら、UI上タブは出ていないので
+// 「過去の世代表示中」とは扱わない（avps が前の操作で残っていても無効化）。
+function isViewingOldForSection(versions, sectionKey, idx) {
+  if (!Array.isArray(versions) || versions.length <= 1) return false;
+  if (!idx || idx === 0) return false;
+  var paths = SECTION_PATHS_MAP[sectionKey];
+  if (!paths) return true; // 未知のキーは古い挙動を維持
+  var tabs = getSectionTabs(versions, paths);
+  return tabs.length > 1;
+}
+
 // 世代タブのスタイル小コンポーネント
 function VersionTabBar({ versions, sectionKey, sectionPaths, active, onChange, disabled }) {
   if (!Array.isArray(versions) || versions.length <= 1) return null;
   var tabs = getSectionTabs(versions, sectionPaths);
-  if (tabs.length === 0) return null;
+  // タブが1つ以下のセクション（＝そのセクションは世代間で変化していない）は
+  // 世代切替コントロール自体を表示しない。1個しかないタブを押せてしまうと
+  // 「実質的に最新と同じ内容なのに過去の世代扱い」というおかしい状態になるため。
+  if (tabs.length <= 1) return null;
   return (
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
       <span style={{ fontSize: 11, color: "#78716c", fontFamily: "'Space Mono', monospace", letterSpacing: "0.05em", marginRight: 4 }}>世代</span>
@@ -840,7 +866,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   }
   function isViewingOld(sectionKey) {
     if (!hasVersions) return false;
-    return (avps[sectionKey] || 0) !== 0;
+    return isViewingOldForSection(versions, sectionKey, avps[sectionKey] || 0);
   }
   // テキスト色適用ヘルパー（セクション内で使用）
   function txt(color, baseStyle) {
@@ -1611,7 +1637,11 @@ const [analysisVersions, setAnalysisVersions] = useState([]);
 // 各セクションがどの世代を表示しているか（key=セクションキー, value=versionsの index、0=最新）
 const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
 // いずれかのセクションで「最新以外」を見ている場合 true（再分析・確定ボタンを非表示にするため）
-const isViewingOldVersion = Object.values(activeVersionPerSection).some(function (v) { return (v || 0) !== 0; });
+// セクションのタブが1個以下（世代間で変化していない）の場合は、avps に値が残っていても
+// UI上タブが非表示なので「最新表示中」扱いとする。
+const isViewingOldVersion = Object.entries(activeVersionPerSection).some(function (entry) {
+  return isViewingOldForSection(analysisVersions, entry[0], entry[1] || 0);
+});
 // 世代タブのクリック: 該当セクションの表示世代を切り替え
 const handleSectionTabChange = function (sectionKey, versionIndex) {
   setActiveVersionPerSection(function (prev) { return Object.assign({}, prev, ({ [sectionKey]: versionIndex })); });
