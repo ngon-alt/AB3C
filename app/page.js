@@ -1013,13 +1013,27 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
   const messagesEndRef = useRef(null);
   // 初期ロード完了を追跡: 初回 save 効果が空配列で LS を上書きするのを防ぐ
   const loadKeyRef = useRef(null);
+  // 直前の chatKey を保持。siteId が後から設定された等で chatKey が変わった場合、
+  // 旧キーから messages を引き継いで「反映ボタン押下でチャットが消える」事象を防ぐ。
+  const prevChatKeyRef = useRef(null);
 
   // ロード + 初期メッセージ生成（chatKey が変わったら再実行）
   useEffect(() => {
     loadKeyRef.current = null; // ロード進行中マーク
     let restored = false;
     try {
-      const saved = localStorage.getItem(chatKey);
+      let saved = localStorage.getItem(chatKey);
+      // siteId 未設定の状態（新規分析直後）でチャット→反映を行うと、
+      // analysisResult ハッシュベースの chatKey が変わって messages が welcome 一行に
+      // リセットされる事象が発生していた。前回 chatKey から救済して、その後の save effect で
+      // 自然と新キーへ永続化されるようにする。
+      if (!saved && prevChatKeyRef.current && prevChatKeyRef.current !== chatKey) {
+        const migrated = localStorage.getItem(prevChatKeyRef.current);
+        if (migrated) {
+          saved = migrated;
+          try { localStorage.setItem(chatKey, migrated); } catch (e) {}
+        }
+      }
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -1031,6 +1045,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
     if (!restored) {
       setMessages([{ role: "assistant", content: "この分析結果はウェブサイトから読み取れる範囲の情報で作っています。足りない情報や認識違いがあれば、ぜひこの会話で教えてください。一緒に磨いていきましょう。\n\n特に **新しい戦略の源や、競合に真似されにくい強みの源** は、経営者ご自身の価値観や原体験から生まれることが多いものです。事業の原点や譲れない想いなど、ご興味があれば気軽にお話しください — お聞きしながら戦略の核を一緒に見つけます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
     }
+    prevChatKeyRef.current = chatKey;
   }, [chatKey]);
 
   useEffect(() => {
