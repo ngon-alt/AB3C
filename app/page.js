@@ -291,7 +291,7 @@ function versionDisplayNumber(versions, dataIdx) {
 const BUSINESS_PLAN_FIELDS = [
   { key: "origin", label: "事業を始めたきっかけ・原体験", placeholder: "例：自分が子育てで困った経験から、同じ悩みを持つ親を助けたいと思った。前職で○○の課題を肌で感じていた。" },
   { key: "problem", label: "解決したい問題と現状の代替手段", placeholder: "例：地方の高齢者がスマホ操作で困っている。現状は家族に聞くか、量販店スタッフに頼るしかない。" },
-  { key: "value", label: "提供価値の仮説", placeholder: "例：訪問型でスマホ操作を1時間マンツーマン指導。本人が自分で使えるようになるまで伴走する。" },
+  { key: "value", label: "商品・サービスの構想", placeholder: "例：訪問型でスマホ操作を1時間マンツーマン指導。本人が自分で使えるようになるまで伴走する。" },
   { key: "customer", label: "想定顧客の具体像", placeholder: "例：60代以上の方で、スマホは持っているが LINE と電話以外は使えていない人。子供は遠方に住んでいる。" },
   { key: "revenue", label: "想定収益モデル", placeholder: "例：1回1時間 5,000円の訪問サポート。月額3,000円の電話サポートも併売。" },
 ];
@@ -304,17 +304,28 @@ function buildBusinessPlanText(bp) {
     .join("\n\n");
 }
 
+// 過去のラベル名（リネーム前）も復元できるよう alias 一覧を持つ。
+// key → そのキーで過去に使われた可能性のあるラベル名（新→旧の順）
+const BUSINESS_PLAN_LABEL_ALIASES = {
+  value: ["商品・サービスの構想", "提供価値の仮説"],
+};
+
 function parseBusinessPlanText(text) {
   var parsed = { origin: "", problem: "", value: "", customer: "", revenue: "" };
   if (typeof text !== "string" || !text.trim()) return { parsed: parsed, foundAny: false };
   var foundAny = false;
   BUSINESS_PLAN_FIELDS.forEach(function(f) {
-    var escaped = f.label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    var re = new RegExp("【" + escaped + "】([\\s\\S]*?)(?=【[^】]+】|$)");
-    var m = text.match(re);
-    if (m) {
-      parsed[f.key] = m[1].trim();
-      foundAny = true;
+    var candidates = (BUSINESS_PLAN_LABEL_ALIASES[f.key] || [f.label]);
+    if (candidates.indexOf(f.label) === -1) candidates = [f.label].concat(candidates);
+    for (var i = 0; i < candidates.length; i++) {
+      var escaped = candidates[i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      var re = new RegExp("【" + escaped + "】([\\s\\S]*?)(?=【[^】]+】|$)");
+      var m = text.match(re);
+      if (m) {
+        parsed[f.key] = m[1].trim();
+        foundAny = true;
+        break; // 1キー1ヒットで打ち切り
+      }
     }
   });
   return { parsed: parsed, foundAny: foundAny };
