@@ -103,7 +103,7 @@ export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagn
 
     <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 12px">継続的に戦略を磨きたい場合は <strong>戦略指南サブスク</strong> もご検討ください。</p>
     <ul style="font-size:13px;line-height:1.8;color:#555;margin:0 0 16px;padding-left:20px">
-      <li>分析結果・戦略確定履歴がダッシュボードに保存</li>
+      <li>分析結果・戦略確定履歴がサイト管理画面に保存</li>
       <li>AIチャットで戦略を磨ける（月100回/サイト）</li>
       <li>10施策テーマでアクションを検討できる</li>
     </ul>

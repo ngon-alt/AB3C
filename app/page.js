@@ -283,6 +283,87 @@ function versionDisplayNumber(versions, dataIdx) {
   return versions.length - dataIdx;
 }
 
+// ----------------------------------------------------------------------
+// 新規事業向けの構造化入力（テキスト分析）ヘルパー
+// 構想フェーズの方向け: フリーテキスト1枠ではなく、観点別に分けて入力してもらう。
+// 入力された各フィールドを 【ラベル】...\n... の形式で結合して /api/analyze に渡す。
+// ----------------------------------------------------------------------
+const BUSINESS_PLAN_FIELDS = [
+  { key: "origin", label: "事業を始めたきっかけ・原体験", placeholder: "例：自分が子育てで困った経験から、同じ悩みを持つ親を助けたいと思った。前職で○○の課題を肌で感じていた。" },
+  { key: "problem", label: "解決したい問題と現状の代替手段", placeholder: "例：地方の高齢者がスマホ操作で困っている。現状は家族に聞くか、量販店スタッフに頼るしかない。" },
+  { key: "value", label: "商品・サービスの構想", placeholder: "例：訪問型でスマホ操作を1時間マンツーマン指導。本人が自分で使えるようになるまで伴走する。" },
+  { key: "customer", label: "想定顧客の具体像", placeholder: "例：60代以上の方で、スマホは持っているが LINE と電話以外は使えていない人。子供は遠方に住んでいる。" },
+  { key: "revenue", label: "想定収益モデル", placeholder: "例：1回1時間 5,000円の訪問サポート。月額3,000円の電話サポートも併売。" },
+];
+
+function buildBusinessPlanText(bp) {
+  if (!bp || typeof bp !== "object") return "";
+  var parts = BUSINESS_PLAN_FIELDS
+    .filter(function(f) { return (bp[f.key] || "").trim(); })
+    .map(function(f) { return "【" + f.label + "】\n" + (bp[f.key] || "").trim(); });
+  // タイトルは特別扱い: 結合テキストの先頭に置く
+  if ((bp.title || "").trim()) {
+    parts = ["【タイトル】\n" + bp.title.trim()].concat(parts);
+  }
+  return parts.join("\n\n");
+}
+
+// 構造化入力テキスト（【ラベル】...）を戦略策定チャットで読みやすい形式に変換する。
+// 【ラベル】 を ■ ラベル に置き換え、ユーザーが書いた構造化入力を user role メッセージとして
+// チャット冒頭に表示するため。
+function formatStructuredInputForChat(text) {
+  if (typeof text !== "string" || !text.trim()) return "";
+  if (!/【[^】]+】/.test(text)) return ""; // マーカーが無ければ構造化入力ではないので無視
+  var body = text.replace(/【([^】]+)】/g, "■ $1");
+  return "以下の内容で分析を依頼しました。\n\n" + body;
+}
+
+// currentInput や savedText からタイトルだけを抽出する。
+// 戻り値: { title: 抽出されたタイトル文字列 or "", rest: タイトルを除いた本文 }
+function extractBusinessPlanTitle(text) {
+  if (typeof text !== "string" || !text.trim()) return { title: "", rest: text || "" };
+  var m = text.match(/【タイトル】([\s\S]*?)(?=【[^】]+】|$)/);
+  if (m) {
+    var t = m[1].trim();
+    var rest = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).trim();
+    return { title: t, rest: rest };
+  }
+  return { title: "", rest: text };
+}
+
+// 過去のラベル名（リネーム前）も復元できるよう alias 一覧を持つ。
+// key → そのキーで過去に使われた可能性のあるラベル名（新→旧の順）
+const BUSINESS_PLAN_LABEL_ALIASES = {
+  value: ["商品・サービスの構想", "提供価値の仮説"],
+};
+
+function parseBusinessPlanText(text) {
+  var parsed = { title: "", origin: "", problem: "", value: "", customer: "", revenue: "" };
+  if (typeof text !== "string" || !text.trim()) return { parsed: parsed, foundAny: false };
+  var foundAny = false;
+  // タイトルの抽出
+  var titleMatch = text.match(/【タイトル】([\s\S]*?)(?=【[^】]+】|$)/);
+  if (titleMatch) {
+    parsed.title = titleMatch[1].trim();
+    foundAny = true;
+  }
+  BUSINESS_PLAN_FIELDS.forEach(function(f) {
+    var candidates = (BUSINESS_PLAN_LABEL_ALIASES[f.key] || [f.label]);
+    if (candidates.indexOf(f.label) === -1) candidates = [f.label].concat(candidates);
+    for (var i = 0; i < candidates.length; i++) {
+      var escaped = candidates[i].replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      var re = new RegExp("【" + escaped + "】([\\s\\S]*?)(?=【[^】]+】|$)");
+      var m = text.match(re);
+      if (m) {
+        parsed[f.key] = m[1].trim();
+        foundAny = true;
+        break; // 1キー1ヒットで打ち切り
+      }
+    }
+  });
+  return { parsed: parsed, foundAny: foundAny };
+}
+
 // バージョン番号 1〜5 に対応する色を返す（5世代を超えても5色目を使い続ける）
 function getVersionColor(versionNumber) {
   var idx = Math.min(Math.max(versionNumber - 1, 0), VERSION_COLOR_PALETTE.length - 1);
@@ -1016,7 +1097,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode }) {
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -1060,7 +1141,17 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       const welcomeContent = isTextMode
         ? "入力していただいた文章から読み取れる範囲で分析しています。文章量が少ないと精度が上がりにくいため、**ぜひこの会話で情報を追加してください**。たとえば次のような内容を教えていただけると、分析がぐっと深まります。\n\n・お客様の具体的な属性（年齢層・業種・地域・困りごと）\n・競合との違いや、お客様から選ばれている理由\n・事業の特徴・実績・歴史・こだわり\n・スタッフ体制・サービス提供の流れ\n\nまた、**新しい戦略の源や、競合に真似されにくい強みの源** は経営者ご自身の価値観や原体験から生まれることが多いです。事業の原点や譲れない想いがあれば、ぜひお聞かせください — 戦略の核を一緒に見つけます。\n\n会話が進んだら、画面下の「← この会話内容を分析に反映する」ボタンで分析結果に反映できます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。"
         : "この分析結果はウェブサイトから読み取れる範囲の情報で作っています。足りない情報や認識違いがあれば、ぜひこの会話で教えてください。一緒に磨いていきましょう。\n\n特に **新しい戦略の源や、競合に真似されにくい強みの源** は、経営者ご自身の価値観や原体験から生まれることが多いものです。事業の原点や譲れない想いなど、ご興味があれば気軽にお話しください — お聞きしながら戦略の核を一緒に見つけます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。";
-      setMessages([{ role: "assistant", content: welcomeContent }]);
+      const initial = [];
+      // テキスト分析で構造化入力（5項目+タイトル）がある場合、ユーザーが何を入力したか
+      // 一目で分かるよう、チャットの一番上に user role メッセージとして表示する。
+      if (isTextMode && initialUserInput) {
+        const formattedInput = formatStructuredInputForChat(initialUserInput);
+        if (formattedInput) {
+          initial.push({ role: "user", content: formattedInput });
+        }
+      }
+      initial.push({ role: "assistant", content: welcomeContent });
+      setMessages(initial);
     }
     prevChatKeyRef.current = chatKey;
   }, [chatKey]);
@@ -1457,6 +1548,8 @@ export default function Home() {
   const { data: session } = useSession();
 const [tab, setTab] = useState("url");
   const [input, setInput] = useState("");
+  // 新規事業向けの構造化入力。テキスト分析タブで5フィールドに分けて入力してもらう。
+  const [businessPlan, setBusinessPlan] = useState({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" });
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -2838,7 +2931,10 @@ useEffect(() => {
 
   const analyze = async () => {
     // ログインチェックはAPI側で実施（sessionの読み込みタイミング問題を回避）
-    if (tab === "text" && !input.trim()) { setError("事業概要を入力してください。"); return; }
+    // テキスト分析時は構造化入力（businessPlan）を結合した文字列を使う。
+    // 後方互換として、businessPlan が全空で input に直接テキストが入っている場合は input を使う。
+    const composedTextInput = (tab === "text") ? (buildBusinessPlanText(businessPlan) || input.trim()) : "";
+    if (tab === "text" && !composedTextInput) { setError("事業情報を1つ以上の項目に入力してください。"); return; }
     if (tab === "url" && !url.trim()) { setError("URLを入力してください。"); return; }
 
     // URL一致で既存サイトを先に DB から探す（クロスブラウザでの確定状態を判定するため）
@@ -2895,7 +2991,7 @@ setVersionsFromInitial(null);
         analyzeSiteId = prefoundSite.id;
         setSiteId(prefoundSite.id);
       }
-      const body = tab === "url" ? { url } : { input };
+      const body = tab === "url" ? { url } : { input: composedTextInput };
       // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
       if (analyzeSiteId) body.siteId = analyzeSiteId;
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -2903,7 +2999,7 @@ setVersionsFromInitial(null);
       if (data.error) { setError(data.error); setLoading(false); setOverlayMessage(null); return; }
       setResult(data);
 setHistoryTitle(data?.strategy_message?.message || "");
-const savedText = tab === "url" ? url : input;
+const savedText = tab === "url" ? url : composedTextInput;
 setCurrentResult(data);
 setVersionsFromInitial(data); // 初回分析を v1 として登録
 setCurrentInput(savedText);
@@ -3009,17 +3105,9 @@ if (tab === "url" && savedText.startsWith("http")) {
       if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); }
       else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); }
       else if (cd.error) { console.error("サイト作成エラー:", cd.error); }
-    } else if (!targetSid && tab === "text" && data && !data.error) {
-      // テキスト分析の場合: URL 分析と違い改善レポート/ビジュアルが無いので、
-      // AB3C 成功時点でサイトを作成する。これがないとサイト管理一覧に表示されない。
-      // サイト名は戦略メッセージから先頭40字、無ければ入力テキストの先頭40字。
-      var textSn = ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
-      var cr2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: textSn, site_url: null }) });
-      var cd2 = await cr2.json();
-      if (cd2.existingSite) { targetSid = cd2.existingSite.id; setSiteId(targetSid); }
-      else if (cd2.site) { targetSid = cd2.site.id; setSiteId(targetSid); }
-      else if (cd2.error) { console.error("テキスト分析サイト作成エラー:", cd2.error); }
     }
+    // 注: テキスト分析のサイト作成は URL if-block の外で行う（このブロック全体が
+    // tab === "url" 条件下にあるため、ここで else if してもテキスト分析時には動かない）
     // 既存サイト または 新規サイト作成成功時に全データ保存
     if (targetSid) {
       // 初回分析の改善レポート/ビジュアルは推奨パターン分のみ生成されているので、
@@ -3048,9 +3136,7 @@ if (tab === "url" && savedText.startsWith("http")) {
     }
     // 戦略診断チケットの場合、分析回数を1消費（再分析も含めて毎回）
     // URL分析: 全3レポート（AB3C+改善+ビジュアル）成功時のみ消費、失敗時は消費しない
-    // テキスト分析: 改善/ビジュアルが無いので AB3C 成功時に消費
-    const shouldConsume = (tab === "text" && data && !data.error) || allReportsSucceeded;
-    if (shouldConsume) {
+    if (allReportsSucceeded) {
       try {
         await fetch("/api/analyses/consume", { method: "POST" });
       } catch (e) { console.error("診断回数消費エラー:", e); }
@@ -3058,13 +3144,67 @@ if (tab === "url" && savedText.startsWith("http")) {
   } catch (e) { console.error("DB保存エラー:", e); }
 }
 
+// テキスト分析のサイト作成と分析回数消費。
+// URL分析と違い改善レポート/ビジュアルを生成しないため、URL if-block の外で処理する。
+// （以前は URL if-block の中に else-if で書いていたが、外側の if (tab === "url") に
+// 阻まれて永久に実行されない死コードになっていた事故を修正）
+if (tab === "text" && data && !data.error && !analyzeSiteId) {
+  try {
+    // サイト名の優先順:
+    //   1. ユーザーが入力した事業名・タイトル（businessPlan.title）
+    //   2. 戦略メッセージの先頭40字
+    //   3. 結合された入力テキストの先頭40字
+    //   4. "テキスト分析"
+    const titleFromBp = (businessPlan?.title || "").trim();
+    const textSn = titleFromBp || ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
+    const crText = await fetch("/api/sites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ site_name: textSn, site_url: null }),
+    });
+    const cdText = await crText.json();
+    let textSid = null;
+    if (cdText.existingSite) textSid = cdText.existingSite.id;
+    else if (cdText.site) textSid = cdText.site.id;
+    if (textSid) {
+      setSiteId(textSid);
+      // 分析結果を DB に保存
+      await fetch("/api/sites", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now() }),
+      });
+      // 戦略診断チケットの場合は分析回数を消費（URL分析と整合）
+      try {
+        await fetch("/api/analyses/consume", { method: "POST" });
+      } catch (e) { console.error("診断回数消費エラー:", e); }
+    } else if (cdText.error) {
+      console.error("テキスト分析サイト作成エラー:", cdText.error);
+    }
+  } catch (e) { console.error("テキスト分析サイト作成処理エラー:", e); }
+}
+
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
 notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
-  const editAndReanalyze = (text) => { setInput(text); setTab("text"); setResult(null); setSelectedHistory(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
+  const editAndReanalyze = (text) => {
+    // 過去のテキストに構造化マーカー（【ラベル】）が含まれていれば businessPlan に復元、
+    // 無ければ非構造テキストとして input に入れる（後方互換）。
+    const { parsed, foundAny } = parseBusinessPlanText(text || "");
+    if (foundAny) {
+      setBusinessPlan(parsed);
+      setInput("");
+    } else {
+      setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" });
+      setInput(text || "");
+    }
+    setTab("text");
+    setResult(null);
+    setSelectedHistory(null);
+  };
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
     setHistory(newHistory);
@@ -3377,7 +3517,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       }}
     >
       <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 2 }}>テキストで入力</div>
-      <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>事業概要を自由に記述</div>
+      <div style={{ fontSize: 16, color: C.muted, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>新規事業・構想中の方向け</div>
     </button>
   </div>
 
@@ -3415,10 +3555,48 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       );
       return tab === "text" ? (
         <>
-          <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
-            placeholder="例：地元農家と提携した無農薬野菜の定期宅配サービスです。週1回のボックス配送で旬の野菜を10〜12品目お届け。産地直送・中間業者なし、レシピカードも同封。"
-            style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.8, padding: "10px 14px", resize: "vertical", minHeight: 100, outline: "none", boxSizing: "border-box" }} />
-          <div style={{ marginTop: 10 }}>{ab3cBtn}</div>
+          <div style={{ fontSize: 14, color: C.muted, marginBottom: 14, lineHeight: 1.7 }}>
+            新規事業・構想中の事業を分析される方は、以下の観点ごとに分けて入力すると、AI が事業の本質をより深く理解した上で AB3C を生成します。<b>1項目でも、複数項目でもOK</b>です。分かっている範囲・仮説でかまいません。
+          </div>
+          {/* 事業名・タイトル: サイト管理一覧や結果画面でこの分析を識別するための短い名前 */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+              事業名・タイトル <span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>（短く識別しやすい名前）</span>
+            </label>
+            <input
+              type="text"
+              value={businessPlan.title || ""}
+              onChange={function(e) {
+                var v = e.target.value;
+                setBusinessPlan(function(prev) { return Object.assign({}, prev, { title: v }); });
+              }}
+              onKeyDown={function(e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+              placeholder="例：ナマエカード、高齢者向けスマホ訪問サポート、地元無農薬野菜の定期便"
+              style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {BUSINESS_PLAN_FIELDS.map(function(f) {
+              return (
+                <div key={f.key}>
+                  <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+                    {f.label}
+                  </label>
+                  <textarea
+                    value={businessPlan[f.key] || ""}
+                    onChange={function(e) {
+                      var v = e.target.value;
+                      setBusinessPlan(function(prev) { return Object.assign({}, prev, { [f.key]: v }); });
+                    }}
+                    onKeyDown={function(e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+                    placeholder={f.placeholder}
+                    style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.7, padding: "8px 12px", resize: "vertical", minHeight: 60, outline: "none", boxSizing: "border-box" }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 14 }}>{ab3cBtn}</div>
         </>
       ) : (
         // URLモードはGoogle検索バー風に：input と「分析する」ボタンを横並びで1行に
@@ -3557,14 +3735,30 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   })()}
 </div>
 
-{(currentInput || chatSummaries.length > 0) && (
+{(currentInput || chatSummaries.length > 0) && (() => {
+  // テキスト分析の場合、currentInput から【タイトル】を抽出してきれいに表示する。
+  // タイトルがあればそれを大きく、その下に本文の冒頭を控えめに表示。
+  // タイトルが無い場合は従来通り本文の冒頭100文字を表示。
+  const isUrl = currentInput?.startsWith("http");
+  const parsedTitle = isUrl ? { title: "", rest: currentInput || "" } : extractBusinessPlanTitle(currentInput || "");
+  const sectionLabel = isUrl ? "分析URL" : (parsedTitle.title ? "事業名" : "分析テキスト");
+  return (
   <div style={{ background: "#e8e8e8", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>{currentInput?.startsWith("http") ? "分析URL" : "分析テキスト"}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>{sectionLabel}</div>
     <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>
-{currentInput?.startsWith("http") ? (
+      {isUrl ? (
         <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
+      ) : parsedTitle.title ? (
+        <>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>{parsedTitle.title}</div>
+          {parsedTitle.rest && (
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+              {parsedTitle.rest.slice(0, 80)}{parsedTitle.rest.length > 80 ? "…" : ""}
+            </div>
+          )}
+        </>
       ) : (
-<span>{currentInput?.slice(0, 100)}{currentInput?.length > 100 ? "…" : ""}</span>
+        <span>{currentInput?.slice(0, 100)}{currentInput?.length > 100 ? "…" : ""}</span>
       )}
     </div>
     {chatSummaries.length > 0 && (
@@ -3575,7 +3769,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     )}
   </div>
-)}
+  );
+})()}
               {/* 全体タイトル編集欄は廃止：戦略メッセージは各パターンに紐づくため、選択中Pカード内に表示する */}
               {shareUrl && (
                 <div style={{ background: "#e8e8e8", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
@@ -3947,6 +4142,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     isViewingOldVersion={isViewingOldVersion}
                     /* テキスト分析時は専用のウェルカム文に切り替え、情報追加を促す */
                     isTextMode={!(currentInput || "").startsWith("http")}
+                    /* 構造化入力（5項目+タイトル）をチャット冒頭の user メッセージとして表示するため、
+                       初回マウント時の currentInput を渡す */
+                    initialUserInput={currentInput}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
                       // 戦略パターン（combinations）が存在する場合、reanalyze の結果は

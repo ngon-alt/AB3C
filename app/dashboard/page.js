@@ -332,7 +332,7 @@ export default function DashboardPage() {
         <Header />
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
           <div style={{ marginBottom: 28 }}>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>ダッシュボード</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>サイト管理</div>
             <div style={{ fontSize: 15, color: C.muted, marginTop: 6, fontFamily: FONT }}>
               {session.user?.name} さんが発行したシェアURL一覧（戦略診断チケット）
             </div>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
 
           <div style={{ background: "#fff9e6", borderLeft: `3px solid ${C.highlight}`, padding: "14px 18px", fontSize: 13, color: C.ink, lineHeight: 1.8, marginBottom: 24, fontFamily: FONT, borderRadius: 4 }}>
             <b>📌 戦略診断チケットについて</b><br />
-            戦略診断チケットでは、分析結果はダッシュボードに保存されません。代わりに、
+            戦略診断チケットでは、分析結果はサイト管理画面に保存されません。代わりに、
             <strong>発行したシェアURL（発行から1年間有効）</strong> から結果を閲覧できます。
             期限が切れる前に PDF 保存や印刷での持ち帰りもご検討ください。
           </div>
@@ -429,9 +429,9 @@ export default function DashboardPage() {
         {/* ヘッダー */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
           <div>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>ダッシュボード</div>
+            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>サイト管理</div>
             <div style={{ fontSize: 15, color: C.muted, marginTop: 6, fontFamily: FONT }}>
-              {session.user?.name} さんのサイト管理
+              {session.user?.name} さんのサイト一覧
             </div>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
