@@ -1002,7 +1002,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion }) {
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode }) {
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -1043,7 +1043,10 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       }
     } catch (e) {}
     if (!restored) {
-      setMessages([{ role: "assistant", content: "この分析結果はウェブサイトから読み取れる範囲の情報で作っています。足りない情報や認識違いがあれば、ぜひこの会話で教えてください。一緒に磨いていきましょう。\n\n特に **新しい戦略の源や、競合に真似されにくい強みの源** は、経営者ご自身の価値観や原体験から生まれることが多いものです。事業の原点や譲れない想いなど、ご興味があれば気軽にお話しください — お聞きしながら戦略の核を一緒に見つけます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。" }]);
+      const welcomeContent = isTextMode
+        ? "入力していただいた文章から読み取れる範囲で分析しています。文章量が少ないと精度が上がりにくいため、**ぜひこの会話で情報を追加してください**。たとえば次のような内容を教えていただけると、分析がぐっと深まります。\n\n・お客様の具体的な属性（年齢層・業種・地域・困りごと）\n・競合との違いや、お客様から選ばれている理由\n・事業の特徴・実績・歴史・こだわり\n・スタッフ体制・サービス提供の流れ\n\nまた、**新しい戦略の源や、競合に真似されにくい強みの源** は経営者ご自身の価値観や原体験から生まれることが多いです。事業の原点や譲れない想いがあれば、ぜひお聞かせください — 戦略の核を一緒に見つけます。\n\n会話が進んだら、画面下の「← この会話内容を分析に反映する」ボタンで分析結果に反映できます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。"
+        : "この分析結果はウェブサイトから読み取れる範囲の情報で作っています。足りない情報や認識違いがあれば、ぜひこの会話で教えてください。一緒に磨いていきましょう。\n\n特に **新しい戦略の源や、競合に真似されにくい強みの源** は、経営者ご自身の価値観や原体験から生まれることが多いものです。事業の原点や譲れない想いなど、ご興味があれば気軽にお話しください — お聞きしながら戦略の核を一緒に見つけます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。";
+      setMessages([{ role: "assistant", content: welcomeContent }]);
     }
     prevChatKeyRef.current = chatKey;
   }, [chatKey]);
@@ -3916,6 +3919,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     analysisResult={currentResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
+                    /* テキスト分析時は専用のウェルカム文に切り替え、情報追加を促す */
+                    isTextMode={!(currentInput || "").startsWith("http")}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
                       try {
