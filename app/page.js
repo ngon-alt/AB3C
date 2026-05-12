@@ -3105,22 +3105,9 @@ if (tab === "url" && savedText.startsWith("http")) {
       if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); }
       else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); }
       else if (cd.error) { console.error("サイト作成エラー:", cd.error); }
-    } else if (!targetSid && tab === "text" && data && !data.error) {
-      // テキスト分析の場合: URL 分析と違い改善レポート/ビジュアルが無いので、
-      // AB3C 成功時点でサイトを作成する。これがないとサイト管理一覧に表示されない。
-      // サイト名の優先順:
-      //   1. ユーザーが入力した事業名・タイトル（businessPlan.title）
-      //   2. 戦略メッセージの先頭40字
-      //   3. 結合された入力テキストの先頭40字
-      //   4. "テキスト分析"
-      var titleFromBp = (businessPlan?.title || "").trim();
-      var textSn = titleFromBp || ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
-      var cr2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: textSn, site_url: null }) });
-      var cd2 = await cr2.json();
-      if (cd2.existingSite) { targetSid = cd2.existingSite.id; setSiteId(targetSid); }
-      else if (cd2.site) { targetSid = cd2.site.id; setSiteId(targetSid); }
-      else if (cd2.error) { console.error("テキスト分析サイト作成エラー:", cd2.error); }
     }
+    // 注: テキスト分析のサイト作成は URL if-block の外で行う（このブロック全体が
+    // tab === "url" 条件下にあるため、ここで else if してもテキスト分析時には動かない）
     // 既存サイト または 新規サイト作成成功時に全データ保存
     if (targetSid) {
       // 初回分析の改善レポート/ビジュアルは推奨パターン分のみ生成されているので、
@@ -3149,14 +3136,52 @@ if (tab === "url" && savedText.startsWith("http")) {
     }
     // 戦略診断チケットの場合、分析回数を1消費（再分析も含めて毎回）
     // URL分析: 全3レポート（AB3C+改善+ビジュアル）成功時のみ消費、失敗時は消費しない
-    // テキスト分析: 改善/ビジュアルが無いので AB3C 成功時に消費
-    const shouldConsume = (tab === "text" && data && !data.error) || allReportsSucceeded;
-    if (shouldConsume) {
+    if (allReportsSucceeded) {
       try {
         await fetch("/api/analyses/consume", { method: "POST" });
       } catch (e) { console.error("診断回数消費エラー:", e); }
     }
   } catch (e) { console.error("DB保存エラー:", e); }
+}
+
+// テキスト分析のサイト作成と分析回数消費。
+// URL分析と違い改善レポート/ビジュアルを生成しないため、URL if-block の外で処理する。
+// （以前は URL if-block の中に else-if で書いていたが、外側の if (tab === "url") に
+// 阻まれて永久に実行されない死コードになっていた事故を修正）
+if (tab === "text" && data && !data.error && !analyzeSiteId) {
+  try {
+    // サイト名の優先順:
+    //   1. ユーザーが入力した事業名・タイトル（businessPlan.title）
+    //   2. 戦略メッセージの先頭40字
+    //   3. 結合された入力テキストの先頭40字
+    //   4. "テキスト分析"
+    const titleFromBp = (businessPlan?.title || "").trim();
+    const textSn = titleFromBp || ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
+    const crText = await fetch("/api/sites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ site_name: textSn, site_url: null }),
+    });
+    const cdText = await crText.json();
+    let textSid = null;
+    if (cdText.existingSite) textSid = cdText.existingSite.id;
+    else if (cdText.site) textSid = cdText.site.id;
+    if (textSid) {
+      setSiteId(textSid);
+      // 分析結果を DB に保存
+      await fetch("/api/sites", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now() }),
+      });
+      // 戦略診断チケットの場合は分析回数を消費（URL分析と整合）
+      try {
+        await fetch("/api/analyses/consume", { method: "POST" });
+      } catch (e) { console.error("診断回数消費エラー:", e); }
+    } else if (cdText.error) {
+      console.error("テキスト分析サイト作成エラー:", cdText.error);
+    }
+  } catch (e) { console.error("テキスト分析サイト作成処理エラー:", e); }
 }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
