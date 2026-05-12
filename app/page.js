@@ -607,16 +607,23 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
   const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
   const selectedCombo = combinations.find(c => c?.id === selectedId);
   return (
-    <div style={{ marginBottom: 28 }}>
-      {/* 切替コントロール（ピル型ボタン群） */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ fontSize: 14, color: "#444", marginBottom: 10, fontFamily: sansFont, fontWeight: 700 }}>
-          戦略パターンを切り替え
-          <span style={{ fontWeight: 400, color: "#777", marginLeft: 8, fontSize: 13 }}>
-            （AIが3案提案。ボタンで表示を切替）
+    <div style={{ marginBottom: 32 }}>
+      {/* 切替コントロール（ピル型ボタン群） — 気付かれにくいというフィードバックを受けて余白・文字サイズ・影を強化 */}
+      <div style={{
+        marginBottom: 18,
+        background: "#fff8e6",
+        border: "1px solid #fbbf24",
+        borderRadius: 8,
+        padding: "16px 18px 18px",
+      }}>
+        <div style={{ fontSize: 17, color: C.ink, marginBottom: 12, fontFamily: sansFont, fontWeight: 700, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 20 }}>👇</span>
+          <span>戦略パターンを切り替え</span>
+          <span style={{ fontWeight: 400, color: "#666", marginLeft: 4, fontSize: 14 }}>
+            （AIが3案提案。ボタンを押すと下の分析が切り替わります）
           </span>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
           {combinations.map(combo => {
             const isSelected = combo.id === selectedId;
             const isRecommended = combo.id === recommendedId;
@@ -626,24 +633,27 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                 key={combo.id}
                 onClick={() => onSelect && onSelect(combo.id)}
                 style={{
-                  // 選択中：パターン固有色（緑/紫/茶）。未選択でも左側に細い色帯を残してパターン色を予告。
+                  // 選択中：パターン固有色（緑/紫/茶）。未選択でも左側に色帯を残してパターン色を予告。
                   background: isSelected ? myColor : "#ffffff",
                   color: isSelected ? "#fff" : C.ink,
                   border: isSelected ? `2px solid ${myColor}` : `2px solid #c8c8c4`,
-                  borderLeft: isSelected ? `2px solid ${myColor}` : `6px solid ${myColor}`,
+                  borderLeft: isSelected ? `2px solid ${myColor}` : `8px solid ${myColor}`,
                   borderRadius: 999,
-                  padding: "10px 18px",
-                  fontSize: 15,
+                  padding: "14px 24px",
+                  fontSize: 17,
                   fontWeight: 700,
                   cursor: "pointer",
                   fontFamily: sansFont,
-                  transition: "background 0.15s, border-color 0.15s, color 0.15s",
+                  transition: "background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s",
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 10,
                   lineHeight: 1.2,
+                  boxShadow: isSelected ? "0 3px 8px rgba(0,0,0,0.18)" : "0 2px 4px rgba(0,0,0,0.08)",
                 }}
                 onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = isSelected ? "0 5px 12px rgba(0,0,0,0.25)" : "0 4px 10px rgba(0,0,0,0.18)";
                   if (!isSelected) {
                     e.currentTarget.style.background = "#f5f5f0";
                     e.currentTarget.style.borderColor = "#888";
@@ -651,6 +661,8 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   }
                 }}
                 onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = isSelected ? "0 3px 8px rgba(0,0,0,0.18)" : "0 2px 4px rgba(0,0,0,0.08)";
                   if (!isSelected) {
                     e.currentTarget.style.background = "#ffffff";
                     e.currentTarget.style.borderColor = "#c8c8c4";
@@ -663,9 +675,9 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   background: isSelected ? "#fff" : myColor,
                   color: isSelected ? myColor : "#fff",
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: 700,
-                  padding: "3px 10px",
+                  padding: "4px 12px",
                   borderRadius: 999,
                   letterSpacing: "0.05em",
                 }}>P{combo.id}</span>
@@ -674,8 +686,8 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
                   <span style={{
                     background: isSelected ? "rgba(255,255,255,0.22)" : "#fef3c7",
                     color: isSelected ? "#fff" : "#854d0e",
-                    fontSize: 11,
-                    padding: "3px 9px",
+                    fontSize: 12,
+                    padding: "4px 10px",
                     borderRadius: 999,
                     fontWeight: 700,
                     whiteSpace: "nowrap",
