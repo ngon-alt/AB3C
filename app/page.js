@@ -257,21 +257,70 @@ function pathChangedBetween(path, resultA, resultB) {
   return JSON.stringify(getValueByPath(resultA, path)) !== JSON.stringify(getValueByPath(resultB, path));
 }
 
-// セクション内のいずれかのパスが「currentIdx vs prevIdx」で変化していれば true
-function sectionChangedBetween(versions, sectionPaths, currentIdx, prevIdx) {
+// セクションが画面上で実際に表示するデータを抽出する。
+// 組み合わせパターン（combinations）がある場合は選択中の combo のデータ、
+// 無い場合は top-level の該当パスのデータを返す。
+// これがないと、top-level だけが更新されても表示は combo データから来ているため
+// 「v1 と v2 で内容が同じなのに v2 タブが出る」という事象が起きる。
+function getDisplayedSectionData(result, sectionKey, selectedCombinationId) {
+  if (!result) return undefined;
+  var hasCombos = Array.isArray(result.combinations) && result.combinations.length > 0;
+  if (hasCombos) {
+    var combo = result.combinations.find(function (c) { return c && c.id === selectedCombinationId; }) || result.combinations[0];
+    if (!combo) return undefined;
+    switch (sectionKey) {
+      case "benefit": return combo.benefit;
+      case "advantage": return combo.advantage;
+      case "customer": return combo.customer;
+      case "competitor": return combo.competitor;
+      case "company": {
+        var allStrengths = Array.isArray(result.company_core?.all_strengths) ? result.company_core.all_strengths : [];
+        var usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+        var usedStrengths = usedIdx.length > 0
+          ? usedIdx.map(function (i) { return allStrengths[i]; }).filter(Boolean)
+          : allStrengths;
+        return {
+          strength: usedStrengths,
+          structure: result.company_core?.structure || "",
+          passion: result.company_core?.passion || "",
+        };
+      }
+      case "strategy_message": return combo.strategy_message;
+      case "checkpoints": return combo.checkpoints;
+      default: return undefined;
+    }
+  }
+  // combinations なしの旧形式
+  switch (sectionKey) {
+    case "benefit": return result.benefit;
+    case "advantage": return result.advantage;
+    case "customer": return result.three_c?.customer;
+    case "competitor": return result.three_c?.competitor;
+    case "company": return result.three_c?.company;
+    case "strategy_message": return result.strategy_message;
+    case "checkpoints": return result.checkpoints;
+    default: return undefined;
+  }
+}
+
+// セクションが「currentIdx vs prevIdx」で実際に表示データとして変化していれば true
+function sectionChangedBetween(versions, sectionKey, currentIdx, prevIdx, selectedCombinationId) {
   if (!versions[currentIdx] || !versions[prevIdx]) return false;
-  return sectionPaths.some(function (p) { return pathChangedBetween(p, versions[currentIdx].result, versions[prevIdx].result); });
+  var a = getDisplayedSectionData(versions[currentIdx].result, sectionKey, selectedCombinationId);
+  var b = getDisplayedSectionData(versions[prevIdx].result, sectionKey, selectedCombinationId);
+  return JSON.stringify(a) !== JSON.stringify(b);
 }
 
 // 指定セクションのタブ配列を返す（古い順 = 表示順）
 // versions は新しい順（[0]=最新）。タブの index は versions の data index。
-function getSectionTabs(versions, sectionPaths) {
+// selectedCombinationId を渡すと、その combo のデータベースで差分判定する（combo がある場合）。
+function getSectionTabs(versions, sectionKey, selectedCombinationId) {
   if (!Array.isArray(versions) || versions.length === 0) return [];
   var tabs = [];
   // 一番古い（v1）から新しい方へ走査
   for (var i = versions.length - 1; i >= 0; i--) {
     var isInitial = i === versions.length - 1;
-    if (isInitial || sectionChangedBetween(versions, sectionPaths, i, i + 1)) {
+    if (isInitial || sectionChangedBetween(versions, sectionKey, i, i + 1, selectedCombinationId)) {
       tabs.push({ index: i, isInitial: isInitial });
     }
   }
@@ -384,33 +433,20 @@ function getChangedCardPathsAt(versions, cardPaths, activeIdx) {
   return changed;
 }
 
-// セクション → そのセクションの差分判定に使うパス（module level でも参照したいので外出し）
-const SECTION_PATHS_MAP = {
-  benefit: ["benefit.needs", "benefit.wants"],
-  advantage: ["advantage.what", "advantage.why_good", "advantage.why_hard_to_copy"],
-  customer: ["three_c.customer.target", "three_c.customer.profile", "three_c.customer.stage", "three_c.customer.cutoff", "three_c.customer.market"],
-  competitor: ["three_c.competitor.direct", "three_c.competitor.indirect"],
-  company: ["three_c.company.strength", "three_c.company.structure", "three_c.company.passion"],
-  strategy_message: ["strategy_message.message", "strategy_message.benefit_part", "strategy_message.advantage_part"],
-  checkpoints: ["checkpoints"],
-};
-
 // セクション単位で「実際に切替可能な世代タブが存在するか」を判定するヘルパー。
 // idx === 0 は常に「最新表示中」。idx > 0 でもタブが1個以下なら、UI上タブは出ていないので
 // 「過去の世代表示中」とは扱わない（avps が前の操作で残っていても無効化）。
-function isViewingOldForSection(versions, sectionKey, idx) {
+function isViewingOldForSection(versions, sectionKey, idx, selectedCombinationId) {
   if (!Array.isArray(versions) || versions.length <= 1) return false;
   if (!idx || idx === 0) return false;
-  var paths = SECTION_PATHS_MAP[sectionKey];
-  if (!paths) return true; // 未知のキーは古い挙動を維持
-  var tabs = getSectionTabs(versions, paths);
+  var tabs = getSectionTabs(versions, sectionKey, selectedCombinationId);
   return tabs.length > 1;
 }
 
 // 世代タブのスタイル小コンポーネント
-function VersionTabBar({ versions, sectionKey, sectionPaths, active, onChange, disabled }) {
+function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, onChange, disabled }) {
   if (!Array.isArray(versions) || versions.length <= 1) return null;
-  var tabs = getSectionTabs(versions, sectionPaths);
+  var tabs = getSectionTabs(versions, sectionKey, selectedCombinationId);
   // タブが1つ以下のセクション（＝そのセクションは世代間で変化していない）は
   // 世代切替コントロール自体を表示しない。1個しかないタブを押せてしまうと
   // 「実質的に最新と同じ内容なのに過去の世代扱い」というおかしい状態になるため。
@@ -866,7 +902,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   }
   function isViewingOld(sectionKey) {
     if (!hasVersions) return false;
-    return isViewingOldForSection(versions, sectionKey, avps[sectionKey] || 0);
+    return isViewingOldForSection(versions, sectionKey, avps[sectionKey] || 0, selectedCombinationId);
   }
   // テキスト色適用ヘルパー（セクション内で使用）
   function txt(color, baseStyle) {
@@ -906,7 +942,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
-        <VersionTabBar versions={versions} sectionKey="benefit" sectionPaths={["benefit"]} active={avps.benefit || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="benefit" selectedCombinationId={selectedCombinationId} active={avps.benefit || 0} onChange={onSectionTabChange} />
         <div style={g2}>
           <div style={hasVersions ? {} : hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。" textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null}><UL items={benefitData.needs || []} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.needs} onToggle={refineToggleEffective && ((i) => refineToggleEffective("needs", i))} textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null} /></Card></div>
           <div style={hasVersions ? {} : hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。" textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null}><UL items={benefitData.wants || []} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.wants} onToggle={refineToggleEffective && ((i) => refineToggleEffective("wants", i))} textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null} /></Card></div>
@@ -916,7 +952,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* === Advantage セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
-        <VersionTabBar versions={versions} sectionKey="advantage" sectionPaths={["advantage"]} active={avps.advantage || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="advantage" selectedCombinationId={selectedCombinationId} active={avps.advantage || 0} onChange={onSectionTabChange} />
         <div style={g3}>
           <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} titleColor="#1a1a14" title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: "#000000", lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
           <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} titleColor="#1a1a14" title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
@@ -928,7 +964,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
-        <VersionTabBar versions={versions} sectionKey="customer" sectionPaths={["three_c.customer"]} active={avps.customer || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="customer" selectedCombinationId={selectedCombinationId} active={avps.customer || 0} onChange={onSectionTabChange} />
         <div style={{ ...g2, marginBottom: 14 }}>
           <div style={hasVersions ? {} : hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", customerData.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。" textColor={(customerChanges.changed.has("three_c.customer.target") || customerChanges.changed.has("three_c.customer.profile")) ? customerChanges.color : null}>
             <div style={txt(customerChanges.changed.has("three_c.customer.target") ? customerChanges.color : null, { fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 })}>{customerData.target}</div>
@@ -972,14 +1008,14 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
         <div style={g2}>
           <div>
             <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} help="直接競合（同業）だけでなく、同じニーズを満たす異業種競合も含めて検討。『お客様がどれと比較するか』の視点で洗い出します。" />
-            <VersionTabBar versions={versions} sectionKey="competitor" sectionPaths={["three_c.competitor"]} active={avps.competitor || 0} onChange={onSectionTabChange} />
+            <VersionTabBar versions={versions} sectionKey="competitor" selectedCombinationId={selectedCombinationId} active={avps.competitor || 0} onChange={onSectionTabChange} />
             <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null}>
               <UL items={[...(competitorData.direct || []), ...((competitorData.indirect || []).map(i => `↳ ${i}`))]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null} />
             </Card>
           </div>
           <div>
             <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
-            <VersionTabBar versions={versions} sectionKey="company" sectionPaths={["three_c.company"]} active={avps.company || 0} onChange={onSectionTabChange} />
+            <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} />
             <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
               <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
@@ -991,7 +1027,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <Divider />
       {/* 戦略メッセージは選択中Pカード内（上部）に統合済みのため、ここでの重複表示は廃止 */}
       {/* === チェックポイント === */}
-      <VersionTabBar versions={versions} sectionKey="checkpoints" sectionPaths={["checkpoints"]} active={avps.checkpoints || 0} onChange={onSectionTabChange} />
+      <VersionTabBar versions={versions} sectionKey="checkpoints" selectedCombinationId={selectedCombinationId} active={avps.checkpoints || 0} onChange={onSectionTabChange} />
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative", ...(hasVersions && cpChanges.changed.has("checkpoints") ? { boxShadow: "0 0 0 2px " + cpChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
 {onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1638,9 +1674,10 @@ const [analysisVersions, setAnalysisVersions] = useState([]);
 const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
 // いずれかのセクションで「最新以外」を見ている場合 true（再分析・確定ボタンを非表示にするため）
 // セクションのタブが1個以下（世代間で変化していない）の場合は、avps に値が残っていても
-// UI上タブが非表示なので「最新表示中」扱いとする。
+// UI上タブが非表示なので「最新表示中」扱いとする。combinations 切替時の選択 combo も
+// 加味するため selectedCombinationId を渡す。
 const isViewingOldVersion = Object.entries(activeVersionPerSection).some(function (entry) {
-  return isViewingOldForSection(analysisVersions, entry[0], entry[1] || 0);
+  return isViewingOldForSection(analysisVersions, entry[0], entry[1] || 0, selectedCombinationId);
 });
 // 世代タブのクリック: 該当セクションの表示世代を切り替え
 const handleSectionTabChange = function (sectionKey, versionIndex) {
