@@ -285,6 +285,11 @@ ${conversationSummary}
         return "";
       };
       const newResult = {
+        // 元の分析結果のトップレベル全フィールドを保持してから上書きする。
+        // これがないと combinations / recommended_combination_id / confirmed_combination_id /
+        // company_core 等の Tool スキーマに含まれないフィールドが失われ、
+        // 戦略パターン選択ナビが消える事象が発生する。
+        ...orig,
         benefit: {
           core: pickStr(np.benefit?.core, orig.benefit?.core, v1.benefit?.core),
           needs: pickArr(np.benefit?.needs, orig.benefit?.needs, v1.benefit?.needs),
