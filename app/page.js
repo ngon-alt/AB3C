@@ -308,6 +308,16 @@ function buildBusinessPlanText(bp) {
   return parts.join("\n\n");
 }
 
+// 構造化入力テキスト（【ラベル】...）を戦略策定チャットで読みやすい形式に変換する。
+// 【ラベル】 を ■ ラベル に置き換え、ユーザーが書いた構造化入力を user role メッセージとして
+// チャット冒頭に表示するため。
+function formatStructuredInputForChat(text) {
+  if (typeof text !== "string" || !text.trim()) return "";
+  if (!/【[^】]+】/.test(text)) return ""; // マーカーが無ければ構造化入力ではないので無視
+  var body = text.replace(/【([^】]+)】/g, "■ $1");
+  return "以下の内容で分析を依頼しました。\n\n" + body;
+}
+
 // currentInput や savedText からタイトルだけを抽出する。
 // 戻り値: { title: 抽出されたタイトル文字列 or "", rest: タイトルを除いた本文 }
 function extractBusinessPlanTitle(text) {
@@ -1087,7 +1097,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode }) {
+function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -1131,7 +1141,17 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
       const welcomeContent = isTextMode
         ? "入力していただいた文章から読み取れる範囲で分析しています。文章量が少ないと精度が上がりにくいため、**ぜひこの会話で情報を追加してください**。たとえば次のような内容を教えていただけると、分析がぐっと深まります。\n\n・お客様の具体的な属性（年齢層・業種・地域・困りごと）\n・競合との違いや、お客様から選ばれている理由\n・事業の特徴・実績・歴史・こだわり\n・スタッフ体制・サービス提供の流れ\n\nまた、**新しい戦略の源や、競合に真似されにくい強みの源** は経営者ご自身の価値観や原体験から生まれることが多いです。事業の原点や譲れない想いがあれば、ぜひお聞かせください — 戦略の核を一緒に見つけます。\n\n会話が進んだら、画面下の「← この会話内容を分析に反映する」ボタンで分析結果に反映できます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。"
         : "この分析結果はウェブサイトから読み取れる範囲の情報で作っています。足りない情報や認識違いがあれば、ぜひこの会話で教えてください。一緒に磨いていきましょう。\n\n特に **新しい戦略の源や、競合に真似されにくい強みの源** は、経営者ご自身の価値観や原体験から生まれることが多いものです。事業の原点や譲れない想いなど、ご興味があれば気軽にお話しください — お聞きしながら戦略の核を一緒に見つけます。\n\n各項目について質問したい時は、項目タイトル横の [[CHAT_ICON]] アイコンをクリックすると、その項目についての質問を送れます。";
-      setMessages([{ role: "assistant", content: welcomeContent }]);
+      const initial = [];
+      // テキスト分析で構造化入力（5項目+タイトル）がある場合、ユーザーが何を入力したか
+      // 一目で分かるよう、チャットの一番上に user role メッセージとして表示する。
+      if (isTextMode && initialUserInput) {
+        const formattedInput = formatStructuredInputForChat(initialUserInput);
+        if (formattedInput) {
+          initial.push({ role: "user", content: formattedInput });
+        }
+      }
+      initial.push({ role: "assistant", content: welcomeContent });
+      setMessages(initial);
     }
     prevChatKeyRef.current = chatKey;
   }, [chatKey]);
@@ -4097,6 +4117,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     isViewingOldVersion={isViewingOldVersion}
                     /* テキスト分析時は専用のウェルカム文に切り替え、情報追加を促す */
                     isTextMode={!(currentInput || "").startsWith("http")}
+                    /* 構造化入力（5項目+タイトル）をチャット冒頭の user メッセージとして表示するため、
+                       初回マウント時の currentInput を渡す */
+                    initialUserInput={currentInput}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
                       // 戦略パターン（combinations）が存在する場合、reanalyze の結果は
