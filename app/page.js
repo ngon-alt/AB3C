@@ -298,10 +298,27 @@ const BUSINESS_PLAN_FIELDS = [
 
 function buildBusinessPlanText(bp) {
   if (!bp || typeof bp !== "object") return "";
-  return BUSINESS_PLAN_FIELDS
+  var parts = BUSINESS_PLAN_FIELDS
     .filter(function(f) { return (bp[f.key] || "").trim(); })
-    .map(function(f) { return "【" + f.label + "】\n" + (bp[f.key] || "").trim(); })
-    .join("\n\n");
+    .map(function(f) { return "【" + f.label + "】\n" + (bp[f.key] || "").trim(); });
+  // タイトルは特別扱い: 結合テキストの先頭に置く
+  if ((bp.title || "").trim()) {
+    parts = ["【タイトル】\n" + bp.title.trim()].concat(parts);
+  }
+  return parts.join("\n\n");
+}
+
+// currentInput や savedText からタイトルだけを抽出する。
+// 戻り値: { title: 抽出されたタイトル文字列 or "", rest: タイトルを除いた本文 }
+function extractBusinessPlanTitle(text) {
+  if (typeof text !== "string" || !text.trim()) return { title: "", rest: text || "" };
+  var m = text.match(/【タイトル】([\s\S]*?)(?=【[^】]+】|$)/);
+  if (m) {
+    var t = m[1].trim();
+    var rest = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).trim();
+    return { title: t, rest: rest };
+  }
+  return { title: "", rest: text };
 }
 
 // 過去のラベル名（リネーム前）も復元できるよう alias 一覧を持つ。
@@ -311,9 +328,15 @@ const BUSINESS_PLAN_LABEL_ALIASES = {
 };
 
 function parseBusinessPlanText(text) {
-  var parsed = { origin: "", problem: "", value: "", customer: "", revenue: "" };
+  var parsed = { title: "", origin: "", problem: "", value: "", customer: "", revenue: "" };
   if (typeof text !== "string" || !text.trim()) return { parsed: parsed, foundAny: false };
   var foundAny = false;
+  // タイトルの抽出
+  var titleMatch = text.match(/【タイトル】([\s\S]*?)(?=【[^】]+】|$)/);
+  if (titleMatch) {
+    parsed.title = titleMatch[1].trim();
+    foundAny = true;
+  }
   BUSINESS_PLAN_FIELDS.forEach(function(f) {
     var candidates = (BUSINESS_PLAN_LABEL_ALIASES[f.key] || [f.label]);
     if (candidates.indexOf(f.label) === -1) candidates = [f.label].concat(candidates);
@@ -1506,7 +1529,7 @@ export default function Home() {
 const [tab, setTab] = useState("url");
   const [input, setInput] = useState("");
   // 新規事業向けの構造化入力。テキスト分析タブで5フィールドに分けて入力してもらう。
-  const [businessPlan, setBusinessPlan] = useState({ origin: "", problem: "", value: "", customer: "", revenue: "" });
+  const [businessPlan, setBusinessPlan] = useState({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" });
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -3065,8 +3088,13 @@ if (tab === "url" && savedText.startsWith("http")) {
     } else if (!targetSid && tab === "text" && data && !data.error) {
       // テキスト分析の場合: URL 分析と違い改善レポート/ビジュアルが無いので、
       // AB3C 成功時点でサイトを作成する。これがないとサイト管理一覧に表示されない。
-      // サイト名は戦略メッセージから先頭40字、無ければ入力テキストの先頭40字。
-      var textSn = ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
+      // サイト名の優先順:
+      //   1. ユーザーが入力した事業名・タイトル（businessPlan.title）
+      //   2. 戦略メッセージの先頭40字
+      //   3. 結合された入力テキストの先頭40字
+      //   4. "テキスト分析"
+      var titleFromBp = (businessPlan?.title || "").trim();
+      var textSn = titleFromBp || ((data?.strategy_message?.message || savedText || "").trim().slice(0, 40)) || "テキスト分析";
       var cr2 = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: textSn, site_url: null }) });
       var cd2 = await cr2.json();
       if (cd2.existingSite) { targetSid = cd2.existingSite.id; setSiteId(targetSid); }
@@ -3116,7 +3144,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
   const editAndReanalyze = (text) => {
     // 過去のテキストに構造化マーカー（【ラベル】）が含まれていれば businessPlan に復元、
     // 無ければ非構造テキストとして input に入れる（後方互換）。
@@ -3125,7 +3153,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       setBusinessPlan(parsed);
       setInput("");
     } else {
-      setBusinessPlan({ origin: "", problem: "", value: "", customer: "", revenue: "" });
+      setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" });
       setInput(text || "");
     }
     setTab("text");
@@ -3485,6 +3513,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ fontSize: 14, color: C.muted, marginBottom: 14, lineHeight: 1.7 }}>
             新規事業・構想中の事業を分析される方は、以下の観点ごとに分けて入力すると、AI が事業の本質をより深く理解した上で AB3C を生成します。<b>1項目でも、複数項目でもOK</b>です。分かっている範囲・仮説でかまいません。
           </div>
+          {/* 事業名・タイトル: サイト管理一覧や結果画面でこの分析を識別するための短い名前 */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+              事業名・タイトル <span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>（短く識別しやすい名前）</span>
+            </label>
+            <input
+              type="text"
+              value={businessPlan.title || ""}
+              onChange={function(e) {
+                var v = e.target.value;
+                setBusinessPlan(function(prev) { return Object.assign({}, prev, { title: v }); });
+              }}
+              onKeyDown={function(e) { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) analyze(); }}
+              placeholder="例：ナマエカード、高齢者向けスマホ訪問サポート、地元無農薬野菜の定期便"
+              style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {BUSINESS_PLAN_FIELDS.map(function(f) {
               return (
@@ -3645,14 +3690,30 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   })()}
 </div>
 
-{(currentInput || chatSummaries.length > 0) && (
+{(currentInput || chatSummaries.length > 0) && (() => {
+  // テキスト分析の場合、currentInput から【タイトル】を抽出してきれいに表示する。
+  // タイトルがあればそれを大きく、その下に本文の冒頭を控えめに表示。
+  // タイトルが無い場合は従来通り本文の冒頭100文字を表示。
+  const isUrl = currentInput?.startsWith("http");
+  const parsedTitle = isUrl ? { title: "", rest: currentInput || "" } : extractBusinessPlanTitle(currentInput || "");
+  const sectionLabel = isUrl ? "分析URL" : (parsedTitle.title ? "事業名" : "分析テキスト");
+  return (
   <div style={{ background: "#e8e8e8", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 16 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>{currentInput?.startsWith("http") ? "分析URL" : "分析テキスト"}</div>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, letterSpacing: "0.1em", textTransform: "uppercase", color: C.muted, marginBottom: 8 }}>{sectionLabel}</div>
     <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>
-{currentInput?.startsWith("http") ? (
+      {isUrl ? (
         <a href={currentInput} target="_blank" rel="noopener noreferrer" style={{ color: C.A }}>{currentInput}</a>
+      ) : parsedTitle.title ? (
+        <>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>{parsedTitle.title}</div>
+          {parsedTitle.rest && (
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+              {parsedTitle.rest.slice(0, 80)}{parsedTitle.rest.length > 80 ? "…" : ""}
+            </div>
+          )}
+        </>
       ) : (
-<span>{currentInput?.slice(0, 100)}{currentInput?.length > 100 ? "…" : ""}</span>
+        <span>{currentInput?.slice(0, 100)}{currentInput?.length > 100 ? "…" : ""}</span>
       )}
     </div>
     {chatSummaries.length > 0 && (
@@ -3663,7 +3724,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     )}
   </div>
-)}
+  );
+})()}
               {/* 全体タイトル編集欄は廃止：戦略メッセージは各パターンに紐づくため、選択中Pカード内に表示する */}
               {shareUrl && (
                 <div style={{ background: "#e8e8e8", border: `1px solid ${C.B}`, borderRadius: 4, padding: "14px 18px", marginBottom: 16 }}>
