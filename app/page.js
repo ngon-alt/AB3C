@@ -708,7 +708,8 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
     ? (d.combinations.find(function(c) { return c && c.id === selectedCombinationId; }) || d.combinations[0])
     : null;
   var shadowResult = currentCombo ? buildShadowResultFromCombo(currentCombo, d.company_core) : null;
-  var versions = hasCombinations ? [] : rawVersions;
+  // combinations が存在しても世代タブは表示する（反映で世代履歴が追加された場合の比較を可能にする）
+  var versions = rawVersions;
 
   // === 世代タブ機構: セクション別に表示する result を選ぶ ===
   // versions が未指定（旧呼び出し）の場合は d をそのまま使用（後方互換）
@@ -716,10 +717,23 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
   var avps = activeVersionPerSection || {};
   // セクションキー → 表示する result
   function sectionResult(sectionKey) {
-    if (hasCombinations) return shadowResult; // 組み合わせ表示中は選択中パターンのデータを使う
+    if (hasVersions) {
+      var idx = avps[sectionKey] || 0;
+      if (idx > 0) {
+        // 古い世代を閲覧中: その世代に combinations があれば同じ選択IDの combo を、なければ top-level を表示
+        var oldR = versions[idx]?.result;
+        if (oldR) {
+          if (Array.isArray(oldR.combinations) && oldR.combinations.length > 0) {
+            var oldCombo = oldR.combinations.find(function(c) { return c && c.id === selectedCombinationId; }) || oldR.combinations[0];
+            return buildShadowResultFromCombo(oldCombo, oldR.company_core);
+          }
+          return oldR;
+        }
+      }
+    }
+    if (hasCombinations) return shadowResult; // 最新世代 + combinations あり
     if (!hasVersions) return d;
-    var idx = avps[sectionKey] || 0;
-    return versions[idx]?.result || d;
+    return d; // 最新世代 (idx=0) または versions の先頭
   }
   // セクションキー → 「そのセクションが今アクティブな世代で変わったカードのパス集合」
   // path -> 色（カードテキストに適用する色）。changed = true なら getVersionColor(versionNumber).text
@@ -3923,6 +3937,27 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     isTextMode={!(currentInput || "").startsWith("http")}
                     onSendTopic={chatSendTopicRef}
                     onReanalyze={function(newResult, summary) {
+                      // 戦略パターン（combinations）が存在する場合、reanalyze の結果は
+                      // 「現在選択中のパターン」を refine したものとみなし、選択中 combo の
+                      // benefit / advantage / customer / competitor / strategy_message /
+                      // checkpoints を新しい top-level の値で上書きする。これがないと
+                      // shadowResult が古い combo データを表示し続けて、反映結果が
+                      // 画面に出てこない。
+                      if (Array.isArray(newResult?.combinations) && newResult.combinations.length > 0 && selectedCombinationId) {
+                        newResult = Object.assign({}, newResult, {
+                          combinations: newResult.combinations.map(function(combo) {
+                            if (!combo || combo.id !== selectedCombinationId) return combo;
+                            return Object.assign({}, combo, {
+                              benefit: newResult.benefit || combo.benefit,
+                              advantage: newResult.advantage || combo.advantage,
+                              customer: newResult.three_c?.customer || combo.customer,
+                              competitor: newResult.three_c?.competitor || combo.competitor,
+                              strategy_message: newResult.strategy_message || combo.strategy_message,
+                              checkpoints: Array.isArray(newResult.checkpoints) && newResult.checkpoints.length > 0 ? newResult.checkpoints : combo.checkpoints,
+                            });
+                          }),
+                        });
+                      }
                       try {
                         var diff = diffResults(currentResult || {}, newResult);
                         setChangedPaths(function(prev) {
