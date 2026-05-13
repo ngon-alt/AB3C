@@ -3696,12 +3696,60 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
   </div>
+
+  {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
+      iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
+      サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。
+      入力タブと視覚的に分離するため上余白は広めに取る（権さん指示）。 */}
+  <div style={{ marginTop: 140, marginBottom: 32 }}>
+    <h2 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, textAlign: "center", marginBottom: 10, letterSpacing: "0.02em" }}>
+      戦略指南 AI の使い方
+    </h2>
+    <div style={{ fontSize: 16, color: C.muted, textAlign: "center", marginBottom: 20, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      分析から戦略確定、アクション施策までの流れを動画でご覧いただけます
+    </div>
+    <a
+      href="https://www.youtube.com/watch?v=zAeZ-lJxvYM"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ display: "block", position: "relative", maxWidth: 800, margin: "0 auto", textDecoration: "none", borderRadius: 8, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", background: "#000", transition: "transform 0.15s, box-shadow 0.15s" }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.22)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.15)"; }}
+    >
+      {/* サムネイル: maxresdefault は無い場合があるので onError で hqdefault にフォールバック */}
+      <img
+        src="https://i.ytimg.com/vi/zAeZ-lJxvYM/maxresdefault.jpg"
+        alt="戦略指南 AI の使い方 動画サムネイル"
+        loading="lazy"
+        onError={(e) => { e.currentTarget.src = "https://i.ytimg.com/vi/zAeZ-lJxvYM/hqdefault.jpg"; }}
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: "16 / 9", objectFit: "cover" }}
+      />
+      {/* 中央の YouTube 風 再生ボタン */}
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 88, height: 60, borderRadius: 12, background: "rgba(0,0,0,0.78)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.35)" }}
+      >
+        <div style={{ width: 0, height: 0, borderTop: "14px solid transparent", borderBottom: "14px solid transparent", borderLeft: "22px solid #fff", marginLeft: 4 }} />
+      </div>
+    </a>
+    <div style={{ textAlign: "center", marginTop: 16 }}>
+      <a
+        href="https://www.youtube.com/watch?v=zAeZ-lJxvYM"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#2a2a26", color: "#fff", padding: "10px 22px", borderRadius: 999, fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, textDecoration: "none", letterSpacing: "0.04em" }}
+      >
+        ▶ YouTube で動画を見る
+      </a>
+    </div>
+  </div>
 </div>
           )}
 {/* TOPページのリンクカード4種と「戦略指南 AI 使い方」セクションは削除済み。
     Google風のシンプル構成（キャッチコピー＋入力欄）に変更。
     AB3C分析とは → /about、2つの使い方・分析結果の活用方法 → /howto に集約。
-    各ページへのナビは Header メニューから可能。 */}
+    各ページへのナビは Header メニューから可能。
+    （2026-05-14 から最下部に使い方紹介の YouTube リンク（サムネイル＋ボタン）を追加） */}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
