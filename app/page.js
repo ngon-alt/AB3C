@@ -3696,12 +3696,33 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
   </div>
+
+  {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。 */}
+  <div style={{ marginTop: 64, marginBottom: 32 }}>
+    <h2 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, textAlign: "center", marginBottom: 10, letterSpacing: "0.02em" }}>
+      戦略指南 AI の使い方
+    </h2>
+    <div style={{ fontSize: 16, color: C.muted, textAlign: "center", marginBottom: 20, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      分析から戦略確定、アクション施策までの流れを動画でご覧いただけます
+    </div>
+    <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, overflow: "hidden", borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.15)", maxWidth: 800, margin: "0 auto", background: "#000" }}>
+      <iframe
+        src="https://www.youtube.com/embed/zAeZ-lJxvYM"
+        title="戦略指南 AI の使い方"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+      />
+    </div>
+  </div>
 </div>
           )}
 {/* TOPページのリンクカード4種と「戦略指南 AI 使い方」セクションは削除済み。
     Google風のシンプル構成（キャッチコピー＋入力欄）に変更。
     AB3C分析とは → /about、2つの使い方・分析結果の活用方法 → /howto に集約。
-    各ページへのナビは Header メニューから可能。 */}
+    各ページへのナビは Header メニューから可能。
+    （2026-05-14 から最下部に使い方紹介の YouTube 埋め込みを追加） */}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
