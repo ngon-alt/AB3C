@@ -13,27 +13,36 @@ export async function GET(req) {
   const sql = neon(process.env.DATABASE_URL);
   try {
     // 戦略指南サブスク（active）
-    // 並びは「有料を先頭、トライアルを後ろ」→ 一覧で有料契約者がパッと見える
+    // 並びは「有料を先頭、管理者付与、トライアルを後ろ」→ 一覧で有料契約者がパッと見える
+    // 管理者付与（権さんが /admin から手動で付けたもの）は interval='admin' or
+    // stripe_price_id='admin_manual' で識別する。Stripe を通っていない=実売上ではない。
     const supportRows = await sql`
       SELECT
         user_email, name, site_limit, interval, purchased_at, expires_at,
-        stripe_subscription_id, COALESCE(is_trial, FALSE) as is_trial
+        stripe_subscription_id, stripe_price_id,
+        COALESCE(is_trial, FALSE) as is_trial,
+        (interval = 'admin' OR stripe_price_id = 'admin_manual') as is_admin_grant
       FROM user_plans up
       LEFT JOIN users u ON u.email = up.user_email
       WHERE plan_type = 'support' AND status = 'active'
         AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
       ORDER BY
-        CASE WHEN COALESCE(is_trial, FALSE) THEN 1 ELSE 0 END,
+        CASE
+          WHEN COALESCE(is_trial, FALSE) THEN 2
+          WHEN (interval = 'admin' OR stripe_price_id = 'admin_manual') THEN 1
+          ELSE 0
+        END,
         purchased_at DESC
     `;
     const supportCount = supportRows.length;
     const supportTotalSites = supportRows.reduce((s, r) => s + parseInt(r.site_limit || 0), 0);
-    // 月額/年額の内訳
-    const supportMonthly = supportRows.filter(r => r.interval === 'month').length;
-    const supportYearly = supportRows.filter(r => r.interval === 'year').length;
-    // トライアル/有料の内訳
+    // 区分内訳: 有料 / 管理者付与 / トライアル
     const supportTrial = supportRows.filter(r => r.is_trial).length;
-    const supportPaid = supportCount - supportTrial;
+    const supportAdminGrant = supportRows.filter(r => !r.is_trial && r.is_admin_grant).length;
+    const supportPaid = supportCount - supportTrial - supportAdminGrant;
+    // 月額/年額の内訳（有料のみ。管理者付与は除外）
+    const supportMonthly = supportRows.filter(r => !r.is_trial && !r.is_admin_grant && r.interval === 'month').length;
+    const supportYearly = supportRows.filter(r => !r.is_trial && !r.is_admin_grant && r.interval === 'year').length;
 
     // 戦略診断チケット（active）
     const analysisRows = await sql`
@@ -59,6 +68,7 @@ export async function GET(req) {
       support: {
         count: supportCount,
         paidCount: supportPaid,
+        adminGrantCount: supportAdminGrant,
         trialCount: supportTrial,
         totalSites: supportTotalSites,
         monthlyCount: supportMonthly,
@@ -72,6 +82,7 @@ export async function GET(req) {
           purchased_at: r.purchased_at,
           expires_at: r.expires_at,
           is_trial: r.is_trial,
+          is_admin_grant: r.is_admin_grant,
         })),
       },
       analysis: {
