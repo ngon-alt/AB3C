@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { neon } from "@neondatabase/serverless";
-import { sendWelcomeEmail, sendWelcomeEmailAgency, sendRegistrationEmail } from "@/app/lib/email";
+import { sendWelcomeEmail, sendWelcomeEmailAgency, sendRegistrationEmail, sendTrialSignupNotificationEmail } from "@/app/lib/email";
 
 export const authOptions = {
   providers: [
@@ -77,11 +77,24 @@ export const authOptions = {
           console.error('24時間トライアル発行エラー:', e);
         }
 
-        // 登録完了メール送信
+        // 登録完了メール送信（ユーザー宛）
         try {
           await sendRegistrationEmail({ email: user.email, name: user.name });
         } catch (e) {
           console.error('登録完了メール送信エラー:', e);
+        }
+
+        // 運営宛の新規トライアル登録通知（有料申込通知と対をなす）
+        try {
+          // 24h 後の失効時刻を計算（DB の expires_at と同じ値）
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+          await sendTrialSignupNotificationEmail({
+            buyerEmail: user.email,
+            buyerName: user.name,
+            trialExpiresAt: expiresAt,
+          });
+        } catch (e) {
+          console.error('新規トライアル通知メール送信エラー:', e);
         }
       }
 
