@@ -207,9 +207,23 @@ export default function AccountPage() {
                 現在ご契約中のプランはありません。無料トライアル（1回）のみご利用いただけます。
               </div>
             )}
-            <div style={{ marginTop: 14 }}>
+            <div style={{ marginTop: 14, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <Link href="/pricing" style={{ display: "inline-block", padding: "8px 18px", background: C.phase1, color: "#fff", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>プラン変更・追加 →</Link>
+              {data?.hasStripeCustomer && (
+                <button onClick={openPortal} disabled={portalLoading} style={{
+                  background: "transparent", border: `1px solid ${C.muted}`, borderRadius: 4,
+                  color: C.muted, cursor: portalLoading ? "not-allowed" : "pointer",
+                  fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "8px 18px",
+                }}>
+                  {portalLoading ? "Stripeへ..." : "解約手続き（Stripeへ）"}
+                </button>
+              )}
             </div>
+            {data?.hasStripeCustomer && (
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.6 }}>
+                解約は Stripe のお支払い管理画面で「サブスクリプションをキャンセル」からお手続きいただけます。
+              </div>
+            )}
           </Section>
 
           {/* === セクション3: ご利用状況 === */}
