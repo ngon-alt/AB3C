@@ -45,7 +45,7 @@ function renderEnglishFallback() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#ffffff",
+          background: "#1a1a14",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -53,7 +53,6 @@ function renderEnglishFallback() {
           padding: 60,
         }}
       >
-        {/* タイトル: AB3C AI を中央寄せ */}
         <div
           style={{
             display: "flex",
@@ -62,31 +61,12 @@ function renderEnglishFallback() {
             letterSpacing: "-0.03em",
           }}
         >
-          <span style={{ fontSize: 240, color: "#1a6fd4", lineHeight: 1 }}>A</span>
-          <span style={{ fontSize: 240, color: "#FF0000", lineHeight: 1 }}>B</span>
-          <span style={{ fontSize: 240, color: "#1a1a14", lineHeight: 1 }}>3C</span>
+          <span style={{ fontSize: 360, color: "#5a9eea", lineHeight: 1 }}>A</span>
+          <span style={{ fontSize: 360, color: "#FF4444", lineHeight: 1 }}>B</span>
+          <span style={{ fontSize: 360, color: "#ffffff", lineHeight: 1 }}>3C</span>
         </div>
-        <div
-          style={{
-            fontSize: 96,
-            fontWeight: 900,
-            color: "#1a1a14",
-            letterSpacing: "0.02em",
-            marginTop: 12,
-          }}
-        >
-          AI
-        </div>
-
-        {/* アンダーライン */}
-        <div style={{ width: 420, height: 5, background: "#1a1a14", marginTop: 36, marginBottom: 36 }} />
-
-        {/* URL とキャッチ */}
-        <div style={{ fontSize: 48, color: "#1a1a14", fontWeight: 700, letterSpacing: "0.04em" }}>
-          senryaku.ai
-        </div>
-        <div style={{ fontSize: 28, color: "#555", marginTop: 12, fontWeight: 500, letterSpacing: "0.08em" }}>
-          Strategy Framework AI
+        <div style={{ fontSize: 80, color: "#fff", marginTop: 24, fontWeight: 700, letterSpacing: "0.08em" }}>
+          STRATEGY AI · senryaku.ai
         </div>
       </div>
     ),
@@ -129,60 +109,65 @@ export default async function Image() {
           style={{
             width: "100%",
             height: "100%",
-            background: "#ffffff",
+            background: "#1a1a14",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             padding: 60,
+            position: "relative",
           }}
         >
-          {/* メインタイトル: 戦略指南 + AI */}
+          {/* 上部の AB3C カラーストライプ（B=赤・A=青のブランド要素） */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, display: "flex" }}>
+            <div style={{ flex: 1, height: 16, background: "#FF0000" }} />
+            <div style={{ flex: 1, height: 16, background: "#1a6fd4" }} />
+          </div>
+
+          {/* メインタイトル: 戦略指南 AI（OGP の主役。SNS で小さく表示されても読める大きさ） */}
           <div
             style={{
               display: "flex",
               alignItems: "baseline",
-              color: "#1a1a14",
+              color: "#ffffff",
               letterSpacing: "-0.02em",
             }}
           >
-            <span style={{ fontSize: 180, lineHeight: 1, fontFamily: titleFontName, fontWeight: 900 }}>戦略指南</span>
-            <span style={{ fontSize: 140, lineHeight: 1, fontWeight: 900, marginLeft: 20 }}>AI</span>
+            <span style={{ fontSize: 260, lineHeight: 1, fontFamily: titleFontName, fontWeight: 900 }}>戦略指南</span>
+            <span style={{ fontSize: 200, lineHeight: 1, fontWeight: 900, marginLeft: 28, color: "#ffd966" }}>AI</span>
           </div>
 
-          {/* サブタイトル: on AB3C — AB3C 4文字を同じフォント(monospace)で揃える
-              ※ NotoSansJP サブセットに "A" "I" が含まれているため、それを使うと
-                 「A」だけ別メトリクスで描画されて位置がずれる。
-                 monospace 明示で Satori の内蔵フォントに統一する。 */}
+          {/* キャッチコピー（短く） */}
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              marginTop: 28,
-              fontWeight: 700,
-              letterSpacing: "0.05em",
-            }}
-          >
-            <span style={{ color: "#555", fontSize: 64, lineHeight: 1, marginRight: 24, fontWeight: 500 }}>on</span>
-            <span style={{ color: "#1a6fd4", fontSize: 102, lineHeight: 1 }}>A</span>
-            <span style={{ color: "#FF0000", fontSize: 102, lineHeight: 1 }}>B</span>
-            <span style={{ color: "#1a1a14", fontSize: 102, lineHeight: 1 }}>3C</span>
-          </div>
-
-          {/* アンダーライン */}
-          <div style={{ width: 360, height: 4, background: "#1a1a14", marginTop: 36, marginBottom: 36 }} />
-
-          {/* キャッチコピー */}
-          <div
-            style={{
-              fontSize: 48,
-              color: "#1a1a14",
+              fontSize: 56,
+              color: "#e5e5e0",
               fontFamily: bodySans ? "NotoSansJP" : undefined,
               fontWeight: 400,
-              letterSpacing: "0.05em",
+              letterSpacing: "0.06em",
+              marginTop: 48,
             }}
           >
-            選ばれる理由を言語化する 戦略策定AI
+            選ばれる理由を、言語化する。
+          </div>
+
+          {/* URL（控えめだが識別用） */}
+          <div
+            style={{
+              fontSize: 36,
+              color: "#999",
+              marginTop: 36,
+              letterSpacing: "0.1em",
+              fontWeight: 700,
+            }}
+          >
+            senryaku.ai
+          </div>
+
+          {/* 下部の AB3C カラーストライプ */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, display: "flex" }}>
+            <div style={{ flex: 1, height: 16, background: "#1a6fd4" }} />
+            <div style={{ flex: 1, height: 16, background: "#FF0000" }} />
           </div>
         </div>
       ),
