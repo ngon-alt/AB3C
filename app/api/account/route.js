@@ -2,6 +2,29 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
+
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
+// Stripe からサブスクリプションの解約予定状態を取得する。
+// cancel_at_period_end が true なら解約予定で、cancel_at（または current_period_end）の日付で終了する。
+// 失敗時は null を返して既存挙動にフォールバック。
+async function getSubscriptionCancellationStatus(subscriptionId) {
+  if (!stripe || !subscriptionId) return null;
+  try {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    // status は 'active' / 'canceled' / 'past_due' 等
+    return {
+      status: sub.status,
+      cancelAtPeriodEnd: !!sub.cancel_at_period_end,
+      cancelAt: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null,
+      currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
+    };
+  } catch (e) {
+    console.error("Stripe subscription retrieve error:", subscriptionId, e?.message);
+    return null;
+  }
+}
 
 // GET: マイアカウントページに表示する情報をまとめて返す
 // - users テーブル: メール / 名前 / 利用目的 / 登録日
@@ -52,6 +75,23 @@ export async function GET() {
         ORDER BY CASE WHEN plan_type = 'support' THEN 0 ELSE 1 END, purchased_at DESC
       `;
     } catch (e) { console.error("user_plans read error:", e?.message); }
+
+    // 各サブスクリプションプランの解約予定状態を Stripe から取得して plans にマージ。
+    // 戦略診断チケットはサブスクではないので不要（stripe_subscription_id が無いものはスキップ）。
+    if (stripe && plans.length > 0) {
+      const enriched = await Promise.all(plans.map(async (p) => {
+        if (!p.stripe_subscription_id || p.plan_type !== "support") return p;
+        const status = await getSubscriptionCancellationStatus(p.stripe_subscription_id);
+        if (!status) return p;
+        return Object.assign({}, p, {
+          stripe_status: status.status,
+          cancel_at_period_end: status.cancelAtPeriodEnd,
+          cancel_at: status.cancelAt,
+          current_period_end: status.currentPeriodEnd,
+        });
+      }));
+      plans = enriched;
+    }
 
     // 過去のプラン履歴（Portal リンク表示判定用 — 解約済みでも領収書は閲覧可能なため）
     let hasAnyPlan = false;
