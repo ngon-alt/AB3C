@@ -134,6 +134,37 @@ export async function sendTutorial5Email({ email, name }) {
   return sendEmail(email, '毎朝5分、戦略指南 AIと話す習慣を作りましょう。', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、ご登録から約1ヶ月が経ちました。一つ、新しい習慣を提案させてください。</p><div style="background:#f0f4ff;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:16px;font-weight:bold;color:#1a6fd4;margin:0 0 12px">毎朝5分、その日やることをチャットに話しかけてください。</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今日の午後、新規クライアントに初回提案をします」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今週中に採用ページを更新する予定です」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 16px">「今月中にWebサイトのトップページを修正したいです」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">それだけで、戦略指南 AIが「その取り組みに戦略をどう反映させるか」を一緒に考えてくれます。</p></div><p style="font-size:16px;line-height:1.8;color:#1a1a14">明日の朝、まず一つ話しかけてみてください。</p><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">チャットを開く →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
 }
 
+// 新規ユーザー（24時間トライアル発行）の運営宛通知メール。
+// 申込（有料）の sendPaymentNotificationEmail と対をなす。
+// 入口（トライアル開始）と出口（解約）の両方を運営が把握できるようにするため。
+export async function sendTrialSignupNotificationEmail({
+  buyerEmail,
+  buyerName,
+  trialExpiresAt,    // ISO 文字列 / 24h 後の失効日時
+}) {
+  const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
+  const expiresStr = trialExpiresAt
+    ? new Date(trialExpiresAt).toLocaleString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '—';
+  const subject = `【戦略指南 AI／新規トライアル登録】${buyerEmail}`;
+  const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px">戦略指南 AI — 新規トライアル登録通知</div>
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">新しいユーザーが Google でログインし、24時間トライアル（戦略指南サブスク1サイト体験）が自動発行されました。</p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:24px">
+      <tr><td style="padding:8px 12px;background:#fef5e9;width:160px;font-weight:bold">区分</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;color:#a06800;font-weight:bold">24時間トライアル</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">登録メール</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0"><a href="mailto:${buyerEmail}" style="color:#1a6fd4">${buyerEmail}</a></td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">登録者氏名</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${buyerName || '—'}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">トライアル失効</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${expiresStr}（24時間後）</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">付与内容</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">戦略指南サブスク1サイト体験 / チャット100回</td></tr>
+    </table>
+
+    <p style="font-size:13px;line-height:1.8;color:#555">運営側アクションの目安: トライアル期限後、有料へ移行されなかった場合は、ご利用感想やアンケート依頼などのフォローを検討してください。</p>
+    <p style="font-size:12px;color:#78716c;margin-top:24px">このメールは NextAuth signIn callback により自動送信されています。</p>
+  </div>`;
+  return sendEmail(NOTIFY_TO, subject, html);
+}
+
 // 解約通知メール: ユーザーが Stripe ポータルで解約手続きをした、
 // または期間終了で実際に解約された時に運営宛に送られる。
 // kind: 'scheduled' = 解約予定（期間末で終了する）, 'completed' = 期間終了で正式に解約完了
