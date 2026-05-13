@@ -13,6 +13,7 @@ export async function GET(req) {
   const sql = neon(process.env.DATABASE_URL);
   try {
     // 戦略指南サブスク（active）
+    // 並びは「有料を先頭、トライアルを後ろ」→ 一覧で有料契約者がパッと見える
     const supportRows = await sql`
       SELECT
         user_email, name, site_limit, interval, purchased_at, expires_at,
@@ -21,7 +22,9 @@ export async function GET(req) {
       LEFT JOIN users u ON u.email = up.user_email
       WHERE plan_type = 'support' AND status = 'active'
         AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
-      ORDER BY purchased_at DESC
+      ORDER BY
+        CASE WHEN COALESCE(is_trial, FALSE) THEN 1 ELSE 0 END,
+        purchased_at DESC
     `;
     const supportCount = supportRows.length;
     const supportTotalSites = supportRows.reduce((s, r) => s + parseInt(r.site_limit || 0), 0);
