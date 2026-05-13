@@ -134,6 +134,49 @@ export async function sendTutorial5Email({ email, name }) {
   return sendEmail(email, '毎朝5分、戦略指南 AIと話す習慣を作りましょう。', `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:40px 20px"><div style="font-size:24px;font-weight:bold;margin-bottom:24px;color:#1a1a14">戦略指南 AI</div><p style="font-size:16px;line-height:1.8;color:#1a1a14">${name||'お客様'}さん、ご登録から約1ヶ月が経ちました。一つ、新しい習慣を提案させてください。</p><div style="background:#f0f4ff;border-radius:8px;padding:20px 24px;margin:28px 0"><p style="font-size:16px;font-weight:bold;color:#1a6fd4;margin:0 0 12px">毎朝5分、その日やることをチャットに話しかけてください。</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今日の午後、新規クライアントに初回提案をします」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 8px">「今週中に採用ページを更新する予定です」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;font-style:italic;margin:0 0 16px">「今月中にWebサイトのトップページを修正したいです」</p><p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">それだけで、戦略指南 AIが「その取り組みに戦略をどう反映させるか」を一緒に考えてくれます。</p></div><p style="font-size:16px;line-height:1.8;color:#1a1a14">明日の朝、まず一つ話しかけてみてください。</p><a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">チャットを開く →</a><p style="font-size:12px;color:#78716c;margin-top:40px">一般社団法人デジタル経営革新協会</p></div>`);
 }
 
+// 解約通知メール: ユーザーが Stripe ポータルで解約手続きをした、
+// または期間終了で実際に解約された時に運営宛に送られる。
+// kind: 'scheduled' = 解約予定（期間末で終了する）, 'completed' = 期間終了で正式に解約完了
+export async function sendCancellationNotificationEmail({
+  buyerEmail,
+  buyerName,
+  planType,
+  siteLimit,
+  interval,
+  kind,            // 'scheduled' | 'completed'
+  endsAt,          // 'scheduled' 時: 終了予定日 / 'completed' 時: 終了日
+  stripeSubscriptionId,
+}) {
+  const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
+
+  const planLabel =
+    planType === 'support'  ? `戦略指南サブスク（${interval === 'year' ? '年額' : '月額'}）` :
+    planType === 'analysis' ? '戦略診断チケット（1年）' :
+    '不明プラン';
+  const kindLabel = kind === 'scheduled' ? '解約予定（期間末で自動終了）' : '解約完了（契約期間終了）';
+  const endsAtStr = endsAt ? new Date(endsAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+  const subject = `【戦略指南 AI／${kind === 'scheduled' ? '解約予定通知' : '解約完了通知'}】${planLabel} ${siteLimit || '—'}サイト — ${buyerEmail}`;
+
+  const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px">戦略指南 AI — ${kind === 'scheduled' ? '解約予定通知' : '解約完了通知'}</div>
+    <p style="font-size:14px;line-height:1.8;color:#555;margin:0 0 24px">${kind === 'scheduled' ? 'ユーザーが解約手続きを行いました。契約期間末で自動的に終了します。' : '契約期間が終了し、正式に解約されました。'}</p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:24px">
+      <tr><td style="padding:8px 12px;background:#fdf0ef;width:160px;font-weight:bold">区分</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;color:#c0392b;font-weight:bold">${kindLabel}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">プラン</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${planLabel}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">サイト数</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${siteLimit || '—'}サイト</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">${kind === 'scheduled' ? '終了予定日' : '終了日'}</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;font-weight:bold">${endsAtStr}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">解約者メール</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0"><a href="mailto:${buyerEmail}" style="color:#1a6fd4">${buyerEmail}</a></td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">解約者氏名</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${buyerName || '—'}</td></tr>
+      <tr><td style="padding:8px 12px;background:#f5f2eb;font-weight:bold">Stripe Subscription ID</td><td style="padding:8px 12px;font-family:monospace;font-size:12px">${stripeSubscriptionId || '—'}</td></tr>
+    </table>
+
+    <p style="font-size:12px;color:#78716c;margin-top:24px">このメールは Stripe webhook により自動送信されています。</p>
+  </div>`;
+
+  return sendEmail(NOTIFY_TO, subject, html);
+}
+
 // 決済完了時に運営（info@digi-kaku.or.jp）へ通知するメール
 // 決裁者プロフィール・選択メニュー・金額を含む
 export async function sendPaymentNotificationEmail({

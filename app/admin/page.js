@@ -14,6 +14,8 @@ const C = {
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const [proUsers, setProUsers] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [statsExpanded, setStatsExpanded] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [plan, setPlan] = useState('unlimited');
@@ -36,13 +38,21 @@ export default function AdminPage() {
 }, [isAdmin]);
 
 useEffect(() => {
-  if (isAdmin && secret) fetchProUsers();
+  if (isAdmin && secret) { fetchProUsers(); fetchStats(); }
 }, [isAdmin, secret]);
 
   const fetchProUsers = async () => {
     const res = await fetch('/api/admin/pro-users/list?secret=' + secret);
     const data = await res.json();
     if (data.users) setProUsers(data.users);
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/admin/subscription-stats?secret=' + secret);
+      const data = await res.json();
+      if (data.support || data.analysis) setStats(data);
+    } catch (e) {}
   };
 
   const addUser = async () => {
@@ -142,6 +152,73 @@ useEffect(() => {
             </button>
           </div>
         </div>
+
+        {/* 契約者統計 */}
+        {stats && (
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>契約者統計</div>
+              <button onClick={fetchStats} style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 11, padding: '4px 10px' }}>
+                ↻ 更新
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14 }}>
+              {/* 戦略指南サブスク */}
+              <div style={{ padding: '14px 16px', background: '#fef5e9', border: `1px solid #f0c068`, borderRadius: 6 }}>
+                <div style={{ fontSize: 13, color: C.muted, fontFamily: "'Space Mono', monospace", marginBottom: 6 }}>戦略指南サブスク</div>
+                <div style={{ fontSize: 32, fontWeight: 700, color: C.ink, fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{stats.support.count}<span style={{ fontSize: 14, color: C.muted, marginLeft: 4 }}>名</span></div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.6 }}>
+                  有料: <b style={{ color: C.ink }}>{stats.support.paidCount}</b> / トライアル: {stats.support.trialCount}<br/>
+                  月額: {stats.support.monthlyCount} / 年額: {stats.support.yearlyCount}<br/>
+                  契約サイト合計: <b style={{ color: C.ink }}>{stats.support.totalSites}</b> サイト<br/>
+                  <span style={{ color: '#888' }}>過去の解約: {stats.support.canceledTotal}</span>
+                </div>
+              </div>
+              {/* 戦略診断チケット */}
+              <div style={{ padding: '14px 16px', background: '#e8f0fb', border: `1px solid #a0c0e8`, borderRadius: 6 }}>
+                <div style={{ fontSize: 13, color: C.muted, fontFamily: "'Space Mono', monospace", marginBottom: 6 }}>戦略診断チケット</div>
+                <div style={{ fontSize: 32, fontWeight: 700, color: C.ink, fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{stats.analysis.count}<span style={{ fontSize: 14, color: C.muted, marginLeft: 4 }}>名</span></div>
+                <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.6 }}>
+                  チケット総数: <b style={{ color: C.ink }}>{stats.analysis.totalTickets}</b><br/>
+                  使用済: {stats.analysis.usedTickets} / 残: <b style={{ color: C.ink }}>{stats.analysis.remainingTickets}</b>
+                </div>
+              </div>
+            </div>
+            {stats.support.plans && stats.support.plans.length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                <button onClick={() => setStatsExpanded(!statsExpanded)} style={{ background: 'transparent', border: 'none', color: C.A, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, padding: 0 }}>
+                  {statsExpanded ? '▼' : '▶'} 戦略指南サブスク契約者一覧（{stats.support.plans.length}件）
+                </button>
+                {statsExpanded && (
+                  <div style={{ marginTop: 10, maxHeight: 360, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ background: C.highlight, position: 'sticky', top: 0 }}>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>メール</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>名前</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>サイト</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>周期</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>契約日</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.support.plans.map((p, i) => (
+                          <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
+                            <td style={{ padding: '6px 10px' }}>{p.email}{p.is_trial && <span style={{ marginLeft: 6, fontSize: 10, color: '#888' }}>(trial)</span>}</td>
+                            <td style={{ padding: '6px 10px' }}>{p.name}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'right' }}>{p.site_limit}</td>
+                            <td style={{ padding: '6px 10px' }}>{p.interval === 'year' ? '年額' : '月額'}</td>
+                            <td style={{ padding: '6px 10px', color: C.muted, fontFamily: "'Space Mono', monospace" }}>{p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('ja-JP') : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 新規追加 */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>

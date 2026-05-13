@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-import { sendPaymentNotificationEmail } from '@/app/lib/email';
+import { sendPaymentNotificationEmail, sendCancellationNotificationEmail } from '@/app/lib/email';
 // ※ ライセンス上限超過時のサイト削除はユーザー選択型 UI に変更したため、
 //    webhook では自動削除しない（/api/sites/cap-resolve 経由で削除される）。
 
@@ -217,15 +217,101 @@ export async function POST(req) {
     }
   }
 
-  // サブスクリプション解約
+  // サブスクリプション解約予定（ユーザーが Stripe ポータルで解約手続きをした瞬間）
+  // customer.subscription.updated は cancel_at_period_end の変化以外にも発火するので、
+  // cancel_at_period_end が true になった時のみ運営通知メールを送る。
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object;
+    const prevAttrs = event.data.previous_attributes || {};
+    const justScheduledCancel = subscription.cancel_at_period_end === true
+      && prevAttrs.cancel_at_period_end === false;
+    if (justScheduledCancel) {
+      try {
+        const sql = neon(process.env.DATABASE_URL);
+        const rows = await sql`
+          SELECT user_email, plan_type, site_limit, interval FROM user_plans
+          WHERE stripe_subscription_id = ${subscription.id} AND status = 'active'
+          ORDER BY purchased_at DESC LIMIT 1
+        `;
+        const p = rows[0];
+        if (p) {
+          let userName = '';
+          try {
+            const u = await sql`SELECT name FROM users WHERE email = ${p.user_email} LIMIT 1`;
+            userName = u[0]?.name || '';
+          } catch (e) {}
+          const endsAt = subscription.cancel_at
+            ? new Date(subscription.cancel_at * 1000).toISOString()
+            : (subscription.current_period_end
+                ? new Date(subscription.current_period_end * 1000).toISOString()
+                : null);
+          await sendCancellationNotificationEmail({
+            buyerEmail: p.user_email,
+            buyerName: userName,
+            planType: p.plan_type,
+            siteLimit: p.site_limit,
+            interval: p.interval,
+            kind: 'scheduled',
+            endsAt,
+            stripeSubscriptionId: subscription.id,
+          });
+          console.log(`解約予定通知メール送信: ${subscription.id} (${p.user_email})`);
+        }
+      } catch (e) {
+        console.error('解約予定通知メール送信エラー:', e?.message);
+      }
+    }
+  }
+
+  // サブスクリプション解約（期間終了で正式に解約完了）
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
     const sql = neon(process.env.DATABASE_URL);
+    // 解約前にユーザー情報を取得（DB更新前に取らないとプラン情報が消える）
+    let planInfo = null;
+    try {
+      const rows = await sql`
+        SELECT user_email, plan_type, site_limit, interval FROM user_plans
+        WHERE stripe_subscription_id = ${subscription.id}
+        ORDER BY purchased_at DESC LIMIT 1
+      `;
+      planInfo = rows[0] || null;
+    } catch (e) { console.error('解約前プラン情報取得エラー:', e?.message); }
+
     await sql`
       UPDATE user_plans SET status = 'canceled'
       WHERE stripe_subscription_id = ${subscription.id}
     `;
     console.log(`サブスクリプション解約: ${subscription.id}`);
+
+    // 解約完了通知メール
+    if (planInfo) {
+      try {
+        let userName = '';
+        try {
+          const u = await sql`SELECT name FROM users WHERE email = ${planInfo.user_email} LIMIT 1`;
+          userName = u[0]?.name || '';
+        } catch (e) {}
+        const endsAt = subscription.ended_at
+          ? new Date(subscription.ended_at * 1000).toISOString()
+          : (subscription.canceled_at
+              ? new Date(subscription.canceled_at * 1000).toISOString()
+              : new Date().toISOString());
+        await sendCancellationNotificationEmail({
+          buyerEmail: planInfo.user_email,
+          buyerName: userName,
+          planType: planInfo.plan_type,
+          siteLimit: planInfo.site_limit,
+          interval: planInfo.interval,
+          kind: 'completed',
+          endsAt,
+          stripeSubscriptionId: subscription.id,
+        });
+        console.log(`解約完了通知メール送信: ${subscription.id} (${planInfo.user_email})`);
+      } catch (e) {
+        console.error('解約完了通知メール送信エラー:', e?.message);
+      }
+    }
   }
 
   // 月次/年次更新（戦略指南サブスクのチャットチケットを強制リセット）
