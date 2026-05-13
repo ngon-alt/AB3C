@@ -166,10 +166,18 @@ useEffect(() => {
               {/* 戦略指南サブスク */}
               <div style={{ padding: '14px 16px', background: '#fef5e9', border: `1px solid #f0c068`, borderRadius: 6 }}>
                 <div style={{ fontSize: 13, color: C.muted, fontFamily: "'Space Mono', monospace", marginBottom: 6 }}>戦略指南サブスク</div>
-                <div style={{ fontSize: 32, fontWeight: 700, color: C.ink, fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{stats.support.count}<span style={{ fontSize: 14, color: C.muted, marginLeft: 4 }}>名</span></div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.6 }}>
-                  有料: <b style={{ color: C.ink }}>{stats.support.paidCount}</b> / トライアル: {stats.support.trialCount}<br/>
-                  月額: {stats.support.monthlyCount} / 年額: {stats.support.yearlyCount}<br/>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#1a7e3a', fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>有料</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#1a7e3a', fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{stats.support.paidCount}<span style={{ fontSize: 13, color: C.muted, marginLeft: 2 }}>名</span></div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#a06800', fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>トライアル</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: '#a06800', fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{stats.support.trialCount}<span style={{ fontSize: 13, color: C.muted, marginLeft: 2 }}>名</span></div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6, borderTop: `1px solid #f0c068`, paddingTop: 8 }}>
+                  有料の内訳: 月額 {stats.support.monthlyCount} / 年額 {stats.support.yearlyCount}<br/>
                   契約サイト合計: <b style={{ color: C.ink }}>{stats.support.totalSites}</b> サイト<br/>
                   <span style={{ color: '#888' }}>過去の解約: {stats.support.canceledTotal}</span>
                 </div>
@@ -194,6 +202,7 @@ useEffect(() => {
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                       <thead>
                         <tr style={{ background: C.highlight, position: 'sticky', top: 0 }}>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>区分</th>
                           <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>メール</th>
                           <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>名前</th>
                           <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>サイト</th>
@@ -203,11 +212,18 @@ useEffect(() => {
                       </thead>
                       <tbody>
                         {stats.support.plans.map((p, i) => (
-                          <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
-                            <td style={{ padding: '6px 10px' }}>{p.email}{p.is_trial && <span style={{ marginLeft: 6, fontSize: 10, color: '#888' }}>(trial)</span>}</td>
+                          <tr key={i} style={{ borderTop: `1px solid ${C.border}`, background: p.is_trial ? '#fff8e6' : 'transparent', opacity: p.is_trial ? 0.85 : 1 }}>
+                            <td style={{ padding: '6px 10px', whiteSpace: 'nowrap' }}>
+                              {p.is_trial ? (
+                                <span style={{ background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>TRIAL</span>
+                              ) : (
+                                <span style={{ background: '#1a7e3a', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>PAID</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '6px 10px' }}>{p.email}</td>
                             <td style={{ padding: '6px 10px' }}>{p.name}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'right' }}>{p.site_limit}</td>
-                            <td style={{ padding: '6px 10px' }}>{p.interval === 'year' ? '年額' : '月額'}</td>
+                            <td style={{ padding: '6px 10px' }}>{p.is_trial ? 'トライアル' : (p.interval === 'year' ? '年額' : '月額')}</td>
                             <td style={{ padding: '6px 10px', color: C.muted, fontFamily: "'Space Mono', monospace" }}>{p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('ja-JP') : '—'}</td>
                           </tr>
                         ))}
