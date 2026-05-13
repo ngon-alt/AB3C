@@ -183,16 +183,36 @@ export default function AccountPage() {
                 <span style={{ fontSize: 15, color: C.ink }}>運営からの招待による無制限アカウントです</span>
               </div>
             )}
-            {supportPlans.map(p => (
+            {supportPlans.map(p => {
+              const isPendingCancel = p.cancel_at_period_end === true;
+              const endsAt = p.cancel_at || p.current_period_end || p.expires_at;
+              return (
               <div key={p.id} style={{ padding: "16px 18px", background: "#fff", border: "1px solid " + C.border, borderRadius: 6, marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
                   <span style={{ background: C.B, color: "#fff", fontSize: 14, padding: "3px 10px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>指南{p.site_limit}</span>
                   <span style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>{planTypeLabel(p.plan_type)}（{p.site_limit}サイト・{p.interval === "year" ? "年額" : "月額"}）</span>
+                  {isPendingCancel ? (
+                    <span style={{ background: "#c0392b", color: "#fff", fontSize: 12, padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>解約予定</span>
+                  ) : (
+                    <span style={{ background: "#1a7e3a", color: "#fff", fontSize: 12, padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>✓ 継続中</span>
+                  )}
                 </div>
-                <div style={{ fontSize: 14, color: C.muted }}>次回更新日: <span style={{ color: C.ink, fontWeight: 700 }}>{formatDate(p.expires_at)}</span></div>
+                {isPendingCancel ? (
+                  <div style={{ fontSize: 14, color: "#c0392b", lineHeight: 1.7, padding: "8px 12px", background: "#fdf0ef", borderRadius: 4, marginTop: 4 }}>
+                    <b>このプランは解約手続き済みです。</b>
+                    {endsAt && (
+                      <> <b>{formatDate(endsAt)}</b> までご利用可能で、その後は自動的に終了します。</>
+                    )}
+                    <br/>
+                    <span style={{ fontSize: 13, color: C.muted }}>解約を取り消したい場合は、下の「解約手続き（Stripeへ）」ボタンから Stripe 画面で「キャンセルを取り消す」を選んでください。</span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 14, color: C.muted }}>次回更新日: <span style={{ color: C.ink, fontWeight: 700 }}>{formatDate(p.expires_at)}</span></div>
+                )}
                 <div style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>契約日: {formatDate(p.purchased_at)}</div>
               </div>
-            ))}
+            );
+            })}
             {analysisPlans.length > 0 && (
               <div style={{ padding: "16px 18px", background: "#fff", border: "1px solid " + C.border, borderRadius: 6, marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
