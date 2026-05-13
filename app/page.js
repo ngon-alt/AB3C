@@ -3699,8 +3699,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
       iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
-      サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。 */}
-  <div style={{ marginTop: 64, marginBottom: 32 }}>
+      サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。
+      入力タブと視覚的に分離するため上余白は広めに取る（権さん指示）。 */}
+  <div style={{ marginTop: 140, marginBottom: 32 }}>
     <h2 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, textAlign: "center", marginBottom: 10, letterSpacing: "0.02em" }}>
       戦略指南 AI の使い方
     </h2>
