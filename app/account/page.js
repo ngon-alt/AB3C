@@ -211,9 +211,10 @@ export default function AccountPage() {
               <Link href="/pricing" style={{ display: "inline-block", padding: "8px 18px", background: C.phase1, color: "#fff", borderRadius: 4, textDecoration: "none", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 }}>プラン変更・追加 →</Link>
               {data?.hasStripeCustomer && (
                 <button onClick={openPortal} disabled={portalLoading} style={{
-                  background: "transparent", border: `1px solid ${C.muted}`, borderRadius: 4,
-                  color: C.muted, cursor: portalLoading ? "not-allowed" : "pointer",
+                  background: portalLoading ? C.muted : "#c0392b", border: "none", borderRadius: 4,
+                  color: "#fff", cursor: portalLoading ? "not-allowed" : "pointer",
                   fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "8px 18px",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
                 }}>
                   {portalLoading ? "Stripeへ..." : "解約手続き（Stripeへ）"}
                 </button>
