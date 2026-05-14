@@ -1714,6 +1714,13 @@ const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
 // 分析結果の世代履歴（最大5世代・新しい順）。各要素 { id, result, created_at, source, confirmed }
 const [analysisVersions, setAnalysisVersions] = useState([]);
+// 確定履歴の「未確定エントリ」以外を一時閲覧する直前のライブ状態のバックアップ。
+//   - 用途: 戦略策定中（再分析後など、未確定で作業中）に過去の確定スナップショットを
+//     一時的に覗いた後、「確定中」エントリを押した時にライブ状態を復元するため。
+//   - 含む: currentResult / analysisVersions / activeVersionPerSection /
+//     selectedCombinationId / historyTitle / chatSummaries / chatMessages
+//   - クリア条件: 再分析・新規分析・戦略確定・サイト切替で next live state が確定したとき
+const [liveStateBackup, setLiveStateBackup] = useState(null);
 // 各セクションがどの世代を表示しているか（key=セクションキー, value=versionsの index、0=最新）
 const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
 // いずれかのセクションで「最新以外」を見ている場合 true（再分析・確定ボタンを非表示にするため）
@@ -2879,6 +2886,7 @@ useEffect(() => {
           console.warn("確定後のレスポンス本文パース失敗:", e);
         }
         setStrategyConfirmed(true);
+        setLiveStateBackup(null); // 戦略確定でライブ状態がスナップショット化されたためバックアップ不要
         // 世代タブの最新世代を確定済みマークに
         setAnalysisVersions(function (prev) {
           if (!Array.isArray(prev) || prev.length === 0) return prev;
@@ -3105,6 +3113,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
 setVersionsFromInitial(null);
+setLiveStateBackup(null); // 新規分析でライブ状態が完全リセットされるため破棄
 // 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
@@ -3528,6 +3537,53 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
+                        // 「確定中」エントリクリック時の復元ロジック（権さん指摘・2026-05-15）:
+                        //   過去の履歴を一時閲覧した後に「確定中」を押した場合、ライブ状態のバックアップが
+                        //   あれば（=途中で再分析した未確定バージョン等）、それを復元する。
+                        //   これがないと「再分析→過去履歴を覗く→確定中に戻る」で再分析結果が消失するバグになる。
+                        if (isLive && liveStateBackup) {
+                          setCurrentResult(liveStateBackup.result);
+                          setResult(liveStateBackup.result);
+                          setAnalysisVersions(Array.isArray(liveStateBackup.versions) ? liveStateBackup.versions : []);
+                          setActiveVersionPerSection(liveStateBackup.activeVersionPerSection || {});
+                          if (liveStateBackup.selectedCombinationId) setSelectedCombinationId(liveStateBackup.selectedCombinationId);
+                          setHistoryTitle(liveStateBackup.historyTitle || "");
+                          if (Array.isArray(liveStateBackup.chatSummaries)) setChatSummaries(liveStateBackup.chatSummaries);
+                          // チャット履歴も復元
+                          try {
+                            if (siteId && Array.isArray(liveStateBackup.chatMessages)) {
+                              localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(liveStateBackup.chatMessages));
+                              window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
+                            }
+                          } catch (e) {}
+                          setActiveConfirmId(ch.id); // 確定中エントリのハイライト維持
+                          setLiveStateBackup(null);  // 復元したらバックアップを破棄
+                          setChangedPaths(new Map());
+                          return;
+                        }
+
+                        // 過去履歴（非ライブ）を初めて開く時、ライブ状態をバックアップする。
+                        // すでにバックアップがあればそのまま（=「過去履歴 A → 過去履歴 B → 確定中」と
+                        // 複数回飛んでも、最初のライブ状態に戻れる）。
+                        if (!isLive && !liveStateBackup) {
+                          var savedChatMessages = null;
+                          try {
+                            if (siteId) {
+                              var lsChat = localStorage.getItem("ab3c_analysis_chat_" + siteId);
+                              savedChatMessages = lsChat ? JSON.parse(lsChat) : null;
+                            }
+                          } catch (e) {}
+                          setLiveStateBackup({
+                            result: currentResult,
+                            versions: analysisVersions,
+                            activeVersionPerSection: activeVersionPerSection,
+                            selectedCombinationId: selectedCombinationId,
+                            historyTitle: historyTitle,
+                            chatSummaries: chatSummaries,
+                            chatMessages: savedChatMessages,
+                          });
+                        }
+
                         setActiveConfirmId(ch.id);
                         setCurrentResult(ch.result);
                         setResult(ch.result);
@@ -4382,6 +4438,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       addAnalysisVersion(newResult, "reanalyze"); // チャット再分析を新世代として追加
+                      setLiveStateBackup(null); // 再分析でライブ状態が更新されたのでバックアップは破棄
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       // チャット会話内容を反映した再分析結果を DB に保存（リロードで消えないように）
