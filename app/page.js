@@ -3688,7 +3688,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           borderBottom: "1px solid rgba(0,0,0,0.06)",
                           cursor: "pointer",
                           background: isActive ? C.bg : "transparent",  // メイン領域と同じグレーで選択中を明示
-                          borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent",
+                          // 編集中エントリと同じ 6px に揃える（権さん指摘）。確定済みは黒。
+                          borderLeft: isActive ? "6px solid #2a2a26" : "6px solid transparent",
                           position: "relative",
                           zIndex: isActive ? 2 : 1,
                         }}>
