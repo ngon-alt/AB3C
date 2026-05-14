@@ -162,7 +162,7 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor,
        onMouseEnter={() => setHoveredIdx(i)}
        onMouseLeave={() => setHoveredIdx(-1)}
        style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: textColor || "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
-       {...(onChatItem ? hoverShow : {})}>
+       {...((onChatItem && !needsConfirm) ? hoverShow : {})}>
         <label style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, cursor: checkable ? "pointer" : "default" }}>
           {checkable && (
             <input
@@ -174,19 +174,24 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor,
           )}
           {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
           <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
-          {/* 要チャット確認の赤丸シグナル。クリックでチャットに該当の問いを投げる。
-              既存の hover 💬 と被らないよう、テキスト右隣に小さく配置。 */}
+          {/* 要チャット確認の赤い吹き出しマーク。クリックでチャットに該当の問いを投げる。
+              既存の hover 💬（teal）と区別するため常時表示で赤色。
+              意図: 「この項目は根拠の確認が推奨」のシグナルを 💬 アイコンで自然に伝える。 */}
           {needsConfirm && (
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onConfirmItem) onConfirmItem(item, ev); }}
               title={`この強みは根拠の確認が推奨されています：${ev.note || "本人だからこそ語れる事実・経験を整理しましょう"}\nクリックでチャットに質問が投稿されます。`}
-              style={{ flexShrink: 0, marginTop: 8, width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+              style={{ flexShrink: 0, marginTop: 2, width: 24, height: 24, borderRadius: 6, border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
               aria-label="この強みの根拠をチャットで確認"
-            />
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+            </button>
           )}
         </label>
-        {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
+        {/* 黒い ChatBtn は赤い吹き出し（needsConfirm）と重なるので、需要確認項目では表示しない（権さん指摘・2026-05-15）。
+            赤い吹き出しが既に「この項目をチャットで深掘る」アクションを持つため、二重表示は冗長で誤クリックの原因になる。 */}
+        {onChatItem && !needsConfirm && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
       );
     })}
@@ -1004,24 +1009,34 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.sam}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(customerData.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
-                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+                {(() => {
+                  // SOM カードも UL と同様、赤い吹き出し（needs_confirmation）がある時は
+                  // 黒い ChatBtn を抑制して二重表示を防ぐ（権さん指摘・2026-05-15）。
+                  const somNeedsConfirm = customerData.market.adequacy === "needs_confirmation";
+                  return (
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...((onChat && !somNeedsConfirm) ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                     <span>SOM（実際に狙える市場）</span>
-                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤丸シグナル。
+                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤い吹き出しシグナル。
                         クリックでチャットに「目指す事業規模」の問いを投稿。 */}
-                    {customerData.market.adequacy === "needs_confirmation" && onChat && (
+                    {somNeedsConfirm && onChat && (
                       <button
                         type="button"
                         onClick={() => onChat(`SOM「${customerData.market.som || ""}」は私の目指す事業規模に対して十分でしょうか？私の現在の事業規模と、5年後の目標規模について質問してください。それを踏まえて、このパターンの市場規模が私にとって十分かどうかを判断してください。`)}
                         title={`市場規模の十分性は、本人の事業規模・目標規模を確認した方が正確に判断できます。\n${customerData.market.adequacy_note || ""}\nクリックでチャットに質問が投稿されます。`}
-                        style={{ width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                         aria-label="目標事業規模をチャットで確認"
-                      />
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+                      </button>
                     )}
                   </div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
+                  {/* 黒い ChatBtn は赤い吹き出しと重なるので、需要確認時は表示しない */}
+                  {onChat && !somNeedsConfirm && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
+                  );
+                })()}
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.growth}</div>
@@ -1709,6 +1724,13 @@ const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
 // 分析結果の世代履歴（最大5世代・新しい順）。各要素 { id, result, created_at, source, confirmed }
 const [analysisVersions, setAnalysisVersions] = useState([]);
+// 確定履歴の「未確定エントリ」以外を一時閲覧する直前のライブ状態のバックアップ。
+//   - 用途: 戦略策定中（再分析後など、未確定で作業中）に過去の確定スナップショットを
+//     一時的に覗いた後、「確定中」エントリを押した時にライブ状態を復元するため。
+//   - 含む: currentResult / analysisVersions / activeVersionPerSection /
+//     selectedCombinationId / historyTitle / chatSummaries / chatMessages
+//   - クリア条件: 再分析・新規分析・戦略確定・サイト切替で next live state が確定したとき
+const [liveStateBackup, setLiveStateBackup] = useState(null);
 // 各セクションがどの世代を表示しているか（key=セクションキー, value=versionsの index、0=最新）
 const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
 // いずれかのセクションで「最新以外」を見ている場合 true（再分析・確定ボタンを非表示にするため）
@@ -2874,11 +2896,18 @@ useEffect(() => {
           console.warn("確定後のレスポンス本文パース失敗:", e);
         }
         setStrategyConfirmed(true);
-        // 世代タブの最新世代を確定済みマークに
+        setLiveStateBackup(null); // 戦略確定でライブ状態がスナップショット化されたためバックアップ不要
+        // 確定後はライブ状態(currentResult)を確定スナップショット(snapshotResult)に揃える。
+        // これがないと currentResult (確定前の元データ) と confirmHistory[last].result (snapshotResult)
+        // が一致せず、編集中エントリが「変更あり」と誤判定して表示されてしまうバグになる（権さん指摘・2026-05-15）。
+        // snapshotResult には confirmed_combination_id と、選択中パターンで flatten された three_c が含まれる。
+        setCurrentResult(snapshotResult);
+        setResult(snapshotResult);
+        // 世代タブの最新世代を確定済みマークに + result も snapshot に統一
         setAnalysisVersions(function (prev) {
           if (!Array.isArray(prev) || prev.length === 0) return prev;
           var copy = prev.slice();
-          copy[0] = Object.assign({}, copy[0], { confirmed: true });
+          copy[0] = Object.assign({}, copy[0], { confirmed: true, result: snapshotResult });
           return copy;
         });
         // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
@@ -3100,6 +3129,7 @@ setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setCh
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
 setVersionsFromInitial(null);
+setLiveStateBackup(null); // 新規分析でライブ状態が完全リセットされるため破棄
 // 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
@@ -3517,12 +3547,108 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     var liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
                       ? confirmHistory[confirmHistory.length - 1].id
                       : null;
-                    return confirmHistory.slice().reverse().map(function(ch, i) {
+
+                    // ✏️ 編集中エントリの判定:
+                    //   - 未確定の検討中バージョン（最後の確定スナップショットと異なる）が存在する場合に表示
+                    //   - liveStateBackup があれば「過去履歴を覗いている最中」、その backup result を比較対象に
+                    //   - なければ currentResult が live なので、それを最後の確定と比較
+                    //   - 編集中エントリの strategy_message は live のものを表示
+                    var lastConfirm = confirmHistory[confirmHistory.length - 1];
+                    var liveResultForCompare = liveStateBackup ? liveStateBackup.result : currentResult;
+                    var liveStrategyMessageForLabel = liveStateBackup ? liveStateBackup.historyTitle : historyTitle;
+                    var hasUnconfirmedWork = false;
+                    try {
+                      hasUnconfirmedWork = !!(lastConfirm && liveResultForCompare &&
+                        JSON.stringify(liveResultForCompare) !== JSON.stringify(lastConfirm.result));
+                    } catch (e) { hasUnconfirmedWork = false; }
+                    // ✏️ 編集中エントリが「アクティブ」= ライブ状態を表示中（過去履歴閲覧していない）。
+                    // activeConfirmId が null の場合、現在表示中はライブ状態と判定。
+                    var isEditingEntryActive = hasUnconfirmedWork && activeConfirmId == null;
+
+                    var editingEntry = hasUnconfirmedWork ? (
+                      <div key="editing"
+                        onClick={function() {
+                          // バックアップがあれば復元（=過去履歴を覗いていた状態から戻る）。
+                          // バックアップがない場合は既にライブ状態が表示中なので activeConfirmId だけクリア。
+                          if (liveStateBackup) {
+                            setCurrentResult(liveStateBackup.result);
+                            setResult(liveStateBackup.result);
+                            setAnalysisVersions(Array.isArray(liveStateBackup.versions) ? liveStateBackup.versions : []);
+                            setActiveVersionPerSection(liveStateBackup.activeVersionPerSection || {});
+                            if (liveStateBackup.selectedCombinationId) setSelectedCombinationId(liveStateBackup.selectedCombinationId);
+                            setHistoryTitle(liveStateBackup.historyTitle || "");
+                            if (Array.isArray(liveStateBackup.chatSummaries)) setChatSummaries(liveStateBackup.chatSummaries);
+                            if (liveStateBackup.currentInput != null) setCurrentInput(liveStateBackup.currentInput);
+                            if (liveStateBackup.url != null) setUrl(liveStateBackup.url);
+                            if (liveStateBackup.tab != null) setTab(liveStateBackup.tab);
+                            // チャット履歴も復元
+                            try {
+                              if (siteId && Array.isArray(liveStateBackup.chatMessages)) {
+                                localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(liveStateBackup.chatMessages));
+                                window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
+                              }
+                            } catch (e) {}
+                            setLiveStateBackup(null);
+                          }
+                          setActiveConfirmId(null);
+                          setChangedPaths(new Map());
+                        }}
+                        style={{
+                          padding: "10px 14px",
+                          paddingRight: isEditingEntryActive ? "15px" : "14px",
+                          marginRight: isEditingEntryActive ? "-1px" : "0",
+                          borderBottom: "1px solid rgba(0,0,0,0.06)",
+                          cursor: "pointer",
+                          background: isEditingEntryActive ? C.bg : "#fff8e1",  // ライブ表示中は灰、それ以外は薄ベージュ
+                          // 左ボーダーは 3px だと薄ベージュ背景に埋もれて視認しづらいので 6px に倍増（権さん指摘）
+                          borderLeft: isEditingEntryActive ? "6px solid #d97706" : "6px solid #f59e0b",
+                          position: "relative",
+                          zIndex: isEditingEntryActive ? 2 : 1,
+                        }}>
+                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span>✏️ 編集中</span>
+                          <span style={{ display: "inline-block", background: "#d97706", color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
+                            未確定
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isEditingEntryActive ? 700 : 400 }}>
+                          {(liveStrategyMessageForLabel || "").slice(0, 50)}
+                        </div>
+                      </div>
+                    ) : null;
+
+                    var confirmEntries = confirmHistory.slice().reverse().map(function(ch, i) {
                     // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
                     var isActive = activeConfirmId === ch.id;
                     var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
+                        // 過去履歴（確定スナップショット）を初めて開く時、現在のライブ状態をバックアップする。
+                        // ライブ状態 = 未確定の検討中バージョン or 最後の確定そのまま。どちらにせよ
+                        // サイドバー上部の「✏️ 編集中」エントリ経由で戻れるよう保存しておく。
+                        // 既にバックアップがあれば上書きしない（過去履歴 A→B→編集中 でも最初のライブに戻れる）。
+                        if (!liveStateBackup) {
+                          var savedChatMessages = null;
+                          try {
+                            if (siteId) {
+                              var lsChat = localStorage.getItem("ab3c_analysis_chat_" + siteId);
+                              savedChatMessages = lsChat ? JSON.parse(lsChat) : null;
+                            }
+                          } catch (e) {}
+                          setLiveStateBackup({
+                            result: currentResult,
+                            versions: analysisVersions,
+                            activeVersionPerSection: activeVersionPerSection,
+                            selectedCombinationId: selectedCombinationId,
+                            historyTitle: historyTitle,
+                            chatSummaries: chatSummaries,
+                            chatMessages: savedChatMessages,
+                            currentInput: currentInput,
+                            url: url,
+                            tab: tab,
+                          });
+                        }
+
                         setActiveConfirmId(ch.id);
                         setCurrentResult(ch.result);
                         setResult(ch.result);
@@ -3562,7 +3688,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           borderBottom: "1px solid rgba(0,0,0,0.06)",
                           cursor: "pointer",
                           background: isActive ? C.bg : "transparent",  // メイン領域と同じグレーで選択中を明示
-                          borderLeft: isActive ? "3px solid #2a2a26" : "3px solid transparent",
+                          // 編集中エントリと同じ 6px に揃える（権さん指摘）。確定済みは黒。
+                          borderLeft: isActive ? "6px solid #2a2a26" : "6px solid transparent",
                           position: "relative",
                           zIndex: isActive ? 2 : 1,
                         }}>
@@ -3581,6 +3708,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       </div>
                     );
                     });
+                    // ✏️ 編集中エントリは常に最上部に。confirmEntries は新しい順で並ぶ。
+                    return [editingEntry].concat(confirmEntries);
                   })()
                 )}
               </div>
@@ -4362,6 +4491,30 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                             });
                           }),
                         });
+
+                        // 強みの根拠評価をルートの three_c.company.strength_evaluations から
+                        // company_core.all_strengths_evaluations へ伝播する。
+                        // shadowResult は companyCore.all_strengths_evaluations を strengths_used でマップして
+                        // UI に渡すため、ここを更新しないと「チャットで根拠を提示しても赤い吹き出しが消えない」
+                        // バグになる（権さん指摘・2026-05-15）。
+                        var newEvals = newResult.three_c?.company?.strength_evaluations;
+                        var newStrengths = newResult.three_c?.company?.strength;
+                        var targetCombo = newResult.combinations.find(function(c) { return c?.id === selectedCombinationId; });
+                        var usedIdx = Array.isArray(targetCombo?.strengths_used) ? targetCombo.strengths_used : [];
+                        if (Array.isArray(newEvals) && newEvals.length > 0 && usedIdx.length > 0 && newResult.company_core) {
+                          var origAllStrengths = Array.isArray(newResult.company_core.all_strengths) ? newResult.company_core.all_strengths.slice() : [];
+                          var origAllEvals = Array.isArray(newResult.company_core.all_strengths_evaluations) ? newResult.company_core.all_strengths_evaluations.slice() : [];
+                          usedIdx.forEach(function(absIdx, relIdx) {
+                            if (newEvals[relIdx]) origAllEvals[absIdx] = newEvals[relIdx];
+                            if (Array.isArray(newStrengths) && newStrengths[relIdx]) origAllStrengths[absIdx] = newStrengths[relIdx];
+                          });
+                          newResult = Object.assign({}, newResult, {
+                            company_core: Object.assign({}, newResult.company_core, {
+                              all_strengths: origAllStrengths,
+                              all_strengths_evaluations: origAllEvals,
+                            }),
+                          });
+                        }
                       }
                       try {
                         var diff = diffResults(currentResult || {}, newResult);
@@ -4377,6 +4530,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setHistoryTitle(newResult?.strategy_message?.message || "");
                       setSelectedHistory(null);
                       addAnalysisVersion(newResult, "reanalyze"); // チャット再分析を新世代として追加
+                      setLiveStateBackup(null); // 再分析でライブ状態が更新されたのでバックアップは破棄
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       // チャット会話内容を反映した再分析結果を DB に保存（リロードで消えないように）
