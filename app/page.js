@@ -174,16 +174,19 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor,
           )}
           {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
           <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
-          {/* 要チャット確認の赤丸シグナル。クリックでチャットに該当の問いを投げる。
-              既存の hover 💬 と被らないよう、テキスト右隣に小さく配置。 */}
+          {/* 要チャット確認の赤い吹き出しマーク。クリックでチャットに該当の問いを投げる。
+              既存の hover 💬（teal）と区別するため常時表示で赤色。
+              意図: 「この項目は根拠の確認が推奨」のシグナルを 💬 アイコンで自然に伝える。 */}
           {needsConfirm && (
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onConfirmItem) onConfirmItem(item, ev); }}
               title={`この強みは根拠の確認が推奨されています：${ev.note || "本人だからこそ語れる事実・経験を整理しましょう"}\nクリックでチャットに質問が投稿されます。`}
-              style={{ flexShrink: 0, marginTop: 8, width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+              style={{ flexShrink: 0, marginTop: 2, width: 24, height: 24, borderRadius: 6, border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
               aria-label="この強みの根拠をチャットで確認"
-            />
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+            </button>
           )}
         </label>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
@@ -1007,16 +1010,18 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                     <span>SOM（実際に狙える市場）</span>
-                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤丸シグナル。
+                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤い吹き出しシグナル。
                         クリックでチャットに「目指す事業規模」の問いを投稿。 */}
                     {customerData.market.adequacy === "needs_confirmation" && onChat && (
                       <button
                         type="button"
                         onClick={() => onChat(`SOM「${customerData.market.som || ""}」は私の目指す事業規模に対して十分でしょうか？私の現在の事業規模と、5年後の目標規模について質問してください。それを踏まえて、このパターンの市場規模が私にとって十分かどうかを判断してください。`)}
                         title={`市場規模の十分性は、本人の事業規模・目標規模を確認した方が正確に判断できます。\n${customerData.market.adequacy_note || ""}\nクリックでチャットに質問が投稿されます。`}
-                        style={{ width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                         aria-label="目標事業規模をチャットで確認"
-                      />
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/></svg>
+                      </button>
                     )}
                   </div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
