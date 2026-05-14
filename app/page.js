@@ -3531,41 +3531,86 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     var liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
                       ? confirmHistory[confirmHistory.length - 1].id
                       : null;
-                    return confirmHistory.slice().reverse().map(function(ch, i) {
+
+                    // ✏️ 編集中エントリの判定:
+                    //   - 未確定の検討中バージョン（最後の確定スナップショットと異なる）が存在する場合に表示
+                    //   - liveStateBackup があれば「過去履歴を覗いている最中」、その backup result を比較対象に
+                    //   - なければ currentResult が live なので、それを最後の確定と比較
+                    //   - 編集中エントリの strategy_message は live のものを表示
+                    var lastConfirm = confirmHistory[confirmHistory.length - 1];
+                    var liveResultForCompare = liveStateBackup ? liveStateBackup.result : currentResult;
+                    var liveStrategyMessageForLabel = liveStateBackup ? liveStateBackup.historyTitle : historyTitle;
+                    var hasUnconfirmedWork = false;
+                    try {
+                      hasUnconfirmedWork = !!(lastConfirm && liveResultForCompare &&
+                        JSON.stringify(liveResultForCompare) !== JSON.stringify(lastConfirm.result));
+                    } catch (e) { hasUnconfirmedWork = false; }
+                    // ✏️ 編集中エントリが「アクティブ」= ライブ状態を表示中（過去履歴閲覧していない）。
+                    // activeConfirmId が null の場合、現在表示中はライブ状態と判定。
+                    var isEditingEntryActive = hasUnconfirmedWork && activeConfirmId == null;
+
+                    var editingEntry = hasUnconfirmedWork ? (
+                      <div key="editing"
+                        onClick={function() {
+                          // バックアップがあれば復元（=過去履歴を覗いていた状態から戻る）。
+                          // バックアップがない場合は既にライブ状態が表示中なので activeConfirmId だけクリア。
+                          if (liveStateBackup) {
+                            setCurrentResult(liveStateBackup.result);
+                            setResult(liveStateBackup.result);
+                            setAnalysisVersions(Array.isArray(liveStateBackup.versions) ? liveStateBackup.versions : []);
+                            setActiveVersionPerSection(liveStateBackup.activeVersionPerSection || {});
+                            if (liveStateBackup.selectedCombinationId) setSelectedCombinationId(liveStateBackup.selectedCombinationId);
+                            setHistoryTitle(liveStateBackup.historyTitle || "");
+                            if (Array.isArray(liveStateBackup.chatSummaries)) setChatSummaries(liveStateBackup.chatSummaries);
+                            if (liveStateBackup.currentInput != null) setCurrentInput(liveStateBackup.currentInput);
+                            if (liveStateBackup.url != null) setUrl(liveStateBackup.url);
+                            if (liveStateBackup.tab != null) setTab(liveStateBackup.tab);
+                            // チャット履歴も復元
+                            try {
+                              if (siteId && Array.isArray(liveStateBackup.chatMessages)) {
+                                localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(liveStateBackup.chatMessages));
+                                window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
+                              }
+                            } catch (e) {}
+                            setLiveStateBackup(null);
+                          }
+                          setActiveConfirmId(null);
+                          setChangedPaths(new Map());
+                        }}
+                        style={{
+                          padding: "10px 14px",
+                          paddingRight: isEditingEntryActive ? "15px" : "14px",
+                          marginRight: isEditingEntryActive ? "-1px" : "0",
+                          borderBottom: "1px solid rgba(0,0,0,0.06)",
+                          cursor: "pointer",
+                          background: isEditingEntryActive ? C.bg : "#fff8e1",  // ライブ表示中は灰、それ以外は薄ベージュ
+                          borderLeft: isEditingEntryActive ? "3px solid #d97706" : "3px solid #f59e0b66",
+                          position: "relative",
+                          zIndex: isEditingEntryActive ? 2 : 1,
+                        }}>
+                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span>✏️ 編集中</span>
+                          <span style={{ display: "inline-block", background: "#d97706", color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
+                            未確定
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isEditingEntryActive ? 700 : 400 }}>
+                          {(liveStrategyMessageForLabel || "").slice(0, 50)}
+                        </div>
+                      </div>
+                    ) : null;
+
+                    var confirmEntries = confirmHistory.slice().reverse().map(function(ch, i) {
                     // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
                     var isActive = activeConfirmId === ch.id;
                     var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
-                        // 「確定中」エントリクリック時の復元ロジック（権さん指摘・2026-05-15）:
-                        //   過去の履歴を一時閲覧した後に「確定中」を押した場合、ライブ状態のバックアップが
-                        //   あれば（=途中で再分析した未確定バージョン等）、それを復元する。
-                        //   これがないと「再分析→過去履歴を覗く→確定中に戻る」で再分析結果が消失するバグになる。
-                        if (isLive && liveStateBackup) {
-                          setCurrentResult(liveStateBackup.result);
-                          setResult(liveStateBackup.result);
-                          setAnalysisVersions(Array.isArray(liveStateBackup.versions) ? liveStateBackup.versions : []);
-                          setActiveVersionPerSection(liveStateBackup.activeVersionPerSection || {});
-                          if (liveStateBackup.selectedCombinationId) setSelectedCombinationId(liveStateBackup.selectedCombinationId);
-                          setHistoryTitle(liveStateBackup.historyTitle || "");
-                          if (Array.isArray(liveStateBackup.chatSummaries)) setChatSummaries(liveStateBackup.chatSummaries);
-                          // チャット履歴も復元
-                          try {
-                            if (siteId && Array.isArray(liveStateBackup.chatMessages)) {
-                              localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(liveStateBackup.chatMessages));
-                              window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
-                            }
-                          } catch (e) {}
-                          setActiveConfirmId(ch.id); // 確定中エントリのハイライト維持
-                          setLiveStateBackup(null);  // 復元したらバックアップを破棄
-                          setChangedPaths(new Map());
-                          return;
-                        }
-
-                        // 過去履歴（非ライブ）を初めて開く時、ライブ状態をバックアップする。
-                        // すでにバックアップがあればそのまま（=「過去履歴 A → 過去履歴 B → 確定中」と
-                        // 複数回飛んでも、最初のライブ状態に戻れる）。
-                        if (!isLive && !liveStateBackup) {
+                        // 過去履歴（確定スナップショット）を初めて開く時、現在のライブ状態をバックアップする。
+                        // ライブ状態 = 未確定の検討中バージョン or 最後の確定そのまま。どちらにせよ
+                        // サイドバー上部の「✏️ 編集中」エントリ経由で戻れるよう保存しておく。
+                        // 既にバックアップがあれば上書きしない（過去履歴 A→B→編集中 でも最初のライブに戻れる）。
+                        if (!liveStateBackup) {
                           var savedChatMessages = null;
                           try {
                             if (siteId) {
@@ -3581,6 +3626,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                             historyTitle: historyTitle,
                             chatSummaries: chatSummaries,
                             chatMessages: savedChatMessages,
+                            currentInput: currentInput,
+                            url: url,
+                            tab: tab,
                           });
                         }
 
@@ -3642,6 +3690,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       </div>
                     );
                     });
+                    // ✏️ 編集中エントリは常に最上部に。confirmEntries は新しい順で並ぶ。
+                    return [editingEntry].concat(confirmEntries);
                   })()
                 )}
               </div>
