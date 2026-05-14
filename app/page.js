@@ -162,7 +162,7 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor,
        onMouseEnter={() => setHoveredIdx(i)}
        onMouseLeave={() => setHoveredIdx(-1)}
        style={{ fontSize: 16, lineHeight: 1.75, padding: checkable ? "6px 8px" : "5px 0 5px 16px", borderBottom: i < items.length - 1 ? `1px dashed ${C.border}` : "none", position: "relative", color: textColor || "#000000", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, opacity: checkable && !isChecked ? 0.45 : 1, background: isHovered ? "#f0f0ea" : "transparent", borderRadius: checkable ? 4 : 0, transition: "opacity 0.15s, background 0.15s" }}
-       {...(onChatItem ? hoverShow : {})}>
+       {...((onChatItem && !needsConfirm) ? hoverShow : {})}>
         <label style={{ display: "flex", alignItems: "flex-start", gap: 10, flex: 1, cursor: checkable ? "pointer" : "default" }}>
           {checkable && (
             <input
@@ -189,7 +189,9 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor,
             </button>
           )}
         </label>
-        {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
+        {/* 黒い ChatBtn は赤い吹き出し（needsConfirm）と重なるので、需要確認項目では表示しない（権さん指摘・2026-05-15）。
+            赤い吹き出しが既に「この項目をチャットで深掘る」アクションを持つため、二重表示は冗長で誤クリックの原因になる。 */}
+        {onChatItem && !needsConfirm && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
       );
     })}
@@ -1007,12 +1009,17 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.sam}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(customerData.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
-                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
+                {(() => {
+                  // SOM カードも UL と同様、赤い吹き出し（needs_confirmation）がある時は
+                  // 黒い ChatBtn を抑制して二重表示を防ぐ（権さん指摘・2026-05-15）。
+                  const somNeedsConfirm = customerData.market.adequacy === "needs_confirmation";
+                  return (
+                <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...((onChat && !somNeedsConfirm) ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                     <span>SOM（実際に狙える市場）</span>
                     {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤い吹き出しシグナル。
                         クリックでチャットに「目指す事業規模」の問いを投稿。 */}
-                    {customerData.market.adequacy === "needs_confirmation" && onChat && (
+                    {somNeedsConfirm && onChat && (
                       <button
                         type="button"
                         onClick={() => onChat(`SOM「${customerData.market.som || ""}」は私の目指す事業規模に対して十分でしょうか？私の現在の事業規模と、5年後の目標規模について質問してください。それを踏まえて、このパターンの市場規模が私にとって十分かどうかを判断してください。`)}
@@ -1025,8 +1032,11 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                     )}
                   </div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
-                  {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
+                  {/* 黒い ChatBtn は赤い吹き出しと重なるので、需要確認時は表示しない */}
+                  {onChat && !somNeedsConfirm && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
+                  );
+                })()}
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
                   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>成長率・トレンド</div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.growth}</div>
