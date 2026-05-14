@@ -137,6 +137,23 @@ export default function Privacy() {
           </section>
 
           <section>
+            <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">第9条の2（統計化された情報の利用）</h2>
+            <ol className="list-decimal list-inside space-y-2 text-gray-700 ml-4">
+              <li>
+                当協会は、本サービスを通じて取得した分析データ・チャット履歴等を統計化・匿名化した上で、以下の目的のために利用することがあります。
+                <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
+                  <li>本サービスの品質改善およびAIプロンプトの精度向上</li>
+                  <li>業界別の戦略・経営課題に関する調査研究</li>
+                  <li>調査結果のプレスリリース・記事・報告書等による公表</li>
+                  <li>統計化された業界傾向の、該当業界クライアントへのサービス提案・営業資料への活用</li>
+                </ul>
+              </li>
+              <li>前項に基づく統計情報には、個別ユーザーまたは個別企業を特定できる情報（氏名・社名・URL・連絡先等）は含まれません。十分なサンプル数に基づく集計データのみを利用します。</li>
+              <li>ユーザーがご自身の分析データを統計利用の対象から除外することを希望される場合、第12条のお問い合わせ窓口までご連絡いただければ、以降の集計対象から除外いたします。</li>
+            </ol>
+          </section>
+
+          <section>
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">第10条（Cookie等の使用）</h2>
             <p className="text-gray-700 mb-4">
               当協会は、本サービスの利便性向上および利用状況の分析のため、Cookie及び類似の技術を使用しています。ユーザーは、ブラウザの設定によりCookieの受け入れを拒否することができますが、その場合、本サービスの一部機能が利用できなくなる可能性があります。
