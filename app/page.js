@@ -4367,6 +4367,30 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                             });
                           }),
                         });
+
+                        // 強みの根拠評価をルートの three_c.company.strength_evaluations から
+                        // company_core.all_strengths_evaluations へ伝播する。
+                        // shadowResult は companyCore.all_strengths_evaluations を strengths_used でマップして
+                        // UI に渡すため、ここを更新しないと「チャットで根拠を提示しても赤い吹き出しが消えない」
+                        // バグになる（権さん指摘・2026-05-15）。
+                        var newEvals = newResult.three_c?.company?.strength_evaluations;
+                        var newStrengths = newResult.three_c?.company?.strength;
+                        var targetCombo = newResult.combinations.find(function(c) { return c?.id === selectedCombinationId; });
+                        var usedIdx = Array.isArray(targetCombo?.strengths_used) ? targetCombo.strengths_used : [];
+                        if (Array.isArray(newEvals) && newEvals.length > 0 && usedIdx.length > 0 && newResult.company_core) {
+                          var origAllStrengths = Array.isArray(newResult.company_core.all_strengths) ? newResult.company_core.all_strengths.slice() : [];
+                          var origAllEvals = Array.isArray(newResult.company_core.all_strengths_evaluations) ? newResult.company_core.all_strengths_evaluations.slice() : [];
+                          usedIdx.forEach(function(absIdx, relIdx) {
+                            if (newEvals[relIdx]) origAllEvals[absIdx] = newEvals[relIdx];
+                            if (Array.isArray(newStrengths) && newStrengths[relIdx]) origAllStrengths[absIdx] = newStrengths[relIdx];
+                          });
+                          newResult = Object.assign({}, newResult, {
+                            company_core: Object.assign({}, newResult.company_core, {
+                              all_strengths: origAllStrengths,
+                              all_strengths_evaluations: origAllEvals,
+                            }),
+                          });
+                        }
                       }
                       try {
                         var diff = diffResults(currentResult || {}, newResult);
