@@ -122,7 +122,41 @@ ${conversationSummary}
 - 必ず return_analysis ツールを呼び出して結果を返すこと
 - 元の分析結果と同じトップレベル構造（benefit / advantage / three_c / strategy_message / checkpoints）を保持し、全フィールドを必ず含めること
 - 変更がないセクション（会話で触れていないもの）は、元の値をそのままコピーして含めること（省略・空配列・空文字列にしない）
-- checkpoints は元の5項目をそのまま全件コピーする`;
+- checkpoints は元の5項目をそのまま全件コピーする
+
+## 強みの根拠評価（strength_evaluations）— チャット内容を必ず反映
+
+three_c.company.strength と同じ並び順で strength_evaluations を必ず出力してください。
+元の分析結果の company_core.all_strengths_evaluations を参考にしつつ、**チャットで明らかになった事実があれば必ず評価を更新**してください。
+
+更新の判断基準:
+- ユーザーが具体的な経歴・経験・実績・事実をチャットで提示し、それが強みの根拠として説得力がある
+  → tier を verified（客観的根拠あり）または first_party_fact（本人の独自事実）に**引き上げ**
+  → note にユーザーが提示した事実を反映
+  → **needs_chat_confirmation を false に**（赤い吹き出しシグナルが消える）
+- ユーザーが触れていない強み、または提示された情報が根拠として弱い
+  → 元の評価をそのまま使う
+
+5段階の tier:
+- verified: 第三者調査、公的統計、受賞歴、業界認定、書籍出版、特許、明確な実績数値
+- first_party_fact: 創業時の事実、先駆者性、独自経験など本人にとって確かな事実
+- plausible_industry: 業界水準内の主張
+- subjective_unsupported: 比較困難な主観的主張
+- needs_owner_confirmation: 強み記載はあるが根拠未確認
+
+## 市場規模の十分性（market.adequacy）— チャット内容を必ず反映
+
+three_c.customer.market.adequacy を以下のルールで出力してください:
+
+- ユーザーがチャットで現在の事業規模・目標事業規模を提示した場合:
+  - SOM がユーザーの目標規模に対して**3倍以上**なら "sufficient"（赤いシグナルが消える）
+  - それ以下なら "needs_confirmation"
+- ユーザーが規模に触れていない場合:
+  - SOM が ¥10億円以上なら "sufficient"
+  - 未満なら "needs_confirmation"
+- adequacy_note に判定の理由を1〜2行で（ユーザー提示の規模を引用する場合はそれを含める）
+
+これらの更新により、チャットで疑問が解消された項目から赤い吹き出しシグナルが消える設計です。`;
 
     // AB3C 分析結果のスキーマ定義（Tool Use で構造化出力を強制）
     const ab3cSchema = {
@@ -163,6 +197,10 @@ ${conversationSummary}
                     som: { type: "string" },
                     growth: { type: "string" },
                     basis: { type: "string" },
+                    // 市場規模の十分性評価。ユーザーがチャットで目標事業規模を提示した場合、
+                    // それを踏まえて再評価する（"sufficient"なら赤い吹き出しシグナル消える）。
+                    adequacy: { type: "string", enum: ["sufficient", "needs_confirmation"] },
+                    adequacy_note: { type: "string", description: "判定の理由を1〜2行で" },
                   },
                 },
               },
@@ -180,6 +218,25 @@ ${conversationSummary}
               type: "object",
               properties: {
                 strength: { type: "array", items: { type: "string" } },
+                // strength_evaluations: strength と同じ並び順で評価を持つ。
+                // チャットでユーザーが根拠を提示した強みは tier を上方修正し、
+                // needs_chat_confirmation を false に下げる（赤い吹き出しシグナルが消える）。
+                strength_evaluations: {
+                  type: "array",
+                  description: "strength と同じ並び順で根拠評価を出力。チャットで根拠が明らかになった強みは tier を verified/first_party_fact に、needs_chat_confirmation を false に更新。",
+                  items: {
+                    type: "object",
+                    properties: {
+                      tier: {
+                        type: "string",
+                        enum: ["verified", "first_party_fact", "plausible_industry", "subjective_unsupported", "needs_owner_confirmation"],
+                      },
+                      note: { type: "string", description: "判定の根拠を1〜2行で（チャットで明らかになった事実があれば反映）" },
+                      needs_chat_confirmation: { type: "boolean" },
+                    },
+                    required: ["tier", "note", "needs_chat_confirmation"],
+                  },
+                },
                 structure: { type: "string" },
                 passion: { type: "string" },
               },
@@ -311,6 +368,9 @@ ${conversationSummary}
               som: pickStr(np.three_c?.customer?.market?.som, orig.three_c?.customer?.market?.som, v1.three_c?.customer?.market?.som),
               growth: pickStr(np.three_c?.customer?.market?.growth, orig.three_c?.customer?.market?.growth, v1.three_c?.customer?.market?.growth),
               basis: pickStr(np.three_c?.customer?.market?.basis, orig.three_c?.customer?.market?.basis, v1.three_c?.customer?.market?.basis),
+              // チャットでユーザーが規模を提示した場合に AI が再評価する。元の値があればそれを優先。
+              adequacy: pickStr(np.three_c?.customer?.market?.adequacy, orig.three_c?.customer?.market?.adequacy, v1.three_c?.customer?.market?.adequacy),
+              adequacy_note: pickStr(np.three_c?.customer?.market?.adequacy_note, orig.three_c?.customer?.market?.adequacy_note, v1.three_c?.customer?.market?.adequacy_note),
             },
           },
           competitor: {
@@ -319,6 +379,9 @@ ${conversationSummary}
           },
           company: {
             strength: pickArr(np.three_c?.company?.strength, orig.three_c?.company?.strength, v1.three_c?.company?.strength),
+            // チャットで根拠が明らかになった強みは tier 上方修正 / needs_chat_confirmation: false に更新済み。
+            // AI が新しい評価を返したらそれを優先、なければ元の評価をそのまま継承する。
+            strength_evaluations: pickArr(np.three_c?.company?.strength_evaluations, orig.three_c?.company?.strength_evaluations, v1.three_c?.company?.strength_evaluations),
             structure: pickStr(np.three_c?.company?.structure, orig.three_c?.company?.structure, v1.three_c?.company?.structure),
             passion: pickStr(np.three_c?.company?.passion, orig.three_c?.company?.passion, v1.three_c?.company?.passion),
           },
