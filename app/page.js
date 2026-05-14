@@ -3594,7 +3594,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           borderBottom: "1px solid rgba(0,0,0,0.06)",
                           cursor: "pointer",
                           background: isEditingEntryActive ? C.bg : "#fff8e1",  // ライブ表示中は灰、それ以外は薄ベージュ
-                          borderLeft: isEditingEntryActive ? "3px solid #d97706" : "3px solid #f59e0b66",
+                          // 左ボーダーは 3px だと薄ベージュ背景に埋もれて視認しづらいので 6px に倍増（権さん指摘）
+                          borderLeft: isEditingEntryActive ? "6px solid #d97706" : "6px solid #f59e0b",
                           position: "relative",
                           zIndex: isEditingEntryActive ? 2 : 1,
                         }}>
