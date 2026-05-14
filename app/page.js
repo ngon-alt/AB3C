@@ -145,13 +145,18 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor }) {
+// evaluations: アイテムと並列配列。各要素 { tier, note, needs_chat_confirmation } を持ち、
+//   needs_chat_confirmation === true の項目には赤丸シグナルを表示する。
+//   onConfirmItem(item, evalObj) が指定されていれば赤丸クリックでチャットに問いを投げる。
+function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor, evaluations, onConfirmItem }) {
   const [hoveredIdx, setHoveredIdx] = useState(-1);
   return (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => {
       const isChecked = !checkable || (checkedIndexes || []).includes(i);
       const isHovered = checkable && hoveredIdx === i;
+      const ev = Array.isArray(evaluations) ? evaluations[i] : null;
+      const needsConfirm = !!(ev && ev.needs_chat_confirmation);
       return (
      <li key={i}
        onMouseEnter={() => setHoveredIdx(i)}
@@ -169,6 +174,17 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor 
           )}
           {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
           <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
+          {/* 要チャット確認の赤丸シグナル。クリックでチャットに該当の問いを投げる。
+              既存の hover 💬 と被らないよう、テキスト右隣に小さく配置。 */}
+          {needsConfirm && (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onConfirmItem) onConfirmItem(item, ev); }}
+              title={`この強みは根拠の確認が推奨されています：${ev.note || "本人だからこそ語れる事実・経験を整理しましょう"}\nクリックでチャットに質問が投稿されます。`}
+              style={{ flexShrink: 0, marginTop: 8, width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+              aria-label="この強みの根拠をチャットで確認"
+            />
+          )}
         </label>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
@@ -825,10 +841,11 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
 function buildShadowResultFromCombo(combo, companyCore) {
   if (!combo) return null;
   const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const allEvals = Array.isArray(companyCore?.all_strengths_evaluations) ? companyCore.all_strengths_evaluations : [];
   const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
-  const usedStrengths = usedIdx.length > 0
-    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
-    : allStrengths;
+  const pickByIdx = (arr) => usedIdx.length > 0 ? usedIdx.map(i => arr[i]).filter(Boolean) : arr;
+  const usedStrengths = pickByIdx(allStrengths);
+  const usedEvaluations = pickByIdx(allEvals);
   return {
     benefit: combo.benefit || {},
     advantage: combo.advantage || {},
@@ -837,6 +854,9 @@ function buildShadowResultFromCombo(combo, companyCore) {
       competitor: combo.competitor || { direct: [], indirect: [] },
       company: {
         strength: usedStrengths,
+        // 強みの根拠評価（5段階）を並列配列で持つ。
+        // needs_chat_confirmation: true の項目に UI で赤丸シグナルを表示する。
+        strength_evaluations: usedEvaluations,
         structure: companyCore?.structure || "",
         passion: companyCore?.passion || "",
       },
@@ -985,7 +1005,20 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                   {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(customerData.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>SOM（実際に狙える市場）</span>
+                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤丸シグナル。
+                        クリックでチャットに「目指す事業規模」の問いを投稿。 */}
+                    {customerData.market.adequacy === "needs_confirmation" && onChat && (
+                      <button
+                        type="button"
+                        onClick={() => onChat(`SOM「${customerData.market.som || ""}」は私の目指す事業規模に対して十分でしょうか？私の現在の事業規模と、5年後の目標規模について質問してください。それを踏まえて、このパターンの市場規模が私にとって十分かどうかを判断してください。`)}
+                        title={`市場規模の十分性は、本人の事業規模・目標規模を確認した方が正確に判断できます。\n${customerData.market.adequacy_note || ""}\nクリックでチャットに質問が投稿されます。`}
+                        style={{ width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+                        aria-label="目標事業規模をチャットで確認"
+                      />
+                    )}
+                  </div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
@@ -1018,7 +1051,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
             <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} />
             <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
               <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
-              <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
+              <UL
+                items={companyData.strength || []}
+                evaluations={companyData.strength_evaluations || []}
+                onConfirmItem={onChat && ((item, ev) => onChat(`「${item}」について、本人だからこそ語れる事実・経験を一緒に整理したいです。いつから、どんなきっかけで、どんな実績や経験で「これは確かな強み」と言えるのか、具体的に質問してください。`))}
+                onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))}
+                textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null}
+              />
               <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>仕組み：{companyData.structure}</p>
               <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>価値観：{companyData.passion}</p></Card>
           </div>
@@ -3073,6 +3112,10 @@ setVersionsFromInitial(null);
       const body = tab === "url" ? { url } : { input: composedTextInput };
       // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
       if (analyzeSiteId) body.siteId = analyzeSiteId;
+      // テキスト入力モードのみ「目指す事業規模」を渡す（URLモードでは TOP の手軽さを優先するため非表示）
+      if (tab === "text" && businessPlan.targetRevenue) {
+        body.targetRevenue = businessPlan.targetRevenue;
+      }
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.error) { setError(data.error); setLoading(false); setOverlayMessage(null); return; }
@@ -3653,6 +3696,31 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               placeholder="例：ナマエカード、高齢者向けスマホ訪問サポート、地元無農薬野菜の定期便"
               style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
             />
+          </div>
+          {/* 目指す事業規模（5年後の目安・任意）。市場規模の十分性評価で AI が参照する。
+              URLモードでは追加入力を作らない方針（手軽さ重視）。テキスト入力モードの方は
+              新規事業・構想中の方が中心なので、目標規模だけは聞いておく価値がある。 */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+              目指す事業規模 <span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>（5年後の目安・任意。市場規模の十分性評価に使われます）</span>
+            </label>
+            <select
+              value={businessPlan.targetRevenue || ""}
+              onChange={function(e) {
+                var v = e.target.value;
+                setBusinessPlan(function(prev) { return Object.assign({}, prev, { targetRevenue: v }); });
+              }}
+              style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
+            >
+              <option value="">選択しない（汎用ライン ¥10億 で評価）</option>
+              <option value="〜1,000万円">〜1,000万円</option>
+              <option value="〜3,000万円">〜3,000万円</option>
+              <option value="〜1億円">〜1億円</option>
+              <option value="〜5億円">〜5億円</option>
+              <option value="〜10億円">〜10億円</option>
+              <option value="10億円以上">10億円以上</option>
+              <option value="未定">未定</option>
+            </select>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {BUSINESS_PLAN_FIELDS.map(function(f) {
