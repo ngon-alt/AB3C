@@ -145,13 +145,18 @@ const linkify = (text) => {
   return parts3.map(function(part, i) { return part.match(/^https?:\/\//) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline", wordBreak: "break-all" }}>{part}</a> : part; });
 };
 
-function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor }) {
+// evaluations: アイテムと並列配列。各要素 { tier, note, needs_chat_confirmation } を持ち、
+//   needs_chat_confirmation === true の項目には赤丸シグナルを表示する。
+//   onConfirmItem(item, evalObj) が指定されていれば赤丸クリックでチャットに問いを投げる。
+function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor, evaluations, onConfirmItem }) {
   const [hoveredIdx, setHoveredIdx] = useState(-1);
   return (
   <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
     {items.map((item, i) => {
       const isChecked = !checkable || (checkedIndexes || []).includes(i);
       const isHovered = checkable && hoveredIdx === i;
+      const ev = Array.isArray(evaluations) ? evaluations[i] : null;
+      const needsConfirm = !!(ev && ev.needs_chat_confirmation);
       return (
      <li key={i}
        onMouseEnter={() => setHoveredIdx(i)}
@@ -169,6 +174,17 @@ function UL({ items, onChatItem, checkable, checkedIndexes, onToggle, textColor 
           )}
           {!checkable && <span style={{ position: "absolute", left: 0, color: C.muted }}>–</span>}
           <span style={{ flex: 1, textDecoration: checkable && !isChecked ? "line-through" : "none" }}>{linkify(item)}</span>
+          {/* 要チャット確認の赤丸シグナル。クリックでチャットに該当の問いを投げる。
+              既存の hover 💬 と被らないよう、テキスト右隣に小さく配置。 */}
+          {needsConfirm && (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onConfirmItem) onConfirmItem(item, ev); }}
+              title={`この強みは根拠の確認が推奨されています：${ev.note || "本人だからこそ語れる事実・経験を整理しましょう"}\nクリックでチャットに質問が投稿されます。`}
+              style={{ flexShrink: 0, marginTop: 8, width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+              aria-label="この強みの根拠をチャットで確認"
+            />
+          )}
         </label>
         {onChatItem && <ChatBtn onClick={() => onChatItem(item)} />}
       </li>
@@ -825,10 +841,11 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
 function buildShadowResultFromCombo(combo, companyCore) {
   if (!combo) return null;
   const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
+  const allEvals = Array.isArray(companyCore?.all_strengths_evaluations) ? companyCore.all_strengths_evaluations : [];
   const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
-  const usedStrengths = usedIdx.length > 0
-    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
-    : allStrengths;
+  const pickByIdx = (arr) => usedIdx.length > 0 ? usedIdx.map(i => arr[i]).filter(Boolean) : arr;
+  const usedStrengths = pickByIdx(allStrengths);
+  const usedEvaluations = pickByIdx(allEvals);
   return {
     benefit: combo.benefit || {},
     advantage: combo.advantage || {},
@@ -837,6 +854,9 @@ function buildShadowResultFromCombo(combo, companyCore) {
       competitor: combo.competitor || { direct: [], indirect: [] },
       company: {
         strength: usedStrengths,
+        // 強みの根拠評価（5段階）を並列配列で持つ。
+        // needs_chat_confirmation: true の項目に UI で赤丸シグナルを表示する。
+        strength_evaluations: usedEvaluations,
         structure: companyCore?.structure || "",
         passion: companyCore?.passion || "",
       },
@@ -985,7 +1005,20 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
                   {onChat && <ChatBtn onClick={() => onChat(`SAM（獲得可能市場）「${(customerData.market.sam||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
                 <div style={{ background: "#e8e8e8", borderRadius: 4, padding: "12px 14px", position: "relative" }} {...(onChat ? hoverShow : {})}>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>SOM（実際に狙える市場）</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, color: C.C, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span>SOM（実際に狙える市場）</span>
+                    {/* 市場規模が ¥10億未満（needs_confirmation）の時に赤丸シグナル。
+                        クリックでチャットに「目指す事業規模」の問いを投稿。 */}
+                    {customerData.market.adequacy === "needs_confirmation" && onChat && (
+                      <button
+                        type="button"
+                        onClick={() => onChat(`SOM「${customerData.market.som || ""}」は私の目指す事業規模に対して十分でしょうか？私の現在の事業規模と、5年後の目標規模について質問してください。それを踏まえて、このパターンの市場規模が私にとって十分かどうかを判断してください。`)}
+                        title={`市場規模の十分性は、本人の事業規模・目標規模を確認した方が正確に判断できます。\n${customerData.market.adequacy_note || ""}\nクリックでチャットに質問が投稿されます。`}
+                        style={{ width: 10, height: 10, borderRadius: "50%", border: "none", padding: 0, background: "#d23a2a", cursor: "pointer", boxShadow: "0 0 0 2px #fff, 0 0 0 3px rgba(210,58,42,0.25)" }}
+                        aria-label="目標事業規模をチャットで確認"
+                      />
+                    )}
+                  </div>
                   <div style={txt(customerChanges.changed.has("three_c.customer.market") ? customerChanges.color : null, { fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" })}>{customerData.market.som}</div>
                   {onChat && <ChatBtn onClick={() => onChat(`SOM（実際に狙える市場）「${(customerData.market.som||"").slice(0,30)}」について詳しく教えてください`)} abs />}
                 </div>
@@ -1018,7 +1051,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
             <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} />
             <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
               <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
-              <UL items={companyData.strength || []} onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))} textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null} />
+              <UL
+                items={companyData.strength || []}
+                evaluations={companyData.strength_evaluations || []}
+                onConfirmItem={onChat && ((item, ev) => onChat(`「${item}」について、本人だからこそ語れる事実・経験を一緒に整理したいです。いつから、どんなきっかけで、どんな実績や経験で「これは確かな強み」と言えるのか、具体的に質問してください。`))}
+                onChatItem={onChat && ((item) => onChat(`自社の強み「${item.slice(0,30)}」について詳しく教えてください`))}
+                textColor={companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null}
+              />
               <p style={txt(companyChanges.changed.has("three_c.company.structure") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${C.border}` })}>仕組み：{companyData.structure}</p>
               <p style={txt(companyChanges.changed.has("three_c.company.passion") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginTop: 6 })}>価値観：{companyData.passion}</p></Card>
           </div>
@@ -3073,6 +3112,10 @@ setVersionsFromInitial(null);
       const body = tab === "url" ? { url } : { input: composedTextInput };
       // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
       if (analyzeSiteId) body.siteId = analyzeSiteId;
+      // テキスト入力モードのみ「目指す事業規模」を渡す（URLモードでは TOP の手軽さを優先するため非表示）
+      if (tab === "text" && businessPlan.targetRevenue) {
+        body.targetRevenue = businessPlan.targetRevenue;
+      }
       const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (data.error) { setError(data.error); setLoading(false); setOverlayMessage(null); return; }
@@ -3654,6 +3697,31 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
             />
           </div>
+          {/* 目指す事業規模（5年後の目安・任意）。市場規模の十分性評価で AI が参照する。
+              URLモードでは追加入力を作らない方針（手軽さ重視）。テキスト入力モードの方は
+              新規事業・構想中の方が中心なので、目標規模だけは聞いておく価値がある。 */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+              目指す事業規模 <span style={{ fontSize: 12, fontWeight: 400, color: C.muted }}>（5年後の目安・任意。市場規模の十分性評価に使われます）</span>
+            </label>
+            <select
+              value={businessPlan.targetRevenue || ""}
+              onChange={function(e) {
+                var v = e.target.value;
+                setBusinessPlan(function(prev) { return Object.assign({}, prev, { targetRevenue: v }); });
+              }}
+              style={{ width: "100%", background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 2, color: C.ink, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", fontSize: 16, lineHeight: 1.6, padding: "8px 12px", outline: "none", boxSizing: "border-box" }}
+            >
+              <option value="">選択しない（汎用ライン ¥10億 で評価）</option>
+              <option value="〜1,000万円">〜1,000万円</option>
+              <option value="〜3,000万円">〜3,000万円</option>
+              <option value="〜1億円">〜1億円</option>
+              <option value="〜5億円">〜5億円</option>
+              <option value="〜10億円">〜10億円</option>
+              <option value="10億円以上">10億円以上</option>
+              <option value="未定">未定</option>
+            </select>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {BUSINESS_PLAN_FIELDS.map(function(f) {
               return (
@@ -3696,12 +3764,60 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
   </div>
+
+  {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
+      iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
+      サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。
+      入力タブと視覚的に分離するため上余白は広めに取る（権さん指示）。 */}
+  <div style={{ marginTop: 140, marginBottom: 32 }}>
+    <h2 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, textAlign: "center", marginBottom: 10, letterSpacing: "0.02em" }}>
+      戦略指南 AI の使い方
+    </h2>
+    <div style={{ fontSize: 16, color: C.muted, textAlign: "center", marginBottom: 20, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      分析から戦略確定、アクション施策までの流れを動画でご覧いただけます
+    </div>
+    <a
+      href="https://www.youtube.com/watch?v=zAeZ-lJxvYM"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ display: "block", position: "relative", maxWidth: 800, margin: "0 auto", textDecoration: "none", borderRadius: 8, overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", background: "#000", transition: "transform 0.15s, box-shadow 0.15s" }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.22)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.15)"; }}
+    >
+      {/* サムネイル: maxresdefault は無い場合があるので onError で hqdefault にフォールバック */}
+      <img
+        src="https://i.ytimg.com/vi/zAeZ-lJxvYM/maxresdefault.jpg"
+        alt="戦略指南 AI の使い方 動画サムネイル"
+        loading="lazy"
+        onError={(e) => { e.currentTarget.src = "https://i.ytimg.com/vi/zAeZ-lJxvYM/hqdefault.jpg"; }}
+        style={{ display: "block", width: "100%", height: "auto", aspectRatio: "16 / 9", objectFit: "cover" }}
+      />
+      {/* 中央の YouTube 風 再生ボタン */}
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 88, height: 60, borderRadius: 12, background: "rgba(0,0,0,0.78)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.35)" }}
+      >
+        <div style={{ width: 0, height: 0, borderTop: "14px solid transparent", borderBottom: "14px solid transparent", borderLeft: "22px solid #fff", marginLeft: 4 }} />
+      </div>
+    </a>
+    <div style={{ textAlign: "center", marginTop: 16 }}>
+      <a
+        href="https://www.youtube.com/watch?v=zAeZ-lJxvYM"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#2a2a26", color: "#fff", padding: "10px 22px", borderRadius: 999, fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, textDecoration: "none", letterSpacing: "0.04em" }}
+      >
+        ▶ YouTube で動画を見る
+      </a>
+    </div>
+  </div>
 </div>
           )}
 {/* TOPページのリンクカード4種と「戦略指南 AI 使い方」セクションは削除済み。
     Google風のシンプル構成（キャッチコピー＋入力欄）に変更。
     AB3C分析とは → /about、2つの使い方・分析結果の活用方法 → /howto に集約。
-    各ページへのナビは Header メニューから可能。 */}
+    各ページへのナビは Header メニューから可能。
+    （2026-05-14 から最下部に使い方紹介の YouTube リンク（サムネイル＋ボタン）を追加） */}
 {loading && <div style={{ textAlign: "center", padding: 60, color: C.muted, fontSize: 16 }}>AIがAB3Cを分析中です…</div>}
           {currentResult && phase !== "action" && (
             <div>
