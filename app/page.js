@@ -2897,11 +2897,17 @@ useEffect(() => {
         }
         setStrategyConfirmed(true);
         setLiveStateBackup(null); // 戦略確定でライブ状態がスナップショット化されたためバックアップ不要
-        // 世代タブの最新世代を確定済みマークに
+        // 確定後はライブ状態(currentResult)を確定スナップショット(snapshotResult)に揃える。
+        // これがないと currentResult (確定前の元データ) と confirmHistory[last].result (snapshotResult)
+        // が一致せず、編集中エントリが「変更あり」と誤判定して表示されてしまうバグになる（権さん指摘・2026-05-15）。
+        // snapshotResult には confirmed_combination_id と、選択中パターンで flatten された three_c が含まれる。
+        setCurrentResult(snapshotResult);
+        setResult(snapshotResult);
+        // 世代タブの最新世代を確定済みマークに + result も snapshot に統一
         setAnalysisVersions(function (prev) {
           if (!Array.isArray(prev) || prev.length === 0) return prev;
           var copy = prev.slice();
-          copy[0] = Object.assign({}, copy[0], { confirmed: true });
+          copy[0] = Object.assign({}, copy[0], { confirmed: true, result: snapshotResult });
           return copy;
         });
         // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
