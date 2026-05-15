@@ -18,7 +18,8 @@ const css = `
   }
   .ab3c-pdf-stage .head-serif { font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif; }
   .ab3c-pdf-stage .mono { font-family: 'Space Mono', 'Consolas', monospace; }
-  .ab3c-pdf-stage * { box-sizing: border-box; line-height: 1.5; }
+  /* 行間隔を全体的に広げる（権さん 2026-05-15: 行間隔が狭い）*/
+  .ab3c-pdf-stage * { box-sizing: border-box; line-height: 1.85; }
 `;
 
 const esc = (s) => String(s == null ? "" : s)
@@ -35,20 +36,21 @@ const clip = (s, n = 200) => {
 // ─── 各スライドタイプの HTML レンダラ ────────────────────────────────────
 
 function renderCoverHtml(s) {
+  // 黒背景の通常テキストは白で統一（権さん 2026-05-15）。B/A の意味色のみ例外。
   return `
     <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 120px;">
-      <div class="mono" style="letter-spacing:.6em;color:#aaa;font-size:22px;margin-bottom:40px;">── 戦略メッセージ ──</div>
-      <div class="head-serif" style="font-size:64px;font-weight:700;text-align:center;line-height:1.55;max-width:1500px;">${esc(s.strategyMessage || "（戦略メッセージ未生成）")}</div>
+      <div class="mono" style="letter-spacing:.6em;color:#fff;font-size:22px;margin-bottom:40px;">── 戦略メッセージ ──</div>
+      <div class="head-serif" style="font-size:64px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;color:#fff;">${esc(s.strategyMessage || "（戦略メッセージ未生成）")}</div>
       ${(s.benefitPart || s.advantagePart) ? `
-        <div style="margin-top:60px;font-size:24px;color:#eee;text-align:center;line-height:1.7;">
+        <div style="margin-top:60px;font-size:24px;color:#fff;text-align:center;line-height:1.8;">
           ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B</span>${esc(clip(s.benefitPart, 100))}</div>` : ""}
           ${s.advantagePart ? `<div style="margin-top:14px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A</span>${esc(clip(s.advantagePart, 100))}</div>` : ""}
         </div>
       ` : ""}
       <div style="position:absolute;bottom:60px;left:0;right:0;text-align:center;">
-        <div style="height:1px;background:#555;width:60%;margin:0 auto 24px;"></div>
-        <div style="font-size:22px;color:#ddd;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
-        <div class="mono" style="font-size:16px;color:#999;margin-top:12px;letter-spacing:.3em;">${esc(s.date)}　/　戦略指南 AI</div>
+        <div style="height:1px;background:#fff;width:60%;margin:0 auto 24px;opacity:.4"></div>
+        <div style="font-size:22px;color:#fff;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
+        <div class="mono" style="font-size:16px;color:#fff;margin-top:12px;letter-spacing:.3em;opacity:.7">${esc(s.date)}　/　戦略指南 AI</div>
       </div>
     </div>
   `;
@@ -130,16 +132,18 @@ function renderFrameworkHtml(s) {
 }
 
 function renderSectionDividerHtml(s) {
+  // PART 2（color2 あり）は背景を左右で 赤/青 に分割（権さん 2026-05-15）。
+  // 文字はすべて白で統一。
+  const background = s.color2
+    ? `background: linear-gradient(to right, #${s.color} 0%, #${s.color} 50%, #${s.color2} 50%, #${s.color2} 100%);`
+    : `background:#${s.color};`;
   return `
-    <div style="position:absolute;inset:0;background:#${s.color};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+    <div style="position:absolute;inset:0;${background}color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div class="mono" style="font-size:28px;color:#fff;letter-spacing:1em;margin-bottom:30px;">PART  ${esc(s.num)}</div>
-      <div class="head-serif" style="font-size:120px;font-weight:700;text-align:center;margin-bottom:30px;">${esc(s.title)}</div>
-      <div style="font-size:32px;color:#eee;">${esc(s.subtitle)}</div>
+      <div class="head-serif" style="font-size:120px;font-weight:700;text-align:center;margin-bottom:30px;color:#fff;">${esc(s.title)}</div>
+      <div style="font-size:32px;color:#fff;">${esc(s.subtitle)}</div>
       <div style="display:flex;gap:20px;margin-top:50px;">
-        ${s.color2 ? `
-          <div style="width:220px;height:8px;background:#${s.color};"></div>
-          <div style="width:220px;height:8px;background:#${s.color2};"></div>
-        ` : `<div style="width:360px;height:8px;background:#fff;"></div>`}
+        <div style="width:360px;height:8px;background:#fff;"></div>
       </div>
     </div>
   `;
@@ -220,24 +224,25 @@ function renderCompanyHtml(s) {
 }
 
 function renderBenefitHtml(s) {
+  // コアベネフィットは長文も想定。padding 増・line-height 増でオーバーフロー対策。
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("ベネフィット（Benefit）", "FF0000", "PART 2  ─  BENEFIT")}
       <div style="padding:40px 100px;">
         <div style="background:#FFF5F5;border:2px solid #FF0000;padding:28px 36px;">
           <div class="mono" style="font-size:16px;color:#FF0000;letter-spacing:.4em;">お客様が求めるコア価値</div>
-          <div style="font-size:32px;font-weight:700;margin-top:12px;line-height:1.5;">${esc(s.core || "—")}</div>
+          <div style="font-size:28px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.core || "—")}</div>
         </div>
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ニーズ（顕在化前の必要性）</div>
-            <div style="font-size:20px;line-height:1.85;">
+            <div style="font-size:18px;line-height:2.0;">
               ${s.needs.length ? lines(s.needs, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ウォンツ（具体的な欲求）</div>
-            <div style="font-size:20px;line-height:1.85;">
+            <div style="font-size:18px;line-height:2.0;">
               ${s.wants.length ? lines(s.wants, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
@@ -248,22 +253,24 @@ function renderBenefitHtml(s) {
 }
 
 function renderAdvantageHtml(s) {
+  // Advantage が長文になりがちなため、フォントを少し小さく、line-height 大、padding を増やしてオーバーフロー回避。
+  // 権さん 2026-05-15: そもそも Advantage が長すぎる傾向があるが、レイアウトとして受けられるようにする。
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("アドバンテージ（Advantage）", "1a6fd4", "PART 2  ─  ADVANTAGE")}
       <div style="padding:40px 100px;">
-        <div style="background:#F2F8FF;border:2px solid #1a6fd4;padding:28px 36px;">
+        <div style="background:#F2F8FF;border:2px solid #1a6fd4;padding:30px 36px;">
           <div class="mono" style="font-size:16px;color:#1a6fd4;letter-spacing:.4em;">競合より選ばれる差別的優位点</div>
-          <div style="font-size:32px;font-weight:700;margin-top:12px;line-height:1.5;">${esc(s.what || "—")}</div>
+          <div style="font-size:26px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.what || "—")}</div>
         </div>
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜそれが選ばれるのか</div>
-            <div style="font-size:20px;line-height:1.85;">${esc(s.why_good || "—")}</div>
+            <div style="font-size:18px;line-height:2.0;">${esc(s.why_good || "—")}</div>
           </div>
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜ真似しづらいのか</div>
-            <div style="font-size:20px;line-height:1.85;">${esc(s.why_hard_to_copy || "—")}</div>
+            <div style="font-size:18px;line-height:2.0;">${esc(s.why_hard_to_copy || "—")}</div>
           </div>
         </div>
       </div>
@@ -274,11 +281,11 @@ function renderAdvantageHtml(s) {
 function renderStrategyRecapHtml(s) {
   return `
     <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;display:flex;flex-direction:column;align-items:center;padding:80px 120px;">
-      <div style="font-size:22px;color:#aaa;letter-spacing:.4em;margin-bottom:14px;">ここまでの分析の結果として導かれる</div>
-      <div class="head-serif" style="font-size:42px;font-weight:700;margin-bottom:60px;">戦略メッセージ</div>
-      <div class="head-serif" style="font-size:56px;font-weight:700;text-align:center;line-height:1.55;max-width:1500px;flex:1;display:flex;align-items:center;">${esc(s.strategyMessage || "—")}</div>
+      <div style="font-size:22px;color:#fff;letter-spacing:.4em;margin-bottom:14px;">ここまでの分析の結果として導かれる</div>
+      <div class="head-serif" style="font-size:42px;font-weight:700;margin-bottom:60px;color:#fff;">戦略メッセージ</div>
+      <div class="head-serif" style="font-size:56px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;flex:1;display:flex;align-items:center;color:#fff;">${esc(s.strategyMessage || "—")}</div>
       ${(s.benefitPart || s.advantagePart) ? `
-        <div style="border-top:1px solid #555;width:100%;max-width:1400px;padding-top:30px;margin-top:30px;font-size:22px;color:#eee;text-align:center;line-height:1.7;">
+        <div style="border-top:1px solid #fff;opacity:1;width:100%;max-width:1400px;padding-top:30px;margin-top:30px;font-size:22px;color:#fff;text-align:center;line-height:1.85;">
           ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B（Benefit）</span>${esc(s.benefitPart)}</div>` : ""}
           ${s.advantagePart ? `<div style="margin-top:14px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A（Advantage）</span>${esc(s.advantagePart)}</div>` : ""}
         </div>
@@ -308,29 +315,53 @@ function renderCheckpointsHtml(s) {
   `;
 }
 
-function renderImproveHtml(s) {
-  const cols = [
-    { label: "追加すべきコンテンツ", items: s.contents, color: "1a6fd4" },
-    { label: "改善すべきデザイン", items: s.design, color: "FF0000" },
-    { label: "サイト構造の改善", items: s.structure, color: "1a1a14" },
-  ];
+// 改善レポート 1カテゴリを 1スライドに展開。全項目のタイトル＋理由＋実装例を表示。
+// 権さん 2026-05-15: 「冒頭しか示されていない、全体を見せて」要望に対応。
+function renderImproveSectionHtml(s) {
+  const items = s.items || [];
+  // アイテム数に応じてフォントサイズを動的に調整
+  const fsTitle = items.length <= 3 ? 22 : items.length <= 5 ? 19 : 17;
+  const fsBody = items.length <= 3 ? 17 : items.length <= 5 ? 15 : 14;
+  const gap = items.length <= 3 ? 28 : items.length <= 5 ? 18 : 12;
   return `
     <div style="position:absolute;inset:0;">
-      ${pageHeaderHtml("ウェブサイト改善レポート", "1a6fd4", "PART 4  ─  WEBSITE IMPROVEMENT")}
-      <div style="padding:30px 100px;display:flex;gap:24px;">
-        ${lines(cols, (col) => `
-          <div style="flex:1;">
-            <div style="background:#${col.color};color:#fff;text-align:center;padding:14px;font-size:20px;font-weight:700;">${esc(col.label)}</div>
-            <div style="padding:20px 0;">
-              ${col.items.slice(0, 4).map((item, j) => `
-                <div style="margin-bottom:18px;">
-                  <div style="font-size:18px;font-weight:700;margin-bottom:6px;">${j + 1}. ${esc(item.title)}</div>
-                  <div style="font-size:15px;color:#555;line-height:1.6;">${esc(clip(item.reason, 100))}</div>
-                </div>
-              `).join("")}
+      ${pageHeaderHtml(s.categoryLabel, "ea580c", "PART 4  ─  WEBSITE IMPROVEMENT")}
+      <div style="padding:20px 100px 60px;">
+        <div style="font-size:18px;color:#555;margin-bottom:24px;">${esc(s.categorySubtitle || "")}</div>
+        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
+          <div style="display:flex;gap:18px;margin-bottom:${gap}px;align-items:flex-start;">
+            <div style="flex-shrink:0;width:48px;height:48px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;">${j + 1}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:${fsTitle}px;font-weight:700;margin-bottom:6px;line-height:1.55;">${esc(item.title || "")}</div>
+              <div style="font-size:${fsBody}px;color:#555;line-height:1.85;">
+                ${item.reason ? `<div><b>理由：</b>${esc(item.reason)}</div>` : ""}
+                ${item.example ? `<div style="margin-top:4px;"><b>実装例：</b>${esc(item.example)}</div>` : ""}
+              </div>
             </div>
           </div>
-        `)}
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+// ビジュアルモック（改善後ファーストビュー）スライド。
+// imageDataUrl は exportPdf の前処理 preRenderVisualMocks で準備されている前提。
+function renderVisualMockHtml(s) {
+  return `
+    <div style="position:absolute;inset:0;">
+      ${pageHeaderHtml("改善後のファーストビュー・イメージ", "ea580c", "PART 4  ─  VISUAL MOCKUP")}
+      <div style="padding:20px 100px 60px;">
+        ${s.imageDataUrl ? `
+          <div style="border:2px solid #1a1a14;border-radius:6px;overflow:hidden;background:#fff;">
+            <img src="${s.imageDataUrl}" style="width:100%;display:block;">
+          </div>
+        ` : `<div style="text-align:center;padding:120px;color:#999;font-size:20px;">（ビジュアル画像を準備できませんでした）</div>`}
+        ${s.caption ? `
+          <div style="margin-top:20px;padding:20px 26px;background:#FEF3C7;border-left:6px solid #ea580c;font-size:18px;line-height:1.85;">
+            <b style="color:#ea580c;">💡 このビジュアルの意図：</b>${esc(s.caption)}
+          </div>
+        ` : ""}
       </div>
     </div>
   `;
@@ -379,7 +410,8 @@ const HTML_RENDERERS = {
   "advantage": renderAdvantageHtml,
   "strategy-message-recap": renderStrategyRecapHtml,
   "checkpoints": renderCheckpointsHtml,
-  "improve": renderImproveHtml,
+  "improve-section": renderImproveSectionHtml,
+  "visual-mock": renderVisualMockHtml,
   "next-actions": renderNextActionsHtml,
   "about": renderAboutHtml,
 };
@@ -397,6 +429,9 @@ function footerHtml(pageNum, total, siteName) {
 
 export async function exportPdf({ slides, input, historyTitle }) {
   if (!slides?.length) throw new Error("スライドデータがありません");
+  // ビジュアルモック画像を先に準備（PPTX と共通の前処理）
+  const { preRenderVisualMocks } = await import("./pptx-exporter");
+  await preRenderVisualMocks(slides);
 
   const [{ default: jsPDF }, html2canvasMod] = await Promise.all([
     import("jspdf"),

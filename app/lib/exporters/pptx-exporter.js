@@ -38,34 +38,35 @@ function bg(slide, color) {
 
 function renderCover(slide, s) {
   bg(slide, COLORS.ink);
-  slide.addText("── 戦略メッセージ ──", { x: 0, y: 0.7, w: W, h: 0.4, fontFace: F_BODY, fontSize: 14, color: "AAAAAA", align: "center", charSpacing: 6 });
+  // 黒背景の通常テキストは白で統一（権さん 2026-05-15）。意味のある色（赤=B / 青=A）のみ例外。
+  slide.addText("── 戦略メッセージ ──", { x: 0, y: 0.7, w: W, h: 0.4, fontFace: F_BODY, fontSize: 14, color: "FFFFFF", align: "center", charSpacing: 6 });
   // 戦略メッセージ本体（明朝・大きく中央）
   const msg = s.strategyMessage || "（戦略メッセージ未生成）";
   slide.addText(msg, {
     x: 1.0, y: 1.6, w: W - 2.0, h: 3.6,
     fontFace: F_HEAD, fontSize: 32, color: "FFFFFF", bold: true, align: "center", valign: "middle",
-    paraSpaceAfter: 6,
+    paraSpaceAfter: 6, lineSpacingMultiple: 1.5,
   });
-  // B / A サブコメント（あれば）
+  // B / A サブコメント（あれば）— B/A だけ意味のある色を残す
   if (s.benefitPart || s.advantagePart) {
     const yBase = 5.3;
     if (s.benefitPart) {
       slide.addText([
         { text: "B  ", options: { color: COLORS.B, bold: true, fontFace: F_MONO } },
-        { text: clip(s.benefitPart, 80), options: { color: "EEEEEE", fontFace: F_BODY } },
+        { text: clip(s.benefitPart, 80), options: { color: "FFFFFF", fontFace: F_BODY } },
       ], { x: 1.5, y: yBase, w: W - 3, h: 0.4, fontSize: 14, align: "center" });
     }
     if (s.advantagePart) {
       slide.addText([
         { text: "A  ", options: { color: COLORS.A, bold: true, fontFace: F_MONO } },
-        { text: clip(s.advantagePart, 80), options: { color: "EEEEEE", fontFace: F_BODY } },
+        { text: clip(s.advantagePart, 80), options: { color: "FFFFFF", fontFace: F_BODY } },
       ], { x: 1.5, y: yBase + 0.5, w: W - 3, h: 0.4, fontSize: 14, align: "center" });
     }
   }
-  // フッター（サイト名 / 日付 / レポート種別）
-  slide.addShape("line", { x: 1, y: 6.5, w: W - 2, h: 0, line: { color: "555555", width: 0.5 } });
-  slide.addText(`${s.siteName}　|　AB3C 分析レポート`, { x: 1, y: 6.65, w: W - 2, h: 0.3, fontFace: F_BODY, fontSize: 13, color: "DDDDDD", align: "center" });
-  slide.addText(`${s.date}　/　戦略指南 AI`, { x: 1, y: 7.0, w: W - 2, h: 0.3, fontFace: F_MONO, fontSize: 10, color: "999999", align: "center", charSpacing: 4 });
+  // フッター（サイト名 / 日付 / レポート種別）— すべて白
+  slide.addShape("line", { x: 1, y: 6.5, w: W - 2, h: 0, line: { color: "FFFFFF", width: 0.5 } });
+  slide.addText(`${s.siteName}　|　AB3C 分析レポート`, { x: 1, y: 6.65, w: W - 2, h: 0.3, fontFace: F_BODY, fontSize: 13, color: "FFFFFF", align: "center" });
+  slide.addText(`${s.date}　/　戦略指南 AI`, { x: 1, y: 7.0, w: W - 2, h: 0.3, fontFace: F_MONO, fontSize: 10, color: "FFFFFF", align: "center", charSpacing: 4 });
 }
 
 function renderToc(slide, s) {
@@ -116,25 +117,27 @@ function renderFramework(slide, s) {
     slide.addText(c.label, { x: x + 1.1, y: chipY + 0.15, w: chipW - 1.1, h: 0.4, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 3 });
     slide.addText(c.desc, { x: x + 1.1, y: chipY + 0.55, w: chipW - 1.1, h: chipH - 0.55, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top" });
   });
-  slide.addText(s.description, { x: M, y: 3.5, w: W - M * 2, h: 2.5, fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top", paraSpaceAfter: 6 });
+  slide.addText(s.description, { x: M, y: 3.5, w: W - M * 2, h: 2.5, fontFace: F_BODY, fontSize: 15, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.7 });
   slide.addText("AB3C の順序は「C → B → A」。現状を把握してから、価値と優位性を組み立て、最後に戦略メッセージへと統合します。", {
     x: M, y: 6.0, w: W - M * 2, h: 0.7, fontFace: F_BODY, fontSize: 14, color: COLORS.muted, italic: true,
   });
 }
 
 function renderSectionDivider(slide, s) {
-  bg(slide, s.color);
-  // 中央に大きく章番号と章タイトル
+  // color2 がある場合（PART 2 = 戦略の核）は背景を左右で2色分割（権さん 2026-05-15）。
+  // 赤と青の両方が等しく適切なため、左 = color（B 赤）、右 = color2（A 青）で表現する。
+  if (s.color2) {
+    slide.addShape("rect", { x: 0, y: 0, w: W / 2, h: H, fill: { color: s.color }, line: { color: s.color } });
+    slide.addShape("rect", { x: W / 2, y: 0, w: W / 2, h: H, fill: { color: s.color2 }, line: { color: s.color2 } });
+  } else {
+    bg(slide, s.color);
+  }
+  // 中央に大きく章番号と章タイトル — すべて白文字
   slide.addText(`PART  ${s.num}`, { x: 0, y: 2.4, w: W, h: 0.5, fontFace: F_MONO, fontSize: 18, color: "FFFFFF", align: "center", charSpacing: 10 });
   slide.addText(s.title, { x: 0, y: 3.0, w: W, h: 1.0, fontFace: F_HEAD, fontSize: 60, color: "FFFFFF", bold: true, align: "center" });
-  slide.addText(s.subtitle, { x: 0, y: 4.2, w: W, h: 0.5, fontFace: F_BODY, fontSize: 18, color: "EEEEEE", align: "center" });
-  // 第2部だけは B 赤と A 青の2色ラインを下に
-  if (s.color2) {
-    slide.addShape("rect", { x: W / 2 - 2, y: 5.4, w: 1.8, h: 0.08, fill: { color: s.color } });
-    slide.addShape("rect", { x: W / 2 + 0.2, y: 5.4, w: 1.8, h: 0.08, fill: { color: s.color2 } });
-  } else {
-    slide.addShape("rect", { x: W / 2 - 1.5, y: 5.4, w: 3, h: 0.08, fill: { color: "FFFFFF" } });
-  }
+  slide.addText(s.subtitle, { x: 0, y: 4.2, w: W, h: 0.5, fontFace: F_BODY, fontSize: 18, color: "FFFFFF", align: "center" });
+  // 装飾ライン
+  slide.addShape("rect", { x: W / 2 - 1.5, y: 5.4, w: 3, h: 0.08, fill: { color: "FFFFFF" } });
 }
 
 function pageHeader(slide, title, accentColor = COLORS.ink, eyebrow) {
@@ -154,13 +157,13 @@ function renderCustomer(slide, s) {
   const leftX = M;
   const leftW = (W - M * 2 - 0.4) * 0.55;
   slide.addText("ターゲット", { x: leftX, y: 1.65, w: leftW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
-  slide.addText(s.target || "—", { x: leftX, y: 1.95, w: leftW, h: 0.7, fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top" });
+  slide.addText(s.target || "—", { x: leftX, y: 1.95, w: leftW, h: 0.8, fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.5 });
 
-  slide.addText("プロファイル", { x: leftX, y: 2.85, w: leftW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
+  slide.addText("プロファイル", { x: leftX, y: 2.95, w: leftW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
   if (s.profile.length) {
     slide.addText(s.profile.map(p => ({ text: "・" + p, options: {} })), {
-      x: leftX, y: 3.15, w: leftW, h: 3.5,
-      fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 4,
+      x: leftX, y: 3.25, w: leftW, h: 3.5,
+      fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6,
     });
   }
 
@@ -192,9 +195,9 @@ function renderCompetitor(slide, s) {
   slide.addShape("rect", { x: M, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.direct.length) {
     slide.addText(s.direct.map(c => "・" + (typeof c === "string" ? c : (c.name || JSON.stringify(c)))).join("\n"),
-      { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 4 });
+      { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   } else {
-    slide.addText("—", { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 14, color: COLORS.muted });
+    slide.addText("—", { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
   }
   // 間接競合
   const rx = M + colW + 0.4;
@@ -202,9 +205,9 @@ function renderCompetitor(slide, s) {
   slide.addShape("rect", { x: rx, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.indirect.length) {
     slide.addText(s.indirect.map(c => "・" + (typeof c === "string" ? c : (c.name || JSON.stringify(c)))).join("\n"),
-      { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 4 });
+      { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   } else {
-    slide.addText("—", { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 14, color: COLORS.muted });
+    slide.addText("—", { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
   }
 }
 
@@ -215,82 +218,94 @@ function renderCompany(slide, s) {
   slide.addText("強み", { x: M, y: 1.65, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
   if (s.strength.length) {
     slide.addText(s.strength.map(t => "・" + t).join("\n"),
-      { x: M, y: 1.95, w: W - M * 2, h: 2.5, fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top", paraSpaceAfter: 4 });
+      { x: M, y: 1.95, w: W - M * 2, h: 2.7, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.7 });
   }
   // 体制
-  slide.addText("体制", { x: M, y: 4.7, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
-  slide.addText(s.structure || "—", { x: M, y: 5.0, w: W - M * 2, h: 0.8, fontFace: F_BODY, fontSize: 15, color: COLORS.ink, valign: "top" });
+  slide.addText("体制", { x: M, y: 4.8, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
+  slide.addText(s.structure || "—", { x: M, y: 5.1, w: W - M * 2, h: 0.9, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.6 });
   // パッション
-  slide.addText("パッション", { x: M, y: 5.95, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
-  slide.addText(s.passion || "—", { x: M, y: 6.25, w: W - M * 2, h: 0.6, fontFace: F_BODY, fontSize: 15, color: COLORS.ink, valign: "top", italic: true });
+  slide.addText("パッション", { x: M, y: 6.1, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
+  slide.addText(s.passion || "—", { x: M, y: 6.4, w: W - M * 2, h: 0.7, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", italic: true, lineSpacingMultiple: 1.6 });
 }
 
 function renderBenefit(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "ベネフィット（Benefit）", COLORS.B, "PART 2  ─  BENEFIT");
-  // コアベネフィット（赤帯のカード）
-  slide.addShape("rect", { x: M, y: 1.65, w: W - M * 2, h: 1.2, fill: { color: "FFF5F5" }, line: { color: COLORS.B, width: 1.5 } });
-  slide.addText("お客様が求めるコア価値", { x: M + 0.2, y: 1.75, w: W - M * 2 - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.B, charSpacing: 4 });
-  slide.addText(s.core || "—", { x: M + 0.2, y: 2.05, w: W - M * 2 - 0.4, h: 0.75, fontFace: F_BODY, fontSize: 20, bold: true, color: COLORS.ink, valign: "top" });
+  // コアベネフィット（赤帯のカード）— 高さ可変、長文オーバーフロー対策で 2.2in 確保＋shrinkText
+  const cardH = 2.2;
+  slide.addShape("rect", { x: M, y: 1.65, w: W - M * 2, h: cardH, fill: { color: "FFF5F5" }, line: { color: COLORS.B, width: 1.5 } });
+  slide.addText("お客様が求めるコア価値", { x: M + 0.2, y: 1.78, w: W - M * 2 - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.B, charSpacing: 4 });
+  slide.addText(s.core || "—", {
+    x: M + 0.25, y: 2.1, w: W - M * 2 - 0.5, h: cardH - 0.55,
+    fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: 1.5, shrinkText: true, autoFit: true,
+  });
 
   // needs / wants の2カラム
   const colW = (W - M * 2 - 0.4) / 2;
-  const ny = 3.15;
+  const ny = 1.65 + cardH + 0.3;
   slide.addText("ニーズ（顕在化前の必要性）", { x: M, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.B, bold: true });
   if (s.needs.length) {
     slide.addText(s.needs.map(t => "・" + t).join("\n"),
-      { x: M, y: ny + 0.35, w: colW, h: 3.5, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 4 });
+      { x: M, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   }
   const rx = M + colW + 0.4;
   slide.addText("ウォンツ（具体的な欲求）", { x: rx, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.B, bold: true });
   if (s.wants.length) {
     slide.addText(s.wants.map(t => "・" + t).join("\n"),
-      { x: rx, y: ny + 0.35, w: colW, h: 3.5, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", paraSpaceAfter: 4 });
+      { x: rx, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   }
 }
 
 function renderAdvantage(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "アドバンテージ（Advantage）", COLORS.A, "PART 2  ─  ADVANTAGE");
-  // 何が優位か（青帯のカード）
-  slide.addShape("rect", { x: M, y: 1.65, w: W - M * 2, h: 1.2, fill: { color: "F2F8FF" }, line: { color: COLORS.A, width: 1.5 } });
-  slide.addText("競合より選ばれる差別的優位点", { x: M + 0.2, y: 1.75, w: W - M * 2 - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.A, charSpacing: 4 });
-  slide.addText(s.what || "—", { x: M + 0.2, y: 2.05, w: W - M * 2 - 0.4, h: 0.75, fontFace: F_BODY, fontSize: 20, bold: true, color: COLORS.ink, valign: "top" });
+  // 何が優位か（青帯のカード）— 長文オーバーフロー対策で 2.5in 確保＋shrinkText
+  // 権さん 2026-05-15: そもそも Advantage が長すぎる傾向にあるが、レイアウトとしても受けられるようにする
+  const cardH = 2.5;
+  slide.addShape("rect", { x: M, y: 1.65, w: W - M * 2, h: cardH, fill: { color: "F2F8FF" }, line: { color: COLORS.A, width: 1.5 } });
+  slide.addText("競合より選ばれる差別的優位点", { x: M + 0.2, y: 1.78, w: W - M * 2 - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.A, charSpacing: 4 });
+  slide.addText(s.what || "—", {
+    x: M + 0.25, y: 2.1, w: W - M * 2 - 0.5, h: cardH - 0.55,
+    fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: 1.5, shrinkText: true, autoFit: true,
+  });
 
   // なぜ良いか / なぜ真似しづらいか
   const colW = (W - M * 2 - 0.4) / 2;
-  const ny = 3.15;
+  const ny = 1.65 + cardH + 0.3;
   slide.addText("なぜそれが選ばれるのか", { x: M, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.A, bold: true });
-  slide.addText(s.why_good || "—", { x: M, y: ny + 0.35, w: colW, h: 3.5, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top" });
+  slide.addText(s.why_good || "—", { x: M, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.6 });
 
   const rx = M + colW + 0.4;
   slide.addText("なぜ真似しづらいのか", { x: rx, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.A, bold: true });
-  slide.addText(s.why_hard_to_copy || "—", { x: rx, y: ny + 0.35, w: colW, h: 3.5, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top" });
+  slide.addText(s.why_hard_to_copy || "—", { x: rx, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.6 });
 }
 
 function renderStrategyRecap(slide, s) {
   bg(slide, COLORS.ink);
-  // 上部に小さく前置き
-  slide.addText("ここまでの分析の結果として導かれる", { x: 0, y: 0.6, w: W, h: 0.3, fontFace: F_BODY, fontSize: 12, color: "AAAAAA", align: "center", charSpacing: 4 });
+  // 黒背景の通常テキストは白で統一（権さん 2026-05-15）。
+  slide.addText("ここまでの分析の結果として導かれる", { x: 0, y: 0.6, w: W, h: 0.3, fontFace: F_BODY, fontSize: 12, color: "FFFFFF", align: "center", charSpacing: 4 });
   slide.addText("戦略メッセージ", { x: 0, y: 0.95, w: W, h: 0.5, fontFace: F_HEAD, fontSize: 26, color: "FFFFFF", bold: true, align: "center" });
   // 戦略メッセージ本体
   slide.addText(s.strategyMessage || "—", {
     x: 1.0, y: 1.9, w: W - 2.0, h: 3.0,
     fontFace: F_HEAD, fontSize: 28, color: "FFFFFF", bold: true, align: "center", valign: "middle",
+    lineSpacingMultiple: 1.5,
   });
-  // B/A サブ
+  // B/A サブ — B/A だけ意味のある色を残す
   if (s.benefitPart || s.advantagePart) {
-    slide.addShape("line", { x: 2, y: 5.3, w: W - 4, h: 0, line: { color: "555555", width: 0.5 } });
+    slide.addShape("line", { x: 2, y: 5.3, w: W - 4, h: 0, line: { color: "FFFFFF", width: 0.5 } });
     if (s.benefitPart) {
       slide.addText([
         { text: "B（Benefit）  ", options: { color: COLORS.B, bold: true, fontFace: F_MONO } },
-        { text: s.benefitPart, options: { color: "EEEEEE", fontFace: F_BODY } },
+        { text: s.benefitPart, options: { color: "FFFFFF", fontFace: F_BODY } },
       ], { x: 1.5, y: 5.5, w: W - 3, h: 0.5, fontSize: 14, align: "center", valign: "middle" });
     }
     if (s.advantagePart) {
       slide.addText([
         { text: "A（Advantage）  ", options: { color: COLORS.A, bold: true, fontFace: F_MONO } },
-        { text: s.advantagePart, options: { color: "EEEEEE", fontFace: F_BODY } },
+        { text: s.advantagePart, options: { color: "FFFFFF", fontFace: F_BODY } },
       ], { x: 1.5, y: 6.05, w: W - 3, h: 0.5, fontSize: 14, align: "center", valign: "middle" });
     }
   }
@@ -311,27 +326,70 @@ function renderCheckpoints(slide, s) {
   });
 }
 
-function renderImprove(slide, s) {
+// 改善レポート 1カテゴリを 1スライドに展開。全項目のタイトル＋理由＋実装例を表示する。
+// 権さん 2026-05-15: 「冒頭しか示されていない、全体を見せて」要望に対応。
+function renderImproveSection(slide, s) {
   bg(slide, COLORS.bg);
-  pageHeader(slide, "ウェブサイト改善レポート", COLORS.A, "PART 4  ─  WEBSITE IMPROVEMENT");
-  const cols = [
-    { label: "追加すべきコンテンツ", items: s.contents, color: COLORS.A },
-    { label: "改善すべきデザイン", items: s.design, color: COLORS.B },
-    { label: "サイト構造の改善", items: s.structure, color: COLORS.C },
-  ];
-  const colW = (W - M * 2 - 0.4) / 3;
-  cols.forEach((col, i) => {
-    const x = M + i * (colW + 0.2);
-    slide.addShape("rect", { x, y: 1.65, w: colW, h: 0.5, fill: { color: col.color }, line: { color: col.color } });
-    slide.addText(col.label, { x, y: 1.65, w: colW, h: 0.5, fontFace: F_BODY, fontSize: 13, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
-    let y = 2.3;
-    col.items.slice(0, 4).forEach((item, j) => {
-      slide.addText(`${j + 1}. ${item.title}`, { x, y, w: colW, h: 0.4, fontFace: F_BODY, fontSize: 12, bold: true, color: COLORS.ink });
-      y += 0.4;
-      slide.addText(clip(item.reason, 80), { x, y, w: colW, h: 0.7, fontFace: F_BODY, fontSize: 10, color: COLORS.muted, valign: "top" });
-      y += 0.85;
+  pageHeader(slide, s.categoryLabel, COLORS.exec, "PART 4  ─  WEBSITE IMPROVEMENT");
+  slide.addText(s.categorySubtitle || "", { x: M, y: 1.5, w: W - M * 2, h: 0.3, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
+
+  const items = s.items;
+  if (items.length === 0) {
+    slide.addText("（このカテゴリの提案はありません）", { x: M, y: 2.0, w: W - M * 2, h: 0.5, fontFace: F_BODY, fontSize: 15, color: COLORS.muted });
+    return;
+  }
+  // 縦方向の利用可能領域（フッターまで）。アイテム数で動的に割り振る。
+  const topY = 1.95;
+  const bottomY = H - 0.55;
+  const usable = bottomY - topY;
+  const rowH = Math.min(1.5, usable / items.length);
+  const fontSizeTitle = items.length <= 3 ? 16 : items.length <= 5 ? 14 : 13;
+  const fontSizeBody = items.length <= 3 ? 13 : items.length <= 5 ? 12 : 11;
+
+  items.forEach((item, j) => {
+    const y = topY + j * rowH;
+    // 番号バッジ
+    slide.addShape("rect", { x: M, y: y + 0.05, w: 0.5, h: 0.5, fill: { color: COLORS.exec }, line: { color: COLORS.exec } });
+    slide.addText(String(j + 1), { x: M, y: y + 0.05, w: 0.5, h: 0.5, fontFace: F_HEAD, fontSize: 18, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    // タイトル
+    slide.addText(item.title || "", { x: M + 0.65, y: y, w: W - M * 2 - 0.65, h: 0.45, fontFace: F_BODY, fontSize: fontSizeTitle, bold: true, color: COLORS.ink });
+    // 理由＋実装例
+    const detailText = [
+      item.reason ? `理由：${item.reason}` : null,
+      item.example ? `実装例：${item.example}` : null,
+    ].filter(Boolean).join("\n");
+    slide.addText(detailText, {
+      x: M + 0.65, y: y + 0.45, w: W - M * 2 - 0.65, h: rowH - 0.5,
+      fontFace: F_BODY, fontSize: fontSizeBody, color: COLORS.muted, valign: "top",
+      lineSpacingMultiple: 1.6, paraSpaceAfter: 4,
     });
   });
+}
+
+// ビジュアルモック（改善後ファーストビュー）スライド。
+// 渡された HTML を html2canvas で 1920×1080 画像化したものを imageDataUrl として持っている前提。
+// 画像の準備は exportPptx の前処理（preRenderVisualMocks）で行う。
+function renderVisualMock(slide, s) {
+  bg(slide, COLORS.bg);
+  pageHeader(slide, "改善後のファーストビュー・イメージ", COLORS.exec, "PART 4  ─  VISUAL MOCKUP");
+  if (s.imageDataUrl) {
+    // 16:9 アスペクト比に近い形で配置。中央寄せ。
+    const imgW = W - M * 2;
+    const imgH = imgW * (9 / 16);
+    slide.addImage({ data: s.imageDataUrl, x: M, y: 1.65, w: imgW, h: imgH, sizing: { type: "contain", w: imgW, h: imgH } });
+    if (s.caption) {
+      slide.addShape("rect", { x: M, y: 1.65 + imgH + 0.15, w: W - M * 2, h: 0.7, fill: { color: COLORS.paper }, line: { color: COLORS.exec, width: 1 } });
+      slide.addText([
+        { text: "💡 このビジュアルの意図：", options: { bold: true, color: COLORS.exec } },
+        { text: s.caption, options: { color: COLORS.ink } },
+      ], {
+        x: M + 0.2, y: 1.65 + imgH + 0.2, w: W - M * 2 - 0.4, h: 0.6,
+        fontFace: F_BODY, fontSize: 13, valign: "top", lineSpacingMultiple: 1.5,
+      });
+    }
+  } else {
+    slide.addText("（ビジュアル画像を準備できませんでした）", { x: M, y: 3, w: W - M * 2, h: 0.5, fontFace: F_BODY, fontSize: 14, color: COLORS.muted, align: "center" });
+  }
 }
 
 function renderNextActions(slide, s) {
@@ -371,15 +429,44 @@ const RENDERERS = {
   "advantage": renderAdvantage,
   "strategy-message-recap": renderStrategyRecap,
   "checkpoints": renderCheckpoints,
-  "improve": renderImprove,
+  "improve-section": renderImproveSection,
+  "visual-mock": renderVisualMock,
   "next-actions": renderNextActions,
   "about": renderAbout,
 };
 
 const NO_PAGE_NUMBER = new Set(["cover", "section-divider", "about"]);
 
+// ビジュアルモックの HTML を html2canvas でレンダリングして画像 data URL を返す。
+// PPTX / PDF 両方で使えるよう、共通の前処理として export 前に呼ぶ。
+export async function preRenderVisualMocks(slides) {
+  const visualSlides = slides.filter(s => s.type === "visual-mock" && s.html);
+  if (visualSlides.length === 0) return;
+  const html2canvasMod = await import("html2canvas");
+  const html2canvas = html2canvasMod.default || html2canvasMod;
+
+  for (const s of visualSlides) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;left:-99999px;top:0;width:1920px;height:1080px;overflow:hidden;background:#ffffff;";
+    wrap.innerHTML = s.html;
+    document.body.appendChild(wrap);
+    try {
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const canvas = await html2canvas(wrap, { width: 1920, height: 1080, scale: 1, backgroundColor: "#ffffff", useCORS: true, logging: false });
+      s.imageDataUrl = canvas.toDataURL("image/jpeg", 0.88);
+    } catch (e) {
+      console.warn("visual mock の画像化に失敗:", e);
+      s.imageDataUrl = null;
+    } finally {
+      document.body.removeChild(wrap);
+    }
+  }
+}
+
 export async function exportPptx({ slides, input, historyTitle }) {
   if (!slides?.length) throw new Error("スライドデータがありません");
+  // ビジュアルモック画像を先に準備（HTML を canvas 化 → JPEG）
+  await preRenderVisualMocks(slides);
   const { default: PptxGenJS } = await import("pptxgenjs");
   const pres = new PptxGenJS();
   pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5
