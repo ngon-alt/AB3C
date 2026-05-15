@@ -2389,14 +2389,18 @@ const [chatSummaries, setChatSummaries] = useState([]);
         if (shadow) resultForExport = shadow;
       }
 
-      // 現在表示中のパターンに対応する改善レポートを取得（パターン切替時は per-combo cache を優先）
+      // 現在表示中のパターンに対応する改善レポート・ビジュアルモックを取得
+      // （パターン切替時は per-combo cache を優先）
       const comboImprove = (selectedCombinationId && improveResultsByCombination && improveResultsByCombination[selectedCombinationId]) || null;
       const useImprove = comboImprove || improveResult || null;
+      const comboVisual = (selectedCombinationId && visualMocksByCombination && visualMocksByCombination[selectedCombinationId]) || null;
+      const useVisualMock = comboVisual || visualMock || null;
 
       const slides = buildSlides({
         result: resultForExport,
         input: currentInput,
         improveResult: useImprove,
+        visualMock: useVisualMock,
         analyzedAt,
         historyTitle,
       });

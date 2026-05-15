@@ -6,6 +6,9 @@ export const COLORS = {
   C: "1a1a14",     // 黒（Customer / Competitor / Company）
   B: "FF0000",     // 赤（Benefit）
   A: "1a6fd4",     // 青（Advantage）
+  // 「青はアドバンテージを示すとき以外に使わない」ルール（権さん 2026-05-15）。
+  // 実行・改善レポート関連はオレンジ（戦略アクション色）で統一する。
+  exec: "ea580c",  // オレンジ（戦略アクション・実行系）
   ink: "1a1a14",
   muted: "555555",
   border: "cccccc",
@@ -34,7 +37,7 @@ function formatDate(d) {
   return `${y}.${m}.${day}`;
 }
 
-export function buildSlides({ result, input, improveResult, analyzedAt, historyTitle }) {
+export function buildSlides({ result, input, improveResult, visualMock, analyzedAt, historyTitle }) {
   if (!result) return [];
 
   const siteName = extractSiteName(input);
@@ -50,6 +53,7 @@ export function buildSlides({ result, input, improveResult, analyzedAt, historyT
   const checkpoints = arr(result.checkpoints);
   const hasImprove = !!(improveResult && !improveResult.error
     && (arr(improveResult.contents).length || arr(improveResult.design).length || arr(improveResult.structure).length));
+  const hasVisualMock = !!(visualMock && visualMock.visual_mock_html);
 
   const slides = [];
 
@@ -71,7 +75,7 @@ export function buildSlides({ result, input, improveResult, analyzedAt, historyT
       { num: "1", title: "現状把握（3C 分析）", subtitle: "顧客・競合・自社", color: COLORS.C },
       { num: "2", title: "戦略の核", subtitle: "ベネフィット・アドバンテージ・戦略メッセージ", color: COLORS.B },
       { num: "3", title: "整合性チェック", subtitle: "戦略の自己点検", color: COLORS.muted },
-      ...(hasImprove ? [{ num: "4", title: "実行", subtitle: "ウェブサイト改善・次のアクション", color: COLORS.A }] : []),
+      ...((hasImprove || hasVisualMock) ? [{ num: "4", title: "実行", subtitle: "ウェブサイト改善・次のアクション", color: COLORS.exec }] : []),
     ],
   });
 
@@ -153,27 +157,49 @@ export function buildSlides({ result, input, improveResult, analyzedAt, historyT
   slides.push({ type: "section-divider", num: "3", title: "整合性チェック", subtitle: "戦略の自己点検", color: COLORS.muted });
 
   // 11. 整合性チェック
+  // ラベルは CLAUDE.md の日本語ラベル原則に従い、ok → "OK"、warn → "注意"、ng → "NG"。
+  // 「問題なし」は分かりづらい（権さん 2026-05-15）。
   slides.push({
     type: "checkpoints",
     items: checkpoints.map(c => ({
       label: safe(c.label),
       status: safe(c.status),       // ok / warn / ng
-      statusLabel: c.status === "ok" ? "問題なし" : c.status === "warn" ? "注意" : c.status === "ng" ? "警告" : "—",
+      statusLabel: c.status === "ok" ? "OK" : c.status === "warn" ? "注意" : c.status === "ng" ? "NG" : "—",
       comment: safe(c.comment),
     })),
   });
 
   // ── 第4部: 実行（URL 分析時のみ）
-  if (hasImprove) {
-    slides.push({ type: "section-divider", num: "4", title: "実行", subtitle: "ウェブサイト改善・次のアクション", color: COLORS.A });
+  if (hasImprove || hasVisualMock) {
+    slides.push({ type: "section-divider", num: "4", title: "実行", subtitle: "ウェブサイト改善・次のアクション", color: COLORS.exec });
 
-    // 12. 改善レポート
-    slides.push({
-      type: "improve",
-      contents: arr(improveResult.contents).map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) })),
-      design: arr(improveResult.design).map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) })),
-      structure: arr(improveResult.structure).map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) })),
-    });
+    // 12a. ビジュアルモック（改善後ファーストビュー・あれば）
+    if (hasVisualMock) {
+      slides.push({
+        type: "visual-mock",
+        html: visualMock.visual_mock_html,
+        caption: safe(visualMock.caption),
+      });
+    }
+
+    // 12b-d. 改善レポート（3カテゴリそれぞれ独立スライド・全項目を載せる）
+    if (hasImprove) {
+      const cats = [
+        { key: "contents", label: "追加すべきコンテンツ", subtitle: "戦略から導かれる、サイトに足すべき情報や要素", items: arr(improveResult.contents) },
+        { key: "design", label: "改善すべきデザイン・ビジュアル", subtitle: "視覚的に整えるべきポイント", items: arr(improveResult.design) },
+        { key: "structure", label: "サイト構造の改善", subtitle: "情報設計・導線・ページ構成の改善", items: arr(improveResult.structure) },
+      ];
+      cats.forEach(cat => {
+        if (cat.items.length === 0) return;
+        slides.push({
+          type: "improve-section",
+          categoryKey: cat.key,
+          categoryLabel: cat.label,
+          categorySubtitle: cat.subtitle,
+          items: cat.items.map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) })),
+        });
+      });
+    }
   }
 
   // 13. 次のアクション
