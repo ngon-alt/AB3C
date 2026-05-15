@@ -157,28 +157,36 @@ function renderFramework(slide, s) {
     fontFace: F_BODY, fontSize: 12, color: COLORS.muted, italic: true, lineSpacingMultiple: 1.6,
   });
   // 関連リソース（権さん 2026-05-15: 著書と協会を併載）
+  // 注: テキストラン内ハイパーリンク（addText の配列形式に hyperlink を混在）は
+  // 一部の PowerPoint で「コンテンツに問題が見つかりました」破損警告の原因になるため、
+  // ラベルとリンクを別々の addText に分け、リンクは要素全体に適用する（権さん指摘 2026-05-15）。
   slide.addShape("line", { x: M, y: 5.4, w: W - M * 2, h: 0, line: { color: COLORS.border, width: 0.5 } });
   slide.addText("関連リソース", {
     x: M, y: 5.5, w: W - M * 2, h: 0.3,
     fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4,
   });
+  const labelW = 2.0;
   if (s.relatedBook) {
-    slide.addText([
-      { text: "📖 関連書籍：", options: { fontFace: F_BODY, color: COLORS.ink, bold: true } },
-      { text: `『${s.relatedBook.title}』`, options: { fontFace: F_BODY, color: COLORS.A, bold: true, hyperlink: { url: s.relatedBook.url, tooltip: "Amazon で見る" } } },
-      { text: `  ${s.relatedBook.author || ""}`, options: { fontFace: F_BODY, color: COLORS.muted } },
-    ], {
-      x: M, y: 5.85, w: W - M * 2, h: 0.35,
-      fontSize: 13, valign: "top",
+    slide.addText("関連書籍：", {
+      x: M, y: 5.85, w: labelW, h: 0.35,
+      fontFace: F_BODY, fontSize: 13, color: COLORS.ink, bold: true,
+    });
+    const bookLabel = `『${s.relatedBook.title}』${s.relatedBook.author ? "　" + s.relatedBook.author : ""}`;
+    slide.addText(bookLabel, {
+      x: M + labelW, y: 5.85, w: W - M * 2 - labelW, h: 0.35,
+      fontFace: F_BODY, fontSize: 13, color: COLORS.A, bold: true,
+      hyperlink: { url: s.relatedBook.url },
     });
   }
   if (s.relatedAssociation) {
-    slide.addText([
-      { text: "🏛 関連団体：", options: { fontFace: F_BODY, color: COLORS.ink, bold: true } },
-      { text: s.relatedAssociation.name, options: { fontFace: F_BODY, color: COLORS.A, bold: true, hyperlink: { url: s.relatedAssociation.url, tooltip: "公式サイト" } } },
-    ], {
-      x: M, y: 6.3, w: W - M * 2, h: 0.35,
-      fontSize: 13, valign: "top",
+    slide.addText("関連団体：", {
+      x: M, y: 6.3, w: labelW, h: 0.35,
+      fontFace: F_BODY, fontSize: 13, color: COLORS.ink, bold: true,
+    });
+    slide.addText(s.relatedAssociation.name, {
+      x: M + labelW, y: 6.3, w: W - M * 2 - labelW, h: 0.35,
+      fontFace: F_BODY, fontSize: 13, color: COLORS.A, bold: true,
+      hyperlink: { url: s.relatedAssociation.url },
     });
   }
 }
@@ -310,7 +318,7 @@ function renderBenefit(slide, s) {
   slide.addText(s.core || "—", {
     x: M + 0.25, y: 2.1, w: W - M * 2 - 0.5, h: cardH - 0.55,
     fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.5, shrinkText: true, autoFit: true,
+    lineSpacingMultiple: 1.5, shrinkText: true,
   });
 
   // needs / wants の2カラム
@@ -340,7 +348,7 @@ function renderAdvantage(slide, s) {
   slide.addText(s.what || "—", {
     x: M + 0.25, y: 2.1, w: W - M * 2 - 0.5, h: cardH - 0.55,
     fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.5, shrinkText: true, autoFit: true,
+    lineSpacingMultiple: 1.5, shrinkText: true,
   });
 
   // なぜ良いか / なぜ真似しづらいか
@@ -466,7 +474,8 @@ function renderVisualMock(slide, s) {
     // 16:9 アスペクト比に近い形で配置。中央寄せ。
     const imgW = W - M * 2;
     const imgH = imgW * (9 / 16);
-    slide.addImage({ data: s.imageDataUrl, x: M, y: 1.65, w: imgW, h: imgH, sizing: { type: "contain", w: imgW, h: imgH } });
+    // sizing は w/h と二重指定になり破損警告の原因になり得るため省略（権さん指摘 2026-05-15）。
+    slide.addImage({ data: s.imageDataUrl, x: M, y: 1.65, w: imgW, h: imgH });
     if (s.caption) {
       slide.addShape("rect", { x: M, y: 1.65 + imgH + 0.15, w: W - M * 2, h: 0.7, fill: { color: COLORS.paper }, line: { color: COLORS.exec, width: 1 } });
       slide.addText([
