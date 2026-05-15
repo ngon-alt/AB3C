@@ -1770,6 +1770,14 @@ const setVersionsFromDB = function (versionsArray) {
 const [chatWidth, setChatWidth] = useState(500);
 const [chatMinimized, setChatMinimized] = useState(false);
 const chatResizing = useRef(false);
+// パターン切替時の改善レポート/ビジュアル生成のレース対策（権さん指摘・2026-05-15）。
+//   問題: パターンを素早く切替えると、in-flight な複数 fetch が並列で走り、
+//        後から到着したレスポンスが現在表示中のパターンに合わない結果で上書きしてしまう。
+//   対策: generateForCombination 呼び出しごとに gen-id を発行し、setImproveResult/setVisualMock
+//        の直前で「自分が最新か」をチェック。同時に AbortController で旧 fetch をキャンセル
+//        して API コストも削減する。
+const latestImproveGenIdRef = useRef(0);
+const improveAbortControllerRef = useRef(null);
 const [confirmHistory, setConfirmHistory] = useState([]);
 // クリックされた確定履歴エントリのID。サイドバーの選択中マーカー表示や
 // チャット履歴の復元判定に使う。新規分析・再分析時にリセット。
@@ -1855,6 +1863,18 @@ const [chatSummaries, setChatSummaries] = useState([]);
       checkpoints: Array.isArray(combo.checkpoints) ? combo.checkpoints : [],
     };
 
+    // パターン切替レース対策（権さん指摘・2026-05-15）:
+    //   - 旧 in-flight fetch を abort（API コスト削減）
+    //   - この呼び出し固有の gen-id を発行 → setImproveResult/setVisualMock の前に
+    //     最新と一致するかチェック。一致しないなら表示更新せず、キャッシュ書き込みだけ行う。
+    if (improveAbortControllerRef.current) {
+      try { improveAbortControllerRef.current.abort(); } catch (e) {}
+    }
+    const controller = new AbortController();
+    improveAbortControllerRef.current = controller;
+    const myGenId = ++latestImproveGenIdRef.current;
+    const isLatest = () => myGenId === latestImproveGenIdRef.current;
+
     // Step 1: 改善レポート（テキスト）
     let improveData = improveResultsByCombination[combinationId] || null;
     if (needImprove) {
@@ -1867,22 +1887,35 @@ const [chatSummaries, setChatSummaries] = useState([]);
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ analysisResult: comboResult, url: currentInput }),
+          signal: controller.signal,
         });
         try { improveData = await res.json(); } catch (e) { improveData = { error: `HTTP ${res.status} 応答が解釈できませんでした` }; }
+        // キャッシュは「どの combinationId 用の結果か」が明確なので常に保存しておく（次回切替時の即時表示用）
+        if (res.ok && !improveData.error) {
+          setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: improveData }));
+        }
+        // 表示更新は「自分が最新のリクエストか」を確認してから（他パターンに切替済みなら破棄）
+        if (!isLatest()) {
+          // この generateForCombination は古い呼び出し。後続の処理（ビジュアル生成・オーバーレイ消去）も
+          // しないで終了する。新しい呼び出しがそれらを担当する。
+          return;
+        }
         if (res.ok && !improveData.error) {
           setImproveResult(improveData);
-          setImproveResultsByCombination(prev => ({ ...prev, [combinationId]: improveData }));
         } else {
           setImproveResult({ error: improveData.error || `改善レポートの生成に失敗しました（HTTP ${res.status}）` });
           setOverlayMessage(null);
           return; // 改善レポート失敗時はビジュアルも生成しない
         }
       } catch (e) {
+        // AbortError は意図的なキャンセル（パターン切替）なので静かに無視
+        if (e?.name === "AbortError") return;
+        if (!isLatest()) return;
         setImproveResult({ error: "改善レポート生成中に通信エラーが発生しました。" });
         setOverlayMessage(null);
         return;
       } finally {
-        setImproveSwitchLoading(false);
+        if (isLatest()) setImproveSwitchLoading(false);
       }
     }
 
@@ -1898,19 +1931,28 @@ const [chatSummaries, setChatSummaries] = useState([]);
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ analysisResult: comboResult, improveResult: improveData, url: currentInput }),
+          signal: controller.signal,
         });
         try { visualData = await res.json(); } catch (e) { visualData = { error: `HTTP ${res.status}` }; }
+        // キャッシュは常に保存
         if (res.ok && !visualData.error) {
-          setVisualMock(visualData);
           setVisualMocksByCombination(prev => ({ ...prev, [combinationId]: visualData }));
         }
+        // 表示更新は最新リクエストか確認してから
+        if (!isLatest()) return;
+        if (res.ok && !visualData.error) {
+          setVisualMock(visualData);
+        }
       } catch (e) {
+        if (e?.name === "AbortError") return;
         // ビジュアル失敗は致命的ではないので静かに無視（改善レポートは表示済み）
       } finally {
-        setVisualLoading(false);
+        if (isLatest()) setVisualLoading(false);
       }
     }
 
+    // 自分が古ければオーバーレイは新しい呼び出しに任せる
+    if (!isLatest()) return;
     // 全て完了したらオーバーレイを消す
     setOverlayMessage(null);
 
