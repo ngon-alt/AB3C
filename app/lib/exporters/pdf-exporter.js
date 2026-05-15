@@ -36,21 +36,38 @@ const clip = (s, n = 200) => {
 // ─── 各スライドタイプの HTML レンダラ ────────────────────────────────────
 
 function renderCoverHtml(s) {
-  // 黒背景の通常テキストは白で統一（権さん 2026-05-15）。B/A の意味色のみ例外。
+  // 権さん 2026-05-15:
+  // - レポート識別子を最上部に移動（提案書だと一目で分かるように）
+  // - 「戦略メッセージ」ラベルは本体のすぐ近くに
+  // - 下部に差出人欄を新設
   return `
-    <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 120px;">
-      <div class="mono" style="letter-spacing:.6em;color:#fff;font-size:22px;margin-bottom:40px;">── 戦略メッセージ ──</div>
-      <div class="head-serif" style="font-size:64px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;color:#fff;">${esc(s.strategyMessage || "（戦略メッセージ未生成）")}</div>
-      ${(s.benefitPart || s.advantagePart) ? `
-        <div style="margin-top:60px;font-size:24px;color:#fff;text-align:center;line-height:1.8;">
-          ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B</span>${esc(clip(s.benefitPart, 100))}</div>` : ""}
-          ${s.advantagePart ? `<div style="margin-top:14px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A</span>${esc(clip(s.advantagePart, 100))}</div>` : ""}
-        </div>
-      ` : ""}
-      <div style="position:absolute;bottom:60px;left:0;right:0;text-align:center;">
-        <div style="height:1px;background:#fff;width:60%;margin:0 auto 24px;opacity:.4"></div>
-        <div style="font-size:22px;color:#fff;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
-        <div class="mono" style="font-size:16px;color:#fff;margin-top:12px;letter-spacing:.3em;opacity:.7">${esc(s.date)}　/　戦略指南 AI</div>
+    <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;padding:60px 120px;display:flex;flex-direction:column;">
+
+      <!-- TOP: レポート識別子 -->
+      <div style="text-align:center;">
+        <div class="head-serif" style="font-size:38px;font-weight:700;color:#fff;line-height:1.4;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
+        <div class="mono" style="font-size:18px;color:#fff;letter-spacing:1em;margin-top:14px;opacity:.85;">AB3C  ANALYSIS  REPORT</div>
+        <div style="height:1px;background:#fff;width:60%;margin:30px auto 0;opacity:.4;"></div>
+      </div>
+
+      <!-- MIDDLE: 戦略メッセージ -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="mono" style="letter-spacing:.6em;color:#fff;font-size:20px;margin-bottom:24px;opacity:.9;">── 戦略メッセージ ──</div>
+        <div class="head-serif" style="font-size:56px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;color:#fff;">${esc(s.strategyMessage || "（戦略メッセージ未生成）")}</div>
+        ${(s.benefitPart || s.advantagePart) ? `
+          <div style="margin-top:40px;font-size:22px;color:#fff;text-align:center;line-height:1.8;">
+            ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B</span>${esc(clip(s.benefitPart, 100))}</div>` : ""}
+            ${s.advantagePart ? `<div style="margin-top:10px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A</span>${esc(clip(s.advantagePart, 100))}</div>` : ""}
+          </div>
+        ` : ""}
+      </div>
+
+      <!-- BOTTOM: 差出人欄 -->
+      <div style="text-align:center;">
+        <div style="height:1px;background:#fff;width:60%;margin:0 auto 22px;opacity:.4;"></div>
+        <div class="mono" style="font-size:14px;color:#fff;letter-spacing:.6em;opacity:.85;">発  行</div>
+        <div style="font-size:22px;color:#fff;margin-top:8px;line-height:1.5;">${esc(s.issuer || "戦略指南 AI / senryaku.ai")}</div>
+        <div class="mono" style="font-size:14px;color:#fff;margin-top:10px;letter-spacing:.3em;opacity:.7;">${esc(s.date)}</div>
       </div>
     </div>
   `;
@@ -104,6 +121,7 @@ function renderAnalysisTargetHtml(s) {
 }
 
 function renderFrameworkHtml(s) {
+  // 権さん 2026-05-15: 大前研一の3C分析ベース + 関連書籍 + 関連団体を併載
   const chips = [
     { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: "1a1a14" },
     { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ → ウォンツ）", color: "FF0000" },
@@ -112,20 +130,38 @@ function renderFrameworkHtml(s) {
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("AB3C フレームワークとは")}
-      <div style="padding:50px 100px;display:flex;flex-direction:column;gap:30px;">
-        <div style="display:flex;gap:30px;margin-top:20px;">
+      <div style="padding:30px 100px;display:flex;flex-direction:column;gap:22px;">
+        <div style="display:flex;gap:24px;">
           ${lines(chips, (c) => `
             <div style="flex:1;display:flex;align-items:center;">
-              <div style="width:140px;height:200px;background:#${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:96px;font-weight:700;">${c.letter}</div>
-              <div style="margin-left:24px;flex:1;">
-                <div class="mono" style="font-size:14px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
-                <div style="font-size:20px;color:#1a1a14;line-height:1.6;">${esc(c.desc)}</div>
+              <div style="width:110px;height:160px;background:#${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:76px;font-weight:700;flex-shrink:0;">${c.letter}</div>
+              <div style="margin-left:20px;flex:1;">
+                <div class="mono" style="font-size:13px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
+                <div style="font-size:17px;color:#1a1a14;line-height:1.65;">${esc(c.desc)}</div>
               </div>
             </div>
           `)}
         </div>
-        <div style="font-size:22px;line-height:1.85;color:#1a1a14;margin-top:30px;">${esc(s.description)}</div>
-        <div style="font-size:20px;color:#555;font-style:italic;margin-top:10px;">AB3C の順序は「C → B → A」。現状を把握してから、価値と優位性を組み立て、最後に戦略メッセージへと統合します。</div>
+        <div style="font-size:19px;line-height:1.9;color:#1a1a14;">${esc(s.description)}</div>
+        <div style="font-size:17px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
+
+        <!-- 関連リソース -->
+        <div style="border-top:1px solid #ccc;padding-top:18px;">
+          <div class="mono" style="font-size:13px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
+          ${s.relatedBook ? `
+            <div style="font-size:17px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
+              <b>📖 関連書籍：</b>
+              <a href="${esc(s.relatedBook.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">『${esc(s.relatedBook.title)}』</a>
+              ${s.relatedBook.author ? `<span style="color:#555;margin-left:8px;">${esc(s.relatedBook.author)}</span>` : ""}
+            </div>
+          ` : ""}
+          ${s.relatedAssociation ? `
+            <div style="font-size:17px;color:#1a1a14;line-height:1.6;">
+              <b>🏛 関連団体：</b>
+              <a href="${esc(s.relatedAssociation.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">${esc(s.relatedAssociation.name)}</a>
+            </div>
+          ` : ""}
+        </div>
       </div>
     </div>
   `;
@@ -206,18 +242,29 @@ function renderCompetitorHtml(s) {
 }
 
 function renderCompanyHtml(s) {
+  // 権さん 2026-05-15: 体制・パッションのテキストがはみ出して重なる問題を修正。
+  // 強み / 体制 / パッション をそれぞれセクションに分け、3:2:1.5 の比率で固定領域に配置。
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("自社（Company）", "1a1a14", "PART 1  ─  COMPANY")}
-      <div style="padding:40px 100px;">
-        <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;">強み</div>
-        <div style="font-size:22px;line-height:1.85;margin-top:10px;margin-bottom:30px;">
-          ${s.strength.length ? lines(s.strength, (t) => `<div>・${esc(t)}</div>`) : "—"}
+      <div style="padding:24px 100px 60px;display:flex;flex-direction:column;gap:18px;height:calc(100% - 200px);">
+        <!-- 強み -->
+        <div style="flex:3;overflow:hidden;">
+          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">強み</div>
+          <div style="font-size:19px;line-height:1.85;">
+            ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:4px;">・${esc(t)}</div>`) : "—"}
+          </div>
         </div>
-        <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;">体制</div>
-        <div style="font-size:22px;line-height:1.7;margin-top:6px;margin-bottom:30px;">${esc(s.structure || "—")}</div>
-        <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;">パッション</div>
-        <div style="font-size:22px;line-height:1.7;margin-top:6px;font-style:italic;">${esc(s.passion || "—")}</div>
+        <!-- 体制 -->
+        <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
+          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">体制</div>
+          <div style="font-size:17px;line-height:1.8;">${esc(s.structure || "—")}</div>
+        </div>
+        <!-- パッション -->
+        <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
+          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">パッション</div>
+          <div style="font-size:17px;line-height:1.8;font-style:italic;">${esc(s.passion || "—")}</div>
+        </div>
       </div>
     </div>
   `;
@@ -315,31 +362,33 @@ function renderCheckpointsHtml(s) {
   `;
 }
 
-// 改善レポート 1カテゴリを 1スライドに展開。全項目のタイトル＋理由＋実装例を表示。
-// 権さん 2026-05-15: 「冒頭しか示されていない、全体を見せて」要望に対応。
+// 改善レポート 1ページ分（最大3項目）。build-slides 側でページネーション済み。
+// 権さん 2026-05-15 フィードバック: 文字詰まり・項目同士の重なりを解消するため、
+// 1スライドあたり最大3項目に制限し、ゆったりとした余白で配置する。
 function renderImproveSectionHtml(s) {
   const items = s.items || [];
-  // アイテム数に応じてフォントサイズを動的に調整
-  const fsTitle = items.length <= 3 ? 22 : items.length <= 5 ? 19 : 17;
-  const fsBody = items.length <= 3 ? 17 : items.length <= 5 ? 15 : 14;
-  const gap = items.length <= 3 ? 28 : items.length <= 5 ? 18 : 12;
+  const startNum = s.itemNumberStart || 1;
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml(s.categoryLabel, "ea580c", "PART 4  ─  WEBSITE IMPROVEMENT")}
-      <div style="padding:20px 100px 60px;">
-        <div style="font-size:18px;color:#555;margin-bottom:24px;">${esc(s.categorySubtitle || "")}</div>
-        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
-          <div style="display:flex;gap:18px;margin-bottom:${gap}px;align-items:flex-start;">
-            <div style="flex-shrink:0;width:48px;height:48px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;">${j + 1}</div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:${fsTitle}px;font-weight:700;margin-bottom:6px;line-height:1.55;">${esc(item.title || "")}</div>
-              <div style="font-size:${fsBody}px;color:#555;line-height:1.85;">
-                ${item.reason ? `<div><b>理由：</b>${esc(item.reason)}</div>` : ""}
-                ${item.example ? `<div style="margin-top:4px;"><b>実装例：</b>${esc(item.example)}</div>` : ""}
+      <div style="padding:24px 100px 60px;display:flex;flex-direction:column;height:calc(100% - 200px);">
+        <div style="font-size:18px;color:#555;margin-bottom:22px;line-height:1.6;">${esc(s.categorySubtitle || "")}</div>
+        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : `
+          <div style="display:flex;flex-direction:column;gap:28px;flex:1;">
+            ${items.map((item, j) => `
+              <div style="display:flex;gap:22px;align-items:flex-start;">
+                <div style="flex-shrink:0;width:56px;height:56px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;">${startNum + j}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.55;">${esc(item.title || "")}</div>
+                  <div style="font-size:16px;color:#555;line-height:1.85;">
+                    ${item.reason ? `<div style="margin-bottom:6px;"><b style="color:#ea580c;">理由：</b>${esc(item.reason)}</div>` : ""}
+                    ${item.example ? `<div><b style="color:#ea580c;">実装例：</b>${esc(item.example)}</div>` : ""}
+                  </div>
+                </div>
               </div>
-            </div>
+            `).join("")}
           </div>
-        `).join("")}
+        `}
       </div>
     </div>
   `;

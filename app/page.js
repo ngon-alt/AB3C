@@ -2396,6 +2396,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
       const comboVisual = (selectedCombinationId && visualMocksByCombination && visualMocksByCombination[selectedCombinationId]) || null;
       const useVisualMock = comboVisual || visualMock || null;
 
+      // 差出人欄: ログイン中ユーザーの名前がある場合はそれを優先、なければデフォルト文言
+      const issuerName = session?.user?.name ? `${session.user.name}　/　戦略指南 AI` : "戦略指南 AI / senryaku.ai";
+
       const slides = buildSlides({
         result: resultForExport,
         input: currentInput,
@@ -2403,6 +2406,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
         visualMock: useVisualMock,
         analyzedAt,
         historyTitle,
+        issuer: issuerName,
       });
 
       if (format === "pptx") {

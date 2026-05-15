@@ -37,7 +37,7 @@ function formatDate(d) {
   return `${y}.${m}.${day}`;
 }
 
-export function buildSlides({ result, input, improveResult, visualMock, analyzedAt, historyTitle }) {
+export function buildSlides({ result, input, improveResult, visualMock, analyzedAt, historyTitle, issuer }) {
   if (!result) return [];
 
   const siteName = extractSiteName(input);
@@ -58,6 +58,10 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
   const slides = [];
 
   // 1. 表紙（戦略メッセージを主役に）
+  // 権さん 2026-05-15 フィードバック:
+  // - 提案書だと一目で分かるよう「{siteName} | AB3C 分析レポート」を最上部に
+  // - 「戦略メッセージ」ラベルはメッセージ本体のすぐ近くに
+  // - 下部に差出人欄を設ける
   slides.push({
     type: "cover",
     siteName,
@@ -66,6 +70,7 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
     strategyMessage: safe(sm.message),
     benefitPart: safe(sm.benefit_part),
     advantagePart: safe(sm.advantage_part),
+    issuer: safe(issuer) || "戦略指南 AI / senryaku.ai",
   });
 
   // 2. 目次
@@ -88,9 +93,20 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
   });
 
   // 4. AB3Cフレームワークとは
+  // 権さん 2026-05-15 フィードバック: 大前研一の3C分析ベースであること、関連書籍・関連団体を併載する。
   slides.push({
     type: "framework",
-    description: "AB3C は「選ばれる理由」を明らかにする戦略フレームワーク。3C（顧客・競合・自社）から始まり、Benefit（お客様が求める価値）と Advantage（差別的優位点）を統合して、戦略メッセージへと組み立てます。",
+    description: "AB3C は「選ばれる理由」を明らかにする戦略フレームワーク。大前研一氏の3C分析をベースに、デジタル時代により最適化された戦略フレームワークです。超競争環境における「違い」をより具体的に言語化することで「選ばれる理由」を明らかにします。",
+    orderNote: "AB3C の順序は「C → B → A」。現状を把握してから、価値と優位性を組み立て、最後に戦略メッセージへと統合します。",
+    relatedBook: {
+      title: "なぜあなたのウェブには戦略がないのか",
+      author: "権 成俊（著）",
+      url: "https://www.amazon.co.jp/dp/4774188050/",
+    },
+    relatedAssociation: {
+      name: "一般社団法人 デジタル経営革新協会",
+      url: "https://www.digi-kaku.or.jp/",
+    },
   });
 
   // ── 第1部: 現状把握（3C）
@@ -183,21 +199,30 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
     }
 
     // 12b-d. 改善レポート（3カテゴリそれぞれ独立スライド・全項目を載せる）
+    // 権さん 2026-05-15 フィードバック: 1スライドに詰めすぎると重なる。3項目超は複数スライドに分割。
     if (hasImprove) {
       const cats = [
         { key: "contents", label: "追加すべきコンテンツ", subtitle: "戦略から導かれる、サイトに足すべき情報や要素", items: arr(improveResult.contents) },
         { key: "design", label: "改善すべきデザイン・ビジュアル", subtitle: "視覚的に整えるべきポイント", items: arr(improveResult.design) },
         { key: "structure", label: "サイト構造の改善", subtitle: "情報設計・導線・ページ構成の改善", items: arr(improveResult.structure) },
       ];
+      const MAX_PER_SLIDE = 3; // 1スライドあたり最大3項目（タイトル＋理由＋実装例が長くなる前提で余白確保）
       cats.forEach(cat => {
         if (cat.items.length === 0) return;
-        slides.push({
-          type: "improve-section",
-          categoryKey: cat.key,
-          categoryLabel: cat.label,
-          categorySubtitle: cat.subtitle,
-          items: cat.items.map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) })),
-        });
+        const normalized = cat.items.map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) }));
+        const totalSlides = Math.ceil(normalized.length / MAX_PER_SLIDE);
+        for (let pi = 0; pi < totalSlides; pi++) {
+          const start = pi * MAX_PER_SLIDE;
+          const slice = normalized.slice(start, start + MAX_PER_SLIDE);
+          slides.push({
+            type: "improve-section",
+            categoryKey: cat.key,
+            categoryLabel: cat.label + (totalSlides > 1 ? `（${pi + 1}/${totalSlides}）` : ""),
+            categorySubtitle: cat.subtitle,
+            itemNumberStart: start + 1,
+            items: slice,
+          });
+        }
       });
     }
   }
