@@ -10,6 +10,7 @@ import ShadowMock from "./components/ShadowMock";
 import UpdateHistoryModal from "./components/UpdateHistoryModal";
 // SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
+import { buildSlides } from "./lib/exporters/build-slides";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
@@ -1691,6 +1692,8 @@ const [tab, setTab] = useState("url");
   const [shareCopied, setShareCopied] = useState(false);
   const [historyTitle, setHistoryTitle] = useState("");
   const [sharing, setSharing] = useState(false);
+  // 提案書エクスポート（PPTX / PDF）の進捗状態。生成中は両ボタンを無効化する。
+  const [exporting, setExporting] = useState(null); // null | "pptx" | "pdf"
   const [showPricing, setShowPricing] = useState(false);
 const [showWelcome, setShowWelcome] = useState(false);
 const [showUpdates, setShowUpdates] = useState(false);
@@ -2367,6 +2370,50 @@ const [chatSummaries, setChatSummaries] = useState([]);
         setShareCopied(ok);
       }
     } catch (e) { console.error(e); } finally { setSharing(false); }
+  };
+
+  // 提案書エクスポート: PPTX / PDF
+  // 「表示中のパターン」の結果（currentResult）と、それに対応する改善レポートを使ってスライドを構築する。
+  // 印刷ボタンと同じ「現在表示中のパターンを書き出す」挙動を踏襲。
+  const exportProposal = async (format) => {
+    if (!currentResult || exporting) return;
+    setExporting(format);
+    try {
+      // 3パターン構成（combinations）の場合は、選択中パターンの shadow result を生成して使う。
+      // 通常構成（旧データ）の場合は currentResult をそのまま使う。
+      let resultForExport = currentResult;
+      const hasCombinations = !!(currentResult?.combinations && Array.isArray(currentResult.combinations) && currentResult.combinations.length > 0);
+      if (hasCombinations) {
+        const currentCombo = currentResult.combinations.find(c => c && c.id === selectedCombinationId) || currentResult.combinations[0];
+        const shadow = buildShadowResultFromCombo(currentCombo, currentResult.company_core);
+        if (shadow) resultForExport = shadow;
+      }
+
+      // 現在表示中のパターンに対応する改善レポートを取得（パターン切替時は per-combo cache を優先）
+      const comboImprove = (selectedCombinationId && improveResultsByCombination && improveResultsByCombination[selectedCombinationId]) || null;
+      const useImprove = comboImprove || improveResult || null;
+
+      const slides = buildSlides({
+        result: resultForExport,
+        input: currentInput,
+        improveResult: useImprove,
+        analyzedAt,
+        historyTitle,
+      });
+
+      if (format === "pptx") {
+        const { exportPptx } = await import("./lib/exporters/pptx-exporter");
+        await exportPptx({ slides, input: currentInput, historyTitle });
+      } else if (format === "pdf") {
+        const { exportPdf } = await import("./lib/exporters/pdf-exporter");
+        await exportPdf({ slides, input: currentInput, historyTitle });
+      }
+    } catch (e) {
+      console.error("エクスポート失敗:", e);
+      alert("提案書の書き出しに失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setExporting(null);
+    }
   };
 
   useEffect(() => {
@@ -4034,6 +4081,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           title={isGenerating ? genTip : "現在表示中のパターン（タブ切替で選んでいるパターン）の内容を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。"}
         >
           {isGenerating ? "🖨️ 生成完了までお待ちください" : "🖨️ 表示中のパターンを印刷・ＰＤＦ"}
+        </button>
+        {/* 提案書エクスポート: 表示中のパターンを PowerPoint / PDF（16:9 提案書フォーマット）に書き出す。
+            印刷ボタンとは別軸。印刷=ブラウザの簡易PDF保存、ここ=表紙・目次・章扉を含む提案書テンプレート。 */}
+        <button
+          onClick={() => exportProposal("pptx")}
+          disabled={isGenerating || !!exporting}
+          title={isGenerating ? genTip : "表紙・目次・章扉付きの提案書フォーマットで PowerPoint ファイル（.pptx）を書き出します。PowerPoint・Keynote・Google Slides で開けます。"}
+          style={{ background: (isGenerating || !!exporting) ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: (isGenerating || !!exporting) ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", opacity: (isGenerating || !!exporting) ? 0.7 : 1 }}
+        >
+          {isGenerating ? "📊 生成完了までお待ちください" : exporting === "pptx" ? "📊 書き出し中…" : "📊 提案書（PowerPoint）"}
+        </button>
+        <button
+          onClick={() => exportProposal("pdf")}
+          disabled={isGenerating || !!exporting}
+          title={isGenerating ? genTip : "表紙・目次・章扉付きの提案書フォーマットで PDF ファイルを書き出します。16:9 の提案書スタイルです。"}
+          style={{ background: (isGenerating || !!exporting) ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: (isGenerating || !!exporting) ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", opacity: (isGenerating || !!exporting) ? 0.7 : 1 }}
+        >
+          {isGenerating ? "📄 生成完了までお待ちください" : exporting === "pdf" ? "📄 書き出し中…（数秒かかります）" : "📄 提案書（PDF）"}
         </button>
       </>
     );
