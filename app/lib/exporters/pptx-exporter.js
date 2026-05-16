@@ -520,17 +520,24 @@ function renderNextActions(slide, s) {
     slide.addShape("rect", { x, y: y + 0.5, w: cellW, h: cellH - 0.5, fill: { color: "FFF7ED" }, line: { color: "ea580c", width: 0.5 } });
 
     // テーマリスト
+    // 権さん 2026-05-16: 縦2段（名前/説明）だと itemH が小さい時に説明文が次テーマと重なる。
+    // 1テーマ 1行のインライン形式（名前太字＋説明グレー）に変更してオーバーフローを排除。
     const themes = g.themes || [];
-    const itemH = (cellH - 0.6) / Math.max(themes.length, 1);
+    const themesBodyH = cellH - 0.6;
+    const itemH = themesBodyH / Math.max(themes.length, 1);
     themes.forEach((t, j) => {
       const ty = y + 0.55 + j * itemH;
-      slide.addText([
+      const parts = [
         { text: "・", options: { color: "ea580c", bold: true } },
         { text: t.name, options: { color: COLORS.ink, bold: true } },
-      ], { x: x + 0.2, y: ty, w: cellW - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 13 });
+      ];
       if (t.desc) {
-        slide.addText(t.desc, { x: x + 0.45, y: ty + 0.28, w: cellW - 0.55, h: itemH - 0.3, fontFace: F_BODY, fontSize: 10, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.5 });
+        parts.push({ text: "　" + t.desc, options: { color: COLORS.muted } });
       }
+      slide.addText(parts, {
+        x: x + 0.2, y: ty, w: cellW - 0.4, h: itemH - 0.05,
+        fontFace: F_BODY, fontSize: 12, valign: "middle",
+      });
     });
   });
 }
