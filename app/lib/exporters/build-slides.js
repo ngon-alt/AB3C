@@ -79,7 +79,7 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
     sections: [
       { num: "1", title: "現状把握（3C 分析）", subtitle: "顧客・競合・自社", color: COLORS.C },
       { num: "2", title: "戦略の核", subtitle: "ベネフィット・アドバンテージ・戦略メッセージ", color: COLORS.B },
-      { num: "3", title: "整合性チェック", subtitle: "戦略の自己点検", color: COLORS.muted },
+      { num: "3", title: "品質チェック", subtitle: "戦略の自己点検", color: COLORS.muted },
       ...((hasImprove || hasVisualMock) ? [{ num: "4", title: "実行", subtitle: "ウェブサイト改善・次のアクション", color: COLORS.exec }] : []),
     ],
   });
@@ -169,8 +169,8 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
     advantagePart: safe(sm.advantage_part),
   });
 
-  // ── 第3部: 整合性
-  slides.push({ type: "section-divider", num: "3", title: "整合性チェック", subtitle: "戦略の自己点検", color: COLORS.muted });
+  // ── 第3部: 品質チェック（旧名: 整合性チェック・権さん 2026-05-16 リネーム）
+  slides.push({ type: "section-divider", num: "3", title: "品質チェック", subtitle: "戦略の自己点検", color: COLORS.muted });
 
   // 11. 整合性チェック
   // ラベルは CLAUDE.md の日本語ラベル原則に従い、ok → "OK"、warn → "注意"、ng → "NG"。
@@ -227,14 +227,41 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
     }
   }
 
-  // 13. 次のアクション
+  // 13. 次のアクション（権さん 2026-05-16: 10テーマあることを明示。グループ化してリスト表示）
   slides.push({
     type: "next-actions",
-    themes: [
-      { label: "集客・広告", desc: "SEO / SNS / Google マップ / 広告の優先順位" },
-      { label: "ウェブサイト改善", desc: "コンテンツ・デザイン・構造の改善" },
-      { label: "採用コンテンツ", desc: "ビジョン・強み・キャリアプランの言語化" },
-      { label: "補助金申請", desc: "小規模事業者持続化補助金などの計画書化" },
+    description: "戦略指南 AI の「戦略アクション」では、確定した戦略をもとに10テーマで具体的な施策を検討できます。",
+    groups: [
+      {
+        label: "集客",
+        themes: [
+          { name: "SEO", desc: "検索流入を高める対策" },
+          { name: "SNS", desc: "SNS 運用とエンゲージメント" },
+          { name: "Web広告", desc: "リスティング・ディスプレイ広告" },
+          { name: "Googleマップ", desc: "ローカル検索対策（MEO）" },
+        ],
+      },
+      {
+        label: "販促・PR",
+        themes: [
+          { name: "チラシ・DM", desc: "紙媒体での販促企画" },
+          { name: "プレスリリース", desc: "メディア露出と認知拡大" },
+        ],
+      },
+      {
+        label: "コンテンツ・営業",
+        themes: [
+          { name: "ウェブサイト改善", desc: "コンテンツ・デザイン・構造の改善" },
+          { name: "営業資料", desc: "提案書・パンフレットの整備" },
+        ],
+      },
+      {
+        label: "経営・組織",
+        themes: [
+          { name: "採用", desc: "ビジョン・キャリアプランの言語化" },
+          { name: "補助金", desc: "持続化補助金などの計画書化" },
+        ],
+      },
     ],
   });
 
