@@ -2396,8 +2396,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
       const comboVisual = (selectedCombinationId && visualMocksByCombination && visualMocksByCombination[selectedCombinationId]) || null;
       const useVisualMock = comboVisual || visualMock || null;
 
-      // 差出人欄: ログイン中ユーザーの名前がある場合はそれを優先、なければデフォルト文言
-      const issuerName = session?.user?.name ? `${session.user.name}　/　戦略指南 AI` : "戦略指南 AI / senryaku.ai";
+      // 差出人欄は「戦略指南 AI」のみで統一（権さん指示 2026-05-16）。
+      const issuerName = "戦略指南 AI";
 
       const slides = buildSlides({
         result: resultForExport,

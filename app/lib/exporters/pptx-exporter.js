@@ -393,7 +393,7 @@ function renderStrategyRecap(slide, s) {
 
 function renderCheckpoints(slide, s) {
   bg(slide, COLORS.bg);
-  pageHeader(slide, "整合性チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
+  pageHeader(slide, "品質チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
   const items = s.items.slice(0, 5);
   const rowH = (H - 2.2) / Math.max(items.length, 1);
   items.forEach((c, i) => {
@@ -494,16 +494,44 @@ function renderVisualMock(slide, s) {
 function renderNextActions(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "次のアクション", "ea580c", "STRATEGY ACTION");
-  slide.addText("戦略指南 AI の「戦略アクション」では、確定した戦略をもとに10テーマで具体的な施策を検討できます。", { x: M, y: 1.65, w: W - M * 2, h: 0.6, fontFace: F_BODY, fontSize: 14, color: COLORS.muted, valign: "top" });
-  const colW = (W - M * 2 - 0.4) / 2;
-  s.themes.forEach((t, i) => {
+  // 権さん 2026-05-16: 10テーマあることを明示するため、4グループ × リスト表示に再設計。
+  const description = s.description || "戦略指南 AI の「戦略アクション」では、確定した戦略をもとに10テーマで具体的な施策を検討できます。";
+  slide.addText(description, { x: M, y: 1.55, w: W - M * 2, h: 0.5, fontFace: F_BODY, fontSize: 13, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.6 });
+
+  const groups = s.groups || [];
+  // 2x2 グリッドで配置（4グループ前提）
+  const gridTopY = 2.2;
+  const gridBottomY = H - 0.55;
+  const cellH = (gridBottomY - gridTopY - 0.3) / 2;
+  const cellW = (W - M * 2 - 0.4) / 2;
+  groups.slice(0, 4).forEach((g, i) => {
     const col = i % 2;
     const row = Math.floor(i / 2);
-    const x = M + col * (colW + 0.4);
-    const y = 2.5 + row * 1.0;
-    slide.addShape("rect", { x, y, w: colW, h: 0.85, fill: { color: "FFF7ED" }, line: { color: "ea580c" } });
-    slide.addText(t.label, { x: x + 0.2, y: y + 0.1, w: colW - 0.4, h: 0.35, fontFace: F_BODY, fontSize: 14, bold: true, color: "ea580c" });
-    slide.addText(t.desc, { x: x + 0.2, y: y + 0.45, w: colW - 0.4, h: 0.35, fontFace: F_BODY, fontSize: 11, color: COLORS.ink });
+    const x = M + col * (cellW + 0.4);
+    const y = gridTopY + row * (cellH + 0.3);
+
+    // グループヘッダー（オレンジ帯）
+    slide.addShape("rect", { x, y, w: cellW, h: 0.5, fill: { color: "ea580c" }, line: { color: "ea580c" } });
+    slide.addText(g.label, { x: x + 0.2, y, w: cellW - 0.4, h: 0.5, fontFace: F_HEAD, fontSize: 16, bold: true, color: "FFFFFF", valign: "middle" });
+    // テーマ数バッジ
+    slide.addText(`${g.themes.length} テーマ`, { x: x + cellW - 1.2, y, w: 1.0, h: 0.5, fontFace: F_MONO, fontSize: 10, color: "FFFFFF", align: "right", valign: "middle", charSpacing: 2 });
+
+    // ボディ（薄オレンジ）
+    slide.addShape("rect", { x, y: y + 0.5, w: cellW, h: cellH - 0.5, fill: { color: "FFF7ED" }, line: { color: "ea580c", width: 0.5 } });
+
+    // テーマリスト
+    const themes = g.themes || [];
+    const itemH = (cellH - 0.6) / Math.max(themes.length, 1);
+    themes.forEach((t, j) => {
+      const ty = y + 0.55 + j * itemH;
+      slide.addText([
+        { text: "・", options: { color: "ea580c", bold: true } },
+        { text: t.name, options: { color: COLORS.ink, bold: true } },
+      ], { x: x + 0.2, y: ty, w: cellW - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 13 });
+      if (t.desc) {
+        slide.addText(t.desc, { x: x + 0.45, y: ty + 0.28, w: cellW - 0.55, h: itemH - 0.3, fontFace: F_BODY, fontSize: 10, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.5 });
+      }
+    });
   });
 }
 
