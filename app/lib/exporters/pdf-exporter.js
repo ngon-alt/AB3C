@@ -362,33 +362,29 @@ function renderCheckpointsHtml(s) {
   `;
 }
 
-// 改善レポート 1ページ分（最大3項目）。build-slides 側でページネーション済み。
-// 権さん 2026-05-15 フィードバック: 文字詰まり・項目同士の重なりを解消するため、
-// 1スライドあたり最大3項目に制限し、ゆったりとした余白で配置する。
+// 改善レポート 1ページ分（最大2項目）。build-slides 側でページネーション済み。
+// 権さん 2026-05-16: flex:1 の inner column は長文時に重なりが起きるため、
+// block レイアウト（自然な高さ + margin-bottom）に変更してオーバーフローを排除する。
 function renderImproveSectionHtml(s) {
   const items = s.items || [];
   const startNum = s.itemNumberStart || 1;
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml(s.categoryLabel, "ea580c", "PART 4  ─  WEBSITE IMPROVEMENT")}
-      <div style="padding:24px 100px 60px;display:flex;flex-direction:column;height:calc(100% - 200px);">
-        <div style="font-size:18px;color:#555;margin-bottom:22px;line-height:1.6;">${esc(s.categorySubtitle || "")}</div>
-        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : `
-          <div style="display:flex;flex-direction:column;gap:28px;flex:1;">
-            ${items.map((item, j) => `
-              <div style="display:flex;gap:22px;align-items:flex-start;">
-                <div style="flex-shrink:0;width:56px;height:56px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;">${startNum + j}</div>
-                <div style="flex:1;min-width:0;">
-                  <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.55;">${esc(item.title || "")}</div>
-                  <div style="font-size:16px;color:#555;line-height:1.85;">
-                    ${item.reason ? `<div style="margin-bottom:6px;"><b style="color:#ea580c;">理由：</b>${esc(item.reason)}</div>` : ""}
-                    ${item.example ? `<div><b style="color:#ea580c;">実装例：</b>${esc(item.example)}</div>` : ""}
-                  </div>
-                </div>
+      <div style="padding:24px 100px 60px;height:calc(100% - 200px);overflow:hidden;box-sizing:border-box;">
+        <div style="font-size:18px;color:#555;margin-bottom:30px;line-height:1.6;">${esc(s.categorySubtitle || "")}</div>
+        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
+          <div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:48px;">
+            <div style="flex-shrink:0;width:64px;height:64px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:32px;font-weight:700;">${startNum + j}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:26px;font-weight:700;margin-bottom:14px;line-height:1.55;">${esc(item.title || "")}</div>
+              <div style="font-size:18px;color:#555;line-height:1.9;">
+                ${item.reason ? `<div style="margin-bottom:10px;"><b style="color:#ea580c;">理由：</b>${esc(item.reason)}</div>` : ""}
+                ${item.example ? `<div><b style="color:#ea580c;">実装例：</b>${esc(item.example)}</div>` : ""}
               </div>
-            `).join("")}
+            </div>
           </div>
-        `}
+        `).join("")}
       </div>
     </div>
   `;
