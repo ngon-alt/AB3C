@@ -494,50 +494,59 @@ function renderVisualMock(slide, s) {
 function renderNextActions(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "次のアクション", "ea580c", "STRATEGY ACTION");
-  // 権さん 2026-05-16: 10テーマあることを明示するため、4グループ × リスト表示に再設計。
+  // 権さん 2026-05-16: 2x2 グリッドだと縦方向が狭く、4テーマのカテゴリで説明が重なった。
+  // 4カラム並列レイアウトに変更し、各カラムで縦方向に余裕を持って 2段（名前/説明）表示する。
   const description = s.description || "戦略指南 AI の「戦略アクション」では、確定した戦略をもとに10テーマで具体的な施策を検討できます。";
   slide.addText(description, { x: M, y: 1.55, w: W - M * 2, h: 0.5, fontFace: F_BODY, fontSize: 13, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.6 });
 
   const groups = s.groups || [];
-  // 2x2 グリッドで配置（4グループ前提）
-  const gridTopY = 2.2;
-  const gridBottomY = H - 0.55;
-  const cellH = (gridBottomY - gridTopY - 0.3) / 2;
-  const cellW = (W - M * 2 - 0.4) / 2;
-  groups.slice(0, 4).forEach((g, i) => {
-    const col = i % 2;
-    const row = Math.floor(i / 2);
-    const x = M + col * (cellW + 0.4);
-    const y = gridTopY + row * (cellH + 0.3);
+  const numCols = Math.min(groups.length, 4);
+  const colGap = 0.2;
+  const colW = (W - M * 2 - colGap * (numCols - 1)) / numCols;
+  const gridTopY = 2.15;
+  const gridBottomY = H - 0.5;
+  const cellH = gridBottomY - gridTopY;
+  const headerH = 0.55;
 
-    // グループヘッダー（オレンジ帯）
-    slide.addShape("rect", { x, y, w: cellW, h: 0.5, fill: { color: "ea580c" }, line: { color: "ea580c" } });
-    slide.addText(g.label, { x: x + 0.2, y, w: cellW - 0.4, h: 0.5, fontFace: F_HEAD, fontSize: 16, bold: true, color: "FFFFFF", valign: "middle" });
+  groups.slice(0, numCols).forEach((g, i) => {
+    const x = M + i * (colW + colGap);
+    const y = gridTopY;
+
+    // ヘッダー（オレンジ帯）
+    slide.addShape("rect", { x, y, w: colW, h: headerH, fill: { color: "ea580c" }, line: { color: "ea580c" } });
+    slide.addText(g.label, { x: x + 0.15, y, w: colW - 0.85, h: headerH, fontFace: F_HEAD, fontSize: 15, bold: true, color: "FFFFFF", valign: "middle" });
     // テーマ数バッジ
-    slide.addText(`${g.themes.length} テーマ`, { x: x + cellW - 1.2, y, w: 1.0, h: 0.5, fontFace: F_MONO, fontSize: 10, color: "FFFFFF", align: "right", valign: "middle", charSpacing: 2 });
+    slide.addText(`${g.themes.length} テーマ`, { x: x + colW - 0.95, y, w: 0.8, h: headerH, fontFace: F_MONO, fontSize: 10, color: "FFFFFF", align: "right", valign: "middle", charSpacing: 1 });
 
     // ボディ（薄オレンジ）
-    slide.addShape("rect", { x, y: y + 0.5, w: cellW, h: cellH - 0.5, fill: { color: "FFF7ED" }, line: { color: "ea580c", width: 0.5 } });
+    slide.addShape("rect", { x, y: y + headerH, w: colW, h: cellH - headerH, fill: { color: "FFF7ED" }, line: { color: "ea580c", width: 0.5 } });
 
-    // テーマリスト
-    // 権さん 2026-05-16: 縦2段（名前/説明）だと itemH が小さい時に説明文が次テーマと重なる。
-    // 1テーマ 1行のインライン形式（名前太字＋説明グレー）に変更してオーバーフローを排除。
+    // テーマリスト（縦並び・各テーマは「名前」太字＋「説明」グレー小の2段）
     const themes = g.themes || [];
-    const themesBodyH = cellH - 0.6;
-    const itemH = themesBodyH / Math.max(themes.length, 1);
+    const bodyTop = y + headerH + 0.15;
+    const bodyBottom = y + cellH - 0.15;
+    const usable = bodyBottom - bodyTop;
+    // 1テーマあたり最大 1.1in に制限（2テーマ列がスカスカに見えないように）
+    const itemH = Math.min(usable / Math.max(themes.length, 1), 1.1);
+
     themes.forEach((t, j) => {
-      const ty = y + 0.55 + j * itemH;
-      const parts = [
+      const ty = bodyTop + j * itemH;
+      // テーマ名
+      slide.addText([
         { text: "・", options: { color: "ea580c", bold: true } },
         { text: t.name, options: { color: COLORS.ink, bold: true } },
-      ];
-      if (t.desc) {
-        parts.push({ text: "　" + t.desc, options: { color: COLORS.muted } });
-      }
-      slide.addText(parts, {
-        x: x + 0.2, y: ty, w: cellW - 0.4, h: itemH - 0.05,
-        fontFace: F_BODY, fontSize: 12, valign: "middle",
+      ], {
+        x: x + 0.15, y: ty, w: colW - 0.3, h: 0.32,
+        fontFace: F_BODY, fontSize: 12,
       });
+      // 説明
+      if (t.desc) {
+        slide.addText(t.desc, {
+          x: x + 0.35, y: ty + 0.35, w: colW - 0.5, h: itemH - 0.4,
+          fontFace: F_BODY, fontSize: 9, color: COLORS.muted,
+          valign: "top", lineSpacingMultiple: 1.35,
+        });
+      }
     });
   });
 }
