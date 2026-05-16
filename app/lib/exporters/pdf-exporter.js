@@ -413,28 +413,30 @@ function renderVisualMockHtml(s) {
 }
 
 function renderNextActionsHtml(s) {
-  // 権さん 2026-05-16: 10テーマあることを明示。4グループ × リスト表示に再設計。
+  // 権さん 2026-05-16: 2x2 → 4カラム並列レイアウトに変更。
+  // 各カラムで縦方向に余裕を持って 2段（名前/説明）表示する。
   const description = s.description || "戦略指南 AI の「戦略アクション」では、確定した戦略をもとに10テーマで具体的な施策を検討できます。";
   const groups = s.groups || [];
+  const numCols = Math.min(groups.length, 4);
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("次のアクション", "ea580c", "STRATEGY ACTION")}
       <div style="padding:24px 100px 60px;display:flex;flex-direction:column;height:calc(100% - 200px);">
         <div style="font-size:20px;color:#555;line-height:1.7;margin-bottom:22px;">${esc(description)}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex:1;">
-          ${lines(groups, (g) => `
+        <div style="display:grid;grid-template-columns:repeat(${numCols}, 1fr);gap:18px;flex:1;">
+          ${lines(groups.slice(0, numCols), (g) => `
             <div style="border:2px solid #ea580c;background:#fff;display:flex;flex-direction:column;overflow:hidden;">
-              <div style="background:#ea580c;color:#fff;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-family:'Noto Serif JP',serif;font-size:22px;font-weight:700;">${esc(g.label)}</div>
-                <div class="mono" style="font-size:13px;letter-spacing:.2em;opacity:.95;">${g.themes.length} テーマ</div>
+              <div style="background:#ea580c;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <div style="font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;line-height:1.3;">${esc(g.label)}</div>
+                <div class="mono" style="font-size:12px;letter-spacing:.1em;white-space:nowrap;opacity:.95;">${g.themes.length} テーマ</div>
               </div>
-              <div style="background:#FFF7ED;padding:16px 22px;flex:1;">
+              <div style="background:#FFF7ED;padding:16px 14px;flex:1;">
                 ${lines(g.themes, (t) => `
-                  <div style="margin-bottom:12px;">
-                    <div style="font-size:17px;font-weight:700;color:#1a1a14;line-height:1.45;">
-                      <span style="color:#ea580c;margin-right:4px;">・</span>${esc(t.name)}
+                  <div style="margin-bottom:16px;">
+                    <div style="font-size:15px;font-weight:700;color:#1a1a14;line-height:1.45;">
+                      <span style="color:#ea580c;margin-right:2px;">・</span>${esc(t.name)}
                     </div>
-                    ${t.desc ? `<div style="font-size:13px;color:#555;line-height:1.65;margin-left:14px;margin-top:2px;">${esc(t.desc)}</div>` : ""}
+                    ${t.desc ? `<div style="font-size:12px;color:#555;line-height:1.65;margin-left:12px;margin-top:4px;">${esc(t.desc)}</div>` : ""}
                   </div>
                 `)}
               </div>
