@@ -206,7 +206,9 @@ export function buildSlides({ result, input, improveResult, visualMock, analyzed
         { key: "design", label: "改善すべきデザイン・ビジュアル", subtitle: "視覚的に整えるべきポイント", items: arr(improveResult.design) },
         { key: "structure", label: "サイト構造の改善", subtitle: "情報設計・導線・ページ構成の改善", items: arr(improveResult.structure) },
       ];
-      const MAX_PER_SLIDE = 3; // 1スライドあたり最大3項目（タイトル＋理由＋実装例が長くなる前提で余白確保）
+      // 権さん 2026-05-16: 分析結果の文字量によってはまだテキストがかぶるため、
+      // 原則 1スライド 2項目までに変更（タイトル＋理由＋実装例の長文を確実に収める）。
+      const MAX_PER_SLIDE = 2;
       cats.forEach(cat => {
         if (cat.items.length === 0) return;
         const normalized = cat.items.map(x => ({ title: safe(x.title), reason: safe(x.reason), example: safe(x.example) }));
