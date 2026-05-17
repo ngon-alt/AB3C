@@ -426,9 +426,12 @@ function renderNextActionsHtml(s) {
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("次のアクション", "ea580c", "STRATEGY ACTION")}
-      <div style="padding:24px 100px 60px;display:flex;flex-direction:column;height:calc(100% - 200px);">
+      <div style="padding:24px 100px 60px;">
         <div style="font-size:26px;color:#555;line-height:1.7;margin-bottom:22px;">${esc(description)}</div>
-        <div style="display:grid;grid-template-columns:repeat(${numCols}, 1fr);gap:18px;flex:1;">
+        <!-- 権さん 2026-05-17: flex:1 を外し、grid 自体を中身（最長カラム）の自然高さにする。
+             これにより 4 カラムの箱全体が縦に詰まる。grid 既定で行ストレッチするので
+             全カラムは同じ高さ（最長 = 集客 4テーマ分）になる。 -->
+        <div style="display:grid;grid-template-columns:repeat(${numCols}, 1fr);gap:18px;">
           ${lines(groups.slice(0, numCols), (g) => `
             <div style="border:2px solid #ea580c;background:#fff;display:flex;flex-direction:column;overflow:hidden;">
               <div style="background:#ea580c;color:#fff;padding:10px 14px;text-align:center;">
