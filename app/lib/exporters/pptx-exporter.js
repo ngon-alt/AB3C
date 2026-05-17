@@ -408,8 +408,11 @@ function renderStrategyRecap(slide, s) {
 function renderCheckpoints(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "品質チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
-  // 権さん 2026-05-17（再）: 前回の拡大が逆方向だった。本文をさらに小さくして5項目を余裕で収める。
-  // ステータスバッジ 11pt、ラベル 13pt、コメント 10pt、行間も詰める。
+  // 権さん 2026-05-17（再々）: コメントが項目を跨いで重なる現象が継続。
+  // - rowH = 1.06in に対し、コメント h=0.54in が長文 2〜3行で溢れていた
+  // - コメント fontSize 10 → 8pt、lineSpacing 1.35 → 1.15 にさらに縮小
+  // - ラベル h を 0.35 → 0.32 に詰めてコメント領域を拡張（0.54 → 0.57in）
+  // - shrinkText に加えて autoFit も明示
   const items = s.items.slice(0, 5);
   const rowH = (H - 2.2) / Math.max(items.length, 1);
   items.forEach((c, i) => {
@@ -417,8 +420,12 @@ function renderCheckpoints(slide, s) {
     const statusColor = c.status === "ok" ? "0d9488" : c.status === "warn" ? "ea580c" : c.status === "ng" ? COLORS.B : COLORS.muted;
     slide.addShape("rect", { x: M, y, w: 0.85, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
     slide.addText(c.statusLabel, { x: M, y, w: 0.85, h: rowH - 0.15, fontFace: F_BODY, fontSize: 11, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label || "—", { x: M + 1.05, y, w: W - M * 2 - 1.05, h: 0.35, fontFace: F_BODY, fontSize: 13, bold: true, color: COLORS.ink });
-    slide.addText(c.comment || "", { x: M + 1.05, y: y + 0.38, w: W - M * 2 - 1.05, h: rowH - 0.52, fontFace: F_BODY, fontSize: 10, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.35, shrinkText: true });
+    slide.addText(c.label || "—", { x: M + 1.05, y, w: W - M * 2 - 1.05, h: 0.32, fontFace: F_BODY, fontSize: 12, bold: true, color: COLORS.ink, valign: "middle" });
+    slide.addText(c.comment || "", {
+      x: M + 1.05, y: y + 0.34, w: W - M * 2 - 1.05, h: rowH - 0.49,
+      fontFace: F_BODY, fontSize: 8, color: COLORS.muted, valign: "top",
+      lineSpacingMultiple: 1.15, shrinkText: true, autoFit: true, isTextBox: true,
+    });
   });
 }
 
