@@ -190,10 +190,14 @@ function renderSectionDividerHtml(s) {
 }
 
 function renderCustomerHtml(s) {
+  // 権さん 2026-05-17: グレー枠が中身（特に「絞り込み条件」最終行）より短く切れる問題を修正。
+  // 原因: html2canvas が flex align-items:stretch を確実に再現できず、グレー枠の背景高さが
+  // 中身より短くなっていた。対策として page wrapper を flex-column 化し、本文を flex:1 で
+  // ヘッダ以下の残りすべてを埋める構造に変更。グレー枠も常にその全高に揃う。
   return `
-    <div style="position:absolute;inset:0;">
+    <div style="position:absolute;inset:0;display:flex;flex-direction:column;">
       ${pageHeaderHtml("顧客（Customer）", "1a1a14", "PART 1  ─  CUSTOMER")}
-      <div style="padding:40px 100px;display:flex;gap:40px;">
+      <div style="flex:1;padding:40px 100px 60px;display:flex;gap:40px;min-height:0;">
         <div style="flex:1.2;">
           <div class="mono" style="font-size:24px;color:#555;letter-spacing:.3em;">ターゲット</div>
           <div style="font-size:36px;font-weight:700;margin-top:10px;line-height:1.4;">${esc(s.target || "—")}</div>
@@ -203,7 +207,7 @@ function renderCustomerHtml(s) {
             ${s.profile.length ? lines(s.profile, (p) => `<div>・${esc(p)}</div>`) : "—"}
           </div>
         </div>
-        <div style="flex:1;background:#F8F8F6;border:1px solid #ccc;padding:30px;">
+        <div style="flex:1;background:#F8F8F6;border:1px solid #ccc;padding:30px;align-self:stretch;">
           ${[
             ["購買ステージ", s.stage],
             ["市場規模（SAM）", s.market.sam],
