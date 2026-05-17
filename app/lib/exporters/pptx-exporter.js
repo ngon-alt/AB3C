@@ -353,31 +353,32 @@ function renderCompetitor(slide, s) {
 function renderCompany(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
-  // 権さん 2026-05-18（再）: 余白を半分・文字サイズをもっと大きく。
-  // 本文 11pt → 16pt（5割増しジャンプ）。ラベルも 11pt → 13pt。
-  // 各 box h を中身の見込みサイズに合わせて短く、セクション間 gap も 0.05in に詰める。
+  // 権さん 2026-05-18（再々）:
+  // - ラベルを「強み / 仕組み / 価値観」に変更（app/page.js のUI表記に揃える）
+  // - 見出しを強く（mono 13pt muted → sans 16pt bold ink、ジャンプ率と視認性 UP）
+  // - 本文を二回り小さく（16pt → 12pt、ジャンプ率拡大）
   // 強み（リスト・上半分）
-  slide.addText("強み", { x: M, y: 1.5, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("強み", { x: M, y: 1.5, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
   if (s.strength.length) {
     slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
-      x: M, y: 1.82, w: W - M * 2, h: 1.85,
-      fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 2, lineSpacingMultiple: 1.3, shrinkText: true,
+      x: M, y: 1.95, w: W - M * 2, h: 1.85,
+      fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
+      paraSpaceAfter: 2, lineSpacingMultiple: 1.35, shrinkText: true,
     });
   }
-  // 体制（中段）
-  slide.addText("体制", { x: M, y: 3.72, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
+  // 仕組み（中段）— 旧 "体制"
+  slide.addText("仕組み", { x: M, y: 3.85, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
   slide.addText(s.structure || "—", {
-    x: M, y: 4.04, w: W - M * 2, h: 1.5,
-    fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.3, shrinkText: true,
+    x: M, y: 4.3, w: W - M * 2, h: 1.5,
+    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: 1.35, shrinkText: true,
   });
-  // パッション（下段）
-  slide.addText("パッション", { x: M, y: 5.59, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
+  // 価値観（下段）— 旧 "パッション"
+  slide.addText("価値観", { x: M, y: 5.85, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
   slide.addText(s.passion || "—", {
-    x: M, y: 5.91, w: W - M * 2, h: 1.15,
-    fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top", italic: true,
-    lineSpacingMultiple: 1.3, shrinkText: true,
+    x: M, y: 6.3, w: W - M * 2, h: 0.85,
+    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top", italic: true,
+    lineSpacingMultiple: 1.35, shrinkText: true,
   });
 }
 
