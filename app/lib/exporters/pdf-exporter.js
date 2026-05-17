@@ -45,17 +45,17 @@ function renderCoverHtml(s) {
 
       <!-- TOP: レポート識別子 -->
       <div style="text-align:center;">
-        <div class="head-serif" style="font-size:38px;font-weight:700;color:#fff;line-height:1.4;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
-        <div class="mono" style="font-size:18px;color:#fff;letter-spacing:1em;margin-top:14px;opacity:.85;">AB3C  ANALYSIS  REPORT</div>
+        <div class="head-serif" style="font-size:44px;font-weight:700;color:#fff;line-height:1.4;">${esc(s.siteName)}　|　AB3C 分析レポート</div>
+        <div class="mono" style="font-size:22px;color:#fff;letter-spacing:1em;margin-top:14px;opacity:.85;">AB3C  ANALYSIS  REPORT</div>
         <div style="height:1px;background:#fff;width:60%;margin:30px auto 0;opacity:.4;"></div>
       </div>
 
       <!-- MIDDLE: 戦略メッセージ -->
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-        <div class="mono" style="letter-spacing:.6em;color:#fff;font-size:20px;margin-bottom:24px;opacity:.9;">── 戦略メッセージ ──</div>
+        <div class="mono" style="letter-spacing:.6em;color:#fff;font-size:26px;margin-bottom:24px;opacity:.9;">── 戦略メッセージ ──</div>
         <div class="head-serif" style="font-size:56px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;color:#fff;">${esc(s.strategyMessage || "（戦略メッセージ未生成）")}</div>
         ${(s.benefitPart || s.advantagePart) ? `
-          <div style="margin-top:40px;font-size:22px;color:#fff;text-align:center;line-height:1.8;">
+          <div style="margin-top:40px;font-size:26px;color:#fff;text-align:center;line-height:1.8;">
             ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B</span>${esc(clip(s.benefitPart, 100))}</div>` : ""}
             ${s.advantagePart ? `<div style="margin-top:10px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A</span>${esc(clip(s.advantagePart, 100))}</div>` : ""}
           </div>
@@ -65,9 +65,9 @@ function renderCoverHtml(s) {
       <!-- BOTTOM: 差出人欄 -->
       <div style="text-align:center;">
         <div style="height:1px;background:#fff;width:60%;margin:0 auto 22px;opacity:.4;"></div>
-        <div class="mono" style="font-size:14px;color:#fff;letter-spacing:.6em;opacity:.85;">発  行</div>
-        <div style="font-size:22px;color:#fff;margin-top:8px;line-height:1.5;">${esc(s.issuer || "戦略指南 AI / senryaku.ai")}</div>
-        <div class="mono" style="font-size:14px;color:#fff;margin-top:10px;letter-spacing:.3em;opacity:.7;">${esc(s.date)}</div>
+        <div class="mono" style="font-size:20px;color:#fff;letter-spacing:.6em;opacity:.85;">発  行</div>
+        <div style="font-size:28px;color:#fff;margin-top:8px;line-height:1.5;">${esc(s.issuer || "戦略指南 AI / senryaku.ai")}</div>
+        <div class="mono" style="font-size:20px;color:#fff;margin-top:10px;letter-spacing:.3em;opacity:.7;">${esc(s.date)}</div>
       </div>
     </div>
   `;
@@ -76,14 +76,14 @@ function renderCoverHtml(s) {
 function renderTocHtml(s) {
   return `
     <div style="position:absolute;inset:0;padding:80px 100px;">
-      <div class="head-serif" style="font-size:52px;font-weight:700;margin-bottom:16px;">目次 — Agenda</div>
+      <div class="head-serif" style="font-size:56px;font-weight:700;margin-bottom:16px;">目次 — Agenda</div>
       <div style="height:3px;background:#1a1a14;margin-bottom:50px;"></div>
       ${lines(s.sections, (sec) => `
         <div style="display:flex;align-items:center;margin-bottom:30px;">
           <div style="width:130px;height:130px;background:#${sec.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:64px;font-weight:700;">${esc(sec.num)}</div>
           <div style="margin-left:36px;">
-            <div class="head-serif" style="font-size:38px;font-weight:700;line-height:1.3;">${esc(sec.title)}</div>
-            <div style="font-size:22px;color:#555;margin-top:6px;">${esc(sec.subtitle)}</div>
+            <div class="head-serif" style="font-size:44px;font-weight:700;line-height:1.3;">${esc(sec.title)}</div>
+            <div style="font-size:28px;color:#555;margin-top:6px;">${esc(sec.subtitle)}</div>
           </div>
         </div>
       `)}
@@ -92,11 +92,12 @@ function renderTocHtml(s) {
 }
 
 function pageHeaderHtml(title, accentColor = "1a1a14", eyebrow) {
+  // PPT 基準: title 30pt, eyebrow 11pt → PDF は ×2 で 60px / 22px
   return `
     <div style="position:absolute;left:0;top:0;bottom:0;width:18px;background:#${accentColor};"></div>
     <div style="padding:60px 100px 0;">
-      ${eyebrow ? `<div class="mono" style="font-size:18px;color:#555;letter-spacing:.4em;margin-bottom:12px;">${esc(eyebrow)}</div>` : ""}
-      <div class="head-serif" style="font-size:48px;font-weight:700;color:#${accentColor};margin-bottom:24px;">${esc(title)}</div>
+      ${eyebrow ? `<div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:12px;">${esc(eyebrow)}</div>` : ""}
+      <div class="head-serif" style="font-size:60px;font-weight:700;color:#${accentColor};margin-bottom:24px;">${esc(title)}</div>
       <div style="height:2px;background:#${accentColor};"></div>
     </div>
   `;
@@ -107,12 +108,12 @@ function renderAnalysisTargetHtml(s) {
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("分析対象")}
       <div style="padding:60px 100px;">
-        <div class="head-serif" style="font-size:64px;font-weight:700;margin-top:40px;">${esc(s.siteName)}</div>
-        ${s.url ? `<div class="mono" style="font-size:26px;color:#1a6fd4;margin-top:16px;word-break:break-all;">${esc(s.url)}</div>` : ""}
+        <div class="head-serif" style="font-size:72px;font-weight:700;margin-top:40px;">${esc(s.siteName)}</div>
+        ${s.url ? `<div class="mono" style="font-size:32px;color:#1a6fd4;margin-top:16px;word-break:break-all;">${esc(s.url)}</div>` : ""}
         ${s.inputExcerpt ? `
           <div style="margin-top:60px;background:#F8F8F6;border:1px solid #ccc;padding:30px 36px;">
-            <div class="mono" style="font-size:16px;color:#555;letter-spacing:.4em;margin-bottom:14px;">入力テキスト（抜粋）</div>
-            <div style="font-size:24px;line-height:1.85;">${esc(s.inputExcerpt)}</div>
+            <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:14px;">入力テキスト（抜粋）</div>
+            <div style="font-size:28px;line-height:1.85;">${esc(s.inputExcerpt)}</div>
           </div>
         ` : ""}
       </div>
@@ -138,27 +139,27 @@ function renderFrameworkHtml(s) {
             <div style="flex:1;display:flex;align-items:center;">
               <div style="width:110px;height:160px;background:#${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:76px;font-weight:700;flex-shrink:0;">${c.letter}</div>
               <div style="margin-left:20px;flex:1;">
-                <div class="mono" style="font-size:14px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
-                <div style="font-size:22px;color:#1a1a14;line-height:1.65;">${esc(c.desc)}</div>
+                <div class="mono" style="font-size:20px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
+                <div style="font-size:24px;color:#1a1a14;line-height:1.65;">${esc(c.desc)}</div>
               </div>
             </div>
           `)}
         </div>
-        <div style="font-size:24px;line-height:1.9;color:#1a1a14;">${esc(s.description)}</div>
-        <div style="font-size:22px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
+        <div style="font-size:28px;line-height:1.85;color:#1a1a14;">${esc(s.description)}</div>
+        <div style="font-size:24px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
 
         <!-- 関連リソース -->
         <div style="border-top:1px solid #ccc;padding-top:18px;">
-          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
+          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
           ${s.relatedBook ? `
-            <div style="font-size:22px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
+            <div style="font-size:26px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
               <b>📖 関連書籍：</b>
               <a href="${esc(s.relatedBook.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">『${esc(s.relatedBook.title)}』</a>
               ${s.relatedBook.author ? `<span style="color:#555;margin-left:8px;">${esc(s.relatedBook.author)}</span>` : ""}
             </div>
           ` : ""}
           ${s.relatedAssociation ? `
-            <div style="font-size:22px;color:#1a1a14;line-height:1.6;">
+            <div style="font-size:26px;color:#1a1a14;line-height:1.6;">
               <b>🏛 関連団体：</b>
               <a href="${esc(s.relatedAssociation.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">${esc(s.relatedAssociation.name)}</a>
             </div>
@@ -177,9 +178,9 @@ function renderSectionDividerHtml(s) {
     : `background:#${s.color};`;
   return `
     <div style="position:absolute;inset:0;${background}color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <div class="mono" style="font-size:28px;color:#fff;letter-spacing:1em;margin-bottom:30px;">PART  ${esc(s.num)}</div>
+      <div class="mono" style="font-size:36px;color:#fff;letter-spacing:1em;margin-bottom:30px;">PART  ${esc(s.num)}</div>
       <div class="head-serif" style="font-size:120px;font-weight:700;text-align:center;margin-bottom:30px;color:#fff;">${esc(s.title)}</div>
-      <div style="font-size:32px;color:#fff;">${esc(s.subtitle)}</div>
+      <div style="font-size:36px;color:#fff;">${esc(s.subtitle)}</div>
       <div style="display:flex;gap:20px;margin-top:50px;">
         <div style="width:360px;height:8px;background:#fff;"></div>
       </div>
@@ -193,11 +194,11 @@ function renderCustomerHtml(s) {
       ${pageHeaderHtml("顧客（Customer）", "1a1a14", "PART 1  ─  CUSTOMER")}
       <div style="padding:40px 100px;display:flex;gap:40px;">
         <div style="flex:1.2;">
-          <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;">ターゲット</div>
-          <div style="font-size:32px;font-weight:700;margin-top:10px;line-height:1.4;">${esc(s.target || "—")}</div>
+          <div class="mono" style="font-size:24px;color:#555;letter-spacing:.3em;">ターゲット</div>
+          <div style="font-size:36px;font-weight:700;margin-top:10px;line-height:1.4;">${esc(s.target || "—")}</div>
 
-          <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;margin-top:30px;">プロファイル</div>
-          <div style="font-size:24px;line-height:1.95;margin-top:10px;">
+          <div class="mono" style="font-size:24px;color:#555;letter-spacing:.3em;margin-top:30px;">プロファイル</div>
+          <div style="font-size:26px;line-height:1.95;margin-top:10px;">
             ${s.profile.length ? lines(s.profile, (p) => `<div>・${esc(p)}</div>`) : "—"}
           </div>
         </div>
@@ -210,8 +211,8 @@ function renderCustomerHtml(s) {
             ["絞り込み条件", s.cutoff],
           ].filter(([_, v]) => v).map(([k, v]) => `
             <div style="margin-bottom:20px;">
-              <div class="mono" style="font-size:14px;color:#555;letter-spacing:.3em;">${esc(k)}</div>
-              <div style="font-size:22px;margin-top:6px;line-height:1.6;">${esc(v)}</div>
+              <div class="mono" style="font-size:22px;color:#555;letter-spacing:.3em;">${esc(k)}</div>
+              <div style="font-size:28px;margin-top:6px;line-height:1.6;">${esc(v)}</div>
             </div>
           `).join("")}
         </div>
@@ -227,14 +228,14 @@ function renderCompetitorHtml(s) {
       ${pageHeaderHtml("競合（Competitor）", "1a1a14", "PART 1  ─  COMPETITOR")}
       <div style="padding:40px 100px;display:flex;gap:40px;">
         <div style="flex:1;">
-          <div style="font-size:22px;font-weight:700;margin-bottom:14px;">直接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:22px;line-height:1.95;">
+          <div style="font-size:28px;font-weight:700;margin-bottom:14px;">直接競合</div>
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:26px;line-height:1.95;">
             ${s.direct.length ? lines(s.direct, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
           </div>
         </div>
         <div style="flex:1;">
-          <div style="font-size:22px;font-weight:700;margin-bottom:14px;">間接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:22px;line-height:1.95;">
+          <div style="font-size:28px;font-weight:700;margin-bottom:14px;">間接競合</div>
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:26px;line-height:1.95;">
             ${s.indirect.length ? lines(s.indirect, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
           </div>
         </div>
@@ -252,20 +253,20 @@ function renderCompanyHtml(s) {
       <div style="padding:24px 100px 60px;display:flex;flex-direction:column;gap:18px;height:calc(100% - 200px);">
         <!-- 強み -->
         <div style="flex:3;overflow:hidden;">
-          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">強み</div>
-          <div style="font-size:24px;line-height:1.85;">
+          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">強み</div>
+          <div style="font-size:28px;line-height:1.85;">
             ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:6px;">・${esc(t)}</div>`) : "—"}
           </div>
         </div>
         <!-- 体制 -->
         <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
-          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">体制</div>
-          <div style="font-size:22px;line-height:1.85;">${esc(s.structure || "—")}</div>
+          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">体制</div>
+          <div style="font-size:26px;line-height:1.85;">${esc(s.structure || "—")}</div>
         </div>
         <!-- パッション -->
         <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
-          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">パッション</div>
-          <div style="font-size:22px;line-height:1.85;font-style:italic;">${esc(s.passion || "—")}</div>
+          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">パッション</div>
+          <div style="font-size:26px;line-height:1.85;font-style:italic;">${esc(s.passion || "—")}</div>
         </div>
       </div>
     </div>
@@ -279,19 +280,19 @@ function renderBenefitHtml(s) {
       ${pageHeaderHtml("ベネフィット（Benefit）", "FF0000", "PART 2  ─  BENEFIT")}
       <div style="padding:40px 100px;">
         <div style="background:#FFF5F5;border:2px solid #FF0000;padding:28px 36px;">
-          <div class="mono" style="font-size:16px;color:#FF0000;letter-spacing:.4em;">お客様が求めるコア価値</div>
-          <div style="font-size:28px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.core || "—")}</div>
+          <div class="mono" style="font-size:22px;color:#FF0000;letter-spacing:.4em;">お客様が求めるコア価値</div>
+          <div style="font-size:36px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.core || "—")}</div>
         </div>
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
-            <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ニーズ（顕在化前の必要性）</div>
-            <div style="font-size:22px;line-height:2.0;">
+            <div style="font-size:24px;font-weight:700;color:#FF0000;margin-bottom:14px;">ニーズ（顕在化前の必要性）</div>
+            <div style="font-size:26px;line-height:1.95;">
               ${s.needs.length ? lines(s.needs, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
           <div style="flex:1;">
-            <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ウォンツ（具体的な欲求）</div>
-            <div style="font-size:22px;line-height:2.0;">
+            <div style="font-size:24px;font-weight:700;color:#FF0000;margin-bottom:14px;">ウォンツ（具体的な欲求）</div>
+            <div style="font-size:26px;line-height:1.95;">
               ${s.wants.length ? lines(s.wants, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
@@ -309,17 +310,17 @@ function renderAdvantageHtml(s) {
       ${pageHeaderHtml("アドバンテージ（Advantage）", "1a6fd4", "PART 2  ─  ADVANTAGE")}
       <div style="padding:40px 100px;">
         <div style="background:#F2F8FF;border:2px solid #1a6fd4;padding:30px 36px;">
-          <div class="mono" style="font-size:16px;color:#1a6fd4;letter-spacing:.4em;">競合より選ばれる差別的優位点</div>
-          <div style="font-size:26px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.what || "—")}</div>
+          <div class="mono" style="font-size:22px;color:#1a6fd4;letter-spacing:.4em;">競合より選ばれる差別的優位点</div>
+          <div style="font-size:36px;font-weight:700;margin-top:14px;line-height:1.75;">${esc(s.what || "—")}</div>
         </div>
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
-            <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜそれが選ばれるのか</div>
-            <div style="font-size:22px;line-height:2.0;">${esc(s.why_good || "—")}</div>
+            <div style="font-size:24px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜそれが選ばれるのか</div>
+            <div style="font-size:26px;line-height:1.95;">${esc(s.why_good || "—")}</div>
           </div>
           <div style="flex:1;">
-            <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜ真似しづらいのか</div>
-            <div style="font-size:22px;line-height:2.0;">${esc(s.why_hard_to_copy || "—")}</div>
+            <div style="font-size:24px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜ真似しづらいのか</div>
+            <div style="font-size:26px;line-height:1.95;">${esc(s.why_hard_to_copy || "—")}</div>
           </div>
         </div>
       </div>
@@ -330,11 +331,11 @@ function renderAdvantageHtml(s) {
 function renderStrategyRecapHtml(s) {
   return `
     <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;display:flex;flex-direction:column;align-items:center;padding:80px 120px;">
-      <div style="font-size:22px;color:#fff;letter-spacing:.4em;margin-bottom:14px;">ここまでの分析の結果として導かれる</div>
-      <div class="head-serif" style="font-size:42px;font-weight:700;margin-bottom:60px;color:#fff;">戦略メッセージ</div>
+      <div style="font-size:24px;color:#fff;letter-spacing:.4em;margin-bottom:14px;">ここまでの分析の結果として導かれる</div>
+      <div class="head-serif" style="font-size:52px;font-weight:700;margin-bottom:60px;color:#fff;">戦略メッセージ</div>
       <div class="head-serif" style="font-size:56px;font-weight:700;text-align:center;line-height:1.65;max-width:1500px;flex:1;display:flex;align-items:center;color:#fff;">${esc(s.strategyMessage || "—")}</div>
       ${(s.benefitPart || s.advantagePart) ? `
-        <div style="border-top:1px solid #fff;opacity:1;width:100%;max-width:1400px;padding-top:30px;margin-top:30px;font-size:22px;color:#fff;text-align:center;line-height:1.85;">
+        <div style="border-top:1px solid #fff;opacity:1;width:100%;max-width:1400px;padding-top:30px;margin-top:30px;font-size:28px;color:#fff;text-align:center;line-height:1.85;">
           ${s.benefitPart ? `<div><span class="mono" style="color:#FF0000;font-weight:700;margin-right:14px;">B（Benefit）</span>${esc(s.benefitPart)}</div>` : ""}
           ${s.advantagePart ? `<div style="margin-top:14px;"><span class="mono" style="color:#1a6fd4;font-weight:700;margin-right:14px;">A（Advantage）</span>${esc(s.advantagePart)}</div>` : ""}
         </div>
@@ -352,10 +353,10 @@ function renderCheckpointsHtml(s) {
       <div style="padding:30px 100px;">
         ${lines(items, (c) => `
           <div style="display:flex;align-items:stretch;margin-bottom:20px;border-bottom:1px solid #eee;padding-bottom:18px;">
-            <div style="width:140px;background:#${colorFor(c.status)};color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">${esc(c.statusLabel)}</div>
+            <div style="width:140px;background:#${colorFor(c.status)};color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;">${esc(c.statusLabel)}</div>
             <div style="flex:1;padding:14px 24px;">
-              <div style="font-size:24px;font-weight:700;margin-bottom:8px;">${esc(c.label || "—")}</div>
-              <div style="font-size:20px;color:#555;line-height:1.8;">${esc(c.comment || "")}</div>
+              <div style="font-size:30px;font-weight:700;margin-bottom:8px;">${esc(c.label || "—")}</div>
+              <div style="font-size:24px;color:#555;line-height:1.85;">${esc(c.comment || "")}</div>
             </div>
           </div>
         `)}
@@ -374,13 +375,13 @@ function renderImproveSectionHtml(s) {
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml(s.categoryLabel, "ea580c", "PART 4  ─  WEBSITE IMPROVEMENT")}
       <div style="padding:24px 100px 60px;height:calc(100% - 200px);overflow:hidden;box-sizing:border-box;">
-        <div style="font-size:20px;color:#555;margin-bottom:30px;line-height:1.7;">${esc(s.categorySubtitle || "")}</div>
-        ${items.length === 0 ? `<div style="color:#999;font-size:20px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
+        <div style="font-size:24px;color:#555;margin-bottom:30px;line-height:1.7;">${esc(s.categorySubtitle || "")}</div>
+        ${items.length === 0 ? `<div style="color:#999;font-size:24px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
           <div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:48px;">
-            <div style="flex-shrink:0;width:64px;height:64px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:32px;font-weight:700;">${startNum + j}</div>
+            <div style="flex-shrink:0;width:72px;height:72px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:36px;font-weight:700;">${startNum + j}</div>
             <div style="flex:1;min-width:0;">
-              <div style="font-size:26px;font-weight:700;margin-bottom:14px;line-height:1.55;">${esc(item.title || "")}</div>
-              <div style="font-size:20px;color:#555;line-height:1.9;">
+              <div style="font-size:30px;font-weight:700;margin-bottom:14px;line-height:1.55;">${esc(item.title || "")}</div>
+              <div style="font-size:24px;color:#555;line-height:1.85;">
                 ${item.reason ? `<div style="margin-bottom:10px;"><b style="color:#ea580c;">理由：</b>${esc(item.reason)}</div>` : ""}
                 ${item.example ? `<div><b style="color:#ea580c;">実装例：</b>${esc(item.example)}</div>` : ""}
               </div>
@@ -405,7 +406,7 @@ function renderVisualMockHtml(s) {
           </div>
         ` : `<div style="text-align:center;padding:120px;color:#999;font-size:20px;">（ビジュアル画像を準備できませんでした）</div>`}
         ${s.caption ? `
-          <div style="margin-top:20px;padding:20px 26px;background:#FEF3C7;border-left:6px solid #ea580c;font-size:20px;line-height:1.85;">
+          <div style="margin-top:20px;padding:20px 26px;background:#FEF3C7;border-left:6px solid #ea580c;font-size:26px;line-height:1.85;">
             <b style="color:#ea580c;">💡 このビジュアルの意図：</b>${esc(s.caption)}
           </div>
         ` : ""}
@@ -424,21 +425,21 @@ function renderNextActionsHtml(s) {
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("次のアクション", "ea580c", "STRATEGY ACTION")}
       <div style="padding:24px 100px 60px;display:flex;flex-direction:column;height:calc(100% - 200px);">
-        <div style="font-size:20px;color:#555;line-height:1.7;margin-bottom:22px;">${esc(description)}</div>
+        <div style="font-size:26px;color:#555;line-height:1.7;margin-bottom:22px;">${esc(description)}</div>
         <div style="display:grid;grid-template-columns:repeat(${numCols}, 1fr);gap:18px;flex:1;">
           ${lines(groups.slice(0, numCols), (g) => `
             <div style="border:2px solid #ea580c;background:#fff;display:flex;flex-direction:column;overflow:hidden;">
               <div style="background:#ea580c;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                <div style="font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;line-height:1.3;">${esc(g.label)}</div>
-                <div class="mono" style="font-size:12px;letter-spacing:.1em;white-space:nowrap;opacity:.95;">${g.themes.length} テーマ</div>
+                <div style="font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;line-height:1.3;">${esc(g.label)}</div>
+                <div class="mono" style="font-size:18px;letter-spacing:.1em;white-space:nowrap;opacity:.95;">${g.themes.length} テーマ</div>
               </div>
-              <div style="background:#FFF7ED;padding:16px 14px;flex:1;">
+              <div style="background:#FFF7ED;padding:18px 16px;flex:1;">
                 ${lines(g.themes, (t) => `
-                  <div style="margin-bottom:16px;">
-                    <div style="font-size:17px;font-weight:700;color:#1a1a14;line-height:1.5;">
+                  <div style="margin-bottom:18px;">
+                    <div style="font-size:22px;font-weight:700;color:#1a1a14;line-height:1.5;">
                       <span style="color:#ea580c;margin-right:2px;">・</span>${esc(t.name)}
                     </div>
-                    ${t.desc ? `<div style="font-size:14px;color:#555;line-height:1.7;margin-left:12px;margin-top:4px;">${esc(t.desc)}</div>` : ""}
+                    ${t.desc ? `<div style="font-size:17px;color:#555;line-height:1.7;margin-left:12px;margin-top:4px;">${esc(t.desc)}</div>` : ""}
                   </div>
                 `)}
               </div>
@@ -454,9 +455,9 @@ function renderAboutHtml(s) {
   return `
     <div style="position:absolute;inset:0;background:#1a1a14;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px;">
       <div class="head-serif" style="font-size:96px;font-weight:700;margin-bottom:24px;">戦略指南 AI</div>
-      <div style="font-size:28px;color:#ddd;margin-bottom:60px;">AB3C で戦略を「分析 → 策定 → 実行」まで一気通貫</div>
-      <div style="font-size:22px;color:#bbb;text-align:center;line-height:1.85;max-width:1300px;">${esc(s.description)}</div>
-      <div class="mono" style="font-size:32px;color:#1a6fd4;margin-top:80px;letter-spacing:.2em;">${esc(s.siteUrl)}</div>
+      <div style="font-size:36px;color:#ddd;margin-bottom:60px;">AB3C で戦略を「分析 → 策定 → 実行」まで一気通貫</div>
+      <div style="font-size:28px;color:#bbb;text-align:center;line-height:1.85;max-width:1300px;">${esc(s.description)}</div>
+      <div class="mono" style="font-size:40px;color:#1a6fd4;margin-top:80px;letter-spacing:.2em;">${esc(s.siteUrl)}</div>
     </div>
   `;
 }
@@ -484,7 +485,7 @@ const NO_PAGE_NUMBER = new Set(["cover", "section-divider", "about"]);
 
 function footerHtml(pageNum, total, siteName) {
   return `
-    <div style="position:absolute;left:100px;right:100px;bottom:30px;display:flex;justify-content:space-between;font-size:14px;color:#999;font-family:inherit;">
+    <div style="position:absolute;left:100px;right:100px;bottom:30px;display:flex;justify-content:space-between;font-size:18px;color:#999;font-family:inherit;">
       <div>${esc(siteName)}</div>
       <div>戦略指南 AI / AB3C 分析レポート　${pageNum} / ${total}</div>
     </div>
