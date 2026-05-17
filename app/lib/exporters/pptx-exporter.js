@@ -423,11 +423,16 @@ function renderImproveSection(slide, s) {
     return;
   }
 
-  // 縦方向の利用可能領域（フッターまで）。最大3項目で固定の rowH を割り当てるため、項目間の重なりが起こらない。
+  // 縦方向の利用可能領域（フッターまで）。
+  // 権さん 2026-05-17: build-slides.js の MAX_PER_SLIDE = 2 を前提に、
+  // rowH は常に「2項目時の高さ」で固定する。1項目だけのページ（5項目を 2/2/1 で割った最後の頁）も
+  // 同じレイアウトで上揃え表示し、下に余白を残す。`usable / items.length` だと 1項目時に縦に伸びて
+  // 理由と実装例の間に大きな空白が生まれていた。
   const topY = 1.95;
   const bottomY = H - 0.55;
   const usable = bottomY - topY;
-  const rowH = usable / Math.max(items.length, 1);
+  const MAX_PER_SLIDE = 2;
+  const rowH = usable / MAX_PER_SLIDE;
   const startNum = s.itemNumberStart || 1;
 
   items.forEach((item, j) => {
