@@ -353,30 +353,30 @@ function renderCompetitor(slide, s) {
 function renderCompany(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
-  // 権さん 2026-05-18: 余白がさらに空いてしまった問題。
-  // 行間を詰めすぎたため、コンパクトな内容（1行ずつのbullet等）で大きな余白が出ていた。
-  // 対策: セクション間の y 位置を上に詰めて、box h も実用サイズに合わせる。
+  // 権さん 2026-05-18（再）: 余白を半分・文字サイズをもっと大きく。
+  // 本文 11pt → 16pt（5割増しジャンプ）。ラベルも 11pt → 13pt。
+  // 各 box h を中身の見込みサイズに合わせて短く、セクション間 gap も 0.05in に詰める。
   // 強み（リスト・上半分）
-  slide.addText("強み", { x: M, y: 1.55, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("強み", { x: M, y: 1.5, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
   if (s.strength.length) {
     slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
-      x: M, y: 1.85, w: W - M * 2, h: 2.1,
-      fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 3, lineSpacingMultiple: 1.3, shrinkText: true,
+      x: M, y: 1.82, w: W - M * 2, h: 1.85,
+      fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top",
+      paraSpaceAfter: 2, lineSpacingMultiple: 1.3, shrinkText: true,
     });
   }
-  // 体制（中段）— 強み box の直下に詰める
-  slide.addText("体制", { x: M, y: 4.05, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  // 体制（中段）
+  slide.addText("体制", { x: M, y: 3.72, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.structure || "—", {
-    x: M, y: 4.35, w: W - M * 2, h: 1.4,
-    fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
+    x: M, y: 4.04, w: W - M * 2, h: 1.5,
+    fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top",
     lineSpacingMultiple: 1.3, shrinkText: true,
   });
-  // パッション（下段）— 体制 box の直下に詰める
-  slide.addText("パッション", { x: M, y: 5.85, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  // パッション（下段）
+  slide.addText("パッション", { x: M, y: 5.59, w: W - M * 2, h: 0.32, fontFace: F_MONO, fontSize: 13, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.passion || "—", {
-    x: M, y: 6.15, w: W - M * 2, h: 0.95,
-    fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top", italic: true,
+    x: M, y: 5.91, w: W - M * 2, h: 1.15,
+    fontFace: F_BODY, fontSize: 16, color: COLORS.ink, valign: "top", italic: true,
     lineSpacingMultiple: 1.3, shrinkText: true,
   });
 }
