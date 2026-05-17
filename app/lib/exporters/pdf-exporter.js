@@ -138,27 +138,27 @@ function renderFrameworkHtml(s) {
             <div style="flex:1;display:flex;align-items:center;">
               <div style="width:110px;height:160px;background:#${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:76px;font-weight:700;flex-shrink:0;">${c.letter}</div>
               <div style="margin-left:20px;flex:1;">
-                <div class="mono" style="font-size:13px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
-                <div style="font-size:17px;color:#1a1a14;line-height:1.65;">${esc(c.desc)}</div>
+                <div class="mono" style="font-size:14px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
+                <div style="font-size:22px;color:#1a1a14;line-height:1.65;">${esc(c.desc)}</div>
               </div>
             </div>
           `)}
         </div>
-        <div style="font-size:19px;line-height:1.9;color:#1a1a14;">${esc(s.description)}</div>
-        <div style="font-size:17px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
+        <div style="font-size:24px;line-height:1.9;color:#1a1a14;">${esc(s.description)}</div>
+        <div style="font-size:22px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
 
         <!-- 関連リソース -->
         <div style="border-top:1px solid #ccc;padding-top:18px;">
-          <div class="mono" style="font-size:13px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
+          <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
           ${s.relatedBook ? `
-            <div style="font-size:17px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
+            <div style="font-size:22px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
               <b>📖 関連書籍：</b>
               <a href="${esc(s.relatedBook.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">『${esc(s.relatedBook.title)}』</a>
               ${s.relatedBook.author ? `<span style="color:#555;margin-left:8px;">${esc(s.relatedBook.author)}</span>` : ""}
             </div>
           ` : ""}
           ${s.relatedAssociation ? `
-            <div style="font-size:17px;color:#1a1a14;line-height:1.6;">
+            <div style="font-size:22px;color:#1a1a14;line-height:1.6;">
               <b>🏛 関連団体：</b>
               <a href="${esc(s.relatedAssociation.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">${esc(s.relatedAssociation.name)}</a>
             </div>
@@ -197,7 +197,7 @@ function renderCustomerHtml(s) {
           <div style="font-size:32px;font-weight:700;margin-top:10px;line-height:1.4;">${esc(s.target || "—")}</div>
 
           <div class="mono" style="font-size:16px;color:#555;letter-spacing:.3em;margin-top:30px;">プロファイル</div>
-          <div style="font-size:22px;line-height:1.85;margin-top:10px;">
+          <div style="font-size:24px;line-height:1.95;margin-top:10px;">
             ${s.profile.length ? lines(s.profile, (p) => `<div>・${esc(p)}</div>`) : "—"}
           </div>
         </div>
@@ -211,7 +211,7 @@ function renderCustomerHtml(s) {
           ].filter(([_, v]) => v).map(([k, v]) => `
             <div style="margin-bottom:20px;">
               <div class="mono" style="font-size:14px;color:#555;letter-spacing:.3em;">${esc(k)}</div>
-              <div style="font-size:20px;margin-top:6px;line-height:1.5;">${esc(v)}</div>
+              <div style="font-size:22px;margin-top:6px;line-height:1.6;">${esc(v)}</div>
             </div>
           `).join("")}
         </div>
@@ -228,13 +228,13 @@ function renderCompetitorHtml(s) {
       <div style="padding:40px 100px;display:flex;gap:40px;">
         <div style="flex:1;">
           <div style="font-size:22px;font-weight:700;margin-bottom:14px;">直接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:20px;line-height:1.85;">
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:22px;line-height:1.95;">
             ${s.direct.length ? lines(s.direct, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
           </div>
         </div>
         <div style="flex:1;">
           <div style="font-size:22px;font-weight:700;margin-bottom:14px;">間接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:20px;line-height:1.85;">
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:22px;line-height:1.95;">
             ${s.indirect.length ? lines(s.indirect, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
           </div>
         </div>
@@ -253,19 +253,19 @@ function renderCompanyHtml(s) {
         <!-- 強み -->
         <div style="flex:3;overflow:hidden;">
           <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">強み</div>
-          <div style="font-size:19px;line-height:1.85;">
-            ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:4px;">・${esc(t)}</div>`) : "—"}
+          <div style="font-size:24px;line-height:1.85;">
+            ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:6px;">・${esc(t)}</div>`) : "—"}
           </div>
         </div>
         <!-- 体制 -->
         <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
           <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">体制</div>
-          <div style="font-size:17px;line-height:1.8;">${esc(s.structure || "—")}</div>
+          <div style="font-size:22px;line-height:1.85;">${esc(s.structure || "—")}</div>
         </div>
         <!-- パッション -->
         <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
           <div class="mono" style="font-size:14px;color:#555;letter-spacing:.4em;margin-bottom:10px;">パッション</div>
-          <div style="font-size:17px;line-height:1.8;font-style:italic;">${esc(s.passion || "—")}</div>
+          <div style="font-size:22px;line-height:1.85;font-style:italic;">${esc(s.passion || "—")}</div>
         </div>
       </div>
     </div>
@@ -285,13 +285,13 @@ function renderBenefitHtml(s) {
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ニーズ（顕在化前の必要性）</div>
-            <div style="font-size:18px;line-height:2.0;">
+            <div style="font-size:22px;line-height:2.0;">
               ${s.needs.length ? lines(s.needs, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#FF0000;margin-bottom:14px;">ウォンツ（具体的な欲求）</div>
-            <div style="font-size:18px;line-height:2.0;">
+            <div style="font-size:22px;line-height:2.0;">
               ${s.wants.length ? lines(s.wants, (t) => `<div>・${esc(t)}</div>`) : "—"}
             </div>
           </div>
@@ -315,11 +315,11 @@ function renderAdvantageHtml(s) {
         <div style="display:flex;gap:40px;margin-top:36px;">
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜそれが選ばれるのか</div>
-            <div style="font-size:18px;line-height:2.0;">${esc(s.why_good || "—")}</div>
+            <div style="font-size:22px;line-height:2.0;">${esc(s.why_good || "—")}</div>
           </div>
           <div style="flex:1;">
             <div style="font-size:22px;font-weight:700;color:#1a6fd4;margin-bottom:14px;">なぜ真似しづらいのか</div>
-            <div style="font-size:18px;line-height:2.0;">${esc(s.why_hard_to_copy || "—")}</div>
+            <div style="font-size:22px;line-height:2.0;">${esc(s.why_hard_to_copy || "—")}</div>
           </div>
         </div>
       </div>
@@ -355,7 +355,7 @@ function renderCheckpointsHtml(s) {
             <div style="width:140px;background:#${colorFor(c.status)};color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">${esc(c.statusLabel)}</div>
             <div style="flex:1;padding:14px 24px;">
               <div style="font-size:24px;font-weight:700;margin-bottom:8px;">${esc(c.label || "—")}</div>
-              <div style="font-size:18px;color:#555;line-height:1.7;">${esc(c.comment || "")}</div>
+              <div style="font-size:20px;color:#555;line-height:1.8;">${esc(c.comment || "")}</div>
             </div>
           </div>
         `)}
@@ -374,13 +374,13 @@ function renderImproveSectionHtml(s) {
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml(s.categoryLabel, "ea580c", "PART 4  ─  WEBSITE IMPROVEMENT")}
       <div style="padding:24px 100px 60px;height:calc(100% - 200px);overflow:hidden;box-sizing:border-box;">
-        <div style="font-size:18px;color:#555;margin-bottom:30px;line-height:1.6;">${esc(s.categorySubtitle || "")}</div>
-        ${items.length === 0 ? `<div style="color:#999;font-size:18px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
+        <div style="font-size:20px;color:#555;margin-bottom:30px;line-height:1.7;">${esc(s.categorySubtitle || "")}</div>
+        ${items.length === 0 ? `<div style="color:#999;font-size:20px;">（このカテゴリの提案はありません）</div>` : items.map((item, j) => `
           <div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:48px;">
             <div style="flex-shrink:0;width:64px;height:64px;background:#ea580c;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Noto Serif JP',serif;font-size:32px;font-weight:700;">${startNum + j}</div>
             <div style="flex:1;min-width:0;">
               <div style="font-size:26px;font-weight:700;margin-bottom:14px;line-height:1.55;">${esc(item.title || "")}</div>
-              <div style="font-size:18px;color:#555;line-height:1.9;">
+              <div style="font-size:20px;color:#555;line-height:1.9;">
                 ${item.reason ? `<div style="margin-bottom:10px;"><b style="color:#ea580c;">理由：</b>${esc(item.reason)}</div>` : ""}
                 ${item.example ? `<div><b style="color:#ea580c;">実装例：</b>${esc(item.example)}</div>` : ""}
               </div>
@@ -405,7 +405,7 @@ function renderVisualMockHtml(s) {
           </div>
         ` : `<div style="text-align:center;padding:120px;color:#999;font-size:20px;">（ビジュアル画像を準備できませんでした）</div>`}
         ${s.caption ? `
-          <div style="margin-top:20px;padding:20px 26px;background:#FEF3C7;border-left:6px solid #ea580c;font-size:18px;line-height:1.85;">
+          <div style="margin-top:20px;padding:20px 26px;background:#FEF3C7;border-left:6px solid #ea580c;font-size:20px;line-height:1.85;">
             <b style="color:#ea580c;">💡 このビジュアルの意図：</b>${esc(s.caption)}
           </div>
         ` : ""}
@@ -435,10 +435,10 @@ function renderNextActionsHtml(s) {
               <div style="background:#FFF7ED;padding:16px 14px;flex:1;">
                 ${lines(g.themes, (t) => `
                   <div style="margin-bottom:16px;">
-                    <div style="font-size:15px;font-weight:700;color:#1a1a14;line-height:1.45;">
+                    <div style="font-size:17px;font-weight:700;color:#1a1a14;line-height:1.5;">
                       <span style="color:#ea580c;margin-right:2px;">・</span>${esc(t.name)}
                     </div>
-                    ${t.desc ? `<div style="font-size:12px;color:#555;line-height:1.65;margin-left:12px;margin-top:4px;">${esc(t.desc)}</div>` : ""}
+                    ${t.desc ? `<div style="font-size:14px;color:#555;line-height:1.7;margin-left:12px;margin-top:4px;">${esc(t.desc)}</div>` : ""}
                   </div>
                 `)}
               </div>
