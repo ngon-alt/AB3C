@@ -232,22 +232,63 @@ function renderCustomerHtml(s) {
   `;
 }
 
+// 競合エントリを「社名」「（説明）」「URL」の3パーツに分解する。
+// PPT 側の parseCompetitor と同じロジック。
+function parseCompetitorPdf(c) {
+  if (typeof c !== "string") {
+    return {
+      name: c?.name || JSON.stringify(c),
+      desc: c?.desc || c?.description || "",
+      url: c?.url || "",
+    };
+  }
+  let url = "";
+  let rest = c;
+  const urlMatch = c.match(/[｜|]\s*(https?:\/\/\S+)\s*$/);
+  if (urlMatch) {
+    url = urlMatch[1];
+    rest = c.slice(0, urlMatch.index).trim();
+  }
+  let name = rest;
+  let desc = "";
+  const descMatch = rest.match(/^(.+?)（(.+?)）\s*$/);
+  if (descMatch) {
+    name = descMatch[1].trim();
+    desc = descMatch[2].trim();
+  }
+  return { name, desc, url };
+}
+
+// 1 エントリを 3 行で表示。
+// 社名 (bold) / 　（説明）(灰色・半角インデント) / 　URL (青・全角インデント)
+function competitorEntryHtml(c) {
+  const p = parseCompetitorPdf(c);
+  return `
+    <div style="margin-bottom:22px;">
+      <div style="font-size:24px;font-weight:700;color:#1a1a14;line-height:1.45;">${esc(p.name)}</div>
+      ${p.desc ? `<div style="font-size:22px;color:#555;line-height:1.45;padding-left:0.5em;">（${esc(p.desc)}）</div>` : ""}
+      ${p.url ? `<div style="font-size:20px;color:#1a6fd4;line-height:1.45;padding-left:1em;">${esc(p.url)}</div>` : ""}
+    </div>
+  `;
+}
+
 function renderCompetitorHtml(s) {
-  const fmt = (c) => typeof c === "string" ? c : (c?.name || JSON.stringify(c));
+  // 権さん 2026-05-18: PPT と同じ 3行構造（社名 / （説明） / URL）に揃える。
+  // 旧: 1 行に全部押し込んでいたためリストの先頭が分かりにくかった。
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("競合（Competitor）", "1a1a14", "PART 1  ─  COMPETITOR")}
       <div style="padding:40px 100px;display:flex;gap:40px;">
         <div style="flex:1;">
           <div style="font-size:28px;font-weight:700;margin-bottom:14px;">直接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:26px;line-height:1.95;">
-            ${s.direct.length ? lines(s.direct, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;">
+            ${s.direct.length ? s.direct.map(competitorEntryHtml).join("") : "<div style='color:#999;font-size:24px;'>—</div>"}
           </div>
         </div>
         <div style="flex:1;">
           <div style="font-size:28px;font-weight:700;margin-bottom:14px;">間接競合</div>
-          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;font-size:26px;line-height:1.95;">
-            ${s.indirect.length ? lines(s.indirect, (c) => `<div>・${esc(fmt(c))}</div>`) : "<div style='color:#999'>—</div>"}
+          <div style="background:#F8F8F6;border:1px solid #ccc;padding:24px 30px;min-height:600px;">
+            ${s.indirect.length ? s.indirect.map(competitorEntryHtml).join("") : "<div style='color:#999;font-size:24px;'>—</div>"}
           </div>
         </div>
       </div>
