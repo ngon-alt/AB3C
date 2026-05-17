@@ -133,7 +133,9 @@ function renderFramework(slide, s) {
   // 3色のチップ + 説明
   const chips = [
     { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: COLORS.C },
-    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ → ウォンツ）", color: COLORS.B },
+    // 権さん 2026-05-17: → の前後の半角スペースで折り返しが発生し ） だけ次行に
+    // 落ちる現象。スペースを除いて 1 行に収まる長さにする。
+    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ→ウォンツ）", color: COLORS.B },
     { letter: "A", label: "Advantage", desc: "競合より選ばれる差別的優位点", color: COLORS.A },
   ];
   const chipY = 1.55;
