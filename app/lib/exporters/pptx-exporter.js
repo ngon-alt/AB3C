@@ -514,11 +514,9 @@ function renderNextActions(slide, s) {
     const x = M + i * (colW + colGap);
     const y = gridTopY;
 
-    // ヘッダー（オレンジ帯）
+    // ヘッダー（オレンジ帯）— 権さん 2026-05-17: テーマ数バッジは折り返すため削除。
     slide.addShape("rect", { x, y, w: colW, h: headerH, fill: { color: "ea580c" }, line: { color: "ea580c" } });
-    slide.addText(g.label, { x: x + 0.15, y, w: colW - 0.85, h: headerH, fontFace: F_HEAD, fontSize: 15, bold: true, color: "FFFFFF", valign: "middle" });
-    // テーマ数バッジ
-    slide.addText(`${g.themes.length} テーマ`, { x: x + colW - 0.95, y, w: 0.8, h: headerH, fontFace: F_MONO, fontSize: 10, color: "FFFFFF", align: "right", valign: "middle", charSpacing: 1 });
+    slide.addText(g.label, { x: x + 0.15, y, w: colW - 0.3, h: headerH, fontFace: F_HEAD, fontSize: 15, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
 
     // ボディ（薄オレンジ）
     slide.addShape("rect", { x, y: y + headerH, w: colW, h: cellH - headerH, fill: { color: "FFF7ED" }, line: { color: "ea580c", width: 0.5 } });

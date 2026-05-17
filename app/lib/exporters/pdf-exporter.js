@@ -431,9 +431,8 @@ function renderNextActionsHtml(s) {
         <div style="display:grid;grid-template-columns:repeat(${numCols}, 1fr);gap:18px;flex:1;">
           ${lines(groups.slice(0, numCols), (g) => `
             <div style="border:2px solid #ea580c;background:#fff;display:flex;flex-direction:column;overflow:hidden;">
-              <div style="background:#ea580c;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div style="background:#ea580c;color:#fff;padding:10px 14px;text-align:center;">
                 <div style="font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;line-height:1.3;">${esc(g.label)}</div>
-                <div class="mono" style="font-size:18px;letter-spacing:.1em;white-space:nowrap;opacity:.95;">${g.themes.length} テーマ</div>
               </div>
               <div style="background:#FFF7ED;padding:18px 16px;flex:1;">
                 ${lines(g.themes, (t) => `
