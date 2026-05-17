@@ -506,9 +506,14 @@ function renderNextActions(slide, s) {
   const colGap = 0.2;
   const colW = (W - M * 2 - colGap * (numCols - 1)) / numCols;
   const gridTopY = 2.15;
-  const gridBottomY = H - 0.5;
-  const cellH = gridBottomY - gridTopY;
   const headerH = 0.55;
+  // 権さん 2026-05-17: 縦に長すぎる問題を修正。
+  // cellH を「最長カラム」の中身に合わせて計算し、全カラム同じ高さで揃える。
+  // 1テーマあたり 0.85in（名前 + 説明 + 余白）、上下パディング合計 0.3in。
+  const itemH = 0.85;
+  const bodyPadding = 0.3;
+  const maxThemes = Math.max(...groups.slice(0, numCols).map(g => (g.themes || []).length), 1);
+  const cellH = headerH + bodyPadding + maxThemes * itemH;
 
   groups.slice(0, numCols).forEach((g, i) => {
     const x = M + i * (colW + colGap);
@@ -524,10 +529,6 @@ function renderNextActions(slide, s) {
     // テーマリスト（縦並び・各テーマは「名前」太字＋「説明」グレー小の2段）
     const themes = g.themes || [];
     const bodyTop = y + headerH + 0.15;
-    const bodyBottom = y + cellH - 0.15;
-    const usable = bodyBottom - bodyTop;
-    // 1テーマあたり最大 1.1in に制限（2テーマ列がスカスカに見えないように）
-    const itemH = Math.min(usable / Math.max(themes.length, 1), 1.1);
 
     themes.forEach((t, j) => {
       const ty = bodyTop + j * itemH;
