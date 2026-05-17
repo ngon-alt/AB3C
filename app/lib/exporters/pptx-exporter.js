@@ -353,32 +353,61 @@ function renderCompetitor(slide, s) {
 function renderCompany(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
-  // 権さん 2026-05-18（再々）:
-  // - ラベルを「強み / 仕組み / 価値観」に変更（app/page.js のUI表記に揃える）
-  // - 見出しを強く（mono 13pt muted → sans 16pt bold ink、ジャンプ率と視認性 UP）
-  // - 本文を二回り小さく（16pt → 12pt、ジャンプ率拡大）
-  // 強み（リスト・上半分）
-  slide.addText("強み", { x: M, y: 1.5, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  // 権さん 2026-05-18: セクション間の幅（gap）を揃える。
+  // 従来は固定 h でレイアウトしていたため、コンテンツが短いセクションでは box 末尾と
+  // 次ラベルの間に大きな余白が生まれていた。コンテンツ量に応じて body h を動的計算し、
+  // 「body 末尾 → 次ラベル」の視覚 gap を全セクション同じ（sectionGap）に揃える。
+  const fontSize = 12;
+  const lineSpacing = 1.35;
+  const lineH = (fontSize * lineSpacing) / 72; // pt → inches
+  const CHARS_PER_LINE = 100; // 12pt 全幅で 1行に入る目安文字数
+  const padding = 0.12;        // body 下端の安全マージン
+
+  const estimateLines = (text) => {
+    if (!text) return 1;
+    return text.split("\n").reduce((sum, line) =>
+      sum + Math.max(1, Math.ceil(line.length / CHARS_PER_LINE)), 0);
+  };
+
+  const strengthH  = Math.max(0.4, (s.strength?.length || 0) * 1.1 * lineH + padding);
+  const structureH = Math.max(0.4, estimateLines(s.structure) * lineH + padding);
+  const passionH   = Math.max(0.4, estimateLines(s.passion)   * lineH + padding);
+
+  const labelH = 0.4;
+  const labelToBody = 0.05;
+  const sectionGap = 0.3; // 全セクション共通の視覚 gap
+
+  let y = 1.55;
+
+  // 強み
+  slide.addText("強み", { x: M, y, w: W - M * 2, h: labelH, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  y += labelH + labelToBody;
   if (s.strength.length) {
     slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
-      x: M, y: 1.95, w: W - M * 2, h: 1.85,
-      fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 2, lineSpacingMultiple: 1.35, shrinkText: true,
+      x: M, y, w: W - M * 2, h: strengthH,
+      fontFace: F_BODY, fontSize, color: COLORS.ink, valign: "top",
+      paraSpaceAfter: 2, lineSpacingMultiple: lineSpacing, shrinkText: true,
     });
   }
-  // 仕組み（中段）— 旧 "体制"
-  slide.addText("仕組み", { x: M, y: 3.85, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  y += strengthH + sectionGap;
+
+  // 仕組み
+  slide.addText("仕組み", { x: M, y, w: W - M * 2, h: labelH, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  y += labelH + labelToBody;
   slide.addText(s.structure || "—", {
-    x: M, y: 4.3, w: W - M * 2, h: 1.5,
-    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.35, shrinkText: true,
+    x: M, y, w: W - M * 2, h: structureH,
+    fontFace: F_BODY, fontSize, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: lineSpacing, shrinkText: true,
   });
-  // 価値観（下段）— 旧 "パッション"。権さん 2026-05-18: italic 解除
-  slide.addText("価値観", { x: M, y: 5.85, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  y += structureH + sectionGap;
+
+  // 価値観
+  slide.addText("価値観", { x: M, y, w: W - M * 2, h: labelH, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
+  y += labelH + labelToBody;
   slide.addText(s.passion || "—", {
-    x: M, y: 6.3, w: W - M * 2, h: 0.85,
-    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.35, shrinkText: true,
+    x: M, y, w: W - M * 2, h: passionH,
+    fontFace: F_BODY, fontSize, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: lineSpacing, shrinkText: true,
   });
 }
 
