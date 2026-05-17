@@ -345,18 +345,20 @@ function renderStrategyRecapHtml(s) {
 }
 
 function renderCheckpointsHtml(s) {
+  // 権さん 2026-05-17: フォント拡大後、5項目目が 1080px に収まらず欠ける。
+  // padding / margin を詰め、コメント行間を圧縮して 5項目を確実に表示。
   const colorFor = (st) => st === "ok" ? "0d9488" : st === "warn" ? "ea580c" : st === "ng" ? "FF0000" : "555555";
   const items = s.items.slice(0, 5);
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("品質チェック", "1a1a14", "PART 3  ─  CHECKPOINTS")}
-      <div style="padding:30px 100px;">
+      <div style="padding:14px 100px;">
         ${lines(items, (c) => `
-          <div style="display:flex;align-items:stretch;margin-bottom:20px;border-bottom:1px solid #eee;padding-bottom:18px;">
-            <div style="width:140px;background:#${colorFor(c.status)};color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;">${esc(c.statusLabel)}</div>
-            <div style="flex:1;padding:14px 24px;">
-              <div style="font-size:30px;font-weight:700;margin-bottom:8px;">${esc(c.label || "—")}</div>
-              <div style="font-size:24px;color:#555;line-height:1.85;">${esc(c.comment || "")}</div>
+          <div style="display:flex;align-items:stretch;margin-bottom:10px;border-bottom:1px solid #eee;padding-bottom:8px;">
+            <div style="width:130px;background:#${colorFor(c.status)};color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;">${esc(c.statusLabel)}</div>
+            <div style="flex:1;padding:8px 20px;">
+              <div style="font-size:26px;font-weight:700;margin-bottom:4px;line-height:1.4;">${esc(c.label || "—")}</div>
+              <div style="font-size:22px;color:#555;line-height:1.55;">${esc(c.comment || "")}</div>
             </div>
           </div>
         `)}
