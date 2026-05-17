@@ -133,20 +133,21 @@ function renderFramework(slide, s) {
   // 3色のチップ + 説明
   const chips = [
     { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: COLORS.C },
-    // 権さん 2026-05-17: → の前後の半角スペースで折り返しが発生し ） だけ次行に
-    // 落ちる現象。スペースを除いて 1 行に収まる長さにする。
     { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ→ウォンツ）", color: COLORS.B },
     { letter: "A", label: "Advantage", desc: "競合より選ばれる差別的優位点", color: COLORS.A },
   ];
   const chipY = 1.55;
   const chipH = 1.3;
   const chipW = (W - M * 2 - 0.4) / 3;
+  // 権さん 2026-05-17: B チップ desc「（ニーズ→ウォンツ）」の閉じ括弧 ） が次行に落ちる現象。
+  // 12pt × 19字 ≈ 2.93in が desc 幅 2.91in を超えていたため折り返していた。
+  // 対策: desc を 10pt に縮小（19字 × 10 ≈ 2.42in で確実に収まる）+ レター字数を縮めて desc 領域拡大。
   chips.forEach((c, i) => {
     const x = M + i * (chipW + 0.2);
-    slide.addShape("rect", { x, y: chipY, w: 0.9, h: chipH, fill: { color: c.color }, line: { color: c.color } });
-    slide.addText(c.letter, { x, y: chipY, w: 0.9, h: chipH, fontFace: F_HEAD, fontSize: 48, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label, { x: x + 1.0, y: chipY + 0.1, w: chipW - 1.0, h: 0.35, fontFace: F_MONO, fontSize: 10, color: COLORS.muted, charSpacing: 3 });
-    slide.addText(c.desc, { x: x + 1.0, y: chipY + 0.45, w: chipW - 1.0, h: chipH - 0.45, fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.5 });
+    slide.addShape("rect", { x, y: chipY, w: 0.85, h: chipH, fill: { color: c.color }, line: { color: c.color } });
+    slide.addText(c.letter, { x, y: chipY, w: 0.85, h: chipH, fontFace: F_HEAD, fontSize: 46, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    slide.addText(c.label, { x: x + 0.95, y: chipY + 0.1, w: chipW - 0.95, h: 0.35, fontFace: F_MONO, fontSize: 10, color: COLORS.muted, charSpacing: 3 });
+    slide.addText(c.desc, { x: x + 0.95, y: chipY + 0.45, w: chipW - 0.95, h: chipH - 0.45, fontFace: F_BODY, fontSize: 10, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.4 });
   });
   // 説明文
   slide.addText(s.description, {
@@ -240,16 +241,18 @@ function renderCustomer(slide, s) {
   }
 
   // 右カラム: 市場規模・購買ステージ・絞り込み条件
+  // 権さん 2026-05-17: 5項目すべて表示すると下端で「絞り込み条件」がはみ出していた。
+  // グレー枠を下まで広げる（h: 5 → 5.45、フッターまでマージン 0.1in 確保）。
   const rightX = leftX + leftW + 0.4;
   const rightW = W - M - rightX;
-  slide.addShape("rect", { x: rightX, y: 1.65, w: rightW, h: 5, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
+  slide.addShape("rect", { x: rightX, y: 1.65, w: rightW, h: 5.45, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   let y = 1.85;
   const block = (label, value) => {
     if (!value) return;
     slide.addText(label, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.muted });
     y += 0.3;
-    slide.addText(value, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.6, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top" });
-    y += 0.7;
+    slide.addText(value, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.7, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.4, shrinkText: true });
+    y += 0.75;
   };
   block("購買ステージ", s.stage);
   block("市場規模（SAM）", s.market.sam);
@@ -290,30 +293,31 @@ function renderCompany(slide, s) {
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
   // 権さん 2026-05-15: 体制とパッションが重なっていた。それぞれの領域を明確に分け、shrinkText で長文対応。
   // 権さん 2026-05-17:
-  // - 本文が大きく溢れがち → 1項目3行になる想定でフォントを 14/13pt → 11pt に縮小（見出しはそのまま、ジャンプ率増）
+  // - 本文が大きく溢れがち → 1項目3行になる想定でフォントを 14/13pt → 11pt に縮小
+  // - 行間も詰める（1.6 → 1.25）。これでパッション最終行までフッター手前に収まる
   // - 強み のリストにハンギングインデントを効かせる
   // 強み（リスト・上半分）
-  slide.addText("強み", { x: M, y: 1.6, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("強み", { x: M, y: 1.55, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   if (s.strength.length) {
     slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
-      x: M, y: 1.92, w: W - M * 2, h: 2.7,
+      x: M, y: 1.85, w: W - M * 2, h: 2.55,
       fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 6, lineSpacingMultiple: 1.6, shrinkText: true,
+      paraSpaceAfter: 3, lineSpacingMultiple: 1.25, shrinkText: true,
     });
   }
   // 体制（中段）
-  slide.addText("体制", { x: M, y: 4.75, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("体制", { x: M, y: 4.5, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.structure || "—", {
-    x: M, y: 5.05, w: W - M * 2, h: 1.25,
+    x: M, y: 4.8, w: W - M * 2, h: 1.4,
     fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.6, shrinkText: true,
+    lineSpacingMultiple: 1.25, shrinkText: true,
   });
   // パッション（下段）
-  slide.addText("パッション", { x: M, y: 6.4, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("パッション", { x: M, y: 6.3, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.passion || "—", {
-    x: M, y: 6.7, w: W - M * 2, h: 0.65,
+    x: M, y: 6.6, w: W - M * 2, h: 0.5,
     fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top", italic: true,
-    lineSpacingMultiple: 1.5, shrinkText: true,
+    lineSpacingMultiple: 1.25, shrinkText: true,
   });
 }
 
@@ -404,17 +408,17 @@ function renderStrategyRecap(slide, s) {
 function renderCheckpoints(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "品質チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
-  // 権さん 2026-05-17: フォントを全体的に拡大して可読性向上。
-  // ステータスバッジ 12→16pt、ラベル 15→18pt、コメント 13→15pt
+  // 権さん 2026-05-17（再）: 前回の拡大が逆方向だった。本文をさらに小さくして5項目を余裕で収める。
+  // ステータスバッジ 11pt、ラベル 13pt、コメント 10pt、行間も詰める。
   const items = s.items.slice(0, 5);
   const rowH = (H - 2.2) / Math.max(items.length, 1);
   items.forEach((c, i) => {
     const y = 1.7 + i * rowH;
     const statusColor = c.status === "ok" ? "0d9488" : c.status === "warn" ? "ea580c" : c.status === "ng" ? COLORS.B : COLORS.muted;
-    slide.addShape("rect", { x: M, y, w: 1.0, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
-    slide.addText(c.statusLabel, { x: M, y, w: 1.0, h: rowH - 0.15, fontFace: F_BODY, fontSize: 16, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label || "—", { x: M + 1.2, y, w: W - M * 2 - 1.2, h: 0.45, fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink });
-    slide.addText(c.comment || "", { x: M + 1.2, y: y + 0.48, w: W - M * 2 - 1.2, h: rowH - 0.62, fontFace: F_BODY, fontSize: 15, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.4, shrinkText: true });
+    slide.addShape("rect", { x: M, y, w: 0.85, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
+    slide.addText(c.statusLabel, { x: M, y, w: 0.85, h: rowH - 0.15, fontFace: F_BODY, fontSize: 11, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    slide.addText(c.label || "—", { x: M + 1.05, y, w: W - M * 2 - 1.05, h: 0.35, fontFace: F_BODY, fontSize: 13, bold: true, color: COLORS.ink });
+    slide.addText(c.comment || "", { x: M + 1.05, y: y + 0.38, w: W - M * 2 - 1.05, h: rowH - 0.52, fontFace: F_BODY, fontSize: 10, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.35, shrinkText: true });
   });
 }
 
@@ -447,14 +451,17 @@ function renderImproveSection(slide, s) {
 
   items.forEach((item, j) => {
     const y = topY + j * rowH;
-    const innerH = rowH - 0.25; // 行間にゆとり
-    // 番号バッジ
-    slide.addShape("rect", { x: M, y: y + 0.05, w: 0.55, h: 0.55, fill: { color: COLORS.exec }, line: { color: COLORS.exec } });
-    slide.addText(String(startNum + j), { x: M, y: y + 0.05, w: 0.55, h: 0.55, fontFace: F_HEAD, fontSize: 18, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    // 権さん 2026-05-17: 項目見出しを 15pt → 21pt（二回り拡大）。
+    // 番号バッジ・本文の y 位置を見出しの高さ拡張に合わせて再配置。
+    const titleH = 0.75;
+    const innerH = rowH - titleH + 0.05;
+    // 番号バッジ（見出しと中央揃え。バッジサイズも 0.55 → 0.65 に拡大）
+    slide.addShape("rect", { x: M, y: y + 0.05, w: 0.65, h: 0.65, fill: { color: COLORS.exec }, line: { color: COLORS.exec } });
+    slide.addText(String(startNum + j), { x: M, y: y + 0.05, w: 0.65, h: 0.65, fontFace: F_HEAD, fontSize: 22, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
     // タイトル
     slide.addText(item.title || "", {
-      x: M + 0.75, y: y, w: W - M * 2 - 0.75, h: 0.5,
-      fontFace: F_BODY, fontSize: 15, bold: true, color: COLORS.ink, valign: "top",
+      x: M + 0.85, y: y, w: W - M * 2 - 0.85, h: titleH,
+      fontFace: F_BODY, fontSize: 21, bold: true, color: COLORS.ink, valign: "middle",
     });
     // 理由
     if (item.reason) {
@@ -462,18 +469,19 @@ function renderImproveSection(slide, s) {
         { text: "理由：", options: { bold: true, color: COLORS.exec } },
         { text: item.reason, options: { color: COLORS.muted } },
       ], {
-        x: M + 0.75, y: y + 0.55, w: W - M * 2 - 0.75, h: (innerH - 0.55) / 2,
+        x: M + 0.85, y: y + titleH + 0.05, w: W - M * 2 - 0.85, h: (innerH - 0.1) / 2,
         fontFace: F_BODY, fontSize: 12, valign: "top",
         lineSpacingMultiple: 1.6, shrinkText: true,
       });
     }
-    // 実装例
+    // 実装例（理由と同じ高さで下半分に配置。タイトル拡大に合わせて y を再計算）
     if (item.example) {
+      const halfH = (innerH - 0.1) / 2;
       slide.addText([
         { text: "実装例：", options: { bold: true, color: COLORS.exec } },
         { text: item.example, options: { color: COLORS.muted } },
       ], {
-        x: M + 0.75, y: y + 0.55 + (innerH - 0.55) / 2 + 0.05, w: W - M * 2 - 0.75, h: (innerH - 0.55) / 2 - 0.1,
+        x: M + 0.85, y: y + titleH + 0.05 + halfH + 0.05, w: W - M * 2 - 0.85, h: halfH,
         fontFace: F_BODY, fontSize: 12, valign: "top",
         lineSpacingMultiple: 1.6, shrinkText: true,
       });
