@@ -131,23 +131,23 @@ function renderFramework(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "AB3C フレームワークとは");
   // 3色のチップ + 説明
+  // 権さん 2026-05-18: 見出し（desc）を大きく、改行することで収まるようにする。
+  // 13pt にして desc に明示的な \n を入れて 2 行構成にする。
+  // ） が単独で次行に落ちる現象は、手動改行で確実に回避できる。
   const chips = [
-    { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: COLORS.C },
-    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ→ウォンツ）", color: COLORS.B },
-    { letter: "A", label: "Advantage", desc: "競合より選ばれる差別的優位点", color: COLORS.A },
+    { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の\n3つのCで現状を把握", color: COLORS.C },
+    { letter: "B", label: "Benefit", desc: "お客様が求める価値\n（ニーズ→ウォンツ）", color: COLORS.B },
+    { letter: "A", label: "Advantage", desc: "競合より選ばれる\n差別的優位点", color: COLORS.A },
   ];
   const chipY = 1.55;
-  const chipH = 1.3;
+  const chipH = 1.35;
   const chipW = (W - M * 2 - 0.4) / 3;
-  // 権さん 2026-05-17: B チップ desc「（ニーズ→ウォンツ）」の閉じ括弧 ） が次行に落ちる現象。
-  // 12pt × 19字 ≈ 2.93in が desc 幅 2.91in を超えていたため折り返していた。
-  // 対策: desc を 10pt に縮小（19字 × 10 ≈ 2.42in で確実に収まる）+ レター字数を縮めて desc 領域拡大。
   chips.forEach((c, i) => {
     const x = M + i * (chipW + 0.2);
-    slide.addShape("rect", { x, y: chipY, w: 0.85, h: chipH, fill: { color: c.color }, line: { color: c.color } });
-    slide.addText(c.letter, { x, y: chipY, w: 0.85, h: chipH, fontFace: F_HEAD, fontSize: 46, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label, { x: x + 0.95, y: chipY + 0.1, w: chipW - 0.95, h: 0.35, fontFace: F_MONO, fontSize: 10, color: COLORS.muted, charSpacing: 3 });
-    slide.addText(c.desc, { x: x + 0.95, y: chipY + 0.45, w: chipW - 0.95, h: chipH - 0.45, fontFace: F_BODY, fontSize: 10, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.4 });
+    slide.addShape("rect", { x, y: chipY, w: 0.9, h: chipH, fill: { color: c.color }, line: { color: c.color } });
+    slide.addText(c.letter, { x, y: chipY, w: 0.9, h: chipH, fontFace: F_HEAD, fontSize: 48, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    slide.addText(c.label, { x: x + 1.0, y: chipY + 0.05, w: chipW - 1.0, h: 0.3, fontFace: F_MONO, fontSize: 10, color: COLORS.muted, charSpacing: 3 });
+    slide.addText(c.desc, { x: x + 1.0, y: chipY + 0.35, w: chipW - 1.0, h: chipH - 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.35, bold: true });
   });
   // 説明文
   slide.addText(s.description, {
@@ -241,18 +241,19 @@ function renderCustomer(slide, s) {
   }
 
   // 右カラム: 市場規模・購買ステージ・絞り込み条件
-  // 権さん 2026-05-17: 5項目すべて表示すると下端で「絞り込み条件」がはみ出していた。
-  // グレー枠を下まで広げる（h: 5 → 5.45、フッターまでマージン 0.1in 確保）。
+  // 権さん 2026-05-18: 見出し小さく・本文大きすぎる・余白広い → 見出しを大きく、本文を小さく、余白を詰める
   const rightX = leftX + leftW + 0.4;
   const rightW = W - M - rightX;
   slide.addShape("rect", { x: rightX, y: 1.65, w: rightW, h: 5.45, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   let y = 1.85;
   const block = (label, value) => {
     if (!value) return;
-    slide.addText(label, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 11, color: COLORS.muted });
-    y += 0.3;
-    slide.addText(value, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.7, fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top", lineSpacingMultiple: 1.4, shrinkText: true });
-    y += 0.75;
+    // 見出しを 11pt → 13pt bold（プロミネンス UP）
+    slide.addText(label, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.3, fontFace: F_BODY, fontSize: 13, bold: true, color: COLORS.ink });
+    y += 0.32;
+    // 本文を 14pt → 11pt（余白詰め）
+    slide.addText(value, { x: rightX + 0.2, y, w: rightW - 0.4, h: 0.6, fontFace: F_BODY, fontSize: 11, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.3, shrinkText: true });
+    y += 0.7;
   };
   block("購買ステージ", s.stage);
   block("市場規模（SAM）", s.market.sam);
@@ -291,33 +292,31 @@ function renderCompetitor(slide, s) {
 function renderCompany(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
-  // 権さん 2026-05-15: 体制とパッションが重なっていた。それぞれの領域を明確に分け、shrinkText で長文対応。
-  // 権さん 2026-05-17:
-  // - 本文が大きく溢れがち → 1項目3行になる想定でフォントを 14/13pt → 11pt に縮小
-  // - 行間も詰める（1.6 → 1.25）。これでパッション最終行までフッター手前に収まる
-  // - 強み のリストにハンギングインデントを効かせる
+  // 権さん 2026-05-18: 余白がさらに空いてしまった問題。
+  // 行間を詰めすぎたため、コンパクトな内容（1行ずつのbullet等）で大きな余白が出ていた。
+  // 対策: セクション間の y 位置を上に詰めて、box h も実用サイズに合わせる。
   // 強み（リスト・上半分）
   slide.addText("強み", { x: M, y: 1.55, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   if (s.strength.length) {
     slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
-      x: M, y: 1.85, w: W - M * 2, h: 2.55,
+      x: M, y: 1.85, w: W - M * 2, h: 2.1,
       fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 3, lineSpacingMultiple: 1.25, shrinkText: true,
+      paraSpaceAfter: 3, lineSpacingMultiple: 1.3, shrinkText: true,
     });
   }
-  // 体制（中段）
-  slide.addText("体制", { x: M, y: 4.5, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  // 体制（中段）— 強み box の直下に詰める
+  slide.addText("体制", { x: M, y: 4.05, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.structure || "—", {
-    x: M, y: 4.8, w: W - M * 2, h: 1.4,
+    x: M, y: 4.35, w: W - M * 2, h: 1.4,
     fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.25, shrinkText: true,
+    lineSpacingMultiple: 1.3, shrinkText: true,
   });
-  // パッション（下段）
-  slide.addText("パッション", { x: M, y: 6.3, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  // パッション（下段）— 体制 box の直下に詰める
+  slide.addText("パッション", { x: M, y: 5.85, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.passion || "—", {
-    x: M, y: 6.6, w: W - M * 2, h: 0.5,
+    x: M, y: 6.15, w: W - M * 2, h: 0.95,
     fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top", italic: true,
-    lineSpacingMultiple: 1.25, shrinkText: true,
+    lineSpacingMultiple: 1.3, shrinkText: true,
   });
 }
 
@@ -408,26 +407,25 @@ function renderStrategyRecap(slide, s) {
 function renderCheckpoints(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "品質チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
-  // 権さん 2026-05-17（再々）: コメントが項目を跨いで重なる現象が継続。
-  // - rowH = 1.06in に対し、コメント h=0.54in が長文 2〜3行で溢れていた
-  // - コメント fontSize 10 → 8pt、lineSpacing 1.35 → 1.15 にさらに縮小
-  // - ラベル h を 0.35 → 0.32 に詰めてコメント領域を拡張（0.54 → 0.57in）
-  // - shrinkText のみ（autoFit / isTextBox は非標準で PPT 破損エラーの原因）
+  // 権さん 2026-05-18: 見出しも本文も大きく、本文は特に他の本文と同程度に。
+  // ステータスバッジ 14pt、ラベル 15pt bold、コメント 11pt（他ページ body の標準サイズ）。
+  // 利用可能領域を上方拡張して 5項目分の余白を確保。
   const items = s.items.slice(0, 5);
-  const rowH = (H - 2.2) / Math.max(items.length, 1);
+  // topY を 1.7 → 1.5 に上げて、footer 手前まで使う領域を 5.3 → 5.5in に拡張
+  const topY = 1.5;
+  const bottomY = H - 0.4;
+  const rowH = (bottomY - topY) / Math.max(items.length, 1);
   items.forEach((c, i) => {
-    const y = 1.7 + i * rowH;
+    const y = topY + i * rowH;
     const statusColor = c.status === "ok" ? "0d9488" : c.status === "warn" ? "ea580c" : c.status === "ng" ? COLORS.B : COLORS.muted;
-    slide.addShape("rect", { x: M, y, w: 0.85, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
-    slide.addText(c.statusLabel, { x: M, y, w: 0.85, h: rowH - 0.15, fontFace: F_BODY, fontSize: 11, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label || "—", { x: M + 1.05, y, w: W - M * 2 - 1.05, h: 0.32, fontFace: F_BODY, fontSize: 12, bold: true, color: COLORS.ink, valign: "middle" });
-    // 権さん 2026-05-18: autoFit + isTextBox は pptxgenjs の非標準オプションで
-    // 不正な XML を生成し「コンテンツに問題が見つかりました」エラーの原因になっていた。
-    // shrinkText だけにとどめる。重なり対策はフォントを十分に小さくして物理的に解消。
+    slide.addShape("rect", { x: M, y, w: 0.9, h: rowH - 0.12, fill: { color: statusColor }, line: { color: statusColor } });
+    slide.addText(c.statusLabel, { x: M, y, w: 0.9, h: rowH - 0.12, fontFace: F_BODY, fontSize: 14, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    slide.addText(c.label || "—", { x: M + 1.1, y, w: W - M * 2 - 1.1, h: 0.4, fontFace: F_BODY, fontSize: 15, bold: true, color: COLORS.ink, valign: "middle" });
+    // コメントは他ページ本文と同じ 11pt。shrinkText で長文時の自動縮小。
     slide.addText(c.comment || "", {
-      x: M + 1.05, y: y + 0.34, w: W - M * 2 - 1.05, h: rowH - 0.49,
-      fontFace: F_BODY, fontSize: 8, color: COLORS.muted, valign: "top",
-      lineSpacingMultiple: 1.15, shrinkText: true,
+      x: M + 1.1, y: y + 0.42, w: W - M * 2 - 1.1, h: rowH - 0.56,
+      fontFace: F_BODY, fontSize: 11, color: COLORS.muted, valign: "top",
+      lineSpacingMultiple: 1.3, shrinkText: true,
     });
   });
 }
