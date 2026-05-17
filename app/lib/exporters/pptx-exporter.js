@@ -262,18 +262,76 @@ function renderCustomer(slide, s) {
   block("絞り込み条件", s.cutoff);
 }
 
+// 競合エントリを「社名」「（説明）」「URL」の3パーツに分解する。
+// 入力例:
+//   "株式会社船井総合研究所（中小企業向け総合コンサル・業種特化型）｜https://www.funaisoken.co.jp/"
+//   → { name: "株式会社船井総合研究所", desc: "中小企業向け総合コンサル・業種特化型", url: "https://www.funaisoken.co.jp/" }
+// オブジェクト形式 { name, desc, url } もそのまま受け付ける。
+// 末尾が "（...）" で閉じていない場合は desc を取らず全体を name とする（誤マッチ回避）。
+function parseCompetitor(c) {
+  if (typeof c !== "string") {
+    return {
+      name: c?.name || JSON.stringify(c),
+      desc: c?.desc || c?.description || "",
+      url: c?.url || "",
+    };
+  }
+  let url = "";
+  let rest = c;
+  const urlMatch = c.match(/[｜|]\s*(https?:\/\/\S+)\s*$/);
+  if (urlMatch) {
+    url = urlMatch[1];
+    rest = c.slice(0, urlMatch.index).trim();
+  }
+  let name = rest;
+  let desc = "";
+  // 末尾が （...） で閉じる場合のみ desc として切り出す
+  const descMatch = rest.match(/^(.+?)（(.+?)）\s*$/);
+  if (descMatch) {
+    name = descMatch[1].trim();
+    desc = descMatch[2].trim();
+  }
+  return { name, desc, url };
+}
+
+// 競合リストを「社名 / 　（説明） / 　URL」の3行構造のパラグラフ配列に変換。
+// 権さん 2026-05-18: bullet が PPT で正しく描画されずリスト先頭が分からなくなったため、
+// 構造化された3行レイアウトで視認性を確保する方針。
+//   - 社名: bold、インデントなし
+//   - 説明: 半角スペース1個分のインデント + 灰色
+//   - URL: 全角スペース1個分のインデント + 青色
+function competitorParas(items) {
+  const paras = [];
+  items.forEach((c, idx) => {
+    const p = parseCompetitor(c);
+    paras.push({ text: p.name, options: { bold: true, breakLine: true } });
+    if (p.desc) {
+      paras.push({ text: " （" + p.desc + "）", options: { color: COLORS.muted, breakLine: true } });
+    }
+    if (p.url) {
+      paras.push({ text: "　" + p.url, options: { color: COLORS.A, fontSize: 10, breakLine: true } });
+    }
+    // エントリ間に視覚的ブランク（小フォントの空行）
+    if (idx < items.length - 1) {
+      paras.push({ text: " ", options: { fontSize: 6, breakLine: true } });
+    }
+  });
+  return paras;
+}
+
 function renderCompetitor(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "競合（Competitor）", COLORS.C, "PART 1  ─  COMPETITOR");
   const colW = (W - M * 2 - 0.4) / 2;
-  const fmtComp = (c) => typeof c === "string" ? c : (c.name || JSON.stringify(c));
   // 直接競合
   slide.addText("直接競合", { x: M, y: 1.65, w: colW, h: 0.4, fontFace: F_BODY, fontSize: 14, bold: true, color: COLORS.ink });
   slide.addShape("rect", { x: M, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.direct.length) {
-    // 権さん 2026-05-17: 折り返し時に "・" の位置にぶら下がり字下げを効かせる。
-    slide.addText(s.direct.map(c => ({ text: fmtComp(c), options: { bullet: { type: "bullet", code: "30FB" } } })),
-      { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
+    slide.addText(competitorParas(s.direct), {
+      x: M + 0.2, y: 2.2, w: colW - 0.4, h: 4.6,
+      fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
+      lineSpacingMultiple: 1.3, shrinkText: true,
+    });
   } else {
     slide.addText("—", { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
   }
@@ -282,8 +340,11 @@ function renderCompetitor(slide, s) {
   slide.addText("間接競合", { x: rx, y: 1.65, w: colW, h: 0.4, fontFace: F_BODY, fontSize: 14, bold: true, color: COLORS.ink });
   slide.addShape("rect", { x: rx, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.indirect.length) {
-    slide.addText(s.indirect.map(c => ({ text: fmtComp(c), options: { bullet: { type: "bullet", code: "30FB" } } })),
-      { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
+    slide.addText(competitorParas(s.indirect), {
+      x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 4.6,
+      fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
+      lineSpacingMultiple: 1.3, shrinkText: true,
+    });
   } else {
     slide.addText("—", { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
   }
