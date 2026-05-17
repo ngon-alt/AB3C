@@ -122,14 +122,15 @@ function renderAnalysisTargetHtml(s) {
 }
 
 function renderFrameworkHtml(s) {
-  // 権さん 2026-05-15: 大前研一の3C分析ベース + 関連書籍 + 関連団体を併載
-  // 権さん 2026-05-17: B の desc「お客様が求める価値（ニーズ→ウォンツ）」の閉じ括弧 ） が
-  // 単独で次行に落ちる現象。原因は 24px × 19字 ≈ 456px がチップ本体幅 ~427px を超えるため。
-  // 対策: desc を 20px に縮小 + white-space:nowrap で必ず 1 行に固定する。
+  // 権さん 2026-05-18:
+  // - 3 チップの見出し（desc）を大きく + 手動改行で 2 行構成に統一
+  //   （PPT と同様に desc に \n を入れて確実にレイアウト固定、） オーファン回避）
+  // - 関連リソースの行頭ずれを修正（絵文字幅の違いで「関連書籍」「関連団体」の x がずれていた）
+  //   → 絵文字を削除し、ラベル column を固定幅にして行頭を揃える
   const chips = [
-    { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: "1a1a14" },
-    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ→ウォンツ）", color: "FF0000" },
-    { letter: "A", label: "Advantage", desc: "競合より選ばれる差別的優位点", color: "1a6fd4" },
+    { letter: "C", label: "Customer / Competitor / Company", desc: ["顧客・競合・自社の", "3つのCで現状を把握"], color: "1a1a14" },
+    { letter: "B", label: "Benefit", desc: ["お客様が求める価値", "（ニーズ→ウォンツ）"], color: "FF0000" },
+    { letter: "A", label: "Advantage", desc: ["競合より選ばれる", "差別的優位点"], color: "1a6fd4" },
   ];
   return `
     <div style="position:absolute;inset:0;">
@@ -141,7 +142,9 @@ function renderFrameworkHtml(s) {
               <div style="width:110px;height:160px;background:#${c.color};display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Noto Serif JP',serif;font-size:76px;font-weight:700;flex-shrink:0;">${c.letter}</div>
               <div style="margin-left:20px;flex:1;min-width:0;">
                 <div class="mono" style="font-size:20px;color:#555;letter-spacing:.3em;margin-bottom:6px;">${esc(c.label)}</div>
-                <div style="font-size:20px;color:#1a1a14;line-height:1.65;white-space:nowrap;">${esc(c.desc)}</div>
+                <div style="font-size:26px;font-weight:700;color:#1a1a14;line-height:1.4;">
+                  ${c.desc.map(line => `<div>${esc(line)}</div>`).join("")}
+                </div>
               </div>
             </div>
           `)}
@@ -149,20 +152,23 @@ function renderFrameworkHtml(s) {
         <div style="font-size:28px;line-height:1.85;color:#1a1a14;">${esc(s.description)}</div>
         <div style="font-size:24px;color:#555;font-style:italic;line-height:1.7;">${esc(s.orderNote || "")}</div>
 
-        <!-- 関連リソース -->
+        <!-- 関連リソース：ラベル列を固定幅にして行頭を揃える -->
         <div style="border-top:1px solid #ccc;padding-top:18px;">
           <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:14px;">関連リソース</div>
           ${s.relatedBook ? `
-            <div style="font-size:26px;color:#1a1a14;margin-bottom:10px;line-height:1.6;">
-              <b>📖 関連書籍：</b>
-              <a href="${esc(s.relatedBook.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">『${esc(s.relatedBook.title)}』</a>
-              ${s.relatedBook.author ? `<span style="color:#555;margin-left:8px;">${esc(s.relatedBook.author)}</span>` : ""}
+            <div style="display:flex;align-items:baseline;margin-bottom:10px;font-size:26px;line-height:1.5;">
+              <div style="width:180px;flex-shrink:0;font-weight:700;color:#1a1a14;">関連書籍：</div>
+              <div style="flex:1;">
+                <a href="${esc(s.relatedBook.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">『${esc(s.relatedBook.title)}』</a>${s.relatedBook.author ? `<span style="color:#555;margin-left:12px;">${esc(s.relatedBook.author)}</span>` : ""}
+              </div>
             </div>
           ` : ""}
           ${s.relatedAssociation ? `
-            <div style="font-size:26px;color:#1a1a14;line-height:1.6;">
-              <b>🏛 関連団体：</b>
-              <a href="${esc(s.relatedAssociation.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">${esc(s.relatedAssociation.name)}</a>
+            <div style="display:flex;align-items:baseline;font-size:26px;line-height:1.5;">
+              <div style="width:180px;flex-shrink:0;font-weight:700;color:#1a1a14;">関連団体：</div>
+              <div style="flex:1;">
+                <a href="${esc(s.relatedAssociation.url || "")}" style="color:#1a6fd4;text-decoration:underline;font-weight:700;">${esc(s.relatedAssociation.name)}</a>
+              </div>
             </div>
           ` : ""}
         </div>
