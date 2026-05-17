@@ -269,10 +269,10 @@ function renderCompanyHtml(s) {
           <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">仕組み</div>
           <div style="font-size:22px;line-height:1.65;">${esc(s.structure || "—")}</div>
         </div>
-        <!-- 価値観（旧: パッション）— 権さん 2026-05-18 ラベル変更 -->
+        <!-- 価値観（旧: パッション）— 権さん 2026-05-18 ラベル変更・italic 解除 -->
         <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:10px;">
           <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">価値観</div>
-          <div style="font-size:22px;line-height:1.65;font-style:italic;">${esc(s.passion || "—")}</div>
+          <div style="font-size:22px;line-height:1.65;">${esc(s.passion || "—")}</div>
         </div>
       </div>
     </div>

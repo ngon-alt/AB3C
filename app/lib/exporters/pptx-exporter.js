@@ -373,11 +373,11 @@ function renderCompany(slide, s) {
     fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
     lineSpacingMultiple: 1.35, shrinkText: true,
   });
-  // 価値観（下段）— 旧 "パッション"
+  // 価値観（下段）— 旧 "パッション"。権さん 2026-05-18: italic 解除
   slide.addText("価値観", { x: M, y: 5.85, w: W - M * 2, h: 0.4, fontFace: F_BODY, fontSize: 16, bold: true, color: COLORS.ink });
   slide.addText(s.passion || "—", {
     x: M, y: 6.3, w: W - M * 2, h: 0.85,
-    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top", italic: true,
+    fontFace: F_BODY, fontSize: 12, color: COLORS.ink, valign: "top",
     lineSpacingMultiple: 1.35, shrinkText: true,
   });
 }
