@@ -246,27 +246,28 @@ function renderCompetitorHtml(s) {
 
 function renderCompanyHtml(s) {
   // 権さん 2026-05-15: 体制・パッションのテキストがはみ出して重なる問題を修正。
-  // 強み / 体制 / パッション をそれぞれセクションに分け、3:2:1.5 の比率で固定領域に配置。
+  // 権さん 2026-05-17: 自社ページはコンテンツが多くて溢れがち。フォント・行間・余白を全体的に詰める。
+  // 強み 24px / 体制・パッション 22px、line-height 1.65、gap 12px、padding-top 10px に圧縮。
   return `
     <div style="position:absolute;inset:0;">
       ${pageHeaderHtml("自社（Company）", "1a1a14", "PART 1  ─  COMPANY")}
-      <div style="padding:24px 100px 60px;display:flex;flex-direction:column;gap:18px;height:calc(100% - 200px);">
+      <div style="padding:18px 100px 40px;display:flex;flex-direction:column;gap:12px;height:calc(100% - 180px);">
         <!-- 強み -->
         <div style="flex:3;overflow:hidden;">
-          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">強み</div>
-          <div style="font-size:28px;line-height:1.85;">
-            ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:6px;">・${esc(t)}</div>`) : "—"}
+          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">強み</div>
+          <div style="font-size:24px;line-height:1.65;">
+            ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:3px;">・${esc(t)}</div>`) : "—"}
           </div>
         </div>
         <!-- 体制 -->
-        <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
-          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">体制</div>
-          <div style="font-size:26px;line-height:1.85;">${esc(s.structure || "—")}</div>
+        <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:10px;">
+          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">体制</div>
+          <div style="font-size:22px;line-height:1.65;">${esc(s.structure || "—")}</div>
         </div>
         <!-- パッション -->
-        <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:14px;">
-          <div class="mono" style="font-size:22px;color:#555;letter-spacing:.4em;margin-bottom:10px;">パッション</div>
-          <div style="font-size:26px;line-height:1.85;font-style:italic;">${esc(s.passion || "—")}</div>
+        <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:10px;">
+          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">パッション</div>
+          <div style="font-size:22px;line-height:1.65;font-style:italic;">${esc(s.passion || "—")}</div>
         </div>
       </div>
     </div>
