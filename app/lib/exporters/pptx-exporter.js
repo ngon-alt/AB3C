@@ -231,7 +231,9 @@ function renderCustomer(slide, s) {
 
   slide.addText("プロファイル", { x: leftX, y: 2.95, w: leftW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.muted });
   if (s.profile.length) {
-    slide.addText(s.profile.map(p => ({ text: "・" + p, options: {} })), {
+    // 権さん 2026-05-17: 折り返し時に "・" の位置にぶら下がり字下げを効かせる。
+    // pptxgenjs の bullet を使うと自動的にハンギングインデントが付き、リスト先頭が明確になる。
+    slide.addText(s.profile.map(p => ({ text: p, options: { bullet: { type: "bullet", code: "30FB" } } })), {
       x: leftX, y: 3.25, w: leftW, h: 3.5,
       fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6,
     });
@@ -260,11 +262,13 @@ function renderCompetitor(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "競合（Competitor）", COLORS.C, "PART 1  ─  COMPETITOR");
   const colW = (W - M * 2 - 0.4) / 2;
+  const fmtComp = (c) => typeof c === "string" ? c : (c.name || JSON.stringify(c));
   // 直接競合
   slide.addText("直接競合", { x: M, y: 1.65, w: colW, h: 0.4, fontFace: F_BODY, fontSize: 14, bold: true, color: COLORS.ink });
   slide.addShape("rect", { x: M, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.direct.length) {
-    slide.addText(s.direct.map(c => "・" + (typeof c === "string" ? c : (c.name || JSON.stringify(c)))).join("\n"),
+    // 権さん 2026-05-17: 折り返し時に "・" の位置にぶら下がり字下げを効かせる。
+    slide.addText(s.direct.map(c => ({ text: fmtComp(c), options: { bullet: { type: "bullet", code: "30FB" } } })),
       { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   } else {
     slide.addText("—", { x: M + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
@@ -274,7 +278,7 @@ function renderCompetitor(slide, s) {
   slide.addText("間接競合", { x: rx, y: 1.65, w: colW, h: 0.4, fontFace: F_BODY, fontSize: 14, bold: true, color: COLORS.ink });
   slide.addShape("rect", { x: rx, y: 2.05, w: colW, h: 4.8, fill: { color: COLORS.paper }, line: { color: COLORS.border } });
   if (s.indirect.length) {
-    slide.addText(s.indirect.map(c => "・" + (typeof c === "string" ? c : (c.name || JSON.stringify(c)))).join("\n"),
+    slide.addText(s.indirect.map(c => ({ text: fmtComp(c), options: { bullet: { type: "bullet", code: "30FB" } } })),
       { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 4.6, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   } else {
     slide.addText("—", { x: rx + 0.2, y: 2.2, w: colW - 0.4, h: 0.4, fontFace: F_BODY, fontSize: 13, color: COLORS.muted });
@@ -285,28 +289,31 @@ function renderCompany(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "自社（Company）", COLORS.C, "PART 1  ─  COMPANY");
   // 権さん 2026-05-15: 体制とパッションが重なっていた。それぞれの領域を明確に分け、shrinkText で長文対応。
+  // 権さん 2026-05-17:
+  // - 本文が大きく溢れがち → 1項目3行になる想定でフォントを 14/13pt → 11pt に縮小（見出しはそのまま、ジャンプ率増）
+  // - 強み のリストにハンギングインデントを効かせる
   // 強み（リスト・上半分）
   slide.addText("強み", { x: M, y: 1.6, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   if (s.strength.length) {
-    slide.addText(s.strength.map(t => "・" + t).join("\n"), {
-      x: M, y: 1.92, w: W - M * 2, h: 2.4,
-      fontFace: F_BODY, fontSize: 14, color: COLORS.ink, valign: "top",
-      paraSpaceAfter: 6, lineSpacingMultiple: 1.7, shrinkText: true,
+    slide.addText(s.strength.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })), {
+      x: M, y: 1.92, w: W - M * 2, h: 2.7,
+      fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
+      paraSpaceAfter: 6, lineSpacingMultiple: 1.6, shrinkText: true,
     });
   }
   // 体制（中段）
-  slide.addText("体制", { x: M, y: 4.5, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("体制", { x: M, y: 4.75, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.structure || "—", {
-    x: M, y: 4.82, w: W - M * 2, h: 1.3,
-    fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top",
-    lineSpacingMultiple: 1.65, shrinkText: true,
+    x: M, y: 5.05, w: W - M * 2, h: 1.25,
+    fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top",
+    lineSpacingMultiple: 1.6, shrinkText: true,
   });
   // パッション（下段）
-  slide.addText("パッション", { x: M, y: 6.25, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
+  slide.addText("パッション", { x: M, y: 6.4, w: W - M * 2, h: 0.3, fontFace: F_MONO, fontSize: 11, color: COLORS.muted, charSpacing: 4 });
   slide.addText(s.passion || "—", {
-    x: M, y: 6.57, w: W - M * 2, h: 0.75,
-    fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", italic: true,
-    lineSpacingMultiple: 1.65, shrinkText: true,
+    x: M, y: 6.7, w: W - M * 2, h: 0.65,
+    fontFace: F_BODY, fontSize: 11, color: COLORS.ink, valign: "top", italic: true,
+    lineSpacingMultiple: 1.5, shrinkText: true,
   });
 }
 
@@ -328,13 +335,14 @@ function renderBenefit(slide, s) {
   const ny = 1.65 + cardH + 0.3;
   slide.addText("ニーズ（顕在化前の必要性）", { x: M, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.B, bold: true });
   if (s.needs.length) {
-    slide.addText(s.needs.map(t => "・" + t).join("\n"),
+    // 権さん 2026-05-17: 折り返し時のハンギングインデントを効かせる
+    slide.addText(s.needs.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })),
       { x: M, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   }
   const rx = M + colW + 0.4;
   slide.addText("ウォンツ（具体的な欲求）", { x: rx, y: ny, w: colW, h: 0.3, fontFace: F_BODY, fontSize: 12, color: COLORS.B, bold: true });
   if (s.wants.length) {
-    slide.addText(s.wants.map(t => "・" + t).join("\n"),
+    slide.addText(s.wants.map(t => ({ text: t, options: { bullet: { type: "bullet", code: "30FB" } } })),
       { x: rx, y: ny + 0.35, w: colW, h: H - ny - 0.85, fontFace: F_BODY, fontSize: 13, color: COLORS.ink, valign: "top", paraSpaceAfter: 6, lineSpacingMultiple: 1.6 });
   }
 }
@@ -396,15 +404,17 @@ function renderStrategyRecap(slide, s) {
 function renderCheckpoints(slide, s) {
   bg(slide, COLORS.bg);
   pageHeader(slide, "品質チェック", COLORS.ink, "PART 3  ─  CHECKPOINTS");
+  // 権さん 2026-05-17: フォントを全体的に拡大して可読性向上。
+  // ステータスバッジ 12→16pt、ラベル 15→18pt、コメント 13→15pt
   const items = s.items.slice(0, 5);
   const rowH = (H - 2.2) / Math.max(items.length, 1);
   items.forEach((c, i) => {
     const y = 1.7 + i * rowH;
     const statusColor = c.status === "ok" ? "0d9488" : c.status === "warn" ? "ea580c" : c.status === "ng" ? COLORS.B : COLORS.muted;
-    slide.addShape("rect", { x: M, y, w: 0.9, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
-    slide.addText(c.statusLabel, { x: M, y, w: 0.9, h: rowH - 0.15, fontFace: F_BODY, fontSize: 12, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
-    slide.addText(c.label || "—", { x: M + 1.1, y, w: W - M * 2 - 1.1, h: 0.4, fontFace: F_BODY, fontSize: 15, bold: true, color: COLORS.ink });
-    slide.addText(c.comment || "", { x: M + 1.1, y: y + 0.42, w: W - M * 2 - 1.1, h: rowH - 0.55, fontFace: F_BODY, fontSize: 13, color: COLORS.muted, valign: "top" });
+    slide.addShape("rect", { x: M, y, w: 1.0, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
+    slide.addText(c.statusLabel, { x: M, y, w: 1.0, h: rowH - 0.15, fontFace: F_BODY, fontSize: 16, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
+    slide.addText(c.label || "—", { x: M + 1.2, y, w: W - M * 2 - 1.2, h: 0.45, fontFace: F_BODY, fontSize: 18, bold: true, color: COLORS.ink });
+    slide.addText(c.comment || "", { x: M + 1.2, y: y + 0.48, w: W - M * 2 - 1.2, h: rowH - 0.62, fontFace: F_BODY, fontSize: 15, color: COLORS.muted, valign: "top", lineSpacingMultiple: 1.4, shrinkText: true });
   });
 }
 
