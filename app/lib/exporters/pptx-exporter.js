@@ -412,7 +412,7 @@ function renderCheckpoints(slide, s) {
   // - rowH = 1.06in に対し、コメント h=0.54in が長文 2〜3行で溢れていた
   // - コメント fontSize 10 → 8pt、lineSpacing 1.35 → 1.15 にさらに縮小
   // - ラベル h を 0.35 → 0.32 に詰めてコメント領域を拡張（0.54 → 0.57in）
-  // - shrinkText に加えて autoFit も明示
+  // - shrinkText のみ（autoFit / isTextBox は非標準で PPT 破損エラーの原因）
   const items = s.items.slice(0, 5);
   const rowH = (H - 2.2) / Math.max(items.length, 1);
   items.forEach((c, i) => {
@@ -421,10 +421,13 @@ function renderCheckpoints(slide, s) {
     slide.addShape("rect", { x: M, y, w: 0.85, h: rowH - 0.15, fill: { color: statusColor }, line: { color: statusColor } });
     slide.addText(c.statusLabel, { x: M, y, w: 0.85, h: rowH - 0.15, fontFace: F_BODY, fontSize: 11, color: "FFFFFF", bold: true, align: "center", valign: "middle" });
     slide.addText(c.label || "—", { x: M + 1.05, y, w: W - M * 2 - 1.05, h: 0.32, fontFace: F_BODY, fontSize: 12, bold: true, color: COLORS.ink, valign: "middle" });
+    // 権さん 2026-05-18: autoFit + isTextBox は pptxgenjs の非標準オプションで
+    // 不正な XML を生成し「コンテンツに問題が見つかりました」エラーの原因になっていた。
+    // shrinkText だけにとどめる。重なり対策はフォントを十分に小さくして物理的に解消。
     slide.addText(c.comment || "", {
       x: M + 1.05, y: y + 0.34, w: W - M * 2 - 1.05, h: rowH - 0.49,
       fontFace: F_BODY, fontSize: 8, color: COLORS.muted, valign: "top",
-      lineSpacingMultiple: 1.15, shrinkText: true, autoFit: true, isTextBox: true,
+      lineSpacingMultiple: 1.15, shrinkText: true,
     });
   });
 }
