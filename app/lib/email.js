@@ -6,6 +6,10 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME = '戦略指南 AI';
+// 返信先のデフォルト。info@senryaku.ai は送信専用ドメインで受信MXがないため、
+// ユーザーがメールクライアントで「返信」してもバウンスする問題への対策。
+// REPLY_TO_EMAIL 環境変数で上書き可能。未設定時は運営アドレスへフォールバック。
+const DEFAULT_REPLY_TO = process.env.REPLY_TO_EMAIL || 'info@digi-kaku.or.jp';
 
 async function sendEmail(to, subject, html, options = {}) {
   if (!resend) {
@@ -15,7 +19,8 @@ async function sendEmail(to, subject, html, options = {}) {
   const fromHeader = `${FROM_NAME} <${FROM}>`;
   try {
     const payload = { from: fromHeader, to: [to], subject, html };
-    if (options.replyTo) payload.reply_to = options.replyTo;
+    // Reply-To: 呼び出し側が明示指定したものを優先、無ければデフォルトを必ず付ける
+    payload.reply_to = options.replyTo || DEFAULT_REPLY_TO;
     if (options.attachments && options.attachments.length > 0) {
       // Resend SDK v6 の Attachment 型:
       //   content: Buffer | string（Bufferならバイナリ、stringはテキストとして扱われる）

@@ -14,6 +14,7 @@
     "jspdf": "^2.5.1",
     "next": "14.2.5",
     "next-auth": "^4.24.0",
+    "pptxgenjs": "^4.0.1",
     "react": "^18",
     "react-dom": "^18",
     "resend": "^6.10.0",
