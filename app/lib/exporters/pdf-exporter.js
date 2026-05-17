@@ -264,14 +264,14 @@ function renderCompanyHtml(s) {
             ${s.strength.length ? lines(s.strength, (t) => `<div style="margin-bottom:3px;">・${esc(t)}</div>`) : "—"}
           </div>
         </div>
-        <!-- 体制 -->
+        <!-- 仕組み（旧: 体制）— 権さん 2026-05-18 ラベル変更 -->
         <div style="flex:2;overflow:hidden;border-top:1px solid #ccc;padding-top:10px;">
-          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">体制</div>
+          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">仕組み</div>
           <div style="font-size:22px;line-height:1.65;">${esc(s.structure || "—")}</div>
         </div>
-        <!-- パッション -->
+        <!-- 価値観（旧: パッション）— 権さん 2026-05-18 ラベル変更 -->
         <div style="flex:1.5;overflow:hidden;border-top:1px solid #ccc;padding-top:10px;">
-          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">パッション</div>
+          <div class="mono" style="font-size:20px;color:#555;letter-spacing:.4em;margin-bottom:6px;">価値観</div>
           <div style="font-size:22px;line-height:1.65;font-style:italic;">${esc(s.passion || "—")}</div>
         </div>
       </div>
