@@ -124,7 +124,9 @@ function renderFrameworkHtml(s) {
   // 権さん 2026-05-15: 大前研一の3C分析ベース + 関連書籍 + 関連団体を併載
   const chips = [
     { letter: "C", label: "Customer / Competitor / Company", desc: "顧客・競合・自社の3つのCで現状を把握", color: "1a1a14" },
-    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ → ウォンツ）", color: "FF0000" },
+    // 権さん 2026-05-17: → の前後の半角スペースで折り返しが発生し ） だけ次行に
+    // 落ちる現象。スペースを除いて 1 行に収まる長さにする。
+    { letter: "B", label: "Benefit", desc: "お客様が求める価値（ニーズ→ウォンツ）", color: "FF0000" },
     { letter: "A", label: "Advantage", desc: "競合より選ばれる差別的優位点", color: "1a6fd4" },
   ];
   return `
