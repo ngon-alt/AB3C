@@ -50,6 +50,7 @@ export default function HowtoPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>初めての方へ — 使い方ガイド</div>
           <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略指南 AIの全機能と使い方を説明します。</div>
+          <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>🎬 動画で全体像をつかみたい方は <a href="/" style={{ color: C.phase1, fontWeight: 600, textDecoration: "underline" }}>TOPページ下部の使い方動画</a> もあわせてご覧ください。</div>
         </div>
 
         {/* 戦略指南 AIとは */}
@@ -213,6 +214,21 @@ export default function HowtoPage() {
                 そのリストを持って、担当者に指示を出しましょう。施策を実行していく中で戦略を見直したくなった場合は、改めてサイト分析を行い、戦略を再度確定し直すことができます。
               </div>
             </div>
+
+            {/* AI秘書（万能枠） */}
+            <div style={{ background: C.surface, border: "2px solid " + C.phase2, borderRadius: 8, padding: "20px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <div style={{ fontSize: 22 }}>💼</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: C.ink }}>+ AI秘書（万能枠・10項目とは別）</div>
+              </div>
+              <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 10 }}>
+                10の施策テーマとは別に、戦略アクションタブの一番上に<b>「AI秘書」</b>テーマを用意しています。事業戦略を理解した上で、日々のあらゆる相談に応じる万能アシスタントです。テーマに分類されないご相談は、こちらから気軽にどうぞ。
+              </div>
+              <div style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px", fontSize: 15, color: C.ink, lineHeight: 1.8 }}>
+                <b>得意なこと:</b> メール文章の添削 / 提案書のアイデア出し / 経営判断の壁打ち / 業界用語の解説 / ちょっとした文章作成 など。<br />
+                <b>汎用AIとの違い:</b> あなたの事業戦略を踏まえて回答できる点です。長くお使いいただくほど、AI秘書はあなたのことを深く理解していきます。ChatGPTやClaudeをお使いの方は、こちらに一本化していただけます。
+              </div>
+            </div>
           </div>
         </Section>
 
@@ -234,7 +250,7 @@ export default function HowtoPage() {
             {[
               { label: "B — Benefit（お客様が求める価値）", color: C.B, desc: "ニーズ（欠乏感・曖昧な欲求）とウォンツ（具体的欲求）の両面から、お客様が本当に求めている価値を分析します。" },
               { label: "A — Advantage（差別的優位点）", color: C.A, desc: "競合との「好ましい違い」を明らかにします。なぜお客様に選ばれるのか、なぜ真似されにくいのかを示します。" },
-              { label: "3C — Customer · Competitor · Company", color: C.C, desc: "お客様（ターゲット・市場規模）・競合（直接競合・異業種競合）・自社（強み・仕組み・価値観）の3つの視点で事業を構造化します。" },
+              { label: "3C — Customer · Competitor · Company", color: C.C, desc: "お客様（ターゲット・市場規模）・競合（直接競合・異業種競合）・自社（強み ← 仕組み ← 価値観）の3つの視点で事業を構造化します。自社の3層は「強みは仕組みから生まれ、仕組みは価値観から生まれる」という包含関係で捉えます。" },
               { label: "戦略メッセージ = Benefit + Advantage", color: C.phase1, desc: "「選ばれる理由」を一言で表現したメッセージ。ウェブサイト・営業資料・採用ページなど、すべての発信の核心になります。" },
               { label: "5つのチェックポイント", color: C.ink, desc: "AB3Cが成立しているかを5つの観点で評価します。✅（OK）⚠️（注意）❌（NG）で現状の課題が一目でわかります。" },
             ].map(function(item, i) {
@@ -248,6 +264,51 @@ export default function HowtoPage() {
           </div>
         </Section>
 
+        {/* 分析結果の世代タブ */}
+        <Section title="分析結果の世代タブ・サイドバー履歴" icon="🕒">
+          <Card title="再分析するたびに「世代」が積まれていきます">
+            戦略策定タブで再分析を繰り返すと、Benefit / Advantage / Customer / Competitor / Company / 戦略メッセージ / チェックポイントの各セクションに<b>世代タブ</b>が付きます。タブをクリックすると、そのセクションだけ過去の世代の内容に切り替わり、磨き上げの過程を見比べられます。
+          </Card>
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🎨 世代ごとに固定の色</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>v1=紫 / v2=黄 / v3=緑 / v4=青 / v5=赤。タブの色と「その世代で変わったカード」のテキスト色が連動するため、どこが変わったかが一目で分かります。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>✓ 確定済みの世代マーク</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>戦略確定した世代のタブには「✓」マークが付きます。過去のどの世代で確定したかが、後から見ても分かるようになっています。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>👀 過去世代を見ている間の制御</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>過去の世代を表示中は、再分析・戦略確定ボタンは一時的に非表示になります。最新タブに戻すと再び操作できます（過去世代の上書きを防ぐ仕組み）。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>📊 「そのセクションが変わった世代」だけ表示</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>あるセクションが世代をまたいで変わっていなければ、そのセクションにはタブが少なくなります。「どこが磨かれたか」を視覚的に追えます。</div>
+            </div>
+          </div>
+
+          {/* サイドバーの編集中エントリ・ライブ状態保護 */}
+          <div style={{ marginTop: 20, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
+              ✏️ サイドバーの「編集中」エントリとライブ状態の保護
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+              サイドバーには確定済みの戦略エントリが履歴として並びますが、未確定の検討中バージョンがある場合は<b>最上部に「✏️ 編集中」エントリ</b>が常設されます（薄ベージュ背景＋オレンジの太枠＋黄色の「未確定」ピル）。
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>🔄 ライブ状態に戻す</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>過去の確定エントリを開いて中身を覗いたあと、「✏️ 編集中」をクリックすると、覗く直前の編集中状態（分析結果・チャット・URL）に完全復元します。</div>
+              </div>
+              <div style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>🛡 ライブ状態保護</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>過去履歴を覗いている間も、編集中のチャットや未確定の分析結果は裏で保持されています。再分析・新規分析・戦略確定でバックアップは破棄されます。</div>
+              </div>
+            </div>
+          </div>
+        </Section>
+
         {/* 戦略パターン（3つの組み合わせ） */}
         <Section title="戦略パターン（3つの組み合わせ）" icon="🎯">
           <Card title="AIが3つの戦略パターンを提案">
@@ -256,7 +317,7 @@ export default function HowtoPage() {
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>⭐ AIのおすすめ表示</div>
-              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>3パターンのうち、AIが最も成立しやすいと判断した1つに「⭐ おすすめ」が付きます。最初はそのパターンが選ばれた状態で表示されます。</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>3パターンのうち、AIが「実現可能性が最も高い」と判断した1つに「⭐ おすすめ」が付きます。最初はそのパターンが選ばれた状態で表示されます。</div>
             </div>
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🔄 パターンごとに連動</div>
@@ -269,6 +330,65 @@ export default function HowtoPage() {
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>🎨 色で対応関係が分かる</div>
               <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>選択中のパターンと「現在表示中」帯のアクセントが同じ色（ローズ/紫/茶）になります。AB3C原則の赤・青・黒は使わず、別の3色で区別。</div>
+            </div>
+          </div>
+
+          {/* おすすめ選定ロジック（実現可能性重視） */}
+          <div style={{ marginTop: 20, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>
+              ⭐ おすすめパターンの選定方法（実現可能性重視）
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 14 }}>
+              「絵に描いた餅」を避けるため、AIが各パターンに次の<b>5観点</b>でスコアを付け、市場規模・強みの確かさ・到達可能性に重みをかけて合計し、最高点を「⭐ おすすめ」に設定します。
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 8 }}>
+              {[
+                { icon: "📈", label: "市場規模", desc: "SOM が十分か" },
+                { icon: "🪨", label: "強みの確かさ", desc: "根拠が裏付くか" },
+                { icon: "🛡", label: "Advantageの真似されにくさ", desc: "持続できるか" },
+                { icon: "🤝", label: "自社との噛み合い", desc: "価値観と整合するか" },
+                { icon: "🎯", label: "到達可能性", desc: "顧客に届くか" },
+              ].map(function(item, i) {
+                return (
+                  <div key={i} style={{ background: "#f8f8f6", border: "1px solid " + C.border, borderRadius: 6, padding: "10px 14px" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 2 }}>{item.icon} {item.label}</div>
+                    <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{item.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginTop: 8 }}>
+              ※ 市場規模・強みの確かさ・到達可能性に高い重みをかけて合計するため、Advantage の独自性だけが高くても、市場が小さければ「⭐ おすすめ」にはなりません。
+            </div>
+          </div>
+
+          {/* 赤丸シグナル */}
+          <div style={{ marginTop: 16, background: "#fdf0ef", border: "1px solid #f5c6cb", borderRadius: 8, padding: "20px 24px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.red, marginBottom: 10 }}>
+              🔴 「要チャット確認」の赤丸シグナル
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
+              強みの根拠が弱い項目、市場規模 SOM が不足している項目には<b style={{ color: C.red }}>小さな赤丸</b>が表示されます。クリックすると、AIが本人に根拠を尋ねるチャットが自動で開きます。チャットで根拠を提示し、「この会話内容を分析に反映する」で再分析すると、赤丸が消えます。
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>強み根拠の5段階</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>客観的根拠あり / 本人の独自事実 / 業界水準内 / 主観のみ / 要本人確認 — 下2段階に赤丸が付きます。</div>
+              </div>
+              <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>市場規模 SOM の評価</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>原則 ¥10億円を基準（指定があればその規模）。下回ると赤丸が付き、チャットで現在・目標規模を確認します。</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 事業規模プルダウン */}
+          <div style={{ marginTop: 16, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 10 }}>
+              📝 「目指す事業規模」プルダウン（テキスト入力モード）
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+              テキストで事業概要を入力して分析する際、<b>「目指す事業規模（5年後の目安・任意）」</b>をプルダウンで指定できます。指定すると、AI はその規模に対して市場の十分性を評価します（指定なしの場合は ¥10億円基準）。小さく確実に育てたい場合・大きく狙いたい場合、それぞれの判断軸でおすすめパターンが変わります。
             </div>
           </div>
         </Section>
@@ -300,9 +420,11 @@ export default function HowtoPage() {
             <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "16px 20px" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 8 }}>✅ 保存される情報</div>
               <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
-                <li>分析結果・改善レポート — データベースに保存されます</li>
+                <li>分析結果・改善レポート（過去の世代を含む） — データベースに保存されます</li>
+                <li>戦略策定タブのチャット履歴 — データベースに保存されます</li>
                 <li>戦略確定履歴 — データベースに保存されます</li>
                 <li>戦略アクションのチャット履歴・施策・アクションリスト — データベースに保存されます</li>
+                <li>AI秘書との会話履歴 — データベースに保存されます</li>
                 <li>サイト管理のサイト一覧 — データベースに保存されます</li>
               </ul>
               <div style={{ fontSize: 14, color: C.muted, marginTop: 10, lineHeight: 1.7 }}>
@@ -333,8 +455,55 @@ export default function HowtoPage() {
               分析結果を共有するためのURLを発行できます。<b>3つの戦略パターンすべて</b>がシェアURLに含まれ、シェア先の方も同じピル型ボタンでパターンを切り替えて見られます。Google NotebookLMに読み込ませると、スライド資料の自動生成にも使えます。
             </Card>
             <Card title="🖨️ 表示中のパターンを印刷・PDF">
-              <b>現在切り替えているパターン</b>を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。提案書や社内資料として活用できます。
+              <b>現在切り替えているパターン</b>を印刷・PDF保存します。他のパターンを保存したい場合は、そのパターンに切り替えてから押してください。簡易な社内資料として活用できます。
             </Card>
+          </div>
+        </Section>
+
+        {/* 提案書フォーマットで書き出し */}
+        <Section title="提案書フォーマットで書き出し（PowerPoint / PDF）" icon="📑">
+          <Card title="クライアント提案書として、そのまま使える書き出し">
+            分析結果を、表紙・目次・章扉付きの<b>提案書フォーマット</b>で <b>PowerPoint（.pptx）</b> と <b>PDF</b> に書き出せます。クライアントへの戦略提案書として、社内会議の資料として、そのまま活用できる仕上がりです。
+          </Card>
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>📊 PowerPoint（.pptx）</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>PowerPoint・Keynote・Google Slides で開いて自由に編集可能。提案先に合わせて手直ししたい場合に最適です。</div>
+            </div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px 18px" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 6 }}>📄 PDF（16:9 提案書スタイル）</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>表紙・目次・章扉を含む完成形 PDF。クライアントへそのまま配布する用途に最適です。</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 16, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12 }}>🎯 表紙＝戦略メッセージ</div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+              忙しい経営者でも、表紙1枚を見るだけで結論（戦略メッセージ）が伝わる構成にしています。途中の章で「なぜこの結論か」を丁寧に展開し、最終章で再びメッセージを再掲する流れです。
+            </div>
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 10 }}>📑 4部構成の章立て</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { num: "①", title: "現状把握", desc: "3C（お客様・競合・自社）の整理", color: C.C },
+                { num: "②", title: "戦略の核", desc: "Benefit・Advantage・戦略メッセージ", color: C.B },
+                { num: "③", title: "整合性チェック", desc: "5つのチェックポイントで品質確認", color: C.ink },
+                { num: "④", title: "実行", desc: "ウェブサイト改善・次のアクション", color: C.A },
+              ].map(function(ch, i) {
+                return (
+                  <div key={i} style={{ background: C.surface, border: "1px solid " + C.border, borderLeft: "4px solid " + ch.color, borderRadius: 4, padding: "12px 16px" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: ch.color, marginBottom: 4 }}>{ch.num} {ch.title}</div>
+                    <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>{ch.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{ marginTop: 16, background: C.highlight, borderRadius: 8, padding: "16px 20px" }}>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+              🎨 <b>AB3C カラールール厳守</b>：C＝黒・B＝赤・A＝青で章ごとに色分け。「いま戦略のどこを話しているか」が視覚的に伝わります。<br />
+              🔄 <b>表示中のパターンを書き出し</b>：3パターンの中から、現在タブで選んでいるパターンの内容が書き出されます（印刷ボタンと同じ挙動）。
+            </div>
           </div>
         </Section>
 
@@ -354,7 +523,7 @@ export default function HowtoPage() {
               {[
                 { title: "戦略診断・提案型", price: "3〜5万円/件", desc: "Web制作の受注前にAB3C戦略診断レポートを提案書として活用。競合との違いを言語化した提案で受注率を高める。" },
                 { title: "月次サポート型", price: "月20〜30万円", desc: "毎月戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化。" },
-                { title: "複数クライアント管理型", price: "月100〜300万円", desc: "複数の中小企業クライアントをまとめて管理。15サイトプランで15社を同時にサポート。" },
+                { title: "複数クライアント管理型", price: "月100〜300万円", desc: "複数の中小企業クライアントをまとめて管理。戦略指南サブスクの15サイトプランで15社を同時にサポート。" },
               ].map(function(model, i) {
                 return (
                   <div key={i} style={{ background: "#f8f8f8", border: "1px solid " + C.border, borderRadius: 8, padding: "16px 20px" }}>
