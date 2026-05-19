@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 import { latestUpdateId } from "../data/updates";
+import TargetSwitch from "./TargetSwitch";
 
 const C = {
   bg: "#ebebeb",
@@ -184,6 +185,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          {/* ターゲット切替（伴走支援者向け ⇔ 経営者ご本人向け） */}
+          <TargetSwitch />
           {sessionStatus === "loading" ? (
             // 認証状態確定前: 高さを確保して空白で表示。一瞬だけログインボタンが表示される現象を防ぐ
             <div aria-hidden style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 36, visibility: "hidden" }}>
