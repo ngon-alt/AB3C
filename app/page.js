@@ -8,6 +8,8 @@ import Footer from "./components/Footer";
 import PricingModal from "./components/PricingModal";
 import ShadowMock from "./components/ShadowMock";
 import UpdateHistoryModal from "./components/UpdateHistoryModal";
+import CreatorProfileBlock from "./components/CreatorProfileBlock";
+import ProUseCaseBlock from "./components/ProUseCaseBlock";
 // SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
 import { buildSlides } from "./lib/exporters/build-slides";
@@ -3824,12 +3826,20 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ padding: sidebarOpen ? "32px 24px 80px" : "32px 24px 80px 56px", maxWidth: 900, flex: 1, margin: "0 auto", width: "100%" }}>
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
-  {/* キャッチコピー（TOPの主役メッセージ）。
-      上下にゆとりを持たせて視覚的に独立させる。句点は外す（ロゴらしく印象を強める）。 */}
-  <div style={{ textAlign: "center", padding: "72px 16px 88px" }}>
-    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 34, fontWeight: 700, color: C.ink, lineHeight: 1.5, margin: 0, letterSpacing: "0.02em" }}>
-      あなたの事業の「<span style={{ color: C.B }}>選ばれる理由</span>」をAIで言語化。
+  {/* キャッチコピー（TOPの主役メッセージ）— 伴走支援者向けに振り切る。
+      AB3Cカラー（B=赤・C=黒・A=青）を「クライアント」「戦略」「URL」に当てて、
+      フレームワーク色の意味性を視覚的に伝える。 */}
+  <div style={{ textAlign: "center", padding: "64px 16px 32px" }}>
+    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 38, fontWeight: 700, color: C.ink, lineHeight: 1.4, margin: 0, letterSpacing: "0.02em" }}>
+      <span style={{ color: C.C }}>クライアント</span>の<span style={{ color: C.B }}>戦略</span>、<span style={{ color: C.A }}>URL</span>で即出力。
     </h1>
+    <div style={{ fontSize: 18, color: C.ink, marginTop: 18, lineHeight: 1.8, maxWidth: 720, marginLeft: "auto", marginRight: "auto", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      Web制作者・コンサルタント・伴走支援者のための、<b>AB3C専用AI</b>。<br />
+      クライアントの「<b style={{ color: C.B }}>選ばれる理由</b>」を即座に言語化し、提案書としてそのまま使えます。
+    </div>
+    <div style={{ fontSize: 14, color: C.muted, marginTop: 14, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      経営者ご本人でお試しの方は、ヘッダー右上の <b>👤 経営者ご本人向け</b> から（準備中）。
+    </div>
   </div>
   {/* タブ（コンテンツに応じた幅で左寄せ。右側は余白でタブ感を出す） */}
   <div style={{ display: "flex", gap: 10, marginBottom: -1, position: "relative", zIndex: 1, alignItems: "stretch" }}>
@@ -3991,11 +4001,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 )}
   </div>
 
+  {/* AB3Cフレームワーク考案者プロフィール（信頼の核）
+      「権成俊が作ったツール」という事実が、AIで誰でも作れるツールとの最大の差別化。
+      入力エリア直下に配置して、初訪問者が「このサービスは誰のもの？」をすぐ理解できるようにする。 */}
+  <div style={{ marginTop: 56 }}>
+    <CreatorProfileBlock />
+  </div>
+
+  {/* 制作者・コンサルタント向けのユースケース展示
+      「あなたのクライアント獲得・単価UPの武器」というメッセージを、3要点＋単価試算＋3モデルで構造化。 */}
+  <ProUseCaseBlock />
+
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
       iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
       サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。
       入力タブと視覚的に分離するため上余白は広めに取る（権さん指示）。 */}
-  <div style={{ marginTop: 140, marginBottom: 32 }}>
+  <div style={{ marginTop: 80, marginBottom: 32 }}>
     <h2 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 26, fontWeight: 700, color: C.ink, textAlign: "center", marginBottom: 10, letterSpacing: "0.02em" }}>
       戦略指南 AI の使い方
     </h2>
