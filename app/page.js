@@ -3835,9 +3835,6 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       伴走支援者のための戦略策定支援AI。<br />
       クライアントの選ばれる理由を端的に言語化し、提案書としてそのまま使えます。
     </div>
-    <div style={{ fontSize: 14, color: C.muted, marginTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-      経営者ご本人でお試しの方は、ヘッダー右上の <b>経営者ご本人向け</b> から（準備中）。
-    </div>
   </div>
   {/* 入力エリアを視覚的に独立させるラッパー。
       適度な左右余白＋上下マージンで「ここに入力する」とすぐ分かる「島」を作る。
@@ -4004,8 +4001,57 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
   </div>{/* 入力エリアラッパー終了 */}
 
-  {/* TOPページは「URLから戦略を生成」のキャッチコピー＋入力エリアに集中させる。
-      権成俊プロフィール / 制作者向け活用例 は /howto（初めての方へ）に移設済み（2026-05-20）。 */}
+  {/* TOPは入力エリアに集中させ、詳細は /howto（初めての方へ）に移設済み。
+      ただし「誰が作ったか（信頼）」「いくらで使えるか（費用対効果）」の2点だけは
+      クリック1回で確認できる導線をバナーで残す（2026-05-20 権さん指示）。 */}
+  <div style={{ maxWidth: 760, margin: "44px auto 0", padding: "0 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+    {[
+      {
+        href: "/howto#creator-profile",
+        eyebrow: "AB3C考案者",
+        title: "権 成俊（ごん なるとし）",
+        desc: "AB3Cフレームワーク考案者・株式会社ゴンウェブイノベーションズ代表",
+      },
+      {
+        href: "/howto#for-professionals",
+        eyebrow: "制作者・コンサル向け",
+        title: "圧倒的な費用対効果",
+        desc: "1社あたり ¥22,000 / 月 で戦略コンサル相当の品質を提供",
+      },
+    ].map(function (b, i) {
+      return (
+        <a
+          key={i}
+          href={b.href}
+          style={{
+            display: "block",
+            background: "#fff",
+            border: "1px solid " + C.border,
+            borderLeft: "4px solid " + C.ink,
+            borderRadius: 4,
+            padding: "16px 20px",
+            textDecoration: "none",
+            color: C.ink,
+            transition: "background 0.12s, border-color 0.12s, transform 0.12s",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#fafaf7"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "translateY(0)"; }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: C.muted, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+            {b.eyebrow}
+          </div>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.5 }}>
+            {b.title}
+          </div>
+          <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.65, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+            {b.desc}
+            <span style={{ color: C.muted, marginLeft: 6 }}>→</span>
+          </div>
+        </a>
+      );
+    })}
+  </div>
 
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
       iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
