@@ -1,6 +1,6 @@
 "use client";
 
-// AB3Cフレームワーク考案者・権 成俊（ごん なりとし）のプロフィール展示
+// AB3Cフレームワーク考案者・権 成俊（ごん なるとし）のプロフィール展示
 // 伴走支援者向け TOP の信頼の核となるブロック
 //
 // 思想：「権成俊が作ったツール」という事実こそが、
@@ -56,7 +56,7 @@ export default function CreatorProfileBlock() {
           }}
         >
           権 成俊
-          <span style={{ fontSize: 16, color: C.muted, marginLeft: 10, fontWeight: 400 }}>（ごん なりとし）</span>
+          <span style={{ fontSize: 16, color: C.muted, marginLeft: 10, fontWeight: 400 }}>（ごん なるとし）</span>
         </div>
       </div>
 

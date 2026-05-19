@@ -57,8 +57,11 @@ export default function HowtoPage() {
 
         {/* AB3Cフレームワーク考案者プロフィール（信頼の核）
             「権成俊が作ったツール」という事実が、AIで誰でも作れるツールとの最大の差別化。
-            TOPページから移設（2026-05-20、権さん指示）。 */}
-        <CreatorProfileBlock />
+            TOPページから移設（2026-05-20、権さん指示）。
+            id="creator-profile" は TOPページのバナーリンクから参照される。 */}
+        <div id="creator-profile">
+          <CreatorProfileBlock />
+        </div>
 
         {/* 戦略指南 AIとは */}
         <Section title="戦略指南 AIとは" icon="🏯">
