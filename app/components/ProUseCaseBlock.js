@@ -63,17 +63,14 @@ export default function ProUseCaseBlock() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 22 }}>
           {[
             {
-              icon: "🎯",
               title: "提案の入口に",
               desc: "クライアントの URL を入れるだけで、AB3C 戦略レポートが完成。曖昧な「なんとなく良いサイト」から、戦略根拠のある提案へ。",
             },
             {
-              icon: "📑",
               title: "提案書がそのまま完成",
               desc: "AB3C分析を PowerPoint / PDF の提案書フォーマットで書き出し。表紙＝戦略メッセージ、4章構成。クライアントへの納品物として即使えます。",
             },
             {
-              icon: "🤝",
               title: "受注前と受注後、両方で",
               desc: "受注前は「戦略診断」として提案ツールに。受注後はサブスクで毎月戦略を磨きながら、ウェブ改善・採用・補助金まで一気通貫で支援。",
             },
@@ -83,7 +80,6 @@ export default function ProUseCaseBlock() {
                 key={i}
                 style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px" }}
               >
-                <div style={{ fontSize: 22, marginBottom: 6 }}>{item.icon}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.5 }}>
                   {item.title}
                 </div>
@@ -104,7 +100,7 @@ export default function ProUseCaseBlock() {
           }}
         >
           <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
-            💰 試算：戦略指南サブスク 15サイトプラン
+            試算：戦略指南サブスク 15サイトプラン
           </div>
           <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.85 }}>
             月額 <b>¥330,000</b>（年額契約で2ヶ月分無料）÷ <b>15社</b> = <b>1社あたり ¥22,000 / 月</b>。

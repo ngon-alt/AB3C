@@ -1,6 +1,8 @@
 "use client";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CreatorProfileBlock from "../components/CreatorProfileBlock";
+import ProUseCaseBlock from "../components/ProUseCaseBlock";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
@@ -50,8 +52,13 @@ export default function HowtoPage() {
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 28, fontWeight: 700, color: C.ink }}>初めての方へ — 使い方ガイド</div>
           <div style={{ fontSize: 16, color: C.ink, marginTop: 8 }}>戦略指南 AIの全機能と使い方を説明します。</div>
-          <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>🎬 動画で全体像をつかみたい方は <a href="/" style={{ color: C.phase1, fontWeight: 600, textDecoration: "underline" }}>TOPページ下部の使い方動画</a> もあわせてご覧ください。</div>
+          <div style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>動画で全体像をつかみたい方は <a href="/" style={{ color: C.phase1, fontWeight: 600, textDecoration: "underline" }}>TOPページ下部の使い方動画</a> もあわせてご覧ください。</div>
         </div>
+
+        {/* AB3Cフレームワーク考案者プロフィール（信頼の核）
+            「権成俊が作ったツール」という事実が、AIで誰でも作れるツールとの最大の差別化。
+            TOPページから移設（2026-05-20、権さん指示）。 */}
+        <CreatorProfileBlock />
 
         {/* 戦略指南 AIとは */}
         <Section title="戦略指南 AIとは" icon="🏯">
@@ -513,36 +520,10 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* Web制作者・コンサルタント向け */}
-        <div id="for-professionals" style={{ marginBottom: 40, border: "2px solid " + C.A, borderRadius: 8, overflow: "hidden" }}>
-          <div style={{ background: C.A, padding: "16px 24px" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", letterSpacing: "0.12em", marginBottom: 4 }}>FOR PROFESSIONALS</div>
-            <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: "#fff" }}>
-              Web制作者・コンサルタントの活用ガイド
-            </div>
-          </div>
-          <div style={{ padding: "24px", background: "#fff" }}>
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 20 }}>
-              戦略指南 AIを使えば、従来月300〜500万円が必要だった戦略コンサルティングと同等の分析を、月20〜30万円でクライアントに提供できます。
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { title: "戦略診断・提案型", price: "3〜5万円/件", desc: "Web制作の受注前にAB3C戦略診断レポートを提案書として活用。競合との違いを言語化した提案で受注率を高める。" },
-                { title: "月次サポート型", price: "月20〜30万円", desc: "毎月戦略を更新し、AIチャットでクライアントの経営相談に対応。制作後の運用フェーズを継続契約化。" },
-                { title: "複数クライアント管理型", price: "月100〜300万円", desc: "複数の中小企業クライアントをまとめて管理。戦略指南サブスクの15サイトプランで15社を同時にサポート。" },
-              ].map(function(model, i) {
-                return (
-                  <div key={i} style={{ background: "#f8f8f8", border: "1px solid " + C.border, borderRadius: 8, padding: "16px 20px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>{model.title}</div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: C.A, background: "#e8f0fe", padding: "3px 10px", borderRadius: 4 }}>{model.price}</div>
-                    </div>
-                    <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.7 }}>{model.desc}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {/* Web制作者・コンサルタント向け（ProUseCaseBlock コンポーネントに統合・2026-05-20）
+            TOPページから移設。既存の /howto#for-professionals アンカーを保つためラッパー div で id を保持 */}
+        <div id="for-professionals">
+          <ProUseCaseBlock />
         </div>
 
         {/* CTA */}
