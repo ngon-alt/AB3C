@@ -362,22 +362,23 @@ export default function HowtoPage() {
             </div>
           </div>
 
-          {/* 赤丸シグナル */}
+          {/* 「要チャット確認」の赤い吹き出しシグナル
+              実装は ChatBtn の赤バージョン（💬 アイコン）。クリックで該当項目の問いがチャットに送られる。 */}
           <div style={{ marginTop: 16, background: "#fdf0ef", border: "1px solid #f5c6cb", borderRadius: 8, padding: "20px 24px" }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: C.red, marginBottom: 10 }}>
-              🔴 「要チャット確認」の赤丸シグナル
+              💬 「要チャット確認」の赤い吹き出しシグナル
             </div>
             <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 12 }}>
-              強みの根拠が弱い項目、市場規模 SOM が不足している項目には<b style={{ color: C.red }}>小さな赤丸</b>が表示されます。クリックすると、AIが本人に根拠を尋ねるチャットが自動で開きます。チャットで根拠を提示し、「この会話内容を分析に反映する」で再分析すると、赤丸が消えます。
+              強みの根拠が弱い項目、市場規模 SOM が不足している項目には<b style={{ color: C.red }}>赤い吹き出しアイコン</b>が表示されます。クリックすると、AIが本人に根拠を尋ねる問いが自動でチャットに送られます。チャットで根拠を提示し、「この会話内容を分析に反映する」で再分析すると、赤い吹き出しが消えます。
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>強み根拠の5段階</div>
-                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>客観的根拠あり / 本人の独自事実 / 業界水準内 / 主観のみ / 要本人確認 — 下2段階に赤丸が付きます。</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>客観的根拠あり / 本人の独自事実 / 業界水準内 / 主観のみ / 要本人確認 — 下2段階に赤い吹き出しが付きます。</div>
               </div>
               <div style={{ background: "#fff", border: "1px solid " + C.border, borderRadius: 6, padding: "12px 16px" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>市場規模 SOM の評価</div>
-                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>原則 ¥10億円を基準（指定があればその規模）。下回ると赤丸が付き、チャットで現在・目標規模を確認します。</div>
+                <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.7 }}>原則 ¥10億円を基準（指定があればその規模）。下回ると赤い吹き出しが付き、チャットで現在・目標規模を確認します。</div>
               </div>
             </div>
           </div>
@@ -398,17 +399,19 @@ export default function HowtoPage() {
           <Card title="URL分析時に自動生成">
             URLで分析を行うと、AB3C分析に加えてウェブサイト改善レポートが自動生成されます。分析結果の下部に表示され、以下の3つの観点から具体的な改善提案が行われます。
           </Card>
+          {/* 3カードの色は黒で統一。AB3C カラー（赤=Benefit、青=Advantage）は意味を持つ色なので、
+              「追加すべきコンテンツ」「デザイン改善」「サイト構造改善」という別軸の分類に装飾流用しない */}
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.A }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.A, marginBottom: 6 }}>追加すべきコンテンツ</div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.ink }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>追加すべきコンテンツ</div>
               <div style={{ fontSize: 14, color: C.ink }}>戦略メッセージを伝えるために不足しているページや情報</div>
             </div>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.B }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.B, marginBottom: 6 }}>デザイン・ビジュアル改善</div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.ink }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>デザイン・ビジュアル改善</div>
               <div style={{ fontSize: 14, color: C.ink }}>ターゲットに刺さるデザインの方向性</div>
             </div>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.C }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 6 }}>サイト構造の改善</div>
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 6, padding: "14px", borderTop: "3px solid " + C.ink }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6 }}>サイト構造の改善</div>
               <div style={{ fontSize: 14, color: C.ink }}>ユーザー導線、CTA配置の最適化</div>
             </div>
           </div>
@@ -485,14 +488,17 @@ export default function HowtoPage() {
             <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 10 }}>📑 4部構成の章立て</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {[
-                { num: "①", title: "現状把握", desc: "3C（お客様・競合・自社）の整理", color: C.C },
-                { num: "②", title: "戦略の核", desc: "Benefit・Advantage・戦略メッセージ", color: C.B },
-                { num: "③", title: "整合性チェック", desc: "5つのチェックポイントで品質確認", color: C.ink },
-                { num: "④", title: "実行", desc: "ウェブサイト改善・次のアクション", color: C.A },
+                // 章番号の色は黒で統一する。AB3C カラー（赤=Benefit、青=Advantage）は意味を持つ色であり、
+                // 章番号への装飾流用はルール違反。実際の提案書PPT/PDF内で「本文中で Benefit を語る部分は赤、
+                // Advantage を語る部分は青」という使い分けは保持される。
+                { num: "①", title: "現状把握", desc: "3C（お客様・競合・自社）の整理" },
+                { num: "②", title: "戦略の核", desc: "Benefit・Advantage・戦略メッセージ" },
+                { num: "③", title: "整合性チェック", desc: "5つのチェックポイントで品質確認" },
+                { num: "④", title: "実行", desc: "ウェブサイト改善・次のアクション" },
               ].map(function(ch, i) {
                 return (
-                  <div key={i} style={{ background: C.surface, border: "1px solid " + C.border, borderLeft: "4px solid " + ch.color, borderRadius: 4, padding: "12px 16px" }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: ch.color, marginBottom: 4 }}>{ch.num} {ch.title}</div>
+                  <div key={i} style={{ background: C.surface, border: "1px solid " + C.border, borderLeft: "4px solid " + C.ink, borderRadius: 4, padding: "12px 16px" }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{ch.num} {ch.title}</div>
                     <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7 }}>{ch.desc}</div>
                   </div>
                 );

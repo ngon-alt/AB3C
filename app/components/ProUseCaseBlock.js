@@ -7,11 +7,12 @@
 // 「1社あたり ¥22,000/月で戦略コンサル相当の品質を提供できる」と翻訳して見せる。
 
 const C = {
-  A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
   ink: "#1a1a14", muted: "#78716c",
   surface: "#ffffff", border: "#ddd8cc",
   bg: "#f8f7f3", highlight: "#fef3c7",
-  proAccent: "#1a6fd4",
+  // セクション枠・価格ラベルに使うアクセントは墨色で統一。
+  // 赤・青は Benefit/Advantage 専用の意味色なので装飾流用しない。
+  accent: "#2a2a26",
 };
 
 const HEADING_FONT = "'Noto Serif JP', serif";
@@ -23,7 +24,7 @@ export default function ProUseCaseBlock() {
       aria-label="制作者・コンサルタントの活用例"
       style={{
         background: "#fff",
-        border: `2px solid ${C.proAccent}`,
+        border: `2px solid ${C.accent}`,
         borderRadius: 10,
         padding: "0",
         margin: "32px 0",
@@ -31,7 +32,7 @@ export default function ProUseCaseBlock() {
       }}
     >
       {/* ヘッダー */}
-      <div style={{ background: C.proAccent, padding: "16px 28px" }}>
+      <div style={{ background: C.accent, padding: "16px 28px" }}>
         <div
           style={{
             fontSize: 12,
@@ -146,8 +147,8 @@ export default function ProUseCaseBlock() {
                     style={{
                       fontSize: 14,
                       fontWeight: 700,
-                      color: C.proAccent,
-                      background: "#e8f0fe",
+                      color: "#fff",
+                      background: C.accent,
                       padding: "3px 10px",
                       borderRadius: 4,
                       fontFamily: "'Space Mono', monospace",
@@ -165,7 +166,7 @@ export default function ProUseCaseBlock() {
 
         {/* 関連ガイド */}
         <div style={{ marginTop: 22, fontSize: 14, color: C.muted, fontFamily: BODY_FONT, lineHeight: 1.7 }}>
-          より詳しい使い方は <a href="/howto#for-professionals" style={{ color: C.A, textDecoration: "underline", fontWeight: 600 }}>使い方ガイドの「Web制作者・コンサルタント向け」</a> をご覧ください。
+          より詳しい使い方は <a href="/howto#for-professionals" style={{ color: C.ink, textDecoration: "underline", fontWeight: 600 }}>使い方ガイドの「Web制作者・コンサルタント向け」</a> をご覧ください。
         </div>
       </div>
     </section>

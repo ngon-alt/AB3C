@@ -30,13 +30,13 @@ export default function CreatorProfileBlock() {
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
-      {/* ラベル */}
+      {/* ラベル — 黒で統一。AB3C カラーは Benefit/Advantage 専用のため装飾流用しない */}
       <div
         style={{
           fontSize: 12,
           fontWeight: 700,
           letterSpacing: "0.16em",
-          color: C.A,
+          color: C.ink,
           marginBottom: 10,
           fontFamily: BODY_FONT,
         }}
@@ -63,7 +63,7 @@ export default function CreatorProfileBlock() {
       <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT, marginBottom: 18 }}>
         株式会社ゴンウェブイノベーションズ 代表取締役 / 一般社団法人デジタル経営革新協会 代表理事<br />
         ウェブ業界歴 <b>24年</b>。中小企業の戦略コンサルティングを長年手がけ、その実務知見から
-        <b style={{ color: C.A }}>「AB3Cフレームワーク」</b>
+        <b>「AB3Cフレームワーク」</b>
         を考案。CSS Nite などの業界カンファレンスでの登壇、デジ革セミナーでの講演、
         ブログ・書籍を通じて、戦略思考をウェブ業界に広めてきた人物です。
       </div>
@@ -137,7 +137,7 @@ export default function CreatorProfileBlock() {
           href="https://digi-kaku.or.jp/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: C.A, textDecoration: "underline" }}
+          style={{ color: C.ink, textDecoration: "underline" }}
         >
           ↗ デジタル経営革新協会
         </a>
@@ -145,7 +145,7 @@ export default function CreatorProfileBlock() {
           href="https://webconsultant.jp/"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: C.A, textDecoration: "underline" }}
+          style={{ color: C.ink, textDecoration: "underline" }}
         >
           ↗ ブログ「ウェブコンサルタント」
         </a>

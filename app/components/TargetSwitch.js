@@ -15,10 +15,9 @@ const C = {
   ink: "#1a1a14",
   muted: "#78716c",
   border: "#ddd8cc",
-  // 伴走支援者向け = 青（プロ向けの落ち着いたアクセント）
-  proAccent: "#1a6fd4",
-  // 経営者向け = 茶（温かみ・経営の重み）
-  ownerAccent: "#8b5e3c",
+  // アクティブ表示は墨色で統一（AB3Cカラーの赤・青は Benefit/Advantage 専用なので装飾流用しない）。
+  // 「制作者向け」「経営者向け」の区別は色ではなく、選択状態の濃淡で表現する。
+  active: "#2a2a26",  // 墨色（phase1/phase2 と同系統）
 };
 
 const NAV_FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
@@ -60,7 +59,7 @@ export default function TargetSwitch() {
           fontWeight: 700,
           textDecoration: "none",
           color: mode === "pro" ? "#fff" : C.ink,
-          background: mode === "pro" ? C.proAccent : "transparent",
+          background: mode === "pro" ? C.active : "transparent",
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
@@ -86,7 +85,7 @@ export default function TargetSwitch() {
           fontWeight: 700,
           textDecoration: "none",
           color: mode === "owner" ? "#fff" : C.muted,
-          background: mode === "owner" ? C.ownerAccent : "transparent",
+          background: mode === "owner" ? C.active : "transparent",
           display: "inline-flex",
           alignItems: "center",
           gap: 6,

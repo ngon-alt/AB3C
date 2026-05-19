@@ -14,11 +14,12 @@ import Footer from "../components/Footer";
 // このページを本格的な「経営者ご本人向け LP」として再構築する。
 
 const C = {
-  A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
   ink: "#1a1a14", muted: "#78716c",
   surface: "#ffffff", border: "#ddd8cc",
   bg: "#f5f2eb", highlight: "#fef3c7",
-  ownerAccent: "#8b5e3c",
+  // セクション枠・ラベル背景は墨色で統一。
+  // 赤・青は Benefit/Advantage 専用、勝手に意味を作る色（茶など）も避ける。
+  accent: "#2a2a26",
 };
 
 const HEADING_FONT = "'Noto Serif JP', serif";
@@ -35,7 +36,7 @@ export default function ForOwnersPage() {
             <div
               style={{
                 display: "inline-block",
-                background: C.ownerAccent,
+                background: C.accent,
                 color: "#fff",
                 fontSize: 12,
                 fontWeight: 700,
@@ -79,7 +80,7 @@ export default function ForOwnersPage() {
           <section
             style={{
               background: C.surface,
-              border: `2px solid ${C.ownerAccent}`,
+              border: `2px solid ${C.accent}`,
               borderRadius: 10,
               padding: "28px 32px",
               marginBottom: 28,
@@ -89,7 +90,7 @@ export default function ForOwnersPage() {
               style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: C.ownerAccent,
+                color: C.accent,
                 letterSpacing: "0.12em",
                 marginBottom: 10,
                 fontFamily: BODY_FONT,
@@ -124,7 +125,7 @@ export default function ForOwnersPage() {
                 href="/"
                 style={{
                   display: "inline-block",
-                  background: C.ownerAccent,
+                  background: C.accent,
                   color: "#fff",
                   padding: "12px 24px",
                   borderRadius: 6,
@@ -170,18 +171,18 @@ export default function ForOwnersPage() {
                 著書：<b>『なぜあなたのウェブには戦略がないのか』</b>（2017）
               </li>
               <li>
-                <a href="https://digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline" }}>
+                <a href="https://digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.ink, textDecoration: "underline" }}>
                   デジタル経営革新協会（dmia）
                 </a>
                 の AB3C・経営哲学コラム
               </li>
               <li>
-                <a href="https://webconsultant.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.A, textDecoration: "underline" }}>
+                <a href="https://webconsultant.jp/" target="_blank" rel="noopener noreferrer" style={{ color: C.ink, textDecoration: "underline" }}>
                   ブログ「ウェブコンサルタント」
                 </a>（20年以上の連載）
               </li>
               <li>
-                <a href="/about" style={{ color: C.A, textDecoration: "underline" }}>
+                <a href="/about" style={{ color: C.ink, textDecoration: "underline" }}>
                   AB3C分析とは（本サイト内）
                 </a>
               </li>
@@ -205,11 +206,11 @@ export default function ForOwnersPage() {
               24時間限定のフル機能無料お試しもあるので、まずは小さく試してみてください。
               <br />
               <br />
-              <a href="/" style={{ color: C.A, textDecoration: "underline", fontWeight: 600 }}>
+              <a href="/" style={{ color: C.ink, textDecoration: "underline", fontWeight: 600 }}>
                 → 24時間フル機能無料お試しを始める
               </a>
               {" "}|{" "}
-              <a href="/pricing" style={{ color: C.A, textDecoration: "underline", fontWeight: 600 }}>
+              <a href="/pricing" style={{ color: C.ink, textDecoration: "underline", fontWeight: 600 }}>
                 料金プランを見る
               </a>
             </div>
