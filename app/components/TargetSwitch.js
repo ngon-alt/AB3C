@@ -67,7 +67,6 @@ export default function TargetSwitch() {
         }}
         title="Web制作者・コンサルタント・伴走支援者の方向け（現在のメインビュー）"
       >
-        <span aria-hidden style={{ fontSize: 14 }}>👥</span>
         制作者・コンサル向け
       </Link>
 
@@ -94,7 +93,6 @@ export default function TargetSwitch() {
         }}
         title="経営者ご本人向け（準備中）"
       >
-        <span aria-hidden style={{ fontSize: 14 }}>👤</span>
         経営者ご本人向け
         <span
           style={{

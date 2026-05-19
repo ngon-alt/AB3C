@@ -8,8 +8,7 @@ import Footer from "./components/Footer";
 import PricingModal from "./components/PricingModal";
 import ShadowMock from "./components/ShadowMock";
 import UpdateHistoryModal from "./components/UpdateHistoryModal";
-import CreatorProfileBlock from "./components/CreatorProfileBlock";
-import ProUseCaseBlock from "./components/ProUseCaseBlock";
+// CreatorProfileBlock / ProUseCaseBlock は /howto に移設したため TOP では未使用（2026-05-20）
 // SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
 import { buildSlides } from "./lib/exporters/build-slides";
@@ -3827,20 +3826,23 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           {!currentResult && !loading && (
 <div style={{ marginBottom: 28 }}>
   {/* キャッチコピー（TOPの主役メッセージ）— 伴走支援者向けに振り切る。
-      AB3Cカラー（B=赤・C=黒・A=青）を「クライアント」「戦略」「URL」に当てて、
-      フレームワーク色の意味性を視覚的に伝える。 */}
-  <div style={{ textAlign: "center", padding: "64px 16px 32px" }}>
-    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 38, fontWeight: 700, color: C.ink, lineHeight: 1.4, margin: 0, letterSpacing: "0.02em" }}>
-      <span style={{ color: C.C }}>クライアント</span>の<span style={{ color: C.B }}>戦略</span>、<span style={{ color: C.A }}>URL</span>で即出力。
+      シンプルかつ端的に。装飾色も使わずプレーンに。 */}
+  <div style={{ textAlign: "center", padding: "72px 16px 56px" }}>
+    <h1 style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 40, fontWeight: 700, color: C.ink, lineHeight: 1.4, margin: 0, letterSpacing: "0.02em" }}>
+      URLから戦略を生成。
     </h1>
-    <div style={{ fontSize: 18, color: C.ink, marginTop: 18, lineHeight: 1.8, maxWidth: 720, marginLeft: "auto", marginRight: "auto", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-      Web制作者・コンサルタント・伴走支援者のための、<b>AB3C専用AI</b>。<br />
-      クライアントの「<b style={{ color: C.B }}>選ばれる理由</b>」を即座に言語化し、提案書としてそのまま使えます。
+    <div style={{ fontSize: 18, color: C.ink, marginTop: 22, lineHeight: 1.9, maxWidth: 720, marginLeft: "auto", marginRight: "auto", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      伴走支援者のための戦略策定支援AI。<br />
+      クライアントの選ばれる理由を端的に言語化し、提案書としてそのまま使えます。
     </div>
-    <div style={{ fontSize: 14, color: C.muted, marginTop: 14, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
-      経営者ご本人でお試しの方は、ヘッダー右上の <b>👤 経営者ご本人向け</b> から（準備中）。
+    <div style={{ fontSize: 14, color: C.muted, marginTop: 16, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      経営者ご本人でお試しの方は、ヘッダー右上の <b>経営者ご本人向け</b> から（準備中）。
     </div>
   </div>
+  {/* 入力エリアを視覚的に独立させるラッパー。
+      適度な左右余白＋上下マージンで「ここに入力する」とすぐ分かる「島」を作る。
+      （周りの装飾要素を削った代わりに、入力欄自体は呼吸感を持たせる） */}
+  <div style={{ maxWidth: 760, margin: "0 auto", padding: "8px 16px 0" }}>
   {/* タブ（コンテンツに応じた幅で左寄せ。右側は余白でタブ感を出す） */}
   <div style={{ display: "flex", gap: 10, marginBottom: -1, position: "relative", zIndex: 1, alignItems: "stretch" }}>
     <button
@@ -4000,17 +4002,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
 )}
   </div>
+  </div>{/* 入力エリアラッパー終了 */}
 
-  {/* AB3Cフレームワーク考案者プロフィール（信頼の核）
-      「権成俊が作ったツール」という事実が、AIで誰でも作れるツールとの最大の差別化。
-      入力エリア直下に配置して、初訪問者が「このサービスは誰のもの？」をすぐ理解できるようにする。 */}
-  <div style={{ marginTop: 56 }}>
-    <CreatorProfileBlock />
-  </div>
-
-  {/* 制作者・コンサルタント向けのユースケース展示
-      「あなたのクライアント獲得・単価UPの武器」というメッセージを、3要点＋単価試算＋3モデルで構造化。 */}
-  <ProUseCaseBlock />
+  {/* TOPページは「URLから戦略を生成」のキャッチコピー＋入力エリアに集中させる。
+      権成俊プロフィール / 制作者向け活用例 は /howto（初めての方へ）に移設済み（2026-05-20）。 */}
 
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
       iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
