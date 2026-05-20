@@ -4010,13 +4010,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         href: "/howto#creator-profile",
         eyebrow: "AB3C考案者",
         title: "権 成俊（ごん なるとし）",
-        desc: "AB3Cフレームワーク考案者・株式会社ゴンウェブイノベーションズ代表",
+        desc: "一般社団法人デジタル経営革新協会　代表",
       },
       {
         href: "/howto#for-professionals",
-        eyebrow: "制作者・コンサル向け",
+        eyebrow: "クライアントの伴走支援に",
         title: "圧倒的な費用対効果",
-        desc: "1社あたり ¥22,000 / 月 で戦略コンサル相当の品質を提供",
+        desc: "¥7,700 / サイト〜 で戦略コンサル相当の品質を提供",
       },
     ].map(function (b, i) {
       return (
