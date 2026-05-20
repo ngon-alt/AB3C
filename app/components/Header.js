@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 import { latestUpdateId } from "../data/updates";
+import TargetSwitch from "./TargetSwitch";
 
 const C = {
   bg: "#ebebeb",
@@ -184,6 +185,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </a>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          {/* ターゲット切替（伴走支援者向け ⇔ 経営者ご本人向け） */}
+          <TargetSwitch />
           {sessionStatus === "loading" ? (
             // 認証状態確定前: 高さを確保して空白で表示。一瞬だけログインボタンが表示される現象を防ぐ
             <div aria-hidden style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 36, visibility: "hidden" }}>
@@ -210,21 +213,21 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                       onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
                       onMouseLeaveCapture={e => e.currentTarget.style.background = "#fff"}
                     >
-                      <span>📋</span><span>マイアカウント</span>
+                      <span>マイアカウント</span>
                     </Link>
                     <button onClick={() => { setShowUserDropdown(false); openStripePortal(); }} disabled={portalLoading}
                       style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", textAlign: "left", background: "#fff", border: "none", borderBottom: `1px solid ${C.border}`, cursor: portalLoading ? "not-allowed" : "pointer", color: C.ink, fontSize: 14, fontFamily: NAV_FONT }}
                       onMouseEnter={e => { if (!portalLoading) e.currentTarget.style.background = "#f5f5f0"; }}
                       onMouseLeave={e => e.currentTarget.style.background = "#fff"}
                     >
-                      <span>💳</span><span>{portalLoading ? "読み込み中..." : "支払い履歴・領収書"}</span>
+                      <span>{portalLoading ? "読み込み中..." : "支払い履歴・領収書"}</span>
                     </button>
                     <button onClick={() => { try { sessionStorage.removeItem("ab3c_check_pro"); } catch (e) {} setShowUserDropdown(false); signOut(); }}
                       style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", textAlign: "left", background: "#fff", border: "none", cursor: "pointer", color: C.ink, fontSize: 14, fontFamily: NAV_FONT }}
                       onMouseEnter={e => e.currentTarget.style.background = "#f5f5f0"}
                       onMouseLeave={e => e.currentTarget.style.background = "#fff"}
                     >
-                      <span>🚪</span><span>ログアウト</span>
+                      <span>ログアウト</span>
                     </button>
                   </div>
                 )}
@@ -297,15 +300,15 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <Link href="/howto"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-              <span style={{ marginRight: 4 }}>🔰</span>初めての方へ
+              初めての方へ
             </Link>
             <Link href="/about"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-              <span style={{ marginRight: 4 }}>📖</span>AB3C分析とは
+              AB3C分析とは
             </Link>
             <Link href="/pricing"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-              <span style={{ marginRight: 4 }}>💰</span>料金とプラン
+              料金とプラン
             </Link>
             <Link
               href="/updates"
@@ -315,7 +318,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap",
               }}
             >
-              <span style={{ marginRight: 4 }}>📢</span>更新履歴
+              更新履歴
               {hasUnseenUpdate && (
                 <span
                   aria-label="新着あり"
@@ -329,11 +332,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             </Link>
             <Link href="/faq"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-              <span style={{ marginRight: 4 }}>❓</span>よくある質問
+              よくある質問
             </Link>
             <Link href="/contact"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
-              <span style={{ marginRight: 4 }}>✉️</span>お問い合わせ
+              お問い合わせ
             </Link>
           </div>
         </div>
@@ -458,7 +461,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             color: "#fff", display: "inline-flex", alignItems: "center", gap: 6,
             background: "#2a2a26", border: "2px solid transparent", borderRadius: 999,
           }}>
-          📋 サイト管理
+          サイト管理
         </a>
 
         {/* サイト切替プルダウン */}
