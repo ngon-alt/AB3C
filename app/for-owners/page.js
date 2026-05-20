@@ -38,10 +38,10 @@ export default function ForOwnersPage() {
                 display: "inline-block",
                 background: C.accent,
                 color: "#fff",
-                fontSize: 12,
+                fontSize: 16,
                 fontWeight: 700,
-                letterSpacing: "0.14em",
-                padding: "4px 14px",
+                letterSpacing: "0.10em",
+                padding: "6px 16px",
                 borderRadius: 3,
                 marginBottom: 18,
                 fontFamily: BODY_FONT,
@@ -64,10 +64,10 @@ export default function ForOwnersPage() {
             </h1>
             <div
               style={{
-                fontSize: 17,
+                fontSize: 18,
                 color: C.ink,
                 marginTop: 18,
-                lineHeight: 1.8,
+                lineHeight: 1.85,
                 fontFamily: BODY_FONT,
               }}
             >
@@ -88,15 +88,15 @@ export default function ForOwnersPage() {
           >
             <div
               style={{
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: 700,
                 color: C.accent,
-                letterSpacing: "0.12em",
+                letterSpacing: "0.08em",
                 marginBottom: 10,
                 fontFamily: BODY_FONT,
               }}
             >
-              ★ 当面のおすすめ
+              当面のおすすめ
             </div>
             <h2
               style={{
@@ -111,7 +111,7 @@ export default function ForOwnersPage() {
             >
               専門家（コンサル・Web制作者）と一緒にお使いください
             </h2>
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT }}>
+            <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT }}>
               戦略指南 AI を経営者ご本人がフルに活用するには、AB3C フレームワーク・市場規模の評価・競合分析などの基礎理解が必要です。
               当面は、<b>すでに信頼されている Web 制作者・コンサルタント・経営伴走者</b> と一緒にお使いいただくことを推奨しています。
               <br />
@@ -127,9 +127,9 @@ export default function ForOwnersPage() {
                   display: "inline-block",
                   background: C.accent,
                   color: "#fff",
-                  padding: "12px 24px",
+                  padding: "14px 26px",
                   borderRadius: 6,
-                  fontSize: 15,
+                  fontSize: 18,
                   fontWeight: 700,
                   textDecoration: "none",
                   fontFamily: BODY_FONT,
@@ -161,12 +161,12 @@ export default function ForOwnersPage() {
                 lineHeight: 1.5,
               }}
             >
-              📚 まず AB3C の考え方に触れたい方へ
+              まず AB3C の考え方に触れたい方へ
             </h2>
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT, marginBottom: 14 }}>
+            <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT, marginBottom: 14 }}>
               AB3C フレームワーク考案者・<b>権 成俊</b> の著書・コラムから入ると、ツールを使う前の土台ができます。
             </div>
-            <ul style={{ fontSize: 16, color: C.ink, lineHeight: 1.9, fontFamily: BODY_FONT, paddingLeft: 22, margin: 0 }}>
+            <ul style={{ fontSize: 18, color: C.ink, lineHeight: 1.9, fontFamily: BODY_FONT, paddingLeft: 22, margin: 0 }}>
               <li>
                 著書：<b>『なぜあなたのウェブには戦略がないのか』</b>（2017）
               </li>
@@ -198,8 +198,8 @@ export default function ForOwnersPage() {
               marginBottom: 28,
             }}
           >
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT }}>
-              <b>💡 それでもご自身で試してみたい方へ</b>
+            <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT }}>
+              <b>それでもご自身で試してみたい方へ</b>
               <br />
               <br />
               戦略指南 AI には、わからないことを何でも相談できる <b>AI秘書</b> 機能があります。AB3C の言葉づかいや、分析結果の読み解きについてもサポートします。
@@ -217,7 +217,7 @@ export default function ForOwnersPage() {
           </section>
 
           {/* 今後のお知らせ */}
-          <section style={{ textAlign: "center", color: C.muted, fontSize: 14, lineHeight: 1.8, fontFamily: BODY_FONT, marginTop: 32 }}>
+          <section style={{ textAlign: "center", color: C.muted, fontSize: 16, lineHeight: 1.85, fontFamily: BODY_FONT, marginTop: 32 }}>
             経営者ご本人向けの本格的な専用ページは、今後のアップデートで充実させていきます。<br />
             権成俊が「AI時代の経営戦略」をテーマに連載・書籍を執筆中です。続報をお待ちください。
           </section>

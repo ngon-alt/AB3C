@@ -30,12 +30,13 @@ export default function CreatorProfileBlock() {
         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
-      {/* ラベル — 黒で統一。AB3C カラーは Benefit/Advantage 専用のため装飾流用しない */}
+      {/* ラベル — 黒で統一。AB3C カラーは Benefit/Advantage 専用のため装飾流用しない。
+          フォントサイズは最低16px（CLAUDE.md フォントサイズルール厳守） */}
       <div
         style={{
-          fontSize: 12,
+          fontSize: 16,
           fontWeight: 700,
-          letterSpacing: "0.16em",
+          letterSpacing: "0.12em",
           color: C.ink,
           marginBottom: 10,
           fontFamily: BODY_FONT,
@@ -78,10 +79,10 @@ export default function CreatorProfileBlock() {
         }}
       >
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             考案フレームワーク
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
             <span style={{ color: C.A }}>A</span>
             <span style={{ color: C.B }}>B</span>
             <span style={{ color: C.ink }}>3C</span> 分析 / デジタルブルーオーシャン戦略
@@ -89,28 +90,28 @@ export default function CreatorProfileBlock() {
         </div>
 
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             著書
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
             『なぜあなたのウェブには戦略がないのか』(2017)
           </div>
         </div>
 
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             登壇・講演
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
             CSS Nite / デジ革セミナー ほか
           </div>
         </div>
 
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             業界歴
           </div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
             ウェブ業界 24年
           </div>
         </div>
@@ -122,7 +123,7 @@ export default function CreatorProfileBlock() {
           background: C.highlight,
           borderRadius: 6,
           padding: "14px 18px",
-          fontSize: 15,
+          fontSize: 18,
           color: C.ink,
           lineHeight: 1.8,
           fontFamily: BODY_FONT,
@@ -132,7 +133,7 @@ export default function CreatorProfileBlock() {
       </div>
 
       {/* 関連リンク */}
-      <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 14, fontFamily: BODY_FONT }}>
+      <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 16, fontFamily: BODY_FONT }}>
         <a
           href="https://digi-kaku.or.jp/"
           target="_blank"

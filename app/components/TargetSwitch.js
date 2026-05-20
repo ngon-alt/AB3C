@@ -54,8 +54,8 @@ export default function TargetSwitch() {
       <Link
         href="/"
         style={{
-          padding: "6px 14px",
-          fontSize: 13,
+          padding: "8px 16px",
+          fontSize: 16,
           fontWeight: 700,
           textDecoration: "none",
           color: mode === "pro" ? "#fff" : C.ink,
@@ -79,8 +79,8 @@ export default function TargetSwitch() {
         onMouseEnter={() => setShowOwnerNote(true)}
         onMouseLeave={() => setShowOwnerNote(false)}
         style={{
-          padding: "6px 14px",
-          fontSize: 13,
+          padding: "8px 16px",
+          fontSize: 16,
           fontWeight: 700,
           textDecoration: "none",
           color: mode === "owner" ? "#fff" : C.muted,
@@ -96,11 +96,11 @@ export default function TargetSwitch() {
         経営者ご本人向け
         <span
           style={{
-            fontSize: 10,
+            fontSize: 16,
             fontWeight: 700,
             background: mode === "owner" ? "rgba(255,255,255,0.25)" : "#fef3c7",
             color: mode === "owner" ? "#fff" : "#92400e",
-            padding: "1px 6px",
+            padding: "2px 8px",
             borderRadius: 3,
             letterSpacing: "0.04em",
           }}
@@ -116,8 +116,8 @@ export default function TargetSwitch() {
               right: 0,
               background: C.ink,
               color: "#fff",
-              fontSize: 12,
-              padding: "8px 12px",
+              fontSize: 16,
+              padding: "10px 14px",
               borderRadius: 4,
               whiteSpace: "nowrap",
               boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
