@@ -4038,13 +4038,13 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           onMouseEnter={(e) => { e.currentTarget.style.background = "#fafaf7"; e.currentTarget.style.transform = "translateY(-1px)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "translateY(0)"; }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: C.muted, marginBottom: 6, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: C.muted, marginBottom: 8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
             {b.eyebrow}
           </div>
-          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.5 }}>
+          <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 10, lineHeight: 1.5 }}>
             {b.title}
           </div>
-          <div style={{ fontSize: 13, color: C.ink, lineHeight: 1.65, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+          <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
             {b.desc}
             <span style={{ color: C.muted, marginLeft: 6 }}>→</span>
           </div>

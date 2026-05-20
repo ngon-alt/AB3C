@@ -32,14 +32,14 @@ export default function ProUseCaseBlock() {
       }}
     >
       {/* ヘッダー */}
-      <div style={{ background: C.accent, padding: "16px 28px" }}>
+      <div style={{ background: C.accent, padding: "18px 28px" }}>
         <div
           style={{
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: 700,
             color: "rgba(255,255,255,0.85)",
-            letterSpacing: "0.12em",
-            marginBottom: 4,
+            letterSpacing: "0.08em",
+            marginBottom: 6,
             fontFamily: BODY_FONT,
           }}
         >
@@ -48,7 +48,7 @@ export default function ProUseCaseBlock() {
         <div
           style={{
             fontFamily: HEADING_FONT,
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: 700,
             color: "#fff",
             lineHeight: 1.4,
@@ -80,10 +80,10 @@ export default function ProUseCaseBlock() {
                 key={i}
                 style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "14px 16px" }}
               >
-                <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 6, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 8, lineHeight: 1.5 }}>
                   {item.title}
                 </div>
-                <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, fontFamily: BODY_FONT }}>{item.desc}</div>
+                <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75, fontFamily: BODY_FONT }}>{item.desc}</div>
               </div>
             );
           })}
@@ -99,10 +99,10 @@ export default function ProUseCaseBlock() {
             fontFamily: BODY_FONT,
           }}
         >
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 8 }}>
             試算：戦略指南サブスク 15サイトプラン
           </div>
-          <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.85 }}>
+          <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.85 }}>
             月額 <b>¥330,000</b>（年額契約で2ヶ月分無料）÷ <b>15社</b> = <b>1社あたり ¥22,000 / 月</b>。
             このコストで、戦略コンサル相当の AB3C 分析・改善レポート・10テーマの施策チャット・AI秘書まで使えます。
             <br />
@@ -111,7 +111,7 @@ export default function ProUseCaseBlock() {
         </div>
 
         {/* 3ビジネスモデル */}
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 10, fontFamily: BODY_FONT }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 10, fontFamily: BODY_FONT }}>
           3つの代表的な活用パターン
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -137,15 +137,15 @@ export default function ProUseCaseBlock() {
                 key={i}
                 style={{ background: "#f8f8f8", border: `1px solid ${C.border}`, borderRadius: 8, padding: "14px 18px" }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, fontFamily: BODY_FONT }}>{model.title}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, fontFamily: BODY_FONT }}>{model.title}</div>
                   <div
                     style={{
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: 700,
                       color: "#fff",
                       background: C.accent,
-                      padding: "3px 10px",
+                      padding: "4px 12px",
                       borderRadius: 4,
                       fontFamily: "'Space Mono', monospace",
                       whiteSpace: "nowrap",
@@ -154,14 +154,14 @@ export default function ProUseCaseBlock() {
                     {model.price}
                   </div>
                 </div>
-                <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.75, fontFamily: BODY_FONT }}>{model.desc}</div>
+                <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75, fontFamily: BODY_FONT }}>{model.desc}</div>
               </div>
             );
           })}
         </div>
 
         {/* 関連ガイド */}
-        <div style={{ marginTop: 22, fontSize: 14, color: C.muted, fontFamily: BODY_FONT, lineHeight: 1.7 }}>
+        <div style={{ marginTop: 22, fontSize: 16, color: C.muted, fontFamily: BODY_FONT, lineHeight: 1.7 }}>
           より詳しい使い方は <a href="/howto#for-professionals" style={{ color: C.ink, textDecoration: "underline", fontWeight: 600 }}>使い方ガイドの「Web制作者・コンサルタント向け」</a> をご覧ください。
         </div>
       </div>
