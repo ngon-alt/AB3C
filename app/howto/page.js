@@ -513,10 +513,39 @@ export default function HowtoPage() {
             </div>
           </div>
           <div style={{ marginTop: 16, background: C.highlight, borderRadius: 8, padding: "16px 20px" }}>
-            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8 }}>
+            <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.85 }}>
               <b>AB3C カラールール厳守</b>：C＝黒・B＝赤・A＝青で章ごとに色分け。「いま戦略のどこを話しているか」が視覚的に伝わります。<br />
               <b>表示中のパターンを書き出し</b>：3パターンの中から、現在タブで選んでいるパターンの内容が書き出されます（印刷ボタンと同じ挙動）。
             </div>
+          </div>
+
+          {/* 実物サンプルのダウンロード（PowerPoint） */}
+          <div style={{ marginTop: 16 }}>
+            <a
+              href="/samples/analyze_sample.pptx"
+              download
+              style={{
+                display: "block",
+                background: "#fff",
+                border: "1px solid " + C.border,
+                borderLeft: "4px solid " + C.ink,
+                borderRadius: 4,
+                padding: "18px 22px",
+                textDecoration: "none",
+                color: C.ink,
+              }}
+            >
+              <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: C.muted, marginBottom: 8 }}>
+                実物サンプル
+              </div>
+              <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 8, lineHeight: 1.5 }}>
+                分析結果サンプル（PowerPoint）をダウンロード
+              </div>
+              <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75 }}>
+                実際にこのツールから書き出される提案書フォーマットの実物です。PowerPoint・Keynote・Google Slides で開けます。
+                <span style={{ color: C.muted, marginLeft: 6 }}>↓</span>
+              </div>
+            </a>
           </div>
         </Section>
 
