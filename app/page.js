@@ -4053,6 +4053,41 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     })}
   </div>
 
+  {/* 分析結果サンプル（PowerPoint）ダウンロードバナー
+      「実際にどんな提案書が出るのか」を見たい人向けに、TOPからワンクリックで届ける。
+      装飾アイコンは使わず、テキストと矢印のみ。フォントサイズは最低16/本文18ルール厳守。 */}
+  <div style={{ maxWidth: 760, margin: "12px auto 0", padding: "0 16px" }}>
+    <a
+      href="/samples/analyze_sample.pptx"
+      download
+      style={{
+        display: "block",
+        background: "#fff",
+        border: "1px solid " + C.border,
+        borderLeft: "4px solid " + C.ink,
+        borderRadius: 4,
+        padding: "18px 22px",
+        textDecoration: "none",
+        color: C.ink,
+        transition: "background 0.12s, transform 0.12s",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "#fafaf7"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "translateY(0)"; }}
+    >
+      <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: C.muted, marginBottom: 8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        実際のアウトプットを見る
+      </div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 10, lineHeight: 1.5 }}>
+        分析結果サンプル（PowerPoint）をダウンロード
+      </div>
+      <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        URLから生成された AB3C 戦略提案書の実物。PowerPoint・Keynote・Google Slides で開けます。
+        <span style={{ color: C.muted, marginLeft: 6 }}>↓</span>
+      </div>
+    </a>
+  </div>
+
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
       iframe 埋め込みは hover 時に YouTube プレーヤーのタイトル帯（暗いグラデーション）が出てしまうため、
       サムネイル＋リンク方式に切替。クリックで YouTube を新規タブで開く（よりクリーンで読み込みも軽い）。
