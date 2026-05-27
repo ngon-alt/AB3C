@@ -1993,6 +1993,20 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // 両方このハンドラを使うことで「state は1つ・UIは2箇所」の同期動作を実現する。
   // 改善レポート・ビジュアルモックの両方がパターン別にキャッシュされ、未生成なら順次生成する。
   function handleCombinationSwitch(id) {
+    // パターン切替時は in-flight な前回の fetch を確実にキャンセルする（権さん指摘・2026-05-20）。
+    //   背景: generateForCombination 内には isLatest() ガードがあるが、それは
+    //         「generateForCombination が再度呼ばれた時に gen-id が進む」前提だった。
+    //         「キャッシュヒットで generateForCombination が呼ばれない切替」をすると
+    //         gen-id が進まず、in-flight な fetch の isLatest() が true のまま通って、
+    //         他パターンの結果で setVisualMock / setImproveResult が上書きされる。
+    //   対策: handleCombinationSwitch の冒頭で必ず abort + gen-id を進める。
+    //         キャッシュヒット経路・未キャッシュ経路の両方で「前回の fetch」を確実に殺せる。
+    if (improveAbortControllerRef.current) {
+      try { improveAbortControllerRef.current.abort(); } catch (e) {}
+      improveAbortControllerRef.current = null;
+    }
+    latestImproveGenIdRef.current++;
+
     setSelectedCombinationId(id);
     // 表示中タイトルも選択中パターンの戦略メッセージに同期（確定前の見え方が分かりやすく、
     // そのまま確定すれば履歴にもこのタイトルが残る）。
