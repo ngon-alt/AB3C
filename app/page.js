@@ -1713,8 +1713,9 @@ const [activePlanId, setActivePlanId] = useState(null);
   // 未生成なら /api/improve を呼んで生成する。
   const [improveResultsByCombination, setImproveResultsByCombination] = useState({});
   const [improveSwitchLoading, setImproveSwitchLoading] = useState(false);
-  const [visualMock, setVisualMock] = useState(null);
-  // パターンID→そのパターン向けビジュアルモックのキャッシュ（改善レポートと同じ仕組み）
+  // パターンID→そのパターン向けビジュアルモックのキャッシュ。
+  // visualMock 単独 state は廃止し、ここから「現在の selectedCombinationId」で派生値として引く設計に統一
+  //（権さん指示・2026-05-20）。単一 state への上書き競争を構造的に排除する。
   const [visualMocksByCombination, setVisualMocksByCombination] = useState({});
   const [visualLoading, setVisualLoading] = useState(false);
   const [refineSelection, setRefineSelection] = useState({ needs: [], wants: [], profile: [] });
@@ -1723,6 +1724,12 @@ const [activePlanId, setActivePlanId] = useState(null);
   const [analyzedAt, setAnalyzedAt] = useState(null);
   const [currentResult, setCurrentResult] = useState(null);
   const [selectedCombinationId, setSelectedCombinationId] = useState(null);
+  // visualMock は派生値：常に「選択中パターンに対応するキャッシュ」を引く（権さん指示・2026-05-20）。
+  // setVisualMock を呼ぶ→単一stateを上書き、という設計をやめ、
+  // 各 fetch 完了時は setVisualMocksByCombination で「自分のパターン ID」に書き込むだけ。
+  // 表示側は selectedCombinationId が変わったときに自動で派生値が切り替わるため、
+  // 「他パターンの結果で上書きされる」レース問題が構造的に発生しない。
+  const visualMock = (selectedCombinationId != null && visualMocksByCombination[selectedCombinationId]) || null;
 const [currentInput, setCurrentInput] = useState("");
 const [overlayMessage, setOverlayMessage] = useState(null);
 const [changedPaths, setChangedPaths] = useState(new Map());
@@ -1928,7 +1935,10 @@ const [chatSummaries, setChatSummaries] = useState([]);
     let visualData = visualMocksByCombination[combinationId] || null;
     if (needVisual && improveData && !improveData.error) {
       setVisualLoading(true);
-      setVisualMock(null);
+      // 生成開始時、このパターン用キャッシュを null にして「生成中」表示に切り替え
+      // （派生値の visualMock は visualMocksByCombination[selectedCombinationId] を引くため、
+      //   ここで null を入れると当該パターンの表示はクリアされる）
+      setVisualMocksByCombination(prev => ({ ...prev, [combinationId]: null }));
       setOverlayMessage("改善ビジュアル生成中...");
       try {
         const res = await fetch("/api/improve/visual", {
@@ -1938,14 +1948,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
           signal: controller.signal,
         });
         try { visualData = await res.json(); } catch (e) { visualData = { error: `HTTP ${res.status}` }; }
-        // キャッシュは常に保存
+        // キャッシュへの書き込みは「結果が完成した combinationId」に紐付くので、
+        // どの順で到着しても各パターンのキャッシュは正しく更新される。
+        // 表示は派生値が selectedCombinationId で引くため、他パターンに切替済みなら勝手に切り替わる。
         if (res.ok && !visualData.error) {
           setVisualMocksByCombination(prev => ({ ...prev, [combinationId]: visualData }));
-        }
-        // 表示更新は最新リクエストか確認してから
-        if (!isLatest()) return;
-        if (res.ok && !visualData.error) {
-          setVisualMock(visualData);
         }
       } catch (e) {
         if (e?.name === "AbortError") return;
@@ -1992,7 +1999,20 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // パターン切替の共通ハンドラ。AB3Cセクションと改善レポートセクションのスイッチャーが
   // 両方このハンドラを使うことで「state は1つ・UIは2箇所」の同期動作を実現する。
   // 改善レポート・ビジュアルモックの両方がパターン別にキャッシュされ、未生成なら順次生成する。
+  //
+  // ビジュアル側はキャッシュ＋selectedCombinationId で派生的に表示されるため、
+  // 「他パターンの結果で上書きされる」レースが構造的に発生しない（権さん指示・2026-05-20）。
   function handleCombinationSwitch(id) {
+    // 念のため改善レポート側（まだ単一state上書き設計が残っている）のために
+    // in-flight fetch をキャンセル＆gen-id を進めておく。
+    // ※ ビジュアル側も同じ AbortController を共有しているので、ここで abort すれば両方止まる。
+    // improveResult のリファクタ完了後はこのガードは不要になる予定。
+    if (improveAbortControllerRef.current) {
+      try { improveAbortControllerRef.current.abort(); } catch (e) {}
+      improveAbortControllerRef.current = null;
+    }
+    latestImproveGenIdRef.current++;
+
     setSelectedCombinationId(id);
     // 表示中タイトルも選択中パターンの戦略メッセージに同期（確定前の見え方が分かりやすく、
     // そのまま確定すれば履歴にもこのタイトルが残る）。
@@ -2004,9 +2024,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (!currentResult?.combinations) return;
     const cachedImprove = improveResultsByCombination[id];
     const cachedVisual = visualMocksByCombination[id];
-    // キャッシュにあれば即時表示（パターンに対応するビジュアルが無い場合は visualMock を null にしておく）
+    // ビジュアルは selectedCombinationId 変更だけで派生値が自動更新されるため、明示的な set は不要。
+    // 改善レポートは（まだ単一state設計のため）従来通りキャッシュ即時表示。
     if (cachedImprove) setImproveResult(cachedImprove);
-    setVisualMock(cachedVisual || null);
     // 初回分析中（improveLoading）と衝突しない場合のみ追加生成
     const needImprove = !cachedImprove;
     const needVisual = !cachedVisual;
@@ -2076,8 +2096,15 @@ const [chatSummaries, setChatSummaries] = useState([]);
       else { setInput(data.input); setTab("text"); }
       if (data.improveResult) setImproveResult(data.improveResult);
       if (data.improveByCombo && typeof data.improveByCombo === "object") setImproveResultsByCombination(data.improveByCombo);
-      if (data.visualMock) setVisualMock(data.visualMock);
-      if (data.visualByCombo && typeof data.visualByCombo === "object") setVisualMocksByCombination(data.visualByCombo);
+      // visualMock は visualByCombo から派生表示するため、単独 data.visualMock の復元は不要。
+      // ただし古い形式のデータ（visualByCombo が無く visualMock 単独）への後方互換として、
+      // recommended/confirmed combination_id に紐付けてキャッシュへ書き戻す。
+      if (data.visualByCombo && typeof data.visualByCombo === "object") {
+        setVisualMocksByCombination(data.visualByCombo);
+      } else if (data.visualMock) {
+        const fallbackId = data.result?.confirmed_combination_id || data.result?.recommended_combination_id;
+        if (fallbackId) setVisualMocksByCombination({ [fallbackId]: data.visualMock });
+      }
       if (data.result?.strategy_message?.message) setHistoryTitle(data.result.strategy_message.message);
       // sessionStorage 復元の場合、DB 由来の siteId・strategy_confirmed・confirmations を
       // 別途 /api/sites から取得して state を補完する。
@@ -2562,13 +2589,17 @@ const [chatSummaries, setChatSummaries] = useState([]);
               setVersionsFromInitial(site.latest_analysis);
             }
             if (site.improve_result) setImproveResult(site.improve_result);
-            if (site.visual_mock) setVisualMock(site.visual_mock);
             // 全パターン分のキャッシュ復元（reload 後のパターン切替を即時表示できるように）
             if (site.improve_results_by_combination && typeof site.improve_results_by_combination === "object") {
               setImproveResultsByCombination(site.improve_results_by_combination);
             }
+            // visualMock は visualMocksByCombination から派生表示。
+            // visual_mocks_by_combination が無い古い行のみ、確定/おすすめパターン ID に紐付け復元。
             if (site.visual_mocks_by_combination && typeof site.visual_mocks_by_combination === "object") {
               setVisualMocksByCombination(site.visual_mocks_by_combination);
+            } else if (site.visual_mock) {
+              const fallbackId = site.latest_analysis?.confirmed_combination_id || site.latest_analysis?.recommended_combination_id;
+              if (fallbackId) setVisualMocksByCombination({ [fallbackId]: site.visual_mock });
             }
             if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
             if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
@@ -2592,8 +2623,13 @@ const [chatSummaries, setChatSummaries] = useState([]);
                 setHistoryTitle(parsed.result.strategy_message?.message || "");
                 if (parsed.improve) setImproveResult(parsed.improve);
                 if (parsed.improveByCombo && typeof parsed.improveByCombo === "object") setImproveResultsByCombination(parsed.improveByCombo);
-                if (parsed.visual) setVisualMock(parsed.visual);
-                if (parsed.visualByCombo && typeof parsed.visualByCombo === "object") setVisualMocksByCombination(parsed.visualByCombo);
+                // visualMock は visualByCombo から派生。古い形式（visual 単独）への後方互換のみ対応
+                if (parsed.visualByCombo && typeof parsed.visualByCombo === "object") {
+                  setVisualMocksByCombination(parsed.visualByCombo);
+                } else if (parsed.visual) {
+                  const fallbackId = parsed.result?.confirmed_combination_id || parsed.result?.recommended_combination_id;
+                  if (fallbackId) setVisualMocksByCombination({ [fallbackId]: parsed.visual });
+                }
               }
             }
           } catch (e) {}
@@ -2608,8 +2644,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
               if (parsed2.result) { setResult(parsed2.result); setCurrentResult(parsed2.result); setVersionsFromInitial(parsed2.result); setHistoryTitle(parsed2.result.strategy_message?.message || ""); }
               if (parsed2.improve) setImproveResult(parsed2.improve);
               if (parsed2.improveByCombo && typeof parsed2.improveByCombo === "object") setImproveResultsByCombination(parsed2.improveByCombo);
-              if (parsed2.visual) setVisualMock(parsed2.visual);
-              if (parsed2.visualByCombo && typeof parsed2.visualByCombo === "object") setVisualMocksByCombination(parsed2.visualByCombo);
+              if (parsed2.visualByCombo && typeof parsed2.visualByCombo === "object") {
+                setVisualMocksByCombination(parsed2.visualByCombo);
+              } else if (parsed2.visual) {
+                const fallbackId = parsed2.result?.confirmed_combination_id || parsed2.result?.recommended_combination_id;
+                if (fallbackId) setVisualMocksByCombination({ [fallbackId]: parsed2.visual });
+              }
             }
           } catch (e) {}
         }
@@ -2771,7 +2811,15 @@ useEffect(() => {
         else setVersionsFromInitial(c.result);
       }
       if (c.improve) setImproveResult(c.improve);
-      if (c.visual) setVisualMock(c.visual);
+      // visualMock 単独ではなく、確定パターンに紐付けてキャッシュへ書き戻す。
+      // c.combinationId が確定時のパターン ID。
+      if (c.visual && c.combinationId != null) {
+        setVisualMocksByCombination(prev => ({ ...prev, [c.combinationId]: c.visual }));
+      } else if (c.visual) {
+        // combinationId 未保存の古い確定エントリ：result から fallback
+        const fallbackId = c.result?.confirmed_combination_id || c.result?.recommended_combination_id;
+        if (fallbackId) setVisualMocksByCombination(prev => ({ ...prev, [fallbackId]: c.visual }));
+      }
       if (c.analyzedAt) setAnalyzedAt(c.analyzedAt);
       if (c.url) { setCurrentInput(c.url); setUrl(c.url); setTab("url"); }
       if (c.confirmed) setStrategyConfirmed(true);
@@ -2810,12 +2858,16 @@ useEffect(() => {
         }
       }
       if (site.improve_result) setImproveResult(site.improve_result);
-      if (site.visual_mock) setVisualMock(site.visual_mock);
       if (site.improve_results_by_combination && typeof site.improve_results_by_combination === "object") {
         setImproveResultsByCombination(site.improve_results_by_combination);
       }
+      // visualMock は visualMocksByCombination から派生表示。
+      // visual_mocks_by_combination が無い古い行のみ、確定/おすすめパターン ID に紐付け復元。
       if (site.visual_mocks_by_combination && typeof site.visual_mocks_by_combination === "object") {
         setVisualMocksByCombination(site.visual_mocks_by_combination);
+      } else if (site.visual_mock) {
+        const fallbackId = site.latest_analysis?.confirmed_combination_id || site.latest_analysis?.recommended_combination_id;
+        if (fallbackId) setVisualMocksByCombination({ [fallbackId]: site.visual_mock });
       }
       if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
       if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
@@ -3222,7 +3274,7 @@ if (prefoundSite) {
     body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
   }).catch(() => {});
 }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setActiveConfirmId(null);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -3316,8 +3368,8 @@ if (tab === "url" && savedText.startsWith("http")) {
       });
       visualData = await visualRes.json();
       if (!visualData.error) {
-        setVisualMock(visualData);
-        // 初回生成分は recommended パターン向けキャッシュへ保存（改善レポートと同じ流れ）
+        // 初回生成分は recommended パターン向けキャッシュへ保存（改善レポートと同じ流れ）。
+        // visualMock 単独 state は廃止済みで、selectedCombinationId 経由で派生表示される。
         const recommendedId = data?.recommended_combination_id;
         if (recommendedId) {
           setVisualMocksByCombination(prev => ({ ...prev, [recommendedId]: visualData }));
@@ -3439,7 +3491,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMock(null); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResult(null); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
   const editAndReanalyze = (text) => {
     // 過去のテキストに構造化マーカー（【ラベル】）が含まれていれば businessPlan に復元、
     // 無ければ非構造テキストとして input に入れる（後方互換）。
@@ -4051,6 +4103,41 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         </a>
       );
     })}
+  </div>
+
+  {/* 分析結果サンプル（PowerPoint）ダウンロードバナー
+      「実際にどんな提案書が出るのか」を見たい人向けに、TOPからワンクリックで届ける。
+      装飾アイコンは使わず、テキストと矢印のみ。フォントサイズは最低16/本文18ルール厳守。 */}
+  <div style={{ maxWidth: 760, margin: "12px auto 0", padding: "0 16px" }}>
+    <a
+      href="/samples/analyze_sample.pptx"
+      download
+      style={{
+        display: "block",
+        background: "#fff",
+        border: "1px solid " + C.border,
+        borderLeft: "4px solid " + C.ink,
+        borderRadius: 4,
+        padding: "18px 22px",
+        textDecoration: "none",
+        color: C.ink,
+        transition: "background 0.12s, transform 0.12s",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "#fafaf7"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "translateY(0)"; }}
+    >
+      <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: C.muted, marginBottom: 8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        実際のアウトプットを見る
+      </div>
+      <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 22, fontWeight: 700, color: C.ink, marginBottom: 10, lineHeight: 1.5 }}>
+        分析結果サンプル（PowerPoint）をダウンロード
+      </div>
+      <div style={{ fontSize: 18, color: C.ink, lineHeight: 1.75, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+        URLから生成された AB3C 戦略提案書の実物。PowerPoint・Keynote・Google Slides で開けます。
+        <span style={{ color: C.muted, marginLeft: 6 }}>↓</span>
+      </div>
+    </a>
   </div>
 
   {/* 使い方動画（YouTube）— TOPページ最下部に配置。分析未開始（!currentResult && !loading）時のみ表示。
