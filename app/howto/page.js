@@ -101,29 +101,99 @@ export default function HowtoPage() {
           </div>
         </Section>
 
-        {/* 全体の流れ */}
+        {/* 全体の流れ — 3フェーズ構成 */}
         <Section title="全体の流れ">
-          <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-              {[
-                { label: "URL入力", color: C.phase1 },
-                { label: "AB3C分析", color: C.phase1 },
-                { label: "サイト改善レポート", color: C.phase1 },
-                { label: "チャットで深掘り", color: C.phase1 },
-                { label: "戦略確定", color: C.phase1 },
-                { label: "戦略アクション", color: C.phase2 },
-                { label: "実行", color: C.phase2 },
-              ].map(function(step, i) {
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ textAlign: "center", padding: "8px 14px", border: "1px solid " + C.border, borderRadius: 4, background: "#fff" }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: step.color }}>{step.label}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            {[
+              {
+                phaseNum: "1",
+                phaseColor: C.phase1,
+                title: "分析フェーズ",
+                subtitle: "URL を入れるだけで AB3C 分析とサイト改善レポートが自動生成されます。",
+                steps: [
+                  "URL入力",
+                  "AB3C分析",
+                  "サイト改善レポート",
+                ],
+                screenshot: null,
+                screenshotCaption: "分析結果画面（AB3C・改善レポート・3パターン提示）",
+              },
+              {
+                phaseNum: "2",
+                phaseColor: C.phase1,
+                title: "戦略立案フェーズ",
+                subtitle: "AI チャットで戦略を深掘り。経営者ご本人の言葉で「選ばれる理由」を磨き、納得のいく戦略に仕上げます。",
+                steps: [
+                  "戦略チャットで追加情報入力と新戦略検討",
+                  "戦略分析結果に反映",
+                  "戦略確定",
+                ],
+                screenshot: null,
+                screenshotCaption: "戦略策定チャットと「分析に反映する」ボタン",
+              },
+              {
+                phaseNum: "3",
+                phaseColor: C.phase2,
+                title: "戦略アクションフェーズ",
+                subtitle: "確定した戦略をもとに、AI 秘書とテーマ別チャットで施策を立案・実行に落とし込みます。",
+                steps: [
+                  "AI秘書と全体の相談",
+                  "各アクションチャットと施策の相談、実行",
+                ],
+                screenshot: null,
+                screenshotCaption: "戦略アクションタブ（AI秘書・10テーマのアクションチャット）",
+              },
+            ].map(function(phase, idx) {
+              return (
+                <div key={idx} style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "20px 24px", borderLeft: "6px solid " + phase.phaseColor }}>
+                  {/* フェーズヘッダー */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: phase.phaseColor, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono', monospace", fontSize: 16, fontWeight: 700, flexShrink: 0 }}>
+                      {phase.phaseNum}
                     </div>
-                    {i < 6 && <div style={{ fontSize: 20, color: C.muted }}>→</div>}
+                    <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink }}>
+                      {phase.title}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                  <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.7, marginBottom: 14, paddingLeft: 48 }}>
+                    {phase.subtitle}
+                  </div>
+
+                  {/* ステップ一覧 */}
+                  <div style={{ paddingLeft: 48, marginBottom: 14 }}>
+                    {phase.steps.map(function(step, i) {
+                      return (
+                        <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 6, fontSize: 16, color: C.ink, lineHeight: 1.7 }}>
+                          <span style={{ color: phase.phaseColor, fontWeight: 700, flexShrink: 0 }}>▸</span>
+                          <span>{step}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* スクリーンショット */}
+                  <div style={{ marginLeft: 48 }}>
+                    {phase.screenshot ? (
+                      <figure style={{ margin: 0 }}>
+                        <img
+                          src={phase.screenshot}
+                          alt={phase.screenshotCaption}
+                          style={{ width: "100%", maxWidth: 720, height: "auto", display: "block", borderRadius: 6, border: "1px solid " + C.border }}
+                        />
+                        <figcaption style={{ fontSize: 13, color: C.muted, marginTop: 6, lineHeight: 1.6 }}>
+                          {phase.screenshotCaption}
+                        </figcaption>
+                      </figure>
+                    ) : (
+                      <div style={{ padding: "32px 20px", background: "#f5f3ef", border: "2px dashed " + C.border, borderRadius: 6, textAlign: "center", color: C.muted, fontSize: 14, lineHeight: 1.7 }}>
+                        📸 <b>スクリーンショット予定</b><br />
+                        {phase.screenshotCaption}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Section>
 
