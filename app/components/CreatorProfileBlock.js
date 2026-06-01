@@ -111,7 +111,7 @@ export default function CreatorProfileBlock() {
             登壇・講演
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
-            CSS Nite / デジ革セミナー ほか
+            全国の商工会・商工会議所 / CSS Nite / デジ革セミナー ほか
           </div>
         </div>
 
