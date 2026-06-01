@@ -104,25 +104,39 @@ ${conversationText}
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "再分析するには、まずチャットでいくつかご相談ください。" }, { status: 400 });
     }
-    const conversationSummary = messages
-      .filter(m => m.role === 'user')
-      .slice(-3)
-      .map(m => m.content.slice(0, 200))
-      .join('\n');
+    // 会話全文を渡す（インタビュー議事録のような全体に関わる長文も取りこぼさない）。
+    // 入力過大を防ぐため合計文字数に上限を設け、超える場合は新しい発言を優先して古い方から落とす。
+    const MAX_CONV_CHARS = 24000;
+    const convPieces = messages
+      .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .map(m => `【${m.role === 'user' ? 'ユーザー' : 'AI'}】${m.content}`);
+    let conversationSummary = '';
+    for (let i = convPieces.length - 1; i >= 0; i--) {
+      if (conversationSummary.length + convPieces[i].length + 1 > MAX_CONV_CHARS) break;
+      conversationSummary = convPieces[i] + '\n' + conversationSummary;
+    }
+    conversationSummary = conversationSummary.trim();
 
     const userPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果を return_analysis ツールで返してください。
 
 ## 元の分析結果
 ${JSON.stringify(analysisResult)}
 
-## ユーザーからの追加情報（最新3件）
+## ユーザーとの会話（全文）
 ${conversationSummary}
+
+このサービスは、ウェブサイトの記載だけでは拾いきれない実態を、運営者との対話で補正するためのものです。ウェブサイトには古い情報や、書き方のニュアンスからAIが誤解して受け取った点が含まれることがあります。会話の内容を一次情報として優先し、分析を実態に合わせて更新してください。
+
+反映のしかた（最重要）:
+- ユーザーが会話で述べたことは、benefit / advantage / three_c / strategy_message / checkpoints の【どのセクションでも】反映してよい。古い情報の訂正、AIの誤読の修正、価値・ターゲット・強み・競合などの追加 / 削除 / 統合 / 言い換えを含む。
+- ユーザーが明示的に「不要」「外す」「切り捨てる」「違う」等と否定・削除した要素は、benefit や three_c.customer などから【必ず外す】こと（元の値をコピーで戻さない）。
+- 会話にインタビューや議事録のような、戦略全体に関わる包括的な情報が含まれる場合は、上記5セクションを【一つずつ点検】し、会話と矛盾する箇所・古くなった箇所を【すべて洗い出して反映】すること。名指しされた点だけでなく、波及して見直すべき箇所も能動的に更新する。
+- 判断基準は「会話の内容との整合性」。会話に整合させるために必要な変更はすべて行い、会話で触れられておらず、かつ会話の内容と矛盾もしない項目だけは、データ欠落防止のため元の値を保持する（その項目を省略・空配列・空文字列にしない）。
+- checkpoints は元の5項目のラベル（label）は維持しつつ、会話を踏まえて status / comment を再評価してよい。
 
 絶対に守ること:
 - 必ず return_analysis ツールを呼び出して結果を返すこと
-- 元の分析結果と同じトップレベル構造（benefit / advantage / three_c / strategy_message / checkpoints）を保持し、全フィールドを必ず含めること
-- 変更がないセクション（会話で触れていないもの）は、元の値をそのままコピーして含めること（省略・空配列・空文字列にしない）
-- checkpoints は元の5項目をそのまま全件コピーする
+- 元の分析結果と同じトップレベル構造（benefit / advantage / three_c / strategy_message / checkpoints）を保持し、全フィールドを必ず含めること（中身は上記「反映のしかた」に従って更新・保持する）
 
 ## 強みの根拠評価（strength_evaluations）— チャット内容を必ず反映
 
