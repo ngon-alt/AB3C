@@ -89,14 +89,22 @@ export default function CreatorProfileBlock() {
           </div>
         </div>
 
-        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
+        <a
+          href="https://www.amazon.co.jp/stores/author/B004391OAE"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px", textDecoration: "none", display: "block" }}
+        >
           <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             著書
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
-            『なぜあなたのウェブには戦略がないのか』(2017)
+            『なぜあなたのウェブには戦略がないのか』(2017) <span style={{ fontSize: 14, color: C.A, fontWeight: 400 }}>↗</span>
           </div>
-        </div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+            Amazon 著者ページで全著作を見る
+          </div>
+        </a>
 
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
@@ -134,6 +142,14 @@ export default function CreatorProfileBlock() {
 
       {/* 関連リンク */}
       <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 16, fontFamily: BODY_FONT }}>
+        <a
+          href="https://www.amazon.co.jp/stores/author/B004391OAE"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: C.ink, textDecoration: "underline" }}
+        >
+          ↗ Amazon 著者ページ
+        </a>
         <a
           href="https://digi-kaku.or.jp/"
           target="_blank"
