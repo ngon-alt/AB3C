@@ -68,8 +68,11 @@ export default function HowtoPage() {
         {/* 戦略指南 AIとは */}
         <Section title="戦略指南 AIとは">
           <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "24px 28px" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16, lineHeight: 1.7 }}>
-              経営の根本となる「戦略」の策定を支援するAIツールです。
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 12, lineHeight: 1.7 }}>
+              AIを活用したい経営者の伴走支援者のためのツールとして開発されました。
+            </div>
+            <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.8, marginBottom: 16 }}>
+              AI時代に必須の<b>デジタルブルーオーシャン戦略</b>の策定、および実行を支援するツールです。経営者自身でも利用可能です。
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, color: C.phase1, marginBottom: 10 }}>こんな方のために生まれました</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, marginBottom: 20 }}>
