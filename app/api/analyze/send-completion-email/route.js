@@ -1,18 +1,27 @@
-// 戦略診断チケット / 無料トライアルユーザー向けの分析完了メール送信。
-// フロントから analyze + improve + visual すべて揃った状態で呼ばれる。
-// このエンドポイント内で:
-//   1) ユーザーのプラン種別を判定
-//   2) 'support' なら何もしない（/api/analyze 側で即時送信済み）
-//   3) 'diagnosis' ならシェアURL を自動発行 → そのURLをメインボタンに設定したメールを送る
+// 分析完了メール送信（一本化版・2026-06-04 案 X + 案 Y）。
 //
-// 案A の実装（2026-06-01）。これまでは /api/analyze で送るメールのボタンが
-// 固定で TOP（https://senryaku.ai）に飛んでおり、診断ユーザーが分析結果へ戻れない
-// バグがあった。シェアURL を事前発行することで、メールから直接結果ページに戻れる。
+// フロントから analyze + improve + visual すべて揃った状態で呼ばれる、
+// ユーザー全タイプの完了メール送信エンドポイント。
+//
+// 設計の経緯:
+//   - 以前は /api/analyze 直後に sendAnalysisCompleteEmail を直接呼んでいた
+//   - PRO 付与ユーザー（権さん等）は user_plans に active がなく、
+//     pro_users クエリ 1本に判定が依存していたため、Neon の一時失敗で
+//     catch ブランチに落ちて diagnosis 版メールが届くバグが発生
+//   - 案 X: resolveUserPlanKind にリトライを追加（app/lib/plan.js に共通化）
+//   - 案 Y: 送信経路を新エンドポイント1本に統一（判定の二重化を排除）
+//
+// 処理:
+//   1) セッション確認
+//   2) プラン判定（リトライ込み）
+//   3) support なら siteId（あれば）で /?site_id=X、なければ /dashboard 向けのメール
+//   4) diagnosis なら shared_results に INSERT してシェアURL を発行 → そのURL付きメール
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { sendAnalysisCompleteEmail } from "@/app/lib/email";
+import { resolveUserPlanKind } from "@/app/lib/plan";
 
 function generateShareId() {
   const timestamp = Date.now().toString(36);
@@ -21,30 +30,13 @@ function generateShareId() {
   return timestamp + random1 + random2;
 }
 
-async function resolveUserPlanKind(sql, email) {
-  if (!email) return 'diagnosis';
-  try {
-    const [proRows, planRows] = await Promise.all([
-      sql`SELECT email FROM pro_users WHERE email = ${email} LIMIT 1`,
-      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' AND (is_trial IS NOT TRUE OR expires_at > NOW()) ORDER BY purchased_at DESC LIMIT 1`,
-    ]);
-    if (planRows.length > 0 && planRows[0].plan_type === 'support') return 'support';
-    if (proRows.length > 0) return 'support';
-    return 'diagnosis';
-  } catch (e) {
-    console.error('プラン判定エラー（send-completion-email）:', e);
-    return 'diagnosis';
-  }
-}
-
 export async function POST(req) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
   }
 
-  // ローカル dev で DATABASE_URL 未設定時にモジュールロードが失敗するのを防ぐため、
-  // sql クライアントは関数内で生成する
+  // ローカル dev で DATABASE_URL 未設定時のモジュールロード失敗を避けるため関数内で生成
   const sql = neon(process.env.DATABASE_URL);
 
   try {
@@ -56,26 +48,38 @@ export async function POST(req) {
       visualMock,
       improveResultsByCombination,
       visualMocksByCombination,
+      siteId, // support ユーザーの場合、メール内ボタンを直接そのサイトへ飛ばす
     } = body;
 
     if (!result) {
       return NextResponse.json({ error: "分析結果が不正です" }, { status: 400 });
     }
 
+    // 共通モジュールで判定（最大3回リトライ・指数バックオフ）
     const planKind = await resolveUserPlanKind(sql, session.user.email);
 
-    // support ユーザーは /api/analyze 側で送信済み。重複を避けるためここでは何もしない。
     if (planKind === 'support') {
-      return NextResponse.json({ ok: true, skipped: true, reason: 'support_handled_by_analyze_route' });
+      // 戦略指南サブスク / PRO: サイト管理画面に保存されているので、シェアURL は発行しない
+      try {
+        await sendAnalysisCompleteEmail({
+          email: session.user.email,
+          name: session.user.name,
+          planKind: 'support',
+          siteId: siteId || null,
+        });
+      } catch (mailErr) {
+        console.error('support 完了メール送信エラー:', mailErr?.message);
+        return NextResponse.json({ ok: true, planKind: 'support', warning: 'mail_failed' });
+      }
+      return NextResponse.json({ ok: true, planKind: 'support', siteId: siteId || null });
     }
 
     // diagnosis: シェアURL を自動発行
-    // shared_results テーブルは /api/share の ensureTable で作られている前提
-    // （初回利用時に診断ユーザーがログインしていれば既に作成済み）
     const shareId = generateShareId();
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
+    let shareCreated = false;
     try {
       await sql`
         INSERT INTO shared_results (
@@ -95,10 +99,9 @@ export async function POST(req) {
           ${visualMocksByCombination ? JSON.stringify(visualMocksByCombination) : null}
         )
       `;
+      shareCreated = true;
     } catch (insertErr) {
-      // shared_results テーブルが未作成のケースに備えてフォールバック
-      // （/api/share に同じ ensureTable があるので通常は問題ないが、診断ユーザーが
-      // 一度もシェアボタンを押していない場合に備える）
+      // shared_results テーブル未作成のフォールバック
       console.error('shared_results INSERT エラー（フォールバック試行）:', insertErr?.message);
       try {
         await sql`
@@ -133,14 +136,14 @@ export async function POST(req) {
             ${visualMocksByCombination ? JSON.stringify(visualMocksByCombination) : null}
           )
         `;
+        shareCreated = true;
       } catch (retryErr) {
         console.error('shared_results INSERT 二度目失敗:', retryErr?.message);
-        // シェア発行に失敗してもメール自体は送る（リンクは TOP にフォールバック）
       }
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || 'https://senryaku.ai';
-    const shareUrl = `${baseUrl}/share?id=${shareId}`;
+    const shareUrl = shareCreated ? `${baseUrl}/share?id=${shareId}` : null;
 
     try {
       await sendAnalysisCompleteEmail({
@@ -148,14 +151,19 @@ export async function POST(req) {
         name: session.user.name,
         planKind: 'diagnosis',
         siteId: null,
-        shareUrl,
+        shareUrl, // null の場合はメール内でフォールバック（TOP リンク）
       });
     } catch (mailErr) {
       console.error('診断ユーザー完了メール送信エラー:', mailErr?.message);
-      // メール送信失敗でもシェア発行は成功しているので、フロントには成功扱いで返す
     }
 
-    return NextResponse.json({ ok: true, shareId, shareUrl, expiresAt: expiresAt.toISOString() });
+    return NextResponse.json({
+      ok: true,
+      planKind: 'diagnosis',
+      shareId: shareCreated ? shareId : null,
+      shareUrl,
+      expiresAt: shareCreated ? expiresAt.toISOString() : null,
+    });
   } catch (e) {
     console.error('POST /api/analyze/send-completion-email error:', e);
     return NextResponse.json({ error: "完了メール処理に失敗しました" }, { status: 500 });
