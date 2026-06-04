@@ -579,13 +579,19 @@ try {
   // 順序: パース → 推奨パターンをスコアから決定 → legacy フィールドを推奨パターンで埋める
   const result = backfillLegacyFields(computeRecommendedCombinationId(JSON.parse(clean)));
   // 分析完了メール送信（プラン種別で文面を分岐・エラーでも止めない）
+  //   - support（戦略指南サブスク/PRO）: ここで即時送信。siteId で直接分析ページへ
+  //   - diagnosis（戦略診断チケット/トライアル）: スキップ。フロント側で
+  //     improve+visual も完了させた上で /api/analyze/send-completion-email を
+  //     呼び、シェアURL を発行してから案内する（メール内リンクで持ち帰りできるように）
   try {
     if (session?.user?.email) {
-      // フロントから siteId が渡されていれば、メール内のリンクを直接その分析結果ページに飛ばす
       const siteId = body?.siteId || null;
-      resolveUserPlanKind(session.user.email).then(planKind =>
-        sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind, siteId })
-      ).catch(() => {});
+      resolveUserPlanKind(session.user.email).then(planKind => {
+        if (planKind === 'support') {
+          return sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind, siteId });
+        }
+        // diagnosis はフロント側の後続呼び出しに委ねる
+      }).catch(() => {});
     }
   } catch (e) {}
   return NextResponse.json(result);

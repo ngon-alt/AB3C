@@ -74,7 +74,8 @@ export async function sendWelcomeEmailAgency({ email, name }) {
 //  - planKind = 'support'  : 戦略指南サブスク / PRO（ダッシュボードに履歴保存される）
 //  - planKind = 'diagnosis': 戦略診断チケット / 無料トライアル（履歴保存なし＝持ち帰り必須）
 //  - siteId                : 既存サイト再分析時のサイトID（指南プランの場合、メール内リンクを分析結果ページに直接飛ばすのに使用）
-export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis', siteId = null }) {
+//  - shareUrl              : 診断/トライアル向けの場合、事前発行されたシェアURL。あればメインボタンの遷移先になる
+export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagnosis', siteId = null, shareUrl = null }) {
   if (planKind === 'support') {
     // 指南プラン向け: siteId があれば当該分析ページ、なければダッシュボードへ
     const targetUrl = siteId
@@ -102,7 +103,10 @@ export async function sendAnalysisCompleteEmail({ email, name, planKind = 'diagn
       <p style="font-size:14px;line-height:1.8;color:#1a1a14;margin:0">③ ブラウザのメニューから印刷 → PDF保存</p>
     </div>
 
-    <a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析画面を開く →</a>
+    ${shareUrl
+      ? `<div style="background:#e8f4ff;border:1px solid #b8dcff;border-radius:6px;padding:14px 18px;margin:0 0 20px"><p style="font-size:13px;font-weight:bold;color:#0d4ea3;margin:0 0 6px">📎 シェアURLを自動発行しました（1年間閲覧可能）</p><p style="font-size:13px;line-height:1.7;color:#1a1a14;margin:0">下のボタンから開いて、ブックマーク・メモへの保存をお忘れなく。このメール自体も保存しておくと安心です。</p></div><a href="${shareUrl}" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析結果を開く（シェアURL） →</a><p style="font-size:12px;line-height:1.7;color:#78716c;margin:8px 0 0;word-break:break-all">URL: <a href="${shareUrl}" style="color:#1a6fd4">${shareUrl}</a></p>`
+      : `<a href="https://senryaku.ai" style="display:inline-block;background:#1a6fd4;color:#fff;text-decoration:none;padding:14px 32px;border-radius:4px;font-size:15px;font-weight:bold">分析画面を開く →</a>`
+    }
 
     <hr style="border:none;border-top:1px solid #e5e5e0;margin:32px 0">
 
