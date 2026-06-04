@@ -3506,6 +3506,31 @@ if (tab === "text" && data && !data.error && !analyzeSiteId) {
   } catch (e) { console.error("テキスト分析サイト作成処理エラー:", e); }
 }
 
+// 診断/トライアル向け完了メールの送信（シェアURL自動発行）。
+// support ユーザーには /api/analyze で即時送信済みなので、ここではバックエンドが
+// プラン判定して skip する。失敗してもUI継続。
+try {
+  const _recId = data?.recommended_combination_id || data?.combinations?.[0]?.id;
+  const _improveByCombo = (improveData && !improveData.error && _recId)
+    ? { [_recId]: improveData }
+    : null;
+  const _visualByCombo = (visualData && !visualData.error && _recId)
+    ? { [_recId]: visualData }
+    : null;
+  fetch("/api/analyze/send-completion-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      input: savedText,
+      result: data,
+      improveResult: improveData && !improveData.error ? improveData : null,
+      visualMock: visualData && !visualData.error ? visualData : null,
+      improveResultsByCombination: _improveByCombo,
+      visualMocksByCombination: _visualByCombo,
+    }),
+  }).catch(function(err) { console.error("診断ユーザー完了メール送信エラー:", err); });
+} catch (e) { console.error("診断ユーザー完了メール処理エラー:", e); }
+
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
 notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
