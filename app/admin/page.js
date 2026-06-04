@@ -2,7 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 
-const ADMIN_EMAIL = 'webconsultant2022@gmail.com';
+// admin アクセス権: pro_users テーブルに登録されているユーザー全員に開放（2026-06-04）。
+// 旧実装は ADMIN_EMAIL = 'webconsultant2022@gmail.com' 固定だったため、
+// 権さんが普段使う ngon@gonweb.co.jp でログインしている時に弾かれていた。
+// /api/check-pro で isPro を判定して使う（pro_users 登録の有無 = admin 可否）。
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
@@ -22,8 +25,18 @@ export default function AdminPage() {
   const [secret, setSecret] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  // pro_users チェックの結果: null=判定中, true=admin, false=拒否
+  const [isAdmin, setIsAdmin] = useState(null);
 
-  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+  // セッション確立後に /api/check-pro で pro_users 登録有無を確認
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) { setIsAdmin(false); return; }
+    fetch('/api/check-pro')
+      .then(res => res.json())
+      .then(data => { setIsAdmin(!!data.isPro); })
+      .catch(() => { setIsAdmin(false); });
+  }, [session, status]);
 
  useEffect(() => {
   if (isAdmin) {
@@ -140,10 +153,23 @@ useEffect(() => {
     </div>
   );
 
+  // pro_users 判定中（API レスポンス待ち）
+  if (isAdmin === null) return (
+    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, color: C.muted }}>権限を確認中...</div>
+      </div>
+    </div>
+  );
+
   if (!isAdmin) return (
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 14, color: C.red }}>アクセス権限がありません</div>
+        <div style={{ fontSize: 14, color: C.red, marginBottom: 12 }}>アクセス権限がありません</div>
+        <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.7 }}>
+          管理画面は pro_users に登録されたアカウントのみ利用可能です。<br />
+          現在のログイン: <code>{session?.user?.email || '—'}</code>
+        </div>
       </div>
     </div>
   );
