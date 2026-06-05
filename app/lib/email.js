@@ -389,3 +389,56 @@ export async function sendContactAutoReplyEmail({ name, email, category, message
 
   return sendEmail(email, subject, html);
 }
+
+// webhook 健全性チェック cron が異常を検知した時の運営宛アラート。
+// support active なのに非トライアル tickets が無い・残数 0 のユーザーを列挙して通知する。
+// 2026-05-30 の FutureShop さん事故（DELETE 後に INSERT 失敗で tickets が空）と
+// 同型の事象が起きていないかの定期監視用。
+export async function sendWebhookHealthAlertEmail({ affectedUsers }) {
+  const NOTIFY_TO = process.env.OPERATIONS_NOTIFY_EMAIL || process.env.CONTACT_NOTIFY_EMAIL || 'ngon@gonweb.co.jp';
+  const count = affectedUsers?.length || 0;
+  const subject = `【戦略指南 AI / 監視】支援プラン active なのにチケット 0 のユーザー ${count} 名検知`;
+
+  const rows = (affectedUsers || []).map(u => `
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;font-family:monospace">${esc(u.user_email)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;text-align:right">${esc(u.site_limit)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${esc(u.expires_at)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #e5e5e0;text-align:right">${esc(u.total_chats ?? 0)}</td>
+    </tr>
+  `).join('');
+
+  const html = `<div style="font-family:sans-serif;max-width:760px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px;color:#dc2626">戦略指南 AI / webhook 健全性アラート</div>
+    <p style="font-size:14px;line-height:1.8;margin:0 0 16px">支援プラン（support）が active かつ非トライアルにもかかわらず、tickets テーブルに非トライアル行が無い／残数 0 のユーザーが <strong>${count}</strong> 名検知されました。</p>
+
+    <p style="font-size:14px;line-height:1.8;margin:0 0 24px;color:#555">これは 2026-05-30 の FutureShop さん事故（webhook の DELETE 後に INSERT 失敗で tickets が空）と同型の事象の可能性があります。Stripe 側で課金が成立しているのに、当方の DB が中途半端な状態で停止している可能性があるため、速やかに調査・復旧してください。</p>
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">
+      <thead>
+        <tr style="background:#f5f2eb">
+          <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #1a1a14">user_email</th>
+          <th style="padding:8px 12px;text-align:right;border-bottom:2px solid #1a1a14">site_limit</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:2px solid #1a1a14">expires_at</th>
+          <th style="padding:8px 12px;text-align:right;border-bottom:2px solid #1a1a14">total_chats</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+
+    <div style="margin-bottom:24px">
+      <div style="font-size:13px;font-weight:bold;color:#1a1a14;margin-bottom:8px">推奨手順</div>
+      <ol style="font-size:14px;line-height:1.8;padding-left:20px;margin:0">
+        <li>Stripe ダッシュボードで該当 subscription の最新 invoice が paid 状態か確認</li>
+        <li>Vercel ログで該当時刻の <code>invoice.paid</code> webhook エラーを確認</li>
+        <li>必要に応じて Neon で復旧 SQL を実行（tickets INSERT + user_plans.expires_at UPDATE）</li>
+      </ol>
+    </div>
+
+    <p style="font-size:12px;color:#78716c;margin-top:24px;border-top:1px solid #e5e5e0;padding-top:16px">このメールは <code>/api/cron/webhook-health-check</code> から月次自動送信されています。</p>
+  </div>`;
+
+  return sendEmail(NOTIFY_TO, subject, html);
+}
