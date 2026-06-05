@@ -3297,11 +3297,16 @@ setLiveStateBackup(null); // 新規分析でライブ状態が完全リセット
 // 注: localStorage "ab3c_history" は意図的に削除しない（履歴安全性のため）
     setOverlayMessage("AB3C分析中...");
     try {
+      // 完了メール送信用に、本セッション中に最終的に使った siteId を追跡。
+      // setSiteId() は React state なので analyze 関数内では同期的に読めない。
+      // 各 setSiteId 呼び出しの隣で _trackedSiteId にも代入する。
+      let _trackedSiteId = null;
       // URL分析時: 既存サイトがあれば自動紐付け（上で取得済みの prefoundSite を再利用）
       var analyzeSiteId = null;
       if (tab === "url" && url.trim() && prefoundSite) {
         analyzeSiteId = prefoundSite.id;
         setSiteId(prefoundSite.id);
+        _trackedSiteId = prefoundSite.id;
       }
       const body = tab === "url" ? { url } : { input: composedTextInput };
       // 既存サイトの再分析時は siteId を渡す → 完了メールのリンクを当該分析結果ページに直接飛ばすため
@@ -3328,6 +3333,7 @@ setOverlayMessage(null);
 if (tab === "url" && savedText.startsWith("http") && analyzeSiteId) {
   try {
     setSiteId(analyzeSiteId);
+    _trackedSiteId = analyzeSiteId;
     await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: analyzeSiteId, latest_analysis: data, analyzed_at: Date.now() }) });
   } catch (e) { console.error("分析結果DB保存エラー:", e); }
 }
@@ -3424,8 +3430,8 @@ if (tab === "url" && savedText.startsWith("http")) {
       try { sn = new URL(savedText).hostname.replace(/^www\./, ""); } catch (e) {}
       var cr = await fetch("/api/sites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site_name: sn, site_url: savedText }) });
       var cd = await cr.json();
-      if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); }
-      else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); }
+      if (cd.existingSite) { targetSid = cd.existingSite.id; setSiteId(targetSid); _trackedSiteId = targetSid; }
+      else if (cd.site) { targetSid = cd.site.id; setSiteId(targetSid); _trackedSiteId = targetSid; }
       else if (cd.error) { console.error("サイト作成エラー:", cd.error); }
     }
     // 注: テキスト分析のサイト作成は URL if-block の外で行う（このブロック全体が
@@ -3490,6 +3496,7 @@ if (tab === "text" && data && !data.error && !analyzeSiteId) {
     else if (cdText.site) textSid = cdText.site.id;
     if (textSid) {
       setSiteId(textSid);
+      _trackedSiteId = textSid;
       // 分析結果を DB に保存
       await fetch("/api/sites", {
         method: "PUT",
@@ -3505,6 +3512,34 @@ if (tab === "text" && data && !data.error && !analyzeSiteId) {
     }
   } catch (e) { console.error("テキスト分析サイト作成処理エラー:", e); }
 }
+
+// 分析完了メールを統一エンドポイントから送信（2026-06-04 案 X + Y）。
+//   support ユーザー   : siteId 付き or サイト一覧リンクのメール
+//   diagnosis ユーザー : シェアURL を自動発行したメール
+// 判定とリトライはバックエンド側（resolveUserPlanKind / app/lib/plan.js）で行う。
+// 失敗してもUI継続（fire-and-forget）。
+try {
+  const _recId = data?.recommended_combination_id || data?.combinations?.[0]?.id;
+  const _improveByCombo = (improveData && !improveData.error && _recId)
+    ? { [_recId]: improveData }
+    : null;
+  const _visualByCombo = (visualData && !visualData.error && _recId)
+    ? { [_recId]: visualData }
+    : null;
+  fetch("/api/analyze/send-completion-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      input: savedText,
+      result: data,
+      improveResult: improveData && !improveData.error ? improveData : null,
+      visualMock: visualData && !visualData.error ? visualData : null,
+      improveResultsByCombination: _improveByCombo,
+      visualMocksByCombination: _visualByCombo,
+      siteId: _trackedSiteId || null,
+    }),
+  }).catch(function(err) { console.error("完了メール送信エラー:", err); });
+} catch (e) { console.error("完了メール処理エラー:", e); }
 
 saveHistory(savedText, data, data?.strategy_message?.message || "", improveData, visualData && !visualData.error ? visualData : null);
 notify(savedText);

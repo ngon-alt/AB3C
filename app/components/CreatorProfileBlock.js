@@ -63,10 +63,9 @@ export default function CreatorProfileBlock() {
 
       <div style={{ fontSize: 16, color: C.ink, lineHeight: 1.85, fontFamily: BODY_FONT, marginBottom: 18 }}>
         株式会社ゴンウェブイノベーションズ 代表取締役 / 一般社団法人デジタル経営革新協会 代表理事<br />
-        ウェブ業界歴 <b>24年</b>。中小企業の戦略コンサルティングを長年手がけ、その実務知見から
+        ウェブ業界歴 <b>24年</b>。ソフトバンクにてEC事業開発・ディレクションに携わる。<b>2002年</b>、現在の（株）ゴンウェブイノベーションズ創業。中小企業の戦略コンサルティングを長年手がけ、その実務知見から
         <b>「AB3Cフレームワーク」</b>
-        を考案。CSS Nite などの業界カンファレンスでの登壇、デジ革セミナーでの講演、
-        ブログ・書籍を通じて、戦略思考をウェブ業界に広めてきた人物です。
+        を考案。CSS Nite などの業界カンファレンスでの登壇、デジ革セミナーでの講演、ブログ・書籍を通じて、戦略思考をウェブ業界に発信。デジ革では<b>累計数百名のウェブコンサルタントを育成</b>。
       </div>
 
       {/* 実績バッジ */}
@@ -89,21 +88,29 @@ export default function CreatorProfileBlock() {
           </div>
         </div>
 
-        <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
+        <a
+          href="https://www.amazon.co.jp/stores/author/B004391OAE"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px", textDecoration: "none", display: "block" }}
+        >
           <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             著書
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
-            『なぜあなたのウェブには戦略がないのか』(2017)
+            『なぜあなたのウェブには戦略がないのか』(2017) <span style={{ fontSize: 14, color: C.A, fontWeight: 400 }}>↗</span>
           </div>
-        </div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+            Amazon 著者ページで全著作を見る
+          </div>
+        </a>
 
         <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: C.muted, letterSpacing: "0.06em", marginBottom: 6 }}>
             登壇・講演
           </div>
           <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.6 }}>
-            CSS Nite / デジ革セミナー ほか
+            全国の商工会・商工会議所 / CSS Nite / デジ革セミナー ほか
           </div>
         </div>
 
@@ -134,6 +141,14 @@ export default function CreatorProfileBlock() {
 
       {/* 関連リンク */}
       <div style={{ marginTop: 16, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 16, fontFamily: BODY_FONT }}>
+        <a
+          href="https://www.amazon.co.jp/stores/author/B004391OAE"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: C.ink, textDecoration: "underline" }}
+        >
+          ↗ Amazon 著者ページ
+        </a>
         <a
           href="https://digi-kaku.or.jp/"
           target="_blank"

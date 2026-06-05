@@ -3,29 +3,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { neon } from "@neondatabase/serverless";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { sendAnalysisCompleteEmail } from "@/app/lib/email";
+// 注: 完了メール送信はこのエンドポイントからは行わない（2026-06-04 案 Y 導入）。
+// フロントが analyze + improve + visual すべて完了後に
+// /api/analyze/send-completion-email を呼び、そこで一括して送信する。
+// これにより:
+//   1) 判定の二重化（/api/analyze と新エンドポイントで別判定）が解消
+//   2) シェアURL付き diagnosis メール / siteId付き support メールが整合
+//   3) DB 一時失敗時のリトライが共通モジュールで効く
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-// ユーザーの契約プラン種別を判定（メール分岐用）
-//  - 'support'  : 戦略指南サブスク or PRO（分析結果が履歴保存される）
-//  - 'diagnosis': 戦略診断チケット or 無料トライアル（履歴保存されないため持ち帰り必須）
-async function resolveUserPlanKind(email) {
-  if (!email) return 'diagnosis';
-  try {
-    const sql = neon(process.env.DATABASE_URL);
-    const [proRows, planRows] = await Promise.all([
-      sql`SELECT email FROM pro_users WHERE email = ${email} LIMIT 1`,
-      sql`SELECT plan_type FROM user_plans WHERE user_email = ${email} AND status = 'active' AND (is_trial IS NOT TRUE OR expires_at > NOW()) ORDER BY purchased_at DESC LIMIT 1`,
-    ]);
-    if (planRows.length > 0 && planRows[0].plan_type === 'support') return 'support';
-    if (proRows.length > 0) return 'support'; // PRO直接登録ユーザーもsupport扱い
-    return 'diagnosis';
-  } catch (e) {
-    console.error('プラン判定エラー:', e);
-    return 'diagnosis'; // 判定失敗時は持ち帰りを促す側に倒す
-  }
-}
 
 async function fetchWebsite(url) {
   try {
@@ -578,16 +564,10 @@ function backfillLegacyFields(result) {
 try {
   // 順序: パース → 推奨パターンをスコアから決定 → legacy フィールドを推奨パターンで埋める
   const result = backfillLegacyFields(computeRecommendedCombinationId(JSON.parse(clean)));
-  // 分析完了メール送信（プラン種別で文面を分岐・エラーでも止めない）
-  try {
-    if (session?.user?.email) {
-      // フロントから siteId が渡されていれば、メール内のリンクを直接その分析結果ページに飛ばす
-      const siteId = body?.siteId || null;
-      resolveUserPlanKind(session.user.email).then(planKind =>
-        sendAnalysisCompleteEmail({ email: session.user.email, name: session.user.name, planKind, siteId })
-      ).catch(() => {});
-    }
-  } catch (e) {}
+  // 注: 完了メール送信はこのエンドポイントから削除（2026-06-04 案 Y）。
+  // フロントが analyze + improve + visual すべて完了後に
+  // /api/analyze/send-completion-email を呼ぶ。判定の一本化により、
+  // 「support と diagnosis で別判定された結果がズレる」事象を構造的に解消。
   return NextResponse.json(result);
 } catch (parseError) {
   console.error("JSON Parse Error:", parseError.message);

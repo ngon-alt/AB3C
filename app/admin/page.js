@@ -2,7 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 
-const ADMIN_EMAIL = 'webconsultant2022@gmail.com';
+// admin アクセス権: pro_users テーブルに登録されているユーザー全員に開放（2026-06-04）。
+// 旧実装は ADMIN_EMAIL = 'webconsultant2022@gmail.com' 固定だったため、
+// 権さんが普段使う ngon@gonweb.co.jp でログインしている時に弾かれていた。
+// /api/check-pro で isPro を判定して使う（pro_users 登録の有無 = admin 可否）。
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
@@ -22,8 +25,18 @@ export default function AdminPage() {
   const [secret, setSecret] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  // pro_users チェックの結果: null=判定中, true=admin, false=拒否
+  const [isAdmin, setIsAdmin] = useState(null);
 
-  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+  // セッション確立後に /api/check-pro で pro_users 登録有無を確認
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) { setIsAdmin(false); return; }
+    fetch('/api/check-pro')
+      .then(res => res.json())
+      .then(data => { setIsAdmin(!!data.isPro); })
+      .catch(() => { setIsAdmin(false); });
+  }, [session, status]);
 
  useEffect(() => {
   if (isAdmin) {
@@ -74,6 +87,30 @@ useEffect(() => {
     setLoading(false);
   };
 
+  // 分析完了メールのテスト送信（権さん専用デバッグツール）
+  const sendTestCompletionEmail = async (as) => {
+    if (!secret) { setMessage('エラー: ADMIN_SECRET が必要です'); return; }
+    setMessage('テストメール送信中...');
+    try {
+      const res = await fetch('/api/dev/send-test-completion-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret, as, generateRealShare: as === 'diagnosis' }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const detail = data.sentAs === 'diagnosis'
+          ? ` (shareUrl: ${data.shareUrl})`
+          : '';
+        setMessage(`✓ ${data.sentAs} 版を ${data.sentTo} に送信しました${detail}`);
+      } else {
+        setMessage(`エラー: ${data.error || JSON.stringify(data)}`);
+      }
+    } catch (e) {
+      setMessage(`エラー: ${e.message || e}`);
+    }
+  };
+
   const changePlan = async (targetEmail, newPlan) => {
     try {
       await fetch('/api/admin/pro-users', {
@@ -116,10 +153,23 @@ useEffect(() => {
     </div>
   );
 
+  // pro_users 判定中（API レスポンス待ち）
+  if (isAdmin === null) return (
+    <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, color: C.muted }}>権限を確認中...</div>
+      </div>
+    </div>
+  );
+
   if (!isAdmin) return (
     <div style={{ background: C.bg, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 40, textAlign: 'center' }}>
-        <div style={{ fontSize: 14, color: C.red }}>アクセス権限がありません</div>
+        <div style={{ fontSize: 14, color: C.red, marginBottom: 12 }}>アクセス権限がありません</div>
+        <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.7 }}>
+          管理画面は pro_users に登録されたアカウントのみ利用可能です。<br />
+          現在のログイン: <code>{session?.user?.email || '—'}</code>
+        </div>
       </div>
     </div>
   );
@@ -248,6 +298,28 @@ useEffect(() => {
             )}
           </div>
         )}
+
+        {/* メールテスト送信（権さん専用デバッグツール） */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 8 }}>分析完了メール テスト送信</div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 14, lineHeight: 1.7 }}>
+            自分自身（ログイン中のアドレス）宛に、強制的に指定バージョンのメールを送信します。実フローでは plan 判定で分岐するため、PRO 付与ユーザーは diagnosis 版をテストできない問題への対応。
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => sendTestCompletionEmail('diagnosis')}
+              style={{ background: '#dc2626', border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: '10px 18px' }}
+            >
+              📧 diagnosis 版を送信（実シェアURL付き）
+            </button>
+            <button
+              onClick={() => sendTestCompletionEmail('support')}
+              style={{ background: C.A, border: 'none', borderRadius: 4, color: '#fff', cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, padding: '10px 18px' }}
+            >
+              📧 support 版を送信（サイト一覧リンク）
+            </button>
+          </div>
+        </div>
 
         {/* 新規追加 */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>

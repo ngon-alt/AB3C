@@ -97,6 +97,14 @@ export async function POST(req) {
       // 新規購入が support タイプの場合、既存 active な support プランを Stripe 側でキャンセルし、
       // DB で status='replaced' にマーク、関連チケットもクリア。
       // ※ 超過サイトの削除はユーザー選択型 UI（/api/sites/cap-resolve）で実施
+      //
+      // 2026-06-04 修正（案 X）:
+      //   旧実装は「既存 tickets を DELETE → 新 tickets を INSERT」を別コミットで
+      //   実行していたため、DELETE 成功後に INSERT が失敗すると tickets が空に
+      //   なる事故があった（FutureShop 5/30 月次更新で実発生）。
+      //   sql.transaction() で 2 文を原子化し、片方失敗時は両方ロールバックする
+      //   ようにした。
+      let needsReplaceTickets = false;
       if (plan?.type === 'support') {
         const existingSupport = await sql`
           SELECT id, stripe_subscription_id, stripe_price_id
@@ -117,16 +125,27 @@ export async function POST(req) {
             UPDATE user_plans SET status = 'replaced'
             WHERE user_email = ${email} AND plan_type = 'support' AND status = 'active'
           `;
-          // 旧の支援プラン向けチケットをクリア（support タイプ由来）。診断用チケットは触らない
-          await sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`;
+          // 既存 tickets を「DELETE → INSERT」一括処理対象としてマーク
+          needsReplaceTickets = true;
         }
       }
 
-      // チケット付与
-      await sql`
-        INSERT INTO tickets (email, remaining_chats, is_trial)
-        VALUES (${email}, ${chatCount}, FALSE)
-      `;
+      // チケット付与（DELETE+INSERT を原子化）
+      if (needsReplaceTickets) {
+        // 既存 support 由来 tickets を消して新規発行を1トランザクションで行う。
+        // どちらかが失敗すれば両方ロールバック → tickets が空になる事故を防ぐ。
+        // 診断用チケット（is_trial 関係なく analysis 由来）は別管理なのでここでは触らない。
+        await sql.transaction([
+          sql`DELETE FROM tickets WHERE email = ${email} AND is_trial = FALSE`,
+          sql`INSERT INTO tickets (email, remaining_chats, is_trial) VALUES (${email}, ${chatCount}, FALSE)`,
+        ]);
+      } else {
+        // 既存 support なし（初回購入 or analysis）→ INSERT のみ
+        await sql`
+          INSERT INTO tickets (email, remaining_chats, is_trial)
+          VALUES (${email}, ${chatCount}, FALSE)
+        `;
+      }
 
       // ※ 戦略指南サブスク契約者を pro_users に自動追加していた処理は廃止。
       //   理由:
@@ -332,27 +351,27 @@ export async function POST(req) {
       if (plans.length > 0) {
         const p = plans[0];
         const newChatCount = getChatCount(p);
-        // 既存のnon-trialチケットを削除して新たに付与（強制リセット）
-        await sql`DELETE FROM tickets WHERE email = ${p.user_email} AND is_trial = FALSE`;
-        await sql`
-          INSERT INTO tickets (email, remaining_chats, is_trial)
-          VALUES (${p.user_email}, ${newChatCount}, FALSE)
-        `;
-        // 月次サイト登録カウンタをリセット（戦略指南サブスクのみ該当）
-        await sql`
-          UPDATE user_plans SET
-            monthly_registrations_used = 0,
-            monthly_registrations_reset_at = NOW()
-          WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
-        `;
+        // 2026-06-04 修正（案 X）: 月次更新の DB 更新を全て1トランザクションに統一。
+        //   - DELETE tickets / INSERT tickets / UPDATE monthly_registrations / UPDATE expires_at
+        //   - 旧実装は別コミットだったため、DELETE 成功後に INSERT が失敗すると
+        //     tickets が空・expires_at も更新されない、という中途半端な状態で
+        //     停止する事故があった（FutureShop 5/30 で実発生）。
+        //   - 原子化により、いずれかが失敗すれば全部ロールバック → 元の状態のまま。
+        //     Stripe は webhook 失敗時に自動リトライするので、次の試行で復旧する。
+        const queries = [
+          sql`DELETE FROM tickets WHERE email = ${p.user_email} AND is_trial = FALSE`,
+          sql`INSERT INTO tickets (email, remaining_chats, is_trial) VALUES (${p.user_email}, ${newChatCount}, FALSE)`,
+          // 月次サイト登録カウンタをリセット（戦略指南サブスクのみ該当）
+          sql`UPDATE user_plans SET monthly_registrations_used = 0, monthly_registrations_reset_at = NOW() WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'`,
+        ];
         // 次回更新日を記録（Stripe invoice の period_end）
         if (invoice.lines?.data?.[0]?.period?.end) {
           const nextRenewalAt = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
-          await sql`
-            UPDATE user_plans SET expires_at = ${nextRenewalAt}
-            WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'
-          `;
+          queries.push(
+            sql`UPDATE user_plans SET expires_at = ${nextRenewalAt} WHERE stripe_subscription_id = ${subscriptionId} AND status = 'active'`
+          );
         }
+        await sql.transaction(queries);
         console.log(`月次更新: ${p.user_email} / ${p.plan_type}${p.site_limit} / チャット${newChatCount}回・サイト登録カウンタをリセット`);
       }
     }
