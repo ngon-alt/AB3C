@@ -2,6 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { neon } from "@neondatabase/serverless";
+import https from "node:https";
+import http from "node:http";
 import { authOptions } from "../auth/[...nextauth]/route";
 // 注: 完了メール送信はこのエンドポイントからは行わない（2026-06-04 案 Y 導入）。
 // フロントが analyze + improve + visual すべて完了後に
@@ -13,31 +15,96 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// 証明書チェーン系のエラーコード。このエラーで失敗したサイトに限り、
+// TLS 検証を緩めた fallback 取得を1回だけ許可する。
+// 原因の多くは「サーバーが中間証明書の送出を忘れている（fullchain でない）」不備で、
+// ブラウザでは見えるが Node の厳格な fetch では検証できず弾かれる。
+const CERT_CHAIN_ERROR_CODES = new Set([
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  "UNABLE_TO_GET_ISSUER_CERT",
+  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "DEPTH_ZERO_SELF_SIGNED_CERT",
+  "CERT_UNTRUSTED",
+]);
+
+// 証明書チェーン不備サイト専用の低レベル GET。
+// Node 組み込みの node:https/http を使う（undici は import 解決が不安定なため避ける）。
+// rejectUnauthorized:false は「読み取り専用の公開ページ取得」かつ
+// 「厳格 fetch が証明書エラーで失敗した後の救済」に限定して使用する。最大3リダイレクト追従。
+function insecureGet(targetUrl, redirectsLeft = 3) {
+  return new Promise((resolve, reject) => {
+    let u;
+    try { u = new URL(targetUrl); } catch (e) { return reject(e); }
+    const lib = u.protocol === "http:" ? http : https;
+    const req = lib.request(
+      u,
+      {
+        method: "GET",
+        rejectUnauthorized: false,
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)" },
+        timeout: 10000,
+      },
+      (res) => {
+        const status = res.statusCode || 0;
+        if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
+          res.resume(); // ボディを破棄してソケットを解放
+          const next = new URL(res.headers.location, u).toString();
+          return resolve(insecureGet(next, redirectsLeft - 1));
+        }
+        const chunks = [];
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
+      }
+    );
+    req.on("error", reject);
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.end();
+  });
+}
+
+function extractText(html) {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/data:image\/[^;]+;base64,[^"']*/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 5000);
+}
+
 async function fetchWebsite(url) {
+  let html;
   try {
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)" },
       signal: AbortSignal.timeout(10000),
     });
-    const html = await res.text();
-    const text = html
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/data:image\/[^;]+;base64,[^"']*/gi, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 5000);
-    return text;
+    html = await res.text();
   } catch (e) {
-    // 失敗理由を握り潰さずログに出す（TLS不備 vs IP遮断 vs タイムアウトの切り分け用）。
-    // 例: UNABLE_TO_VERIFY_LEAF_SIGNATURE/SELF_SIGNED_CERT_IN_CHAIN → 証明書チェーン不備、
-    //     ECONNRESET/ECONNREFUSED → ネットワーク/IP遮断、TimeoutError/ETIMEDOUT → タイムアウト。
-    console.error(
-      `[fetchWebsite] failed url=${url} name=${e?.name} message=${e?.message} code=${e?.code || e?.cause?.code} causeMessage=${e?.cause?.message}`
-    );
-    throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
+    const code = e?.code || e?.cause?.code;
+    if (CERT_CHAIN_ERROR_CODES.has(code)) {
+      // サイト側の証明書チェーン不備。このサイトに限り TLS 検証を緩めて1回だけ再取得する。
+      console.warn(`[fetchWebsite] cert chain incomplete, retrying with relaxed TLS url=${url} code=${code}`);
+      try {
+        html = await insecureGet(url);
+      } catch (e2) {
+        console.error(
+          `[fetchWebsite] relaxed-TLS retry failed url=${url} name=${e2?.name} message=${e2?.message} code=${e2?.code || e2?.cause?.code}`
+        );
+        throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
+      }
+    } else {
+      // 失敗理由を握り潰さずログに出す（IP遮断 vs タイムアウト等の切り分け用）。
+      // 例: ECONNRESET/ECONNREFUSED → ネットワーク/IP遮断、TimeoutError/ETIMEDOUT → タイムアウト。
+      console.error(
+        `[fetchWebsite] failed url=${url} name=${e?.name} message=${e?.message} code=${code} causeMessage=${e?.cause?.message}`
+      );
+      throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
+    }
   }
+  return extractText(html);
 }
 export async function POST(req) {
   const session = await getServerSession(authOptions);
