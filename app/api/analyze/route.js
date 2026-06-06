@@ -30,6 +30,12 @@ async function fetchWebsite(url) {
       .slice(0, 5000);
     return text;
   } catch (e) {
+    // 失敗理由を握り潰さずログに出す（TLS不備 vs IP遮断 vs タイムアウトの切り分け用）。
+    // 例: UNABLE_TO_VERIFY_LEAF_SIGNATURE/SELF_SIGNED_CERT_IN_CHAIN → 証明書チェーン不備、
+    //     ECONNRESET/ECONNREFUSED → ネットワーク/IP遮断、TimeoutError/ETIMEDOUT → タイムアウト。
+    console.error(
+      `[fetchWebsite] failed url=${url} name=${e?.name} message=${e?.message} code=${e?.code || e?.cause?.code} causeMessage=${e?.cause?.message}`
+    );
     throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
   }
 }
