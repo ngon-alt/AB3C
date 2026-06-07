@@ -178,43 +178,52 @@ function Callout({ children, on = "white" }) {
 }
 
 // ============================================================
-// 1. ヒーロー（ネイビー）
+// 1. ヒーロー（ネイビー・テキストのみ）
 // ============================================================
 function Hero() {
   return (
-    <section style={{ background: C.navy, padding: "80px 20px 0" }}>
-      <div style={{ maxWidth: TW, margin: "0 auto", paddingBottom: 60 }}>
+    <section style={{ background: C.navy, padding: "120px 20px 128px" }}>
+      <div style={{ maxWidth: TW, margin: "0 auto" }}>
         <div style={{
           display: "inline-block", background: "rgba(13,148,136,0.18)",
           border: "1px solid rgba(13,148,136,0.40)", color: "#5eead4",
           fontSize: 16, fontWeight: 700, letterSpacing: "0.12em",
-          padding: "6px 18px", borderRadius: 3, marginBottom: 24, fontFamily: BF,
+          padding: "6px 18px", borderRadius: 3, marginBottom: 36, fontFamily: BF,
         }}>
           コンサルタント・Web制作会社向け
         </div>
 
         <h1 style={{
-          fontFamily: H, fontSize: 42, fontWeight: 700, color: "#fff",
-          lineHeight: 1.5, margin: "0 0 24px", letterSpacing: "0.02em",
+          fontFamily: H, fontSize: 48, fontWeight: 700, color: "#fff",
+          lineHeight: 1.55, margin: "0 0 32px", letterSpacing: "0.02em",
         }}>
           「AIでマーケティングができる」<br />は、本当ですか？
         </h1>
 
-        <p style={{ fontSize: 22, color: "#fff", fontWeight: 700, lineHeight: 1.7, margin: "0 0 12px", fontFamily: BF }}>
+        <p style={{ fontSize: 24, color: "#fff", fontWeight: 700, lineHeight: 1.7, margin: "0 0 16px", fontFamily: BF }}>
           はい、できます。ただし、条件があります。
         </p>
-        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 1.9, margin: "0 0 40px", fontFamily: BF }}>
+        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 2.0, margin: "0 0 52px", fontFamily: BF }}>
           その条件を満たすために生まれたのが、戦略指南AIです。<br />
           マーケティングの「上流」にある戦略を、AIがサポートします。
         </p>
 
         <CtaButton label="無料で1サイト診断してみる" size="lg" />
-        <div style={{ marginTop: 14, fontSize: 16, color: "rgba(255,255,255,0.40)", fontFamily: BF }}>
+        <div style={{ marginTop: 16, fontSize: 16, color: "rgba(255,255,255,0.40)", fontFamily: BF }}>
           Googleアカウントで即日スタート · クレジットカード不要
         </div>
       </div>
+    </section>
+  );
+}
 
-      <div style={{ maxWidth: WW, margin: "0 auto", padding: "0 20px" }}>
+// ============================================================
+// 1b. ヒーロースクリーンショット（ネイビー→ホワイト境界）
+// ============================================================
+function HeroShot() {
+  return (
+    <section style={{ background: C.bg, padding: "0 20px" }}>
+      <div style={{ maxWidth: WW, margin: "0 auto", transform: "translateY(-48px)" }}>
         <Shot
           src="/howto/分析結果の概要.png"
           alt="戦略指南AI — AB3C分析結果"
@@ -1198,6 +1207,7 @@ export default function LpPage() {
       <Header />
       <main>
         {/* ネイビー     */} <Hero />
+        {/* 境界ショット  */} <HeroShot />
         {/* ホワイト     */} <AiMarketingQuestion />
         {/* ライトティール */} <PartialOptimalSection />
         {/* ティール帯   */} <StatsSection />
