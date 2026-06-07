@@ -1714,6 +1714,8 @@ const [activePlanId, setActivePlanId] = useState(null);
   // 単一 state への上書き競争を構造的に排除する。
   const [improveResultsByCombination, setImproveResultsByCombination] = useState({});
   const [improveSwitchLoading, setImproveSwitchLoading] = useState(false);
+  // チャット再分析で戦略が更新された後、改善レポート・ビジュアルが古くなったことを示すフラグ
+  const [improveStale, setImproveStale] = useState(false);
   // パターンID→そのパターン向けビジュアルモックのキャッシュ。
   // visualMock 単独 state は廃止し、ここから「現在の selectedCombinationId」で派生値として引く設計に統一
   //（権さん指示・2026-05-20）。単一 state への上書き競争を構造的に排除する。
@@ -3289,7 +3291,7 @@ if (prefoundSite) {
     body: JSON.stringify({ id: prefoundSite.id, analysis_chat: [] }),
   }).catch(() => {});
 }
-setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null);
+setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null); setImproveStale(false);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
 setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
@@ -3547,7 +3549,7 @@ notify(savedText);
     } catch (e) { setError("通信エラーが発生しました。もう一度お試しください。"); setLoading(false); setOverlayMessage(null); }
   };
 
-const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); };
+const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); setBusinessPlan({ title: "", origin: "", problem: "", value: "", customer: "", revenue: "" }); setUrl(""); setError(""); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]); setVersionsFromInitial(null); setActiveConfirmId(null); setImproveStale(false); };
   const editAndReanalyze = (text) => {
     // 過去のテキストに構造化マーカー（【ラベル】）が含まれていれば businessPlan に復元、
     // 無ければ非構造テキストとして input に入れる（後方互換）。
@@ -4572,6 +4574,25 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 30, fontWeight: 700, color: "#2a2a26", letterSpacing: "0.02em" }}>ウェブサイト改善レポート</div>
         </div>
       )}
+      {/* 再分析で戦略が更新された後、改善レポート・ビジュアルが古くなった場合の注意バナー */}
+      {improveStale && (
+        <div style={{ display: "flex", alignItems: "center", gap: 16, background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "14px 20px", marginBottom: 24, fontFamily: "system-ui, sans-serif", fontSize: 16 }}>
+          <span style={{ fontSize: 20 }}>⚠</span>
+          <span style={{ flex: 1, color: "#7a5a00", lineHeight: 1.6 }}>
+            再分析で戦略メッセージが更新されました。改善レポートとファーストビューイメージは更新前の分析に基づいています。
+          </span>
+          <button
+            onClick={async () => {
+              if (selectedCombinationId == null) return;
+              setImproveStale(false);
+              await generateForCombination(selectedCombinationId, true, true);
+            }}
+            style={{ background: "#f0a020", border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "system-ui, sans-serif", fontSize: 15, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}
+          >
+            🔄 最新の戦略で再生成
+          </button>
+        </div>
+      )}
       {/* 5つのチェックポイントは上の AB3C 分析セクションで既に表示されているため、
           改善レポート側での再表示は重複になるためここには配置しない */}
       {(visualLoading || visualMock) && (
@@ -4860,6 +4881,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       setSelectedHistory(null);
                       addAnalysisVersion(newResult, "reanalyze"); // チャット再分析を新世代として追加
                       setLiveStateBackup(null); // 再分析でライブ状態が更新されたのでバックアップは破棄
+                      setImproveStale(true); // 戦略が更新されたので改善レポート・ビジュアルは古くなった
                       if (summary) setChatSummaries(function(prev) { return [].concat(prev, [summary]); });
                       saveHistory(currentInput || "", newResult, newResult?.strategy_message?.message || "");
                       // チャット会話内容を反映した再分析結果を DB に保存（リロードで消えないように）
