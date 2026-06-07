@@ -857,6 +857,55 @@ function ReportDetailSection() {
           />
         </div>
 
+        {/* 提案書ダウンロード */}
+        <div style={{
+          background: C.navy, borderRadius: 14,
+          padding: "40px 44px", marginBottom: 56,
+          display: "flex", alignItems: "center", gap: 36,
+          boxShadow: "0 8px 32px rgba(10,37,64,0.22)",
+        }}>
+          {/* アイコン */}
+          <div style={{
+            width: 72, height: 72, borderRadius: 12, flexShrink: 0,
+            background: "#c8472e", display: "flex", alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h10M7 12h10M7 16h6" />
+            </svg>
+          </div>
+          {/* テキスト */}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", fontFamily: BF, marginBottom: 6, textTransform: "uppercase" }}>Sample PPT</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 8 }}>
+              AIで戦略提案できる専門家に、資格で証明する
+            </div>
+            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF, lineHeight: 1.7 }}>
+              戦略指南AIが出力した提案書のサンプルです。クライアントへの提案資料としてそのまま活用できます。
+            </div>
+          </div>
+          {/* ダウンロードボタン */}
+          <a
+            href="/report/digi-kaku.or.jp_AI%E3%81%A7%E6%88%A6%E7%95%A5%E6%8F%90%E6%A1%88%E3%81%A7%E3%81%8D%E3%82%8B%E5%B0%82%E9%96%80%E5%AE%B6%E3%81%AB%E3%80%81%E8%B3%87%E6%A0%BC%E3%81%A7%E8%A8%BC%E6%98%8E%E3%81%99%E3%82%8B.pptx"
+            download
+            style={{
+              flexShrink: 0,
+              background: C.teal, color: "#fff",
+              border: "none", borderRadius: 8,
+              padding: "14px 28px", fontSize: 18, fontWeight: 700,
+              fontFamily: BF, cursor: "pointer", textDecoration: "none",
+              display: "inline-flex", alignItems: "center", gap: 8,
+              boxShadow: "0 4px 14px rgba(13,148,136,0.40)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            ダウンロード
+          </a>
+        </div>
+
         {/* 4ブロックグリッド */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
           {REPORT_ITEMS.map((item) => (
