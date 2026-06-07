@@ -203,7 +203,7 @@ function Hero() {
         <p style={{ fontSize: 24, color: "#fff", fontWeight: 700, lineHeight: 1.7, margin: "0 0 16px", fontFamily: BF }}>
           はい、できます。ただし、条件があります。
         </p>
-        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 2.0, margin: "0 0 52px", fontFamily: BF }}>
+        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.88)", lineHeight: 2.0, margin: "0 0 52px", fontFamily: BF }}>
           その条件を満たすために生まれたのが、戦略指南AIです。<br />
           マーケティングの「上流」にある戦略を、AIがサポートします。
         </p>
@@ -375,7 +375,7 @@ function PartialOptimalSection() {
               borderRadius: 8, padding: "16px 18px", marginBottom: 10, textAlign: "center",
             }}>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 6, fontFamily: BF }}>AB3C分析（戦略の上流）</div>
-              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.65)", fontFamily: BF, lineHeight: 1.7 }}>
+              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>
                 誰に・何を・なぜ選ばれるのか<br />を一気通貫で定義する
               </div>
             </div>
@@ -436,7 +436,7 @@ function StatsSection() {
               <div style={{ fontFamily: H, fontSize: 44, fontWeight: 700, color: "#fff", lineHeight: 1.1, marginBottom: 10 }}>
                 {s.num}
               </div>
-              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.65)", fontFamily: BF, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.6 }}>
                 {s.label}
               </div>
             </div>
@@ -493,7 +493,7 @@ function UpstreamSection() {
               }}>
                 <div style={{ fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,0.35)", fontFamily: H, marginBottom: 10 }}>{step.num}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: BF, lineHeight: 1.4 }}>{step.title}</div>
-                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.68)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
+                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
               </div>
               {i < 2 && (
                 <div style={{ display: "flex", alignItems: "center", background: i === 0 ? "#1e4a6e" : "#0d7060", padding: "0 2px" }}>
@@ -611,7 +611,7 @@ function AiLimitSection() {
                 }}>{item.step}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 16, color: "#fff", fontFamily: BF, fontWeight: 600, marginBottom: 6, lineHeight: 1.5 }}>{item.q}</div>
-                  <div style={{ fontSize: 16, color: "rgba(255,255,255,0.58)", fontFamily: BF, fontStyle: "italic", marginBottom: 8, lineHeight: 1.6 }}>AI: {item.a}</div>
+                  <div style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF, fontStyle: "italic", marginBottom: 8, lineHeight: 1.6 }}>AI: {item.a}</div>
                   <div style={{ fontSize: 16, color: "#fca5a5", fontFamily: BF, lineHeight: 1.6, fontWeight: 600 }}>問題: {item.problem}</div>
                 </div>
               </div>
@@ -796,7 +796,7 @@ function StrategyMessageSection() {
             <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontFamily: H, lineHeight: 1.6 }}>
               AIで戦略提案できる専門家に、資格で証明する
             </div>
-            <div style={{ marginTop: 10, fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF }}>
+            <div style={{ marginTop: 10, fontSize: 16, color: "rgba(255,255,255,0.82)", fontFamily: BF }}>
               <span style={{ color: C.ab3cB }}>Benefit</span>: 経営者から信頼される戦略提案力 ／{" "}
               <span style={{ color: C.ab3cA }}>Advantage</span>: AB3C×AI特化の唯一の資格体系
             </div>
@@ -811,7 +811,7 @@ function StrategyMessageSection() {
                 borderRadius: 8, padding: "18px 18px",
               }}>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 6, fontFamily: BF }}>{d.label}</div>
-                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF, lineHeight: 1.7 }}>{d.desc}</div>
+                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>{d.desc}</div>
               </div>
             ))}
           </div>
@@ -1026,7 +1026,7 @@ function ReportDetailSection() {
             <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 8 }}>
               AIで戦略提案できる専門家に、資格で証明する
             </div>
-            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>
               戦略指南AIが出力した提案書のサンプルです。クライアントへの提案資料としてそのまま活用できます。
             </div>
           </div>
@@ -1347,7 +1347,7 @@ function PricingSection() {
           <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "30px" }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(94,234,212,0.60)", letterSpacing: "0.08em", marginBottom: 10, fontFamily: BF }}>単発・スポット利用</div>
             <div style={{ fontFamily: H, fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 16, lineHeight: 1.4 }}>戦略診断チケット</div>
-            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.68)", lineHeight: 1.85, margin: "0 0 20px", fontFamily: BF }}>
+            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.88)", lineHeight: 1.85, margin: "0 0 20px", fontFamily: BF }}>
               URL入力 → AB3C診断 + サイト改善レポートをワンショットで出力。PDF・PPT・シェアURLで提案書に組み込めます。AIチャット機能なし。有効期限1年。
             </p>
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.12)", paddingTop: 20, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1481,10 +1481,10 @@ function ClosingSection() {
         <h2 style={{ fontFamily: H, fontSize: 34, fontWeight: 700, color: "#fff", margin: "0 0 20px", lineHeight: 1.6 }}>
           まず1サイト、無料で試してください。
         </h2>
-        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.68)", lineHeight: 1.9, margin: "0 0 16px", fontFamily: BF }}>
+        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.88)", lineHeight: 1.9, margin: "0 0 16px", fontFamily: BF }}>
           Googleアカウントでログインするだけで、すぐに使えます。<br />クレジットカードの登録も不要です。
         </p>
-        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.50)", lineHeight: 1.9, margin: "0 0 40px", fontFamily: BF }}>
+        <p style={{ fontSize: 18, color: "rgba(255,255,255,0.75)", lineHeight: 1.9, margin: "0 0 40px", fontFamily: BF }}>
           URLを入力して、30秒で分析結果が出てきます。<br />「うちの戦略、こういうことか」と感じていただけるはずです。
         </p>
         <CtaButton label="無料で1サイト診断してみる" size="lg" />
