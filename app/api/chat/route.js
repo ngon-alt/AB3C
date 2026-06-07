@@ -38,7 +38,7 @@ export async function POST(req) {
   `;
   const hasTrial = trialRows.length > 0;
 
-  const { messages, analysisResult, reanalyze, recruitMode, threadTheme, initialAdvice, actionSummary, actionTitle, siteId } = await req.json();
+  const { messages, analysisResult, improveResult, reanalyze, recruitMode, threadTheme, initialAdvice, actionSummary, actionTitle, siteId } = await req.json();
 
   // initialAdvice（テーマ初回自動生成）と actionSummary はチケット消費しない
   if (!initialAdvice && !actionSummary) {
@@ -696,7 +696,11 @@ ${phaseButtonsSection}${valueIntrospectionSection}
 
 ## 現在の分析結果
 ${JSON.stringify(analysisResult, null, 2)}${multiTargetGuidance}
-
+${improveResult && typeof improveResult === "object" && !improveResult.error ? `
+## ウェブサイト改善レポート
+以下はこのサイトのウェブサイト改善レポートです。ユーザーが改善レポートの項目について質問してきた場合は、この内容を参照して具体的に回答してください。
+${JSON.stringify(improveResult, null, 2)}
+` : ""}
 回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
 マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。${actionInstruction}${initialAdvicePrompts}${themeContext}${recruitPrompt}`;
 

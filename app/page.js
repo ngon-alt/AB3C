@@ -1227,7 +1227,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -1330,6 +1330,7 @@ function AnalysisChatPanel({ isPro, analysisResult, onReanalyze, onSendTopic, on
         body: JSON.stringify({
           messages: allMessages.filter(m => m.role === "user" || allMessages.indexOf(m) > 0),
           analysisResult,
+          improveResult: improveResult || null,
         }),
       });
       const data = await res.json();
@@ -4789,6 +4790,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
                     isPro={isPro || chatTickets > 0 || trialChats > 0}
                     analysisResult={currentResult}
+                    improveResult={improveResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
                     /* テキスト分析時は専用のウェルカム文に切り替え、情報追加を促す */
