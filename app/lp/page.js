@@ -1128,9 +1128,9 @@ function Step2Section() {
           </P>
         </div>
         <Shot
-          src="/howto/chat-bubble-step2.png"
+          src="/howto/strategy-confirm-step3.png"
           alt="AIチャット画面"
-          caption="各分析要素にカーソルを当てると「チャットで質問」ボタンが表示される。弱点をその場で深掘りできる。"
+          caption="AIとの対話で戦略を深掘り。納得できたら「戦略を確定する」ボタンを押してデータベースに保存。"
         />
       </div>
     </section>
