@@ -839,7 +839,7 @@ function ReportDetailSection() {
       <div style={{ maxWidth: WW, margin: "0 auto" }}>
 
         {/* ヘッダー */}
-        <div style={{ maxWidth: TW, marginBottom: 48 }}>
+        <div style={{ maxWidth: TW, marginBottom: 56 }}>
           <Eyebrow on="tealLight">レポートの中身</Eyebrow>
           <H2 on="tealLight">何が、どのように出力されるか</H2>
           <P on="tealLight">
@@ -848,33 +848,49 @@ function ReportDetailSection() {
           </P>
         </div>
 
-        {/* 全体ショット */}
-        <div style={{ marginBottom: 64 }}>
-          <Shot
-            src="/report/report.png"
-            alt="戦略指南AI — 分析レポート全体"
-            caption="分析レポートの全体像。ターゲットを切り替えながら、AB3C戦略・改善提案を確認できる。"
-          />
+        {/* 全体ショット：幅1/5で縦の長さを見せる */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 40, marginBottom: 72 }}>
+          <div style={{ width: "20%", flexShrink: 0 }}>
+            <div style={{
+              borderRadius: 8, overflow: "hidden",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.16)",
+              border: `1px solid ${C.border}`,
+            }}>
+              <img src="/report/report.png" alt="分析レポート全体" style={{ width: "100%", display: "block" }} />
+            </div>
+            <p style={{ textAlign: "center", fontSize: 16, color: "#0f766e", marginTop: 10, fontFamily: BF, lineHeight: 1.5 }}>
+              レポート全体像
+            </p>
+          </div>
+          <div style={{ flex: 1, paddingTop: 12 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: C.ink, fontFamily: BF, lineHeight: 1.6, marginBottom: 16 }}>
+              1回の分析で、これだけの情報量が出力されます
+            </div>
+            <p style={{ fontSize: 18, color: "#374151", lineHeight: 2.0, fontFamily: BF, margin: "0 0 16px" }}>
+              左の図がレポートの全体です。3つのターゲット別に戦略を立案し、それぞれにAB3C分析・改善提案・ファーストビューのビジュアル案が含まれます。
+              コンサルタントがクライアントに提出できる水準の情報量を、AIが自動で生成します。
+            </p>
+            <p style={{ fontSize: 18, color: "#374151", lineHeight: 2.0, fontFamily: BF, margin: 0 }}>
+              以下、レポートを構成する4つのブロックをご紹介します。
+            </p>
+          </div>
         </div>
 
         {/* 提案書ダウンロード */}
         <div style={{
           background: C.navy, borderRadius: 14,
-          padding: "40px 44px", marginBottom: 56,
+          padding: "40px 44px", marginBottom: 72,
           display: "flex", alignItems: "center", gap: 36,
           boxShadow: "0 8px 32px rgba(10,37,64,0.22)",
         }}>
-          {/* アイコン */}
           <div style={{
             width: 72, height: 72, borderRadius: 12, flexShrink: 0,
-            background: "#c8472e", display: "flex", alignItems: "center",
-            justifyContent: "center",
+            background: "#c8472e", display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h10M7 12h10M7 16h6" />
             </svg>
           </div>
-          {/* テキスト */}
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", fontFamily: BF, marginBottom: 6, textTransform: "uppercase" }}>Sample PPT</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 8 }}>
@@ -884,19 +900,15 @@ function ReportDetailSection() {
               戦略指南AIが出力した提案書のサンプルです。クライアントへの提案資料としてそのまま活用できます。
             </div>
           </div>
-          {/* ダウンロードボタン */}
           <a
             href="/report/digi-kaku.or.jp_AI%E3%81%A7%E6%88%A6%E7%95%A5%E6%8F%90%E6%A1%88%E3%81%A7%E3%81%8D%E3%82%8B%E5%B0%82%E9%96%80%E5%AE%B6%E3%81%AB%E3%80%81%E8%B3%87%E6%A0%BC%E3%81%A7%E8%A8%BC%E6%98%8E%E3%81%99%E3%82%8B.pptx"
             download
             style={{
-              flexShrink: 0,
-              background: C.teal, color: "#fff",
-              border: "none", borderRadius: 8,
-              padding: "14px 28px", fontSize: 18, fontWeight: 700,
-              fontFamily: BF, cursor: "pointer", textDecoration: "none",
-              display: "inline-flex", alignItems: "center", gap: 8,
-              boxShadow: "0 4px 14px rgba(13,148,136,0.40)",
-              whiteSpace: "nowrap",
+              flexShrink: 0, background: C.teal, color: "#fff",
+              border: "none", borderRadius: 8, padding: "14px 28px",
+              fontSize: 18, fontWeight: 700, fontFamily: BF, cursor: "pointer",
+              textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
+              boxShadow: "0 4px 14px rgba(13,148,136,0.40)", whiteSpace: "nowrap",
             }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -906,45 +918,52 @@ function ReportDetailSection() {
           </a>
         </div>
 
-        {/* 4ブロックグリッド */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
-          {REPORT_ITEMS.map((item) => (
-            <div key={item.num} style={{
-              background: "#ffffff",
-              borderRadius: 12,
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.07)",
-              border: `1px solid ${C.tealLightBorder}`,
-            }}>
-              {/* スクリーンショット */}
-              <div style={{
-                borderRadius: "0 0 0 0", overflow: "hidden",
-                borderBottom: `1px solid ${C.tealLightBorder}`,
+        {/* 4ブロック：交互レイアウト + スクロール可能な画像コンテナ */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 72 }}>
+          {REPORT_ITEMS.map((item, idx) => {
+            const imgRight = idx % 2 === 1;
+            return (
+              <div key={item.num} style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 48,
+                alignItems: "center",
               }}>
-                <img src={item.src} alt={item.alt} style={{ width: "100%", display: "block" }} />
-              </div>
+                {/* 画像コンテナ（スクロール可能） */}
+                <div style={{ order: imgRight ? 2 : 1 }}>
+                  <div style={{
+                    height: 600,
+                    overflowY: "scroll",
+                    borderRadius: 10,
+                    border: `1px solid ${C.border}`,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.10)",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: `${C.teal} transparent`,
+                  }}>
+                    <img src={item.src} alt={item.alt} style={{ width: "100%", display: "block" }} />
+                  </div>
+                </div>
 
-              {/* テキスト */}
-              <div style={{ padding: "24px 28px 28px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                  <span style={{
+                {/* テキスト */}
+                <div style={{ order: imgRight ? 1 : 2 }}>
+                  <div style={{
                     fontFamily: "'Space Mono', monospace",
                     fontSize: 13, fontWeight: 700,
-                    color: C.teal, letterSpacing: "0.08em",
-                  }}>{item.num}</span>
-                  <div style={{ flex: 1, height: 1, background: C.tealLightBorder }} />
+                    color: C.teal, letterSpacing: "0.1em", marginBottom: 16,
+                  }}>{item.num}</div>
+                  <div style={{
+                    fontSize: 24, fontWeight: 700, color: C.ink,
+                    marginBottom: 20, fontFamily: BF, lineHeight: 1.5,
+                  }}>{item.title}</div>
+                  <p style={{ fontSize: 18, color: "#374151", lineHeight: 2.0, margin: 0, fontFamily: BF }}>
+                    {item.desc}
+                  </p>
                 </div>
-                <div style={{
-                  fontSize: 20, fontWeight: 700, color: C.ink,
-                  marginBottom: 12, fontFamily: BF, lineHeight: 1.5,
-                }}>{item.title}</div>
-                <p style={{ fontSize: 18, color: "#374151", lineHeight: 1.9, margin: 0, fontFamily: BF }}>
-                  {item.desc}
-                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </div>
     </section>
   );
