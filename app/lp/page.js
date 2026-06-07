@@ -1214,6 +1214,133 @@ function Step3Section() {
 }
 
 // ============================================================
+// 12.5 アクション出力サンプル（ネイビー）
+// ============================================================
+function AiH({ children }) {
+  return (
+    <div style={{ fontWeight: 700, fontSize: 18, color: "#1a1a14", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", margin: "28px 0 10px", borderLeft: "4px solid #0d9488", paddingLeft: 14 }}>{children}</div>
+  );
+}
+function AiP({ children }) {
+  return <p style={{ fontSize: 18, color: "#334155", margin: "0 0 12px", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", lineHeight: 1.85 }}>{children}</p>;
+}
+function AiUL({ items }) {
+  return (
+    <ul style={{ margin: "8px 0 16px", paddingLeft: 0, listStyle: "none" }}>
+      {items.map((item, i) => (
+        <li key={i} style={{ display: "flex", gap: 10, fontSize: 18, color: "#334155", marginBottom: 8, fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", lineHeight: 1.7 }}>
+          <span style={{ color: "#0d9488", fontWeight: 700, flexShrink: 0 }}>・</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+function AiNote({ children }) {
+  return (
+    <div style={{ background: "#f0fdf9", border: "1px solid #99f6e4", borderRadius: 8, padding: "14px 18px", fontSize: 16, color: "#0f766e", margin: "20px 0 4px", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif" }}>
+      💡 {children}
+    </div>
+  );
+}
+function AiStep({ steps }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, margin: "16px 0 24px" }}>
+      {steps.map((step, i) => (
+        <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#0d9488", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, fontFamily: "system-ui", flexShrink: 0 }}>
+            {i + 1}
+          </div>
+          <div style={{ paddingTop: 6, fontSize: 18, color: "#334155", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", lineHeight: 1.75 }}>{step}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SeoSample() {
+  return (
+    <div>
+      <AiP><b>前提整理：</b>メイン戦略のターゲットは「独立系コンサルタント・支援者」で、戦略メッセージは<b>「AIで戦略提案できる専門家に、資格で証明する」</b>です。このターゲットは情報感度が高く、課題を具体的なキーワードで検索します。以下4つの柱でSEO対策を提案します。</AiP>
+      <AiH>1. ターゲットキーワード候補（検索意図別）</AiH>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, margin: "12px 0 24px" }}>
+        {[
+          { label: "課題認識・不安解消型", items: ["フリーランス ウェブコンサルタント 資格", "独立コンサルタント 提案力 上げる", "AI活用 コンサルタント 差別化", "中小企業 デジタル戦略 提案 フリーランス"] },
+          { label: "解決策比較型", items: ["ウェブコンサルタント 資格 種類 比較", "ウェブ解析士 中小企業診断士 違い", "AI戦略 資格 おすすめ", "AB3C フレームワーク 資格"] },
+          { label: "具体的行動型", items: ["AB3Cファシリテーター 取得 方法", "AI戦略アドバイザー 資格 申し込み", "ウェブコンサルタント 資格 取得 費用", "デジタル経営革新協会 会員"] },
+        ].map((col, i) => (
+          <div key={i} style={{ background: "#f8fafc", borderRadius: 10, padding: "16px 18px" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#0d9488", marginBottom: 10, fontFamily: "system-ui" }}>{col.label}</div>
+            {col.items.map((kw, j) => (
+              <div key={j} style={{ fontSize: 16, color: "#334155", padding: "5px 0", borderBottom: j < col.items.length - 1 ? "1px solid #e2e8f0" : "none", fontFamily: "system-ui" }}>{kw}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <AiH>2. コンテンツ優先度 第1位</AiH>
+      <div style={{ background: "#fff8f0", border: "1px solid #fed7aa", borderRadius: 10, padding: "20px 24px", margin: "12px 0 20px" }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#ea580c", marginBottom: 10, fontFamily: "system-ui" }}>「ウェブ解析士・中小企業診断士との違いを解説｜AI×戦略特化の資格とは」</div>
+        <AiP>ターゲットは資格選びで必ず比較検討します。競合資格と明確に比較し、「診断士はデジタル弱い・ウェブ解析士は戦略弱い」という差別化をロジカルに見せることで、比較検索からの流入と転換率の両方を高められます。Advantageの「なぜ良いか」をそのままコンテンツ化する発想です。</AiP>
+      </div>
+      <AiNote>このキーワード候補とコンテンツ計画は、戦略メッセージ「AIで戦略提案できる専門家に、資格で証明する」とターゲット像から逆算して生成されています。</AiNote>
+    </div>
+  );
+}
+
+function RecruitSample() {
+  return (
+    <div>
+      <AiP><b>前提整理：</b>「採用コンテンツ」はメインターゲット（独立系コンサルタント・支援者）を会員・受講生として迎え入れるための募集コンテンツとして組み立てます。確定済みの戦略メッセージ<b>「AIで戦略提案できる専門家に、資格で証明する」</b>を軸に、以下5項目を提案します。</AiP>
+      <AiH>1. ビジョン（ミッション文）の案</AiH>
+      <div style={{ background: "#1a1a14", borderRadius: 10, padding: "20px 28px", margin: "12px 0 24px" }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: "system-ui", lineHeight: 1.75 }}>「AIを使いこなす時代に、中小企業経営者に選ばれる戦略家を一人でも多く増やす」</div>
+        <div style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", marginTop: 10, fontFamily: "system-ui" }}>私たちは、ツールの習得ではなく"経営を設計し直す力"を独立系専門家に届けることを使命としています。</div>
+      </div>
+      <AiH>4. キャリアプランの案 ──「この会社でしか積めない経験」を事業戦略から逆算</AiH>
+      <AiStep steps={[
+        "STEP 1（参加直後）：AB3Cフレームワークで自分のサービスを構造化できるようになる",
+        "STEP 2（資格取得後）：中小企業経営者へのAI活用戦略提案が、資格付きで提案できる",
+        "STEP 3（コミュニティ活用後）：全国ネットワーク経由で案件紹介・協力の機会を得る",
+      ]} />
+      <AiH>5. 求める人物像の案</AiH>
+      <div style={{ background: "#f8fafc", borderRadius: 10, padding: "20px 24px", margin: "12px 0 20px", borderLeft: "4px solid #1a6fd4" }}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a14", marginBottom: 14, fontFamily: "system-ui" }}>「中小企業の経営者と並走し、ツールの使い方ではなく、経営の答えを一緒に見つけたい人」</div>
+        <AiUL items={["フリーランスまたは小規模法人でウェブ・マーケ・IT支援をしているが、戦略提案力に限界を感じている", "資格や実績でクライアントへの信頼性を高めたいと考えている", "AI時代に自分の価値をどう再定義するか、真剣に考えている"]} />
+      </div>
+      <AiNote>ビジョン・キャリアプラン・人物像はすべて、AB3C分析で確定した戦略から自動的に逆算されています。採用ページの骨格がこの一画面で揃います。</AiNote>
+    </div>
+  );
+}
+
+function ActionSampleSection() {
+  const [activeTab, setActiveTab] = useState("seo");
+  return (
+    <section style={{ background: "#0a2540", padding: "96px 20px 80px" }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1000, marginBottom: 52 }}>
+          <Eyebrow on="navy">実際の出力サンプル</Eyebrow>
+          <H2 on="navy">テーマを選ぶだけで、<br />戦略に基づく施策計画が即座に動き出す</H2>
+          <P on="navy">AIはすでにあなたの会社のBenefit・Advantage・ターゲット顧客を把握しています。だから「集客を改善したい」と伝えるだけで、一般論ではなくあなたの戦略メッセージを起点にした具体的な施策提案が出てきます。以下は実際のデモ出力です。</P>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 32 }}>
+          {[{ id: "seo", label: "集客・SEO対策" }, { id: "recruit", label: "採用コンテンツ企画" }].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: "12px 28px", borderRadius: 32, border: `2px solid ${activeTab === tab.id ? "#0d9488" : "rgba(255,255,255,0.28)"}`, fontSize: 18, fontFamily: "system-ui", fontWeight: activeTab === tab.id ? 700 : 400, background: activeTab === tab.id ? "#0d9488" : "transparent", color: "#fff", cursor: "pointer", transition: "all 0.2s" }}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ background: "#fff", borderRadius: 16, padding: "40px 48px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f0fdf9", borderRadius: 6, padding: "5px 14px", marginBottom: 28, fontSize: 16, color: "#0f766e", fontWeight: 700, fontFamily: "system-ui" }}>
+            ▶ テーマ選択後の初回AI出力（サンプル：デジタル経営革新協会）
+          </div>
+          {activeTab === "seo" ? <SeoSample /> : <RecruitSample />}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
 // 13. コンサル・制作会社向け（ティール帯）
 // ============================================================
 function AgencySection() {
@@ -1522,6 +1649,7 @@ export default function LpPage() {
         {/* ライトティール */} <ReportDetailSection />
         {/* ネイビー     */} <Step2Section />
         {/* ホワイト     */} <Step3Section />
+        {/* ネイビー     */} <ActionSampleSection />
         {/* ティール帯   */} <StatsSection />
         {/* ティール帯   */} <AgencySection />
         {/* ホワイト     */} <ScenarioSection />
