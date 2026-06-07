@@ -800,6 +800,108 @@ function Step1Section() {
 }
 
 // ============================================================
+// 10b. レポート詳細（ライトティール）
+// ============================================================
+const REPORT_ITEMS = [
+  {
+    src: "/report/report-1.png",
+    alt: "ターゲット別戦略の切り替え",
+    num: "01",
+    title: "3つのターゲット別に戦略を立案",
+    desc: "入力されたURLもしくはテキストから3つのターゲット別の戦略を立案します。ターゲットごとに詳細なレコードを切り替えて見ることができます。",
+  },
+  {
+    src: "/report/report-2.png",
+    alt: "AB3C戦略の概要",
+    num: "02",
+    title: "AB3Cフレームワークで戦略を可視化",
+    desc: "Webマーケティングフレームワーク AB3C をベースとした戦略の概要が出力されます。ベネフィット・アドバンテージ・3C分析が整理された状態で確認できます。",
+  },
+  {
+    src: "/report/report-3.png",
+    alt: "ファーストビューの改善案ビジュアル",
+    num: "03",
+    title: "ファーストビューの改善案をビジュアル化",
+    desc: "表示された戦略をベースに、その戦略に則ったウェブサイトの改善点を、ファーストビューを中心にビジュアルイメージとして提示します。",
+  },
+  {
+    src: "/report/report-4.png",
+    alt: "コンテンツ・デザイン・構造の改善提案",
+    num: "04",
+    title: "3領域に分けて改善提案を詳述",
+    desc: "追加すべきコンテンツ、改善すべきビジュアルデザイン、サイト構造設計の3つに分けて、具体的な改善点を説明します。",
+  },
+];
+
+function ReportDetailSection() {
+  return (
+    <section style={{ background: C.tealLight, padding: "96px 20px 80px" }}>
+      <div style={{ maxWidth: WW, margin: "0 auto" }}>
+
+        {/* ヘッダー */}
+        <div style={{ maxWidth: TW, marginBottom: 48 }}>
+          <Eyebrow on="tealLight">レポートの中身</Eyebrow>
+          <H2 on="tealLight">何が、どのように出力されるか</H2>
+          <P on="tealLight">
+            分析レポートは単なる要約ではありません。ターゲット別の戦略立案から、
+            ウェブサイトの具体的な改善提案まで、4つのブロックで構成されています。
+          </P>
+        </div>
+
+        {/* 全体ショット */}
+        <div style={{ marginBottom: 64 }}>
+          <Shot
+            src="/report/report-1.png"
+            alt="戦略指南AI — 分析レポート全体"
+            caption="分析レポートの全体像。ターゲットを切り替えながら、AB3C戦略・改善提案を確認できる。"
+          />
+        </div>
+
+        {/* 4ブロックグリッド */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40 }}>
+          {REPORT_ITEMS.map((item) => (
+            <div key={item.num} style={{
+              background: "#ffffff",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.07)",
+              border: `1px solid ${C.tealLightBorder}`,
+            }}>
+              {/* スクリーンショット */}
+              <div style={{
+                borderRadius: "0 0 0 0", overflow: "hidden",
+                borderBottom: `1px solid ${C.tealLightBorder}`,
+              }}>
+                <img src={item.src} alt={item.alt} style={{ width: "100%", display: "block" }} />
+              </div>
+
+              {/* テキスト */}
+              <div style={{ padding: "24px 28px 28px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                  <span style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 13, fontWeight: 700,
+                    color: C.teal, letterSpacing: "0.08em",
+                  }}>{item.num}</span>
+                  <div style={{ flex: 1, height: 1, background: C.tealLightBorder }} />
+                </div>
+                <div style={{
+                  fontSize: 20, fontWeight: 700, color: C.ink,
+                  marginBottom: 12, fontFamily: BF, lineHeight: 1.5,
+                }}>{item.title}</div>
+                <p style={{ fontSize: 18, color: "#374151", lineHeight: 1.9, margin: 0, fontFamily: BF }}>
+                  {item.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
 // 11. STEP ② 策定（ネイビー）
 // ============================================================
 function Step2Section() {
@@ -1218,6 +1320,7 @@ export default function LpPage() {
         {/* ホワイト     */} <Ab3cSection />
         {/* ライトティール */} <OutputAsPromptSection />
         {/* ホワイト     */} <Step1Section />
+        {/* ライトティール */} <ReportDetailSection />
         {/* ネイビー     */} <Step2Section />
         {/* ホワイト     */} <Step3Section />
         {/* ティール帯   */} <AgencySection />
