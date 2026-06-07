@@ -1380,7 +1380,6 @@ export default function LpPage() {
 
         {/* ホワイト     */} <AiMarketingQuestion />
         {/* ライトティール */} <PartialOptimalSection />
-        {/* ティール帯   */} <StatsSection />
         {/* ホワイト     */} <UpstreamSection />
         {/* ネイビー     */} <AiLimitSection />
         {/* ティール帯   */} <MidCtaSection1 />
@@ -1391,6 +1390,7 @@ export default function LpPage() {
         {/* ライトティール */} <ReportDetailSection />
         {/* ネイビー     */} <Step2Section />
         {/* ホワイト     */} <Step3Section />
+        {/* ティール帯   */} <StatsSection />
         {/* ティール帯   */} <AgencySection />
         {/* ホワイト     */} <ScenarioSection />
         {/* ライトティール */} <PptSection />
