@@ -468,6 +468,35 @@ function UpstreamSection() {
           SEOコンテンツを書いても、「誰に向けていいか分からない、素敵な文章」になります。
         </P>
 
+        {/* 3ステップフロー */}
+        <div style={{ margin: "40px 0 48px", display: "flex", alignItems: "stretch", gap: 0 }}>
+          {[
+            { num: "①", title: "戦略を確立する", desc: "誰に・何を・なぜ選ばれるのかを言語化する" },
+            { num: "②", title: "戦略を軸に施策を設計", desc: "確立した戦略を前提として、各施策を設計・実行する" },
+            { num: "③", title: "施策が累積して成果になる", desc: "施策間の一貫性が生まれ、ブランドが積み上がっていく" },
+          ].map((step, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "stretch", flex: 1 }}>
+              <div style={{
+                flex: 1, background: i === 0 ? C.navy : i === 1 ? "#1e4a6e" : "#0d9488",
+                borderRadius: i === 0 ? "12px 0 0 12px" : i === 2 ? "0 12px 12px 0" : 0,
+                padding: "28px 24px",
+                boxShadow: "0 4px 16px rgba(10,37,64,0.14)",
+              }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,0.35)", fontFamily: H, marginBottom: 10 }}>{step.num}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: BF, lineHeight: 1.4 }}>{step.title}</div>
+                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.68)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
+              </div>
+              {i < 2 && (
+                <div style={{ display: "flex", alignItems: "center", background: i === 0 ? "#1e4a6e" : "#0d7060", padding: "0 2px" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 6l6 6-6 6" stroke="rgba(255,255,255,0.50)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
         <div style={{ margin: "36px 0" }}>
           <div style={{
             background: C.navy, borderRadius: 12,
@@ -686,11 +715,103 @@ function Ab3cSection() {
           </div>
         </div>
 
+        {/* Advantage中心性の強調 */}
+        <div style={{
+          margin: "40px 0 36px",
+          background: "#f0f6ff", borderLeft: `4px solid ${C.ab3cA}`,
+          borderRadius: "0 10px 10px 0", padding: "28px 28px",
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ab3cA, marginBottom: 12, fontFamily: BF }}>
+            なぜ「Advantage」が中心なのか
+          </div>
+          <p style={{ fontSize: 18, color: C.ink, lineHeight: 2.0, margin: "0 0 14px", fontFamily: BF }}>
+            伝統的な3C分析は「現状の環境を把握する」ことが目的です。
+            しかしそれだけでは「では何をするか」という意思決定の軸が曖昧になりやすい。
+          </p>
+          <p style={{ fontSize: 18, color: C.ink, lineHeight: 2.0, margin: "0 0 14px", fontFamily: BF }}>
+            ウェブ・AIの普及で競争環境が激化した今、顧客に選ばれるには
+            「競合とどう違うのか（好ましい違い）」を明確に打ち出す必要があります。
+            AB3CがAdvantageを独立軸として立てているのは、この問いを<b>強制的に立てさせる</b>ためです。
+          </p>
+          <p style={{ fontSize: 18, color: C.ink, lineHeight: 2.0, margin: 0, fontFamily: BF }}>
+            「最高品質」「丁寧な対応」のような主観では不十分。
+            本人が確信を持って語れる、具体的な根拠——独自経験・先駆者性・実績——が必要です。
+            その言語化を促すのが、AB3CのAです。
+          </p>
+        </div>
+
         <Shot
           src="/howto/分析結果の概要.png"
           alt="AB3C分析結果の概要"
           caption="B（赤）・A（青）・3C（黒）の構造で分析結果が表示される。チェックポイントで整合性を自動評価。"
         />
+      </div>
+    </section>
+  );
+}
+
+// ============================================================
+// 8b. 戦略メッセージの役割（ネイビー）
+// ============================================================
+function StrategyMessageSection() {
+  const destinations = [
+    { label: "Webサイト", desc: "トップページのキャッチコピー・構成の指針" },
+    { label: "広告クリエイティブ", desc: "バナー・動画の方向性と訴求軸" },
+    { label: "採用ページ", desc: "ビジョン表現・「選ばれる職場」の言語化" },
+    { label: "営業・提案書", desc: "冒頭メッセージ・提案の軸" },
+    { label: "SNS・コンテンツ", desc: "発信テーマと一貫したトーンの基準" },
+    { label: "社内共通言語", desc: "「自社は何者か」を全員が同じ言葉で語れる" },
+  ];
+  return (
+    <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
+      <div style={{ maxWidth: TW, margin: "0 auto" }}>
+        <Eyebrow on="navy">戦略メッセージの役割</Eyebrow>
+        <H2 on="navy">Benefit + Advantage = 一文で表現する<br />「選ばれる理由」</H2>
+        <P on="navy">
+          AB3C分析の最終アウトプットが「戦略メッセージ」です。
+          ベネフィットとアドバンテージを統合し、「誰のための、何が違うのか」を一文で示します。
+        </P>
+        <P on="navy">
+          この一文が確立すると、社内外のすべての発信がここから派生します。
+          デザイナー・クリエイター・営業担当者など、異なる職種が同じ方向を向くための
+          「共通言語」として機能します。
+        </P>
+
+        {/* 中央の戦略メッセージ → 展開図 */}
+        <div style={{ margin: "40px 0" }}>
+          <div style={{
+            background: "rgba(13,148,136,0.20)", border: "1px solid rgba(13,148,136,0.50)",
+            borderRadius: 12, padding: "24px 28px", textAlign: "center", marginBottom: 12,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 8, fontFamily: BF }}>戦略メッセージ（例）</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontFamily: H, lineHeight: 1.6 }}>
+              AIで戦略提案できる専門家に、資格で証明する
+            </div>
+            <div style={{ marginTop: 10, fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF }}>
+              <span style={{ color: C.ab3cB }}>Benefit</span>: 経営者から信頼される戦略提案力 ／{" "}
+              <span style={{ color: C.ab3cA }}>Advantage</span>: AB3C×AI特化の唯一の資格体系
+            </div>
+          </div>
+
+          <div style={{ textAlign: "center", color: "#5eead4", fontSize: 22, margin: "8px 0" }}>↓ この一文から、すべての発信が派生する</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+            {destinations.map((d, i) => (
+              <div key={i} style={{
+                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 8, padding: "18px 18px",
+              }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 6, fontFamily: BF }}>{d.label}</div>
+                <div style={{ fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF, lineHeight: 1.7 }}>{d.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Callout on="navy">
+          全ての発信がこの一文を出発点とすることで、<b>「一気通貫」の経営コミュニケーション</b>が実現します。<br />
+          施策ごとにトンマナが揺れない。競合が同じことを言っていない。それが戦略メッセージの力です。
+        </Callout>
       </div>
     </section>
   );
@@ -1385,6 +1506,7 @@ export default function LpPage() {
         {/* ティール帯   */} <MidCtaSection1 />
         {/* ネイビー     */} <WhatIsSection />
         {/* ホワイト     */} <Ab3cSection />
+        {/* ネイビー     */} <StrategyMessageSection />
         {/* ライトティール */} <OutputAsPromptSection />
         {/* ホワイト     */} <Step1Section />
         {/* ライトティール */} <ReportDetailSection />
