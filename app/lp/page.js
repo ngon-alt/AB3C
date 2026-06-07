@@ -528,7 +528,7 @@ function UpstreamSection() {
                   <div style={{ fontSize: 17, fontWeight: 700, color: item.color || "#fff", marginBottom: 6, fontFamily: BF, lineHeight: 1.4 }}>
                     {item.label}
                   </div>
-                  <div style={{ fontSize: 16, color: "rgba(255,255,255,0.58)", lineHeight: 1.7, fontFamily: BF }}>
+                  <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", lineHeight: 1.7, fontFamily: BF }}>
                     {item.sub}
                   </div>
                 </div>
