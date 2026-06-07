@@ -851,7 +851,7 @@ function ReportDetailSection() {
         {/* 全体ショット */}
         <div style={{ marginBottom: 64 }}>
           <Shot
-            src="/report/report-1.png"
+            src="/report/report.png"
             alt="戦略指南AI — 分析レポート全体"
             caption="分析レポートの全体像。ターゲットを切り替えながら、AB3C戦略・改善提案を確認できる。"
           />
