@@ -1377,7 +1377,7 @@ export default function LpPage() {
       <Header />
       <main>
         {/* ネイビー     */} <Hero />
-        {/* 境界ショット  */} <HeroShot />
+
         {/* ホワイト     */} <AiMarketingQuestion />
         {/* ライトティール */} <PartialOptimalSection />
         {/* ティール帯   */} <StatsSection />
