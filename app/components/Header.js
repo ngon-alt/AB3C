@@ -298,6 +298,10 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           )}
           {/* サブナビ — Next.js Link でクライアント遷移し、認証状態の再フェッチを避ける */}
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <Link href="/lp"
+              style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
+              戦略指南とは
+            </Link>
             <Link href="/howto"
               style={{ fontSize: 16, color: C.ink, fontFamily: NAV_FONT, textDecoration: "underline", whiteSpace: "nowrap" }}>
               初めての方へ
