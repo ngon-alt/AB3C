@@ -32,8 +32,8 @@ const C = {
 
 const H = "'Noto Serif JP', serif";
 const BF = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
-const TW = 780;
-const WW = 1040;
+const TW = 1000;
+const WW = 1240;
 
 // ============================================================
 // 共通コンポーネント
