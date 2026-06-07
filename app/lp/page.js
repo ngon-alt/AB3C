@@ -468,6 +468,15 @@ function UpstreamSection() {
           SEOコンテンツを書いても、「誰に向けていいか分からない、素敵な文章」になります。
         </P>
 
+        {/* 図: 戦略がマーケティングを束ねる */}
+        <figure style={{ margin: "40px 0 0", textAlign: "center" }}>
+          <img
+            src="/report/%E6%88%A6%E7%95%A5%E3%81%8C%E3%83%9E%E3%83%BC%E3%82%B1%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0%E3%82%92%E6%9D%9F%E3%81%AD%E3%82%8B.png"
+            alt="戦略があるから施策がつながる図"
+            style={{ maxWidth: "100%", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}
+          />
+        </figure>
+
         {/* 3ステップフロー */}
         <div style={{ margin: "40px 0 48px", display: "flex", alignItems: "stretch", gap: 0 }}>
           {[
