@@ -67,9 +67,9 @@ function CtaButton({ label = "無料で1サイト診断してみる", size = "md
 }
 
 // ブラウザモック付きスクリーンショット
-function Shot({ src, alt, caption }) {
+function Shot({ src, alt, caption, maxWidth }) {
   return (
-    <figure style={{ margin: "32px 0" }}>
+    <figure style={{ margin: "32px 0", maxWidth: maxWidth || "100%" }}>
       <div style={{
         borderRadius: 12, overflow: "hidden",
         boxShadow: "0 16px 48px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06)",
@@ -1131,6 +1131,7 @@ function Step2Section() {
           src="/howto/strategy-confirm-step3.png"
           alt="AIチャット画面"
           caption="AIとの対話で戦略を深掘り。納得できたら「戦略を確定する」ボタンを押してデータベースに保存。"
+          maxWidth="50%"
         />
       </div>
     </section>
