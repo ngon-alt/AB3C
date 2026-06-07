@@ -194,10 +194,10 @@ function Hero() {
         </div>
 
         <h1 style={{
-          fontFamily: H, fontSize: 48, fontWeight: 700, color: "#fff",
+          fontFamily: H, fontSize: 58, fontWeight: 700, color: "#fff",
           lineHeight: 1.55, margin: "0 0 32px", letterSpacing: "0.02em",
         }}>
-          「AIでマーケティングができる」<br />は、本当ですか？
+          「AIでマーケティングができる」は<br />本当ですか？
         </h1>
 
         <p style={{ fontSize: 24, color: "#fff", fontWeight: 700, lineHeight: 1.7, margin: "0 0 16px", fontFamily: BF }}>
@@ -223,7 +223,7 @@ function Hero() {
 function HeroShot() {
   return (
     <section style={{ background: C.bg, padding: "0 20px" }}>
-      <div style={{ maxWidth: WW, margin: "0 auto", transform: "translateY(-48px)" }}>
+      <div style={{ maxWidth: WW, margin: "0 auto" }}>
         <Shot
           src="/howto/分析結果の概要.png"
           alt="戦略指南AI — AB3C分析結果"
