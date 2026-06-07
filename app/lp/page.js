@@ -331,11 +331,11 @@ function PartialOptimalSection() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, margin: "40px 0" }}>
           {/* 左: 汎用AI */}
           <div style={{
-            background: "#fff", border: `1px solid ${C.tealLightBorder}`,
+            background: "#f1f5f9", border: "1px solid #cbd5e1",
             borderRadius: 12, padding: "28px 24px",
-            boxShadow: "0 2px 12px rgba(13,148,136,0.08)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: C.muted, marginBottom: 20, fontFamily: BF, textAlign: "center" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: "#64748b", marginBottom: 20, fontFamily: BF, textAlign: "center" }}>
               汎用AI（一問一答）
             </div>
             {[
@@ -345,7 +345,7 @@ function PartialOptimalSection() {
             ].map((item, i) => (
               <div key={i} style={{ marginBottom: i < 2 ? 16 : 0 }}>
                 <div style={{
-                  background: C.tealLight, border: `1px solid ${C.tealLightBorder}`,
+                  background: "#fff", border: "1px solid #e2e8f0",
                   borderRadius: 6, padding: "10px 14px",
                   fontSize: 16, color: C.ink, fontFamily: BF, fontWeight: 600, lineHeight: 1.5,
                 }}>{item.q}</div>
