@@ -1175,8 +1175,8 @@ function Step3Section() {
         </P>
 
         <Shot
-          src="/howto/strategy-confirm-step3.png"
-          alt="戦略確定・アクション管理画面"
+          src="/howto/action-step3.png"
+          alt="戦略アクション管理画面"
           caption="確定した戦略メッセージが常に上部に表示される。テーマ別チャットとアクションリストで施策を管理。"
         />
 
