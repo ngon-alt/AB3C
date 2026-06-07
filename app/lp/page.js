@@ -182,7 +182,7 @@ function Callout({ children, on = "white" }) {
 // ============================================================
 function Hero() {
   return (
-    <section style={{ background: C.navy, padding: "120px 20px 128px" }}>
+    <section style={{ background: C.navy, padding: "120px 20px 128px", textAlign: "center" }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
         <div style={{
           display: "inline-block", background: "rgba(13,148,136,0.18)",
