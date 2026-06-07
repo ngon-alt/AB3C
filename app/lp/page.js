@@ -197,7 +197,7 @@ function Hero() {
           fontFamily: H, fontSize: 58, fontWeight: 700, color: "#fff",
           lineHeight: 1.55, margin: "0 0 32px", letterSpacing: "0.02em",
         }}>
-          「AIでマーケティングができる」<br /><span style={{ fontSize: 36, fontWeight: 400, letterSpacing: "0.08em", opacity: 0.75 }}>は</span><br />本当ですか？
+          「AIでマーケティングができる」<br /><span style={{ fontSize: 44, fontWeight: 400, letterSpacing: "0.08em" }}>は</span><br />本当ですか？
         </h1>
 
         <p style={{ fontSize: 24, color: "#fff", fontWeight: 700, lineHeight: 1.7, margin: "0 0 16px", fontFamily: BF }}>
