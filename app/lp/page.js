@@ -501,22 +501,22 @@ function UpstreamSection() {
           <div style={{ textAlign: "center", color: C.teal, fontSize: 28, margin: "4px 0" }}>↓</div>
 
           <div style={{
-            background: C.tealLight, border: `1px solid ${C.tealLightBorder}`,
+            background: C.teal, border: `2px solid ${C.teal}`,
             borderRadius: 12, padding: "24px 28px",
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "#0f766e", marginBottom: 16, fontFamily: BF }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "rgba(255,255,255,0.70)", marginBottom: 16, fontFamily: BF }}>
               下流 — 施策（マーケティング活動）
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {["SNS投稿", "SEOコンテンツ", "Web広告", "サイト改善", "採用コンテンツ", "補助金申請", "提案書"].map((item, i) => (
                 <div key={i} style={{
-                  background: "#fff", border: `1px solid ${C.tealLightBorder}`,
+                  background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.35)",
                   borderRadius: 6, padding: "8px 16px",
-                  fontSize: 16, color: "#0f766e", fontFamily: BF,
+                  fontSize: 16, color: "#fff", fontFamily: BF, fontWeight: 600,
                 }}>{item}</div>
               ))}
             </div>
-            <div style={{ marginTop: 14, fontSize: 18, color: "#0f766e", fontFamily: BF, lineHeight: 1.7 }}>
+            <div style={{ marginTop: 14, fontSize: 18, color: "rgba(255,255,255,0.90)", fontFamily: BF, lineHeight: 1.7 }}>
               → 上流が決まっていれば、どの施策も同じ軸で設計できる。
             </div>
           </div>
