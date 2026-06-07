@@ -667,9 +667,9 @@ function WhatIsSection() {
 
       <div style={{ maxWidth: WW, margin: "48px auto 0", padding: "0 20px" }}>
         <Shot
-          src="/howto/分析中.png"
-          alt="戦略指南AI 分析中の画面"
-          caption="URLを入力後、AB3Cの各要素が順番に生成される。自動で競合調査・市場分析を行い、約30秒で骨格が完成。"
+          src="/howto/senryaku0.png"
+          alt="戦略指南AI ファーストビュー"
+          caption="戦略指南AIのトップ画面。URLまたはテキストを入力して分析をスタートする。"
         />
       </div>
     </section>
