@@ -1010,21 +1010,21 @@ function ReportDetailSection() {
         <div style={{
           background: C.navy, borderRadius: 14,
           padding: "40px 44px", marginBottom: 72,
-          display: "flex", alignItems: "center", gap: 36,
+          display: "flex", alignItems: "center", gap: 40,
           boxShadow: "0 8px 32px rgba(10,37,64,0.22)",
         }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: 12, flexShrink: 0,
-            background: "#c8472e", display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h10M7 12h10M7 16h6" />
-            </svg>
+          {/* サムネイル画像 */}
+          <div style={{ flexShrink: 0, width: 200 }}>
+            <img
+              src="/report/digi-kaku.or.jp_AI%E3%81%A7%E6%88%A6%E7%95%A5%E6%8F%90%E6%A1%88%E3%81%A7%E3%81%8D%E3%82%8B%E5%B0%82%E9%96%80%E5%AE%B6%E3%81%AB%E3%80%81%E8%B3%87%E6%A0%BC%E3%81%A7%E8%A8%BC%E6%98%8E%E3%81%99%E3%82%8B.png"
+              alt="提案書サンプル"
+              style={{ width: "100%", borderRadius: 8, display: "block", boxShadow: "0 4px 16px rgba(0,0,0,0.30)" }}
+            />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", fontFamily: BF, marginBottom: 6, textTransform: "uppercase" }}>Sample PPT</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 8 }}>
-              AIで戦略提案できる専門家に、資格で証明する
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", fontFamily: BF, marginBottom: 10, textTransform: "uppercase" }}>Sample PPT / PDF</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 12 }}>
+              分析結果をそのままPPT・PDFファイルでダウンロードできます。
             </div>
             <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>
               戦略指南AIが出力した提案書のサンプルです。クライアントへの提案資料としてそのまま活用できます。
