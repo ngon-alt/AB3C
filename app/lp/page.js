@@ -328,13 +328,6 @@ function PartialOptimalSection() {
           </P>
         </div>
 
-        <figure style={{ margin: "40px 0 0", textAlign: "center" }}>
-          <img
-            src="/report/ChatGPT%20Image%202026%E5%B9%B46%E6%9C%888%E6%97%A5%2014_52_57.png"
-            alt="戦略なしAIと戦略指南AIの比較図"
-            style={{ maxWidth: "100%", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.16)" }}
-          />
-        </figure>
       </div>
     </section>
   );
@@ -506,6 +499,14 @@ function AiLimitSection() {
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
         <Eyebrow on="navy">汎用AIの限界</Eyebrow>
         <H2 on="navy">「では、ChatGPTで戦略を立てればいいのでは？」</H2>
+
+        <figure style={{ margin: "32px 0 40px", textAlign: "center" }}>
+          <img
+            src="/report/ChatGPT%20Image%202026%E5%B9%B46%E6%9C%888%E6%97%A5%2014_52_57.png"
+            alt="戦略なしAIと戦略指南AIの比較図"
+            style={{ maxWidth: "100%", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.24)" }}
+          />
+        </figure>
 
         <P on="navy">
           確かに、不可能ではありません。
