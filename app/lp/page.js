@@ -110,7 +110,7 @@ function MidCta({ text = "まず無料で1サイト試してみる" }) {
         読み進める前に、実際に触れてみてください。
       </p>
       <CtaButton label={text} size="lg" variant="light" />
-      <div style={{ marginTop: 12, fontSize: 16, color: "rgba(255,255,255,0.60)", fontFamily: BF }}>
+      <div style={{ marginTop: 12, fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF }}>
         Googleアカウントで即日スタート · クレジットカード不要
       </div>
     </div>
@@ -119,7 +119,7 @@ function MidCta({ text = "まず無料で1サイト試してみる" }) {
 
 // Eyebrow ラベル
 function Eyebrow({ children, on = "white" }) {
-  const colorMap = { white: C.muted, tealLight: "#0f766e", navy: "#64a0c0", teal: "rgba(255,255,255,0.65)" };
+  const colorMap = { white: C.muted, tealLight: "#0f766e", navy: "#ffffff", teal: "#ffffff" };
   return (
     <div style={{
       display: "inline-block", fontSize: 16, fontWeight: 700,
@@ -143,7 +143,7 @@ function H2({ children, on = "white", center = false }) {
 
 // 本文
 function P({ children, on = "white", style: extra = {} }) {
-  const colorMap = { white: C.ink, tealLight: C.ink, navy: "rgba(255,255,255,0.78)", teal: "rgba(255,255,255,0.82)" };
+  const colorMap = { white: C.ink, tealLight: C.ink, navy: "#ffffff", teal: "#ffffff" };
   return (
     <p style={{
       fontSize: 18, color: colorMap[on] || C.ink,
@@ -209,7 +209,7 @@ function Hero() {
         </p>
 
         <CtaButton label="無料で1サイト診断してみる" size="lg" />
-        <div style={{ marginTop: 16, fontSize: 16, color: "rgba(255,255,255,0.40)", fontFamily: BF }}>
+        <div style={{ marginTop: 16, fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF }}>
           Googleアカウントで即日スタート · クレジットカード不要
         </div>
       </div>
@@ -512,7 +512,7 @@ function UpstreamSection() {
             padding: "28px 28px", marginBottom: 12,
             boxShadow: "0 4px 20px rgba(10,37,64,0.18)",
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "rgba(94,234,212,0.60)", marginBottom: 16, fontFamily: BF }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "#ffffff", marginBottom: 16, fontFamily: BF }}>
               上流 — 戦略
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
@@ -542,7 +542,7 @@ function UpstreamSection() {
             background: C.teal, border: `2px solid ${C.teal}`,
             borderRadius: 12, padding: "24px 28px",
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "rgba(255,255,255,0.70)", marginBottom: 16, fontFamily: BF }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", color: "#ffffff", marginBottom: 16, fontFamily: BF }}>
               下流 — 施策（マーケティング活動）
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -792,7 +792,7 @@ function StrategyMessageSection() {
             background: "rgba(13,148,136,0.20)", border: "1px solid rgba(13,148,136,0.50)",
             borderRadius: 12, padding: "24px 28px", textAlign: "center", marginBottom: 12,
           }}>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginBottom: 8, fontFamily: BF }}>戦略メッセージ（例）</div>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.1em", color: "#ffffff", marginBottom: 8, fontFamily: BF }}>戦略メッセージ（例）</div>
             <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontFamily: H, lineHeight: 1.6 }}>
               AIで戦略提案できる専門家に、資格で証明する
             </div>
@@ -1294,7 +1294,7 @@ function RecruitSample() {
       <AiH>1. ビジョン（ミッション文）の案</AiH>
       <div style={{ background: "#1a1a14", borderRadius: 10, padding: "20px 28px", margin: "12px 0 24px" }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: "system-ui", lineHeight: 1.75 }}>「AIを使いこなす時代に、中小企業経営者に選ばれる戦略家を一人でも多く増やす」</div>
-        <div style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", marginTop: 10, fontFamily: "system-ui" }}>私たちは、ツールの習得ではなく"経営を設計し直す力"を独立系専門家に届けることを使命としています。</div>
+        <div style={{ fontSize: 16, color: "#ffffff", marginTop: 10, fontFamily: "system-ui" }}>私たちは、ツールの習得ではなく"経営を設計し直す力"を独立系専門家に届けることを使命としています。</div>
       </div>
       <AiH>4. キャリアプランの案 ──「この会社でしか積めない経験」を事業戦略から逆算</AiH>
       <AiStep steps={[
@@ -1473,7 +1473,7 @@ function PricingSection() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, margin: "36px 0" }}>
           {/* 診断チケット */}
           <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "30px" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(94,234,212,0.60)", letterSpacing: "0.08em", marginBottom: 10, fontFamily: BF }}>単発・スポット利用</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", letterSpacing: "0.08em", marginBottom: 10, fontFamily: BF }}>単発・スポット利用</div>
             <div style={{ fontFamily: H, fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 16, lineHeight: 1.4 }}>戦略診断チケット</div>
             <p style={{ fontSize: 18, color: "rgba(255,255,255,0.88)", lineHeight: 1.85, margin: "0 0 20px", fontFamily: BF }}>
               URL入力 → AB3C診断 + サイト改善レポートをワンショットで出力。PDF・PPT・シェアURLで提案書に組み込めます。AIチャット機能なし。有効期限1年。
@@ -1485,10 +1485,10 @@ function PricingSection() {
                 { label: "100サイト", price: "¥770,000", note: "/ 年（1サイト ¥7,700）" },
               ].map((r, i, arr) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap", paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.10)" : "none" }}>
-                  <div style={{ fontSize: 18, color: "rgba(255,255,255,0.75)", fontFamily: BF }}>{r.label}</div>
+                  <div style={{ fontSize: 18, color: "#ffffff", fontFamily: BF }}>{r.label}</div>
                   <div style={{ textAlign: "right" }}>
                     <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF }}>{r.price}</span>
-                    <span style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", fontFamily: BF }}>{r.note}</span>
+                    <span style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF }}>{r.note}</span>
                   </div>
                 </div>
               ))}
@@ -1497,7 +1497,7 @@ function PricingSection() {
 
           {/* サブスク */}
           <div style={{ background: "rgba(13,148,136,0.15)", border: "1px solid rgba(13,148,136,0.45)", borderRadius: 12, padding: "30px" }}>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "rgba(94,234,212,0.70)", letterSpacing: "0.08em", marginBottom: 10, fontFamily: BF }}>継続・伴走支援向け</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#ffffff", letterSpacing: "0.08em", marginBottom: 10, fontFamily: BF }}>継続・伴走支援向け</div>
             <div style={{ fontFamily: H, fontSize: 26, fontWeight: 700, color: "#fff", marginBottom: 16, lineHeight: 1.4 }}>戦略指南サブスク</div>
             <p style={{ fontSize: 18, color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "0 0 20px", fontFamily: BF }}>
               診断機能に加えて、AIチャットで戦略を磨く「策定」フェーズと、施策テーマ別に実行する「アクション」フェーズまで使えます。チャット履歴・確定戦略・アクションリストはDBに保存されます。
@@ -1525,7 +1525,7 @@ function PricingSection() {
           </div>
         </div>
 
-        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.40)", textAlign: "center", fontFamily: BF }}>
+        <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", textAlign: "center", fontFamily: BF }}>
           すべて税込。詳細は{" "}
           <a href="/pricing" style={{ color: "#5eead4", fontWeight: 600, textDecoration: "underline" }}>料金ページ</a>
           をご確認ください。
@@ -1616,7 +1616,7 @@ function ClosingSection() {
           URLを入力して、30秒で分析結果が出てきます。<br />「うちの戦略、こういうことか」と感じていただけるはずです。
         </p>
         <CtaButton label="無料で1サイト診断してみる" size="lg" />
-        <div style={{ marginTop: 14, fontSize: 16, color: "rgba(255,255,255,0.35)", fontFamily: BF }}>
+        <div style={{ marginTop: 14, fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF }}>
           ご不明点は{" "}
           <a href="/contact" style={{ color: "#5eead4", textDecoration: "underline" }}>お問い合わせ</a>
           から
