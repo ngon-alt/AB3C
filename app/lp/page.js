@@ -1258,6 +1258,9 @@ function AgencySection() {
           15サイトプラン（月¥330,000）なら、1社あたりの原価は¥22,000。<br />
           伴走支援サービスへの組み込みに十分な水準です。
         </Callout>
+        <p style={{ fontSize: 16, color: "#ffffff", opacity: 0.75, marginTop: 12, lineHeight: 1.7 }}>
+          ※戦略指南AIをベースとした伴走支援コンサルティングは10～30万円程度を想定しています。
+        </p>
       </div>
     </section>
   );
