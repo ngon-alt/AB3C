@@ -1508,17 +1508,86 @@ function PricingSection() {
 // 17. 制作者プロフィール（ホワイト）
 // ============================================================
 function CreatorSection() {
+  const BF2 = BF;
   return (
-    <section style={{ background: C.bg, padding: "96px 20px 80px" }}>
+    <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
-        <Eyebrow on="white">なぜ汎用AIとは違うのか</Eyebrow>
-        <H2 on="white">24年の実務知見が、<br />このツールの骨格です。</H2>
-        <P on="white">
-          戦略指南AIは、汎用AIにAB3Cのプロンプトを書かせたものではありません。
-          権成俊が24年間のウェブコンサルティングで磨いてきた戦略策定の実フロー——
-          「何を、どの順番で、どう問うか」——をそのままAIで再現したサービスです。
-        </P>
-        <CreatorProfileBlock />
+        <Eyebrow on="navy">このツールを作った人</Eyebrow>
+        <H2 on="navy">汎用AIでは出せない答えを、<br />24年の実務が設計した。</H2>
+
+        <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 56, alignItems: "start", marginTop: 48 }}>
+
+          {/* 左：写真 */}
+          <div>
+            <div style={{
+              borderRadius: 14,
+              overflow: "hidden",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.40)",
+              border: "1px solid rgba(255,255,255,0.10)",
+            }}>
+              <img
+                src="/report/ChatGPT%20Image%202026%E5%B9%B46%E6%9C%888%E6%97%A5%2015_27_06.png"
+                alt="権 成俊 — セミナー登壇"
+                style={{ width: "100%", display: "block" }}
+              />
+            </div>
+            <div style={{ marginTop: 14, textAlign: "center", fontSize: 16, color: "rgba(255,255,255,0.70)", fontFamily: BF2, lineHeight: 1.6 }}>
+              デジ革セミナー 2026 登壇
+            </div>
+          </div>
+
+          {/* 右：プロフィール */}
+          <div>
+            {/* 名前 */}
+            <div style={{ marginBottom: 6 }}>
+              <span style={{ fontFamily: H, fontSize: 38, fontWeight: 700, color: "#ffffff", lineHeight: 1.2 }}>権 成俊</span>
+              <span style={{ fontSize: 18, color: "rgba(255,255,255,0.60)", fontFamily: BF2, marginLeft: 14 }}>ごん なるとし</span>
+            </div>
+            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.70)", fontFamily: BF2, marginBottom: 28, lineHeight: 1.7 }}>
+              株式会社ゴンウェブイノベーションズ 代表取締役<br />
+              一般社団法人デジタル経営革新協会 代表理事
+            </div>
+
+            {/* 本文 */}
+            <p style={{ fontSize: 18, color: "#ffffff", fontFamily: BF2, lineHeight: 2.0, margin: "0 0 20px" }}>
+              ソフトバンクにてEC事業開発を経て、2002年に独立。以来24年間、中小企業の戦略コンサルティングを実務として手がけながら、「なぜ戦略が現場に落ちないのか」を問い続けてきた。
+            </p>
+            <p style={{ fontSize: 18, color: "#ffffff", fontFamily: BF2, lineHeight: 2.0, margin: "0 0 32px" }}>
+              その問いから生まれたのが<b>AB3Cフレームワーク</b>。戦略指南AIは、汎用AIに指示を書かせたものではなく、権成俊が実際に使ってきた戦略策定の実フロー——「何を、どの順番で、どう問うか」——をそのままAIで再現したサービスです。
+            </p>
+
+            {/* 実績タグ */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 32 }}>
+              {[
+                "AB3Cフレームワーク考案",
+                "ウェブ業界歴 24年",
+                "著書 3冊",
+                "CSS Nite 登壇",
+                "デジ革セミナー 主宰",
+                "累計数百名のウェブコンサルタントを育成",
+              ].map((tag, i) => (
+                <span key={i} style={{
+                  display: "inline-block",
+                  background: "rgba(13,148,136,0.22)",
+                  border: "1px solid rgba(13,148,136,0.50)",
+                  borderRadius: 4, padding: "6px 14px",
+                  fontSize: 16, color: "#ffffff", fontFamily: BF2, fontWeight: 600,
+                }}>{tag}</span>
+              ))}
+            </div>
+
+            {/* リンク */}
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", fontSize: 16, fontFamily: BF2 }}>
+              <a href="https://www.amazon.co.jp/stores/author/B004391OAE" target="_blank" rel="noopener noreferrer"
+                style={{ color: "#5eead4", textDecoration: "underline" }}>↗ Amazon 著者ページ</a>
+              <a href="https://digi-kaku.or.jp/" target="_blank" rel="noopener noreferrer"
+                style={{ color: "#5eead4", textDecoration: "underline" }}>↗ デジタル経営革新協会</a>
+              <a href="https://webconsultant.jp/" target="_blank" rel="noopener noreferrer"
+                style={{ color: "#5eead4", textDecoration: "underline" }}>↗ ウェブコンサルタント.jp</a>
+            </div>
+          </div>
+
+        </div>
       </div>
     </section>
   );
