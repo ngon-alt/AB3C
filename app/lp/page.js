@@ -1393,6 +1393,8 @@ function PricingSection() {
                 { label: "5サイト", price: "¥165,000", note: "/ 月（1サイト ¥33,000）" },
                 { label: "15サイト", price: "¥330,000", note: "/ 月（1サイト ¥22,000）" },
                 { label: "30サイト", price: "¥495,000", note: "/ 月（1サイト ¥16,500）" },
+                { label: "60サイト", price: "¥792,000", note: "/ 月（1サイト ¥13,200）" },
+                { label: "120サイト", price: "¥1,320,000", note: "/ 月（1サイト ¥11,000）" },
               ].map((r, i, arr) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, flexWrap: "wrap", paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? "1px solid rgba(94,234,212,0.15)" : "none" }}>
                   <div style={{ fontSize: 18, color: "#ccfbf1", fontFamily: BF }}>{r.label}</div>
