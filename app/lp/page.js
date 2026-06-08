@@ -1230,22 +1230,22 @@ function ActionSampleSection() {
 // ============================================================
 function AgencySection() {
   return (
-    <section style={{ background: C.teal, padding: "96px 20px 80px" }}>
+    <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
-        <Eyebrow on="teal">コンサルタント・Web制作会社の方へ</Eyebrow>
-        <H2 on="teal">複数クライアントの戦略を継続管理する、<br />伴走支援の基盤として。</H2>
-        <P on="teal">
+        <Eyebrow on="navy">コンサルタント・Web制作会社の方へ</Eyebrow>
+        <H2 on="navy">複数クライアントの戦略を継続管理する、<br />伴走支援の基盤として。</H2>
+        <P on="navy">
           戦略指南AIを最も活かせるのは、複数のクライアントを継続的に支援する伴走支援のシーンです。
           初回訪問でURLを入力して分析を取得し、経営者と一緒に「選ばれる理由」を言語化し、
           戦略をベースに各施策の方針を組み立て、担当者にアクションを振り分けていく。
           そのサイクルをこのツール一本で管理できます。
         </P>
-        <P on="teal">
+        <P on="navy">
           登録した各サイトの戦略確定履歴・チャット履歴・アクションリストはデータベースに保存されます。
           次回訪問時に前回の続きからすぐに入れるため、
           クライアントごとの経緯を手元のメモに頼らずに管理できます。
         </P>
-        <Callout on="teal">
+        <Callout on="navy">
           15サイトプラン（月¥330,000）なら、1社あたりの原価は¥22,000。<br />
           伴走支援サービスへの組み込みに十分な水準です。
         </Callout>
