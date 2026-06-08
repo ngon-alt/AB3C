@@ -1063,8 +1063,8 @@ function ReportDetailSection() {
 function Step2Section() {
   return (
     <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
-      <div style={{ maxWidth: WW, margin: "0 auto" }}>
-        <div style={{ maxWidth: TW }}>
+      <div style={{ maxWidth: TW, margin: "0 auto" }}>
+        <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
             <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.teal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, fontFamily: BF, flexShrink: 0, boxShadow: "0 2px 8px rgba(13,148,136,0.35)" }}>②</div>
             <Eyebrow on="navy">STEP 2</Eyebrow>
