@@ -491,7 +491,7 @@ function UpstreamSection() {
                 padding: "28px 24px",
                 boxShadow: "0 4px 16px rgba(10,37,64,0.14)",
               }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#ffffff", fontFamily: H, marginBottom: 10 }}>{step.num}</div>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", border: "2px solid #ffffff", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, fontFamily: BF, marginBottom: 12 }}>{i + 1}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: BF, lineHeight: 1.4 }}>{step.title}</div>
                 <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
               </div>
