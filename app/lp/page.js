@@ -491,7 +491,7 @@ function UpstreamSection() {
                 padding: "28px 24px",
                 boxShadow: "0 4px 16px rgba(10,37,64,0.14)",
               }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,0.35)", fontFamily: H, marginBottom: 10 }}>{step.num}</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "#ffffff", fontFamily: H, marginBottom: 10 }}>{step.num}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: BF, lineHeight: 1.4 }}>{step.title}</div>
                 <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
               </div>
@@ -1022,7 +1022,7 @@ function ReportDetailSection() {
             />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)", fontFamily: BF, marginBottom: 10, textTransform: "uppercase" }}>Sample PPT / PDF</div>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "#ffffff", fontFamily: BF, marginBottom: 10, textTransform: "uppercase" }}>Sample PPT / PDF</div>
             <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 12 }}>
               分析結果をそのままPPT・PDFファイルでダウンロードできます。
             </div>
