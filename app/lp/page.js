@@ -328,6 +328,87 @@ function PartialOptimalSection() {
           </P>
         </div>
 
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, margin: "40px 0" }}>
+          {/* 左: 汎用AI */}
+          <div style={{
+            background: "#f1f5f9", border: "1px solid #cbd5e1",
+            borderRadius: 12, padding: "28px 24px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: "#64748b", marginBottom: 20, fontFamily: BF, textAlign: "center" }}>
+              汎用AI（一問一答）
+            </div>
+            {[
+              { q: "Q. SNSに何を投稿すればいい？", a: "「ためになる情報を毎日コツコツと発信しましょう」" },
+              { q: "Q. SEOキーワードは？", a: "「検索ボリュームの高いキーワードを中心に記事を」" },
+              { q: "Q. ウェブサイトの改善点は？", a: "「動画コンテンツを増やすとエンゲージメントが上がります」" },
+            ].map((item, i) => (
+              <div key={i} style={{ marginBottom: i < 2 ? 16 : 0 }}>
+                <div style={{
+                  background: "#fff", border: "1px solid #e2e8f0",
+                  borderRadius: 6, padding: "10px 14px",
+                  fontSize: 16, color: C.ink, fontFamily: BF, fontWeight: 600, lineHeight: 1.5,
+                }}>{item.q}</div>
+                <div style={{ padding: "6px 16px 0" }}>
+                  <div style={{ fontSize: 16, color: C.muted, fontFamily: BF, fontStyle: "italic", lineHeight: 1.6 }}>
+                    → {item.a}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div style={{
+              marginTop: 24, borderTop: `1px dashed ${C.border}`, paddingTop: 16,
+              textAlign: "center", fontSize: 18, fontWeight: 700,
+              color: "#b84040", fontFamily: BF, lineHeight: 1.7,
+            }}>
+              一つひとつは「正しそう」<br />でも全体としてつながっていない
+            </div>
+          </div>
+
+          {/* 右: 戦略指南AI */}
+          <div style={{ background: C.navy, borderRadius: 12, padding: "28px 24px", boxShadow: "0 4px 20px rgba(10,37,64,0.20)" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: "#5eead4", marginBottom: 20, fontFamily: BF, textAlign: "center" }}>
+              戦略指南AI（フレームワーク）
+            </div>
+            <div style={{
+              background: "rgba(13,148,136,0.18)", border: "1px solid rgba(13,148,136,0.40)",
+              borderRadius: 8, padding: "16px 18px", marginBottom: 10, textAlign: "center",
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 6, fontFamily: BF }}>AB3C分析（戦略の上流）</div>
+              <div style={{ fontSize: 16, color: "#ffffff", fontFamily: BF, lineHeight: 1.7 }}>
+                誰に・何を・なぜ選ばれるのか<br />を一気通貫で定義する
+              </div>
+            </div>
+            <div style={{ textAlign: "center", color: "#5eead4", fontSize: 22, margin: "8px 0" }}>↓</div>
+            <div style={{
+              background: "rgba(13,148,136,0.12)", border: "1px solid rgba(13,148,136,0.30)",
+              borderRadius: 8, padding: "12px 16px", marginBottom: 10, textAlign: "center",
+            }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#ccfbf1", fontFamily: BF }}>戦略メッセージが確定</div>
+            </div>
+            <div style={{ textAlign: "center", color: "#5eead4", fontSize: 22, margin: "8px 0" }}>↓</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {["SNS投稿", "SEOコンテンツ", "サイト改善"].map((item, i) => (
+                <div key={i} style={{
+                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(94,234,212,0.20)",
+                  borderRadius: 6, padding: "10px 14px",
+                  display: "flex", alignItems: "center", gap: 10,
+                }}>
+                  <span style={{ color: "#5eead4", fontWeight: 700, fontSize: 18 }}>✓</span>
+                  <span style={{ fontSize: 16, color: "#ffffff", fontFamily: BF }}>{item}（戦略軸で統一）</span>
+                </div>
+              ))}
+            </div>
+            <div style={{
+              marginTop: 24, borderTop: "1px dashed rgba(94,234,212,0.25)", paddingTop: 16,
+              textAlign: "center", fontSize: 18, fontWeight: 700,
+              color: "#5eead4", fontFamily: BF, lineHeight: 1.7,
+            }}>
+              すべての施策が同じ軸でつながる<br />= 一気通貫
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   );
