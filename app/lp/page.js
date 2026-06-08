@@ -1462,7 +1462,7 @@ function CreatorSection() {
               />
             </div>
             <div style={{ marginTop: 14, textAlign: "center", fontSize: 16, color: "rgba(255,255,255,0.70)", fontFamily: BF2, lineHeight: 1.6 }}>
-              デジ革セミナー 2026 登壇
+              権　成俊
             </div>
           </div>
 
