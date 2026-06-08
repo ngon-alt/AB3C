@@ -582,18 +582,18 @@ function MidCtaSection1() { return <MidCta />; }
 // ============================================================
 function WhatIsSection() {
   return (
-    <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
+    <section style={{ background: C.bg, padding: "96px 20px 80px" }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
-        <Eyebrow on="navy">解決策</Eyebrow>
-        <H2 on="navy">戦略指南AIは、マーケティングの「上流」を<br />AIでサポートするツールです。</H2>
+        <Eyebrow on="white">解決策</Eyebrow>
+        <H2 on="white">戦略指南AIは、マーケティングの「上流」を<br />AIでサポートするツールです。</H2>
 
-        <P on="navy">
+        <P on="white">
           AB3Cフレームワーク（ベネフィット・アドバンテージ・3C分析）に沿って、
           クライアントの事業戦略の骨格を短時間・高精度で言語化します。
           URLを入力するだけで分析がはじまり、AIとの対話で戦略を磨き上げ、
           各施策への展開まで一気通貫でサポートします。
         </P>
-        <P on="navy">
+        <P on="white">
           汎用AIと根本的に異なるのは、戦略フレームワークがあらかじめ組み込まれていることです。
           「次に何を聞けばいいか」「どこが弱いか」「整合性がとれているか」——
           これらを戦略の文法に沿って自動的に判断します。
@@ -1605,8 +1605,8 @@ export default function LpPage() {
         {/* ライトティール */} <PartialOptimalSection />
         {/* ホワイト     */} <UpstreamSection />
         {/* ネイビー     */} <AiLimitSection />
+        {/* ホワイト     */} <WhatIsSection />
         {/* ティール帯   */} <MidCtaSection1 />
-        {/* ネイビー     */} <WhatIsSection />
         {/* ホワイト     */} <Ab3cSection />
         {/* ネイビー     */} <StrategyMessageSection />
         {/* ライトティール */} <OutputAsPromptSection />
