@@ -482,7 +482,7 @@ function UpstreamSection() {
           {[
             { num: "①", title: "戦略を確立する", desc: "誰に・何を・なぜ選ばれるのかを言語化する" },
             { num: "②", title: "戦略を軸に施策を設計", desc: "確立した戦略を前提として、各施策を設計・実行する" },
-            { num: "③", title: "施策が累積して成果になる", desc: "施策間の一貫性が生まれ、ブランドが積み上がっていく" },
+            { num: "③", title: "施策の実行で成果がでる", desc: "施策間の一貫性が生まれ、ブランドが積み上がっていく" },
           ].map((step, i) => (
             <div key={i} style={{ display: "flex", alignItems: "stretch", flex: 1 }}>
               <div style={{
@@ -491,7 +491,7 @@ function UpstreamSection() {
                 padding: "28px 24px",
                 boxShadow: "0 4px 16px rgba(10,37,64,0.14)",
               }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", border: "2px solid #ffffff", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, fontFamily: BF, marginBottom: 12 }}>{i + 1}</div>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid #ffffff", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, fontFamily: BF, marginBottom: 10 }}>{i + 1}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 8, fontFamily: BF, lineHeight: 1.4 }}>{step.title}</div>
                 <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>{step.desc}</div>
               </div>
