@@ -134,7 +134,7 @@ function H2({ children, on = "white", center = false }) {
   const colorMap = { white: C.ink, tealLight: C.ink, navy: "#ffffff", teal: "#ffffff" };
   return (
     <h2 style={{
-      fontFamily: H, fontSize: 32, fontWeight: 700,
+      fontFamily: H, fontSize: 36, fontWeight: 700,
       color: colorMap[on] || C.ink, lineHeight: 1.55,
       margin: "0 0 24px", textAlign: center ? "center" : "left",
     }}>{children}</h2>
@@ -578,7 +578,7 @@ function AiLimitSection() {
     <section style={{ background: C.navy, padding: "96px 20px 80px" }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
         <Eyebrow on="navy">汎用AIの限界</Eyebrow>
-        <H2 on="navy">「では、ChatGPTで戦略を<br />立てればいいのでは？」</H2>
+        <H2 on="navy">「では、ChatGPTで戦略を立てればいいのでは？」</H2>
 
         <P on="navy">
           確かに、不可能ではありません。
@@ -1004,48 +1004,6 @@ function ReportDetailSection() {
               以下、レポートを構成する4つのブロックをご紹介します。
             </p>
           </div>
-        </div>
-
-        {/* 提案書ダウンロード */}
-        <div style={{
-          background: C.navy, borderRadius: 14,
-          padding: "40px 44px", marginBottom: 72,
-          display: "flex", alignItems: "center", gap: 40,
-          boxShadow: "0 8px 32px rgba(10,37,64,0.22)",
-        }}>
-          {/* サムネイル画像 */}
-          <div style={{ flexShrink: 0, width: 200 }}>
-            <img
-              src="/report/digi-kaku.or.jp_AI%E3%81%A7%E6%88%A6%E7%95%A5%E6%8F%90%E6%A1%88%E3%81%A7%E3%81%8D%E3%82%8B%E5%B0%82%E9%96%80%E5%AE%B6%E3%81%AB%E3%80%81%E8%B3%87%E6%A0%BC%E3%81%A7%E8%A8%BC%E6%98%8E%E3%81%99%E3%82%8B.png"
-              alt="提案書サンプル"
-              style={{ width: "100%", borderRadius: 8, display: "block", boxShadow: "0 4px 16px rgba(0,0,0,0.30)" }}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", color: "#ffffff", fontFamily: BF, marginBottom: 10, textTransform: "uppercase" }}>Sample PPT / PDF</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontFamily: BF, lineHeight: 1.5, marginBottom: 12 }}>
-              分析結果をそのままPPT・PDFファイルでダウンロードできます。
-            </div>
-            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.88)", fontFamily: BF, lineHeight: 1.7 }}>
-              戦略指南AIが出力した提案書のサンプルです。クライアントへの提案資料としてそのまま活用できます。
-            </div>
-          </div>
-          <a
-            href="/report/digi-kaku.or.jp_AI%E3%81%A7%E6%88%A6%E7%95%A5%E6%8F%90%E6%A1%88%E3%81%A7%E3%81%8D%E3%82%8B%E5%B0%82%E9%96%80%E5%AE%B6%E3%81%AB%E3%80%81%E8%B3%87%E6%A0%BC%E3%81%A7%E8%A8%BC%E6%98%8E%E3%81%99%E3%82%8B.pptx"
-            download
-            style={{
-              flexShrink: 0, background: C.teal, color: "#fff",
-              border: "none", borderRadius: 8, padding: "14px 28px",
-              fontSize: 18, fontWeight: 700, fontFamily: BF, cursor: "pointer",
-              textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8,
-              boxShadow: "0 4px 14px rgba(13,148,136,0.40)", whiteSpace: "nowrap",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            ダウンロード
-          </a>
         </div>
 
         {/* 4ブロック：交互レイアウト + スクロール可能な画像コンテナ */}
@@ -1647,13 +1605,13 @@ export default function LpPage() {
         {/* ライトティール */} <OutputAsPromptSection />
         {/* ホワイト     */} <Step1Section />
         {/* ライトティール */} <ReportDetailSection />
+        {/* ライトティール */} <PptSection />
         {/* ネイビー     */} <Step2Section />
         {/* ホワイト     */} <Step3Section />
         {/* ネイビー     */} <ActionSampleSection />
         {/* ティール帯   */} <StatsSection />
         {/* ティール帯   */} <AgencySection />
         {/* ホワイト     */} <ScenarioSection />
-        {/* ライトティール */} <PptSection />
         {/* ティール帯   */} <MidCtaSection2 />
         {/* ネイビー     */} <PricingSection />
         {/* ホワイト     */} <CreatorSection />
