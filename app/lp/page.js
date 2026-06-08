@@ -665,7 +665,7 @@ function WhatIsSection() {
         </P>
       </div>
 
-      <div style={{ maxWidth: WW, margin: "48px auto 0", padding: "0 20px" }}>
+      <div style={{ maxWidth: TW, margin: "48px auto 0", padding: "0 20px" }}>
         <Shot
           src="/howto/senryaku0.png"
           alt="戦略指南AI ファーストビュー"
