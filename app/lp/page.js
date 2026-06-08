@@ -916,7 +916,7 @@ function ReportDetailSection() {
 
         {/* 全体ショット：幅1/5で縦の長さを見せる */}
         <div style={{ display: "flex", alignItems: "flex-start", gap: 40, marginBottom: 72 }}>
-          <div style={{ width: "20%", flexShrink: 0 }}>
+          <div style={{ width: "10%", flexShrink: 0 }}>
             <div style={{
               borderRadius: 8, overflow: "hidden",
               boxShadow: "0 12px 40px rgba(0,0,0,0.16)",
