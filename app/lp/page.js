@@ -1578,7 +1578,7 @@ function ClosingSection() {
           Googleアカウントでログインするだけで、すぐに使えます。<br />クレジットカードの登録も不要です。
         </p>
         <p style={{ fontSize: 18, color: "rgba(255,255,255,0.75)", lineHeight: 1.9, margin: "0 0 40px", fontFamily: BF }}>
-          URLを入力して、30秒で分析結果が出てきます。<br />「うちの戦略、こういうことか」と感じていただけるはずです。
+          URLを入力して、3分で分析結果が出てきます。<br />「うちの戦略、こういうことか」と感じていただけるはずです。
         </p>
         <CtaButton label="無料で1サイト診断してみる" size="lg" />
         <div style={{ marginTop: 14, fontSize: 16, color: "rgba(255,255,255,0.85)", fontFamily: BF }}>
