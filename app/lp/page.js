@@ -1369,11 +1369,11 @@ function ScenarioSection() {
 // ============================================================
 function PptSection() {
   return (
-    <section style={{ background: C.tealLight, padding: "80px 20px", borderTop: `1px solid ${C.tealLightBorder}` }}>
+    <section style={{ background: C.bg, padding: "80px 20px", borderTop: `1px solid ${C.border}` }}>
       <div style={{ maxWidth: TW, margin: "0 auto" }}>
-        <Eyebrow on="tealLight">サンプルダウンロード</Eyebrow>
-        <H2 on="tealLight">提案書として使えるPowerPointを<br />無料でダウンロードできます。</H2>
-        <P on="tealLight">
+        <Eyebrow on="white">サンプルダウンロード</Eyebrow>
+        <H2 on="white">提案書として使えるPowerPointを<br />無料でダウンロードできます。</H2>
+        <P on="white">
           戦略指南AIの分析結果はPowerPoint形式・PDF形式でエクスポートできます。
           実際の出力イメージを確認するために、サンプルファイルをご用意しました。
           登録不要・完全無料でダウンロードできます。
