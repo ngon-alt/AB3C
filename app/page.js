@@ -3382,16 +3382,14 @@ useEffect(() => {
       } catch (e) {}
     }
 
-    // 戦略確定済みの状態で再分析しようとしている場合、警告を出す
-    // - フロント state（同一ブラウザで確定済み）または
-    // - DB上で一致した既存サイトが確定済み（別ブラウザ・初回ロード前等で state が空でも検出）
+    // 既存の分析がある場合（確定有無問わず）警告を出す
     const dbConfirmed = !!(prefoundSite && prefoundSite.strategy_confirmed === true);
-    if ((strategyConfirmed && currentResult) || dbConfirmed) {
+    const isConfirmedState = (strategyConfirmed && currentResult) || dbConfirmed;
+    if (isConfirmedState || prefoundSite) {
       const ok = confirm(
-        "このサイトは戦略確定済みです。\n" +
-        "再分析しても過去の確定履歴（サイドバー）は保持されますが、\n" +
-        "現在表示中の分析結果は新しい内容で上書きされ、確定状態も解除されます。\n\n" +
-        "続けて再分析しますか？"
+        isConfirmedState
+          ? "このサイトは戦略確定済みです。\n再分析しても過去の確定履歴（サイドバー）は保持されますが、\n現在表示中の分析結果は新しい内容で上書きされ、確定状態も解除されます。\n\n続けて再分析しますか？"
+          : "このサイトはすでに分析済みです。\n再分析すると現在の分析結果が新しい内容に更新されます。\n\n続けて再分析しますか？"
       );
       if (!ok) return;
       // DB の strategy_confirmed=false を即時反映（別ブラウザでの不整合を防ぐ）
