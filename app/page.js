@@ -1514,7 +1514,7 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     </div>
   );
 }
-function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId }) {
+function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId, strategyVersion }) {
   const effectiveThemeId = themeId || threadId;
   const displayThemeName = themeLabel || effectiveThemeId;
   const [messages, setMessages] = useState([]);
@@ -1531,10 +1531,13 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
 
   const initialized = useRef(false);
 
+  // 確定戦略バージョン込みのキー（バージョンが変わると別のキーになり旧メッセージを引き継がない）
+  const lsKey = `ab3c_thread_${threadSiteId || "default"}_${threadId}_v${strategyVersion || 0}`;
+
   // メッセージ保存（初期化完了後のみ、準備中は保存しない）
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
-      try { localStorage.setItem(`ab3c_thread_${threadSiteId || "default"}_${threadId}`, JSON.stringify(messages)); } catch (e) {}
+      try { localStorage.setItem(lsKey, JSON.stringify(messages)); } catch (e) {}
       // 親（page.js）に通知して DB 同期を起動
       try { window.dispatchEvent(new CustomEvent("ab3c-thread-changed", { detail: { siteId: threadSiteId, threadId } })); } catch (e) {}
     }
@@ -1544,7 +1547,7 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   useEffect(() => {
     initialized.current = false;
     const controller = new AbortController();
-    const key = `ab3c_thread_${threadSiteId || "default"}_${threadId}`;
+    const key = lsKey;
     try {
       const saved = localStorage.getItem(key);
       const parsed = saved ? JSON.parse(saved) : null;
@@ -4837,7 +4840,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeChatId ? (
-        <ThreadChat key={siteId + "_" + activeChatId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} onAddAction={addAction}
+        <ThreadChat key={siteId + "_" + activeChatId + "_c" + confirmHistory.length} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={confirmHistory.length} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
