@@ -55,11 +55,17 @@ export async function POST(req) {
     }
   }
 
+  const getTextContent = (content) => {
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) return content.filter(b => b.type === "text").map(b => b.text).join(" ");
+    return "";
+  };
+
   // アクションまとめ生成（会話履歴から構造化された結論を生成）
   if (actionSummary) {
     const conversationText = (messages || [])
       .filter(m => m.role === "user" || m.role === "assistant")
-      .map(m => `${m.role === "user" ? "【ユーザー】" : "【AI】"}${m.content || ""}`)
+      .map(m => `${m.role === "user" ? "【ユーザー】" : "【AI】"}${getTextContent(m.content)}`)
       .join("\n\n");
     const summaryPrompt = `以下は、AB3C戦略分析に基づく施策検討のチャット会話です。この会話の結論として決定したアクション「${actionTitle}」について、実行者が後で見返せるよう構造化してまとめてください。
 

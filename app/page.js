@@ -1234,6 +1234,7 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     : `ab3c_chat_${analysisResult ? JSON.stringify(analysisResult).slice(0, 50) : 'default'}`;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   // 初期ロード完了を追跡: 初回 save 効果が空配列で LS を上書きするのを防ぐ
@@ -1340,13 +1341,41 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     } finally { setLoading(false); }
   };
 
+  const handleImagePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setPendingImages(prev => [...prev, { dataUrl: ev.target.result, mediaType: item.type }]);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
   const send = async () => {
-    if (!input.trim() || loading) return;
-    const userMessage = { role: "user", content: input };
+    if ((!input.trim() && pendingImages.length === 0) || loading) return;
+    let content;
+    if (pendingImages.length > 0) {
+      content = [];
+      if (input.trim()) content.push({ type: "text", text: input });
+      for (const img of pendingImages) {
+        const base64 = img.dataUrl.split(",")[1];
+        content.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: base64 } });
+      }
+    } else {
+      content = input;
+    }
+    const userMessage = { role: "user", content };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
-    await sendMessage(input, newMessages);
+    setPendingImages([]);
+    await sendMessage(content, newMessages);
   };
 
   const reanalyze = async () => {
@@ -1401,7 +1430,11 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
               maxWidth: "80%", lineHeight: 1.7,
               fontFamily: "system-ui, sans-serif",
               whiteSpace: "pre-wrap",
-            }}>{m.content.includes("[[CHAT_ICON]]")
+            }}>{Array.isArray(m.content)
+              ? m.content.map((block, bi) => block.type === "image"
+                  ? <img key={bi} src={`data:${block.source.media_type};base64,${block.source.data}`} style={{ maxWidth: "100%", borderRadius: 4, display: "block", marginTop: bi > 0 ? 6 : 0 }} />
+                  : <span key={bi} style={{ whiteSpace: "pre-wrap" }}>{block.text}</span>)
+              : m.content.includes("[[CHAT_ICON]]")
               ? m.content.split("[[CHAT_ICON]]").map((part, idx, arr) => (
                   <span key={idx}>
                     {part}
@@ -1419,10 +1452,22 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         <div ref={messagesEndRef} />
       </div>
       <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
+        {pendingImages.length > 0 && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+            {pendingImages.map((img, idx) => (
+              <div key={idx} style={{ position: "relative" }}>
+                <img src={img.dataUrl} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 4, border: `1px solid ${C.border}` }} />
+                <button onClick={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
+                  style={{ position: "absolute", top: -6, right: -6, background: "#555", border: "none", borderRadius: "50%", width: 18, height: 18, cursor: "pointer", color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
         {/* 1. 入力欄 */}
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
-          placeholder="分析結果について相談する..."
+          onPaste={handleImagePaste}
+          placeholder="分析結果について相談する... （画像はCtrl+Vで貼り付け可）"
           rows={3}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
         />
@@ -1460,6 +1505,7 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   const displayThemeName = themeLabel || effectiveThemeId;
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [pendingImages, setPendingImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [summarizingIdx, setSummarizingIdx] = useState(null);
   const messagesEndRef = useRef(null);
@@ -1539,11 +1585,39 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     return () => controller.abort();
   }, []);
 
+  const handleImagePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          setPendingImages(prev => [...prev, { dataUrl: ev.target.result, mediaType: item.type }]);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
   const send = async () => {
-    if (!input.trim() || loading || !isPro) return;
-    const userMessage = { role: "user", content: input };
+    if ((!input.trim() && pendingImages.length === 0) || loading || !isPro) return;
+    let content;
+    if (pendingImages.length > 0) {
+      content = [];
+      if (input.trim()) content.push({ type: "text", text: input });
+      for (const img of pendingImages) {
+        const base64 = img.dataUrl.split(",")[1];
+        content.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: base64 } });
+      }
+    } else {
+      content = input;
+    }
+    const userMessage = { role: "user", content };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
+    setPendingImages([]);
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
@@ -1574,8 +1648,12 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase2Bg }}>
         {messages.map((m, i) => {
           if (m.hidden) return null;
-          const actionMatch = m.role === "assistant" && m.content?.match(/\[ACTION:\s*(.+?)\]/);
-          const displayContent = actionMatch ? m.content.replace(/\[ACTION:\s*.+?\]/g, "").trim() : m.content;
+          const rawContent = Array.isArray(m.content)
+            ? m.content.filter(b => b.type === "text").map(b => b.text).join(" ")
+            : (m.content || "");
+          const actionMatch = m.role === "assistant" && rawContent.match(/\[ACTION:\s*(.+?)\]/);
+          const displayContent = actionMatch ? rawContent.replace(/\[ACTION:\s*.+?\]/g, "").trim() : rawContent;
+          const imageBlocks = Array.isArray(m.content) ? m.content.filter(b => b.type === "image") : [];
           return (
           <div key={i}>
             <div style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
@@ -1587,7 +1665,9 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
                 maxWidth: "80%", lineHeight: 1.7,
                 fontFamily: "system-ui, sans-serif",
                 whiteSpace: "pre-wrap",
-              }}>{displayContent}</div>
+              }}>{displayContent}{imageBlocks.map((block, bi) => (
+                <img key={bi} src={`data:${block.source.media_type};base64,${block.source.data}`} style={{ maxWidth: "100%", borderRadius: 4, display: "block", marginTop: displayContent ? 6 : 0 }} />
+              ))}</div>
             </div>
             {actionMatch && onAddAction && !m.actionRegistered && (
               <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 6, marginLeft: 8 }}>
@@ -1638,10 +1718,22 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
         </div>
       )}
       <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase2Bg }}>
+        {pendingImages.length > 0 && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+            {pendingImages.map((img, idx) => (
+              <div key={idx} style={{ position: "relative" }}>
+                <img src={img.dataUrl} style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 4, border: `1px solid ${C.border}` }} />
+                <button onClick={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
+                  style={{ position: "absolute", top: -6, right: -6, background: "#555", border: "none", borderRadius: "50%", width: 18, height: 18, cursor: "pointer", color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
         <textarea
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
-          placeholder={isPro ? "メッセージを入力..." : "プロプランでチャットが利用できます"}
+          onPaste={handleImagePaste}
+          placeholder={isPro ? "メッセージを入力... （画像はCtrl+Vで貼り付け可）" : "プロプランでチャットが利用できます"}
           disabled={!isPro}
           rows={3}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
