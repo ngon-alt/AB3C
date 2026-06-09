@@ -724,8 +724,9 @@ ${JSON.stringify(improveResult, null, 2)}
       messages: messages,
     });
   } catch (apiErr) {
-    console.error("Chat API error:", apiErr?.message, apiErr?.status, apiErr?.error);
-    return NextResponse.json({ error: "AI APIへの接続に失敗しました。しばらく待ってから再度お試しください。" }, { status: 500 });
+    const detail = apiErr?.error?.error?.message || apiErr?.message || "不明なエラー";
+    console.error("Chat API error:", apiErr?.status, detail, JSON.stringify(apiErr?.error));
+    return NextResponse.json({ error: `AI APIエラー: ${detail}` }, { status: 500 });
   }
 
   // ツール使用時は content に複数ブロック（text / tool_use / tool_result）が含まれるため、text ブロックを結合
