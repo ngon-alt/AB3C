@@ -710,13 +710,23 @@ ${JSON.stringify(improveResult, null, 2)}
 回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
 マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。${actionInstruction}${initialAdvicePrompts}${themeContext}${recruitPrompt}`;
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: initialAdvice ? 6000 : 6000,
-    system: systemPrompt,
-    tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
-    messages: messages,
-  });
+  const hasImages = (messages || []).some(m =>
+    Array.isArray(m.content) && m.content.some(b => b.type === "image")
+  );
+
+  let response;
+  try {
+    response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 6000,
+      system: systemPrompt,
+      ...(hasImages ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }] }),
+      messages: messages,
+    });
+  } catch (apiErr) {
+    console.error("Chat API error:", apiErr?.message, apiErr?.status, apiErr?.error);
+    return NextResponse.json({ error: "AI APIへの接続に失敗しました。しばらく待ってから再度お試しください。" }, { status: 500 });
+  }
 
   // ツール使用時は content に複数ブロック（text / tool_use / tool_result）が含まれるため、text ブロックを結合
   let text = response.content
