@@ -710,7 +710,17 @@ ${JSON.stringify(improveResult, null, 2)}
 回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
 マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。${actionInstruction}${initialAdvicePrompts}${themeContext}${recruitPrompt}`;
 
-  const hasImages = (messages || []).some(m =>
+  const VALID_IMG_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
+  const sanitizeMessages = (msgs) => (msgs || []).map(m => {
+    if (typeof m.content === "string") return m;
+    if (!Array.isArray(m.content)) return m;
+    const cleaned = m.content.filter(b => b.type !== "image" || VALID_IMG_TYPES.has(b?.source?.media_type));
+    if (cleaned.length === 0) return { ...m, content: " " };
+    return { ...m, content: cleaned };
+  });
+  const safeMessages = sanitizeMessages(messages);
+
+  const hasImages = safeMessages.some(m =>
     Array.isArray(m.content) && m.content.some(b => b.type === "image")
   );
 
@@ -721,7 +731,7 @@ ${JSON.stringify(improveResult, null, 2)}
       max_tokens: 6000,
       system: systemPrompt,
       ...(hasImages ? {} : { tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }] }),
-      messages: messages,
+      messages: safeMessages,
     });
   } catch (apiErr) {
     const detail = apiErr?.error?.error?.message || apiErr?.message || "不明なエラー";
