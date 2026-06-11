@@ -1552,17 +1552,11 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     try {
       let saved = localStorage.getItem(key);
       if (!saved) {
-        // 下位バージョンキーを降順に確認（バージョンずれで今日のデータが別キーにある場合）
-        const curVer = strategyVersion || 0;
-        for (let v = curVer - 1; v >= 0; v--) {
-          const vKey = `ab3c_thread_${threadSiteId || "default"}_${threadId}_v${v}`;
-          const vSaved = localStorage.getItem(vKey);
-          if (vSaved) { saved = vSaved; try { localStorage.setItem(key, vSaved); } catch (e) {} break; }
-        }
-        // それでもなければ旧キー形式（バージョン番号なし）を確認
-        if (!saved) {
-          const legacySaved = localStorage.getItem(legacyKey);
-          if (legacySaved) { saved = legacySaved; try { localStorage.setItem(key, legacySaved); } catch (e) {} }
+        // 旧キー形式（バージョン番号なし）のみフォールバック。移行後は旧キーを削除して再利用を防ぐ
+        const legacySaved = localStorage.getItem(legacyKey);
+        if (legacySaved) {
+          saved = legacySaved;
+          try { localStorage.setItem(key, legacySaved); localStorage.removeItem(legacyKey); } catch (e) {}
         }
       }
       const parsed = saved ? JSON.parse(saved) : null;
