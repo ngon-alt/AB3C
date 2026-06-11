@@ -1514,7 +1514,7 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     </div>
   );
 }
-function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId, strategyVersion }) {
+function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId, strategyVersion, legacyVersionIndex }) {
   const effectiveThemeId = themeId || threadId;
   const displayThemeName = themeLabel || effectiveThemeId;
   const [messages, setMessages] = useState([]);
@@ -1548,6 +1548,9 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     initialized.current = false;
     const controller = new AbortController();
     const key = lsKey;
+    // 旧形式1: 数値バージョン(_v1, _v2...)→confirmIdベース移行前のキー
+    const positionalKey = legacyVersionIndex > 0 ? `ab3c_thread_${threadSiteId || "default"}_${threadId}_v${legacyVersionIndex}` : null;
+    // 旧形式2: バージョン番号なし（最初期の形式）
     const legacyKey = `ab3c_thread_${threadSiteId || "default"}_${threadId}`;
     try {
       let saved = localStorage.getItem(key);
@@ -1559,8 +1562,22 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
           if (!hasUserInput) saved = null;
         } catch (e) {}
       }
+      if (!saved && positionalKey) {
+        // 旧形式1（数値版）フォールバック。ユーザー入力があるものだけ移行する
+        const positionalSaved = localStorage.getItem(positionalKey);
+        if (positionalSaved) {
+          try {
+            const parsed = JSON.parse(positionalSaved);
+            const hasUserInput = parsed.some(m => m.role === "user" && !m.hidden);
+            if (hasUserInput) {
+              saved = positionalSaved;
+              try { localStorage.setItem(key, positionalSaved); localStorage.removeItem(positionalKey); } catch (e) {}
+            }
+          } catch (e) {}
+        }
+      }
       if (!saved) {
-        // 旧キー形式（バージョン番号なし）フォールバック。移行後は旧キーを削除して再利用を防ぐ
+        // 旧形式2（バージョン番号なし）フォールバック。移行後は旧キーを削除して再利用を防ぐ
         const legacySaved = localStorage.getItem(legacyKey);
         if (legacySaved) {
           saved = legacySaved;
@@ -3712,6 +3729,19 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
 
   const tabStyle = (t) => ({ padding: "8px 20px", fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", border: "none", cursor: "pointer", borderBottom: tab === t ? `2px solid ${C.ink}` : "2px solid transparent", background: "transparent", color: tab === t ? C.ink : C.muted });
 
+  // 確定スナップショットIDをアクションチャットのストレージキーに使う。
+  // confirmHistory.length（常に増加）ではなく確定IDを使うことで、
+  // 別の確定に切り替えてから元の確定に戻った時にチャット履歴が復元される。
+  const liveSnapId = strategyConfirmed && confirmHistory.length > 0
+    ? confirmHistory[confirmHistory.length - 1].id
+    : null;
+  const chatConfirmId = activeConfirmId || liveSnapId || "current";
+  const chatVersionIndex = (() => {
+    if (!activeConfirmId && !liveSnapId) return 0;
+    const idx = confirmHistory.findIndex(c => c.id === chatConfirmId);
+    return idx >= 0 ? idx + 1 : confirmHistory.length;
+  })();
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif", display: "flex", flexDirection: "column" }}>
 {/* ローディングオーバーレイ（改善レポート生成中はスモークなし） */}
@@ -4861,7 +4891,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット */}
     <div style={{ flex: 1, overflow: "hidden" }}>
       {activeChatId ? (
-        <ThreadChat key={siteId + "_" + activeChatId + "_c" + confirmHistory.length} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={confirmHistory.length} onAddAction={addAction}
+        <ThreadChat key={siteId + "_" + activeChatId + "_c" + chatConfirmId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={chatConfirmId} legacyVersionIndex={chatVersionIndex} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
