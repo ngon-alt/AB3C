@@ -1548,8 +1548,17 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     initialized.current = false;
     const controller = new AbortController();
     const key = lsKey;
+    // 旧キー形式（バージョン番号なし）からのマイグレーション用フォールバック
+    const legacyKey = `ab3c_thread_${threadSiteId || "default"}_${threadId}`;
     try {
-      const saved = localStorage.getItem(key);
+      let saved = localStorage.getItem(key);
+      if (!saved) {
+        const legacySaved = localStorage.getItem(legacyKey);
+        if (legacySaved) {
+          saved = legacySaved;
+          try { localStorage.setItem(key, legacySaved); } catch (e) {}
+        }
+      }
       const parsed = saved ? JSON.parse(saved) : null;
       const hasPreparing = parsed && parsed.some(m => typeof m?.content === "string" && m.content.includes("準備中"));
       if (parsed && parsed.length > 0 && !hasPreparing) {
