@@ -3794,6 +3794,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         onConfirmStrategy={currentResult && !strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
       />
 
+      {/* 緊急お知らせバナー（復旧完了後に削除） */}
+      <div style={{ background: "#b91c1c", color: "#fff", padding: "10px 20px", textAlign: "center", fontSize: 16, fontWeight: 700, fontFamily: "system-ui, sans-serif", lineHeight: 1.5 }}>
+        ⚠️ アクションチャットの内容が消えて見える場合があります。現在復旧対応中です。画面をリロードすると表示が戻る場合があります。
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: phase === "input" ? "1fr" : (sidebarOpen ? (chatMinimized ? "240px 1fr" : `240px 1fr ${chatWidth}px`) : (chatMinimized ? "1fr" : `1fr ${chatWidth}px`)), flex: 1, position: "relative" }}>
         {/* サイドバー（input フェーズでは非表示 — 戦略確定履歴は分析後にしか意味がない） */}
