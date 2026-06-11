@@ -1551,8 +1551,16 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     const legacyKey = `ab3c_thread_${threadSiteId || "default"}_${threadId}`;
     try {
       let saved = localStorage.getItem(key);
+      // 新キーにデータがあっても自動生成の初回アドバイスのみ（ユーザー入力なし）なら旧キーを優先
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const hasUserInput = parsed.some(m => m.role === "user" && !m.hidden);
+          if (!hasUserInput) saved = null;
+        } catch (e) {}
+      }
       if (!saved) {
-        // 旧キー形式（バージョン番号なし）のみフォールバック。移行後は旧キーを削除して再利用を防ぐ
+        // 旧キー形式（バージョン番号なし）フォールバック。移行後は旧キーを削除して再利用を防ぐ
         const legacySaved = localStorage.getItem(legacyKey);
         if (legacySaved) {
           saved = legacySaved;
