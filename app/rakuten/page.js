@@ -443,7 +443,8 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
       <svg viewBox="0 0 460 440" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
         {segs.map((s, i) => (
           <g key={i}>
-            <path d={s.d} fill={s.ev.tint} stroke={s.hl ? C.blue : "#999"} strokeWidth={s.hl ? 4 : 1.5} />
+            {/* 塗りは「強化を提案している軸」専用。評価はマーク（◎◯△×）だけで表現する */}
+            <path d={s.d} fill={s.hl ? "#d8e6f8" : "#fff"} stroke="#999" strokeWidth="1.5" />
             <text x={s.lx} y={s.ly - 14} textAnchor="middle" style={{ fontSize: 15, fontWeight: 700, fill: "#1a1a14" }}>
               {s.name.length > 5 ? s.name.replace("サービス", "") : s.name}
             </text>
@@ -784,7 +785,7 @@ function Report({ report, meta }) {
 
       <Card title={`根本治療 ── ${s3.stage2?.title || "価値そのものを高める（戦略的な改善）"}`} accent={C.blue}>
         <Explain>
-          伝え方ではなく、提供する価値そのものに手を入れる提案です。第二段の価値サークルで弱かった軸（青枠で示した部分）を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強みになります。
+          伝え方ではなく、提供する価値そのものに手を入れる提案です。価値サークルの青く塗った軸を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強みになります。
         </Explain>
         <ValueCircle
           sixAxes={s2.sixAxes}
@@ -792,7 +793,7 @@ function Report({ report, meta }) {
           showLegend={false}
         />
         <p style={{ fontSize: 16, color: "#555", textAlign: "center", marginTop: 0 }}>
-          青枠＝これから強化を提案する軸
+          青い塗り＝これから強化を提案する軸
         </p>
         {(s3.stage2?.valueDevelopment || []).map((v, i) => (
           <div key={i} style={{ marginBottom: 14, borderLeft: `4px solid ${C.blue}`, paddingLeft: 12 }}>
