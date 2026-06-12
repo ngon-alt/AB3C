@@ -20,7 +20,8 @@ export async function GET() {
     try {
       const { fetchRakutenHtml: f } = await import("../../../lib/rakuten");
       const html = await f(url);
-      result[name] = { ok: true, bytes: html.length };
+      // 取得サイズが極端に小さい場合の切り分け用に冒頭だけ返す（公開ページの断片なので問題ない）
+      result[name] = { ok: true, bytes: html.length, head: html.slice(0, 200) };
     } catch (e) {
       result[name] = { ok: false, httpStatus: e?.httpStatus || null, message: e?.message };
     }
