@@ -560,6 +560,21 @@ function AB3CDiagram({ ab3c }) {
   );
 }
 
+// 7観点とAB3C用語の対応タグ（権さん確定・2026-06-12。C=黒/B=赤/A=青のカラールール準拠）
+const SEVEN_AB3C_TAGS = [
+  { match: "ターゲットの悩み", tags: [{ t: "C 顧客", c: "#1a1a14" }, { t: "ニーズ", c: "#1a1a14" }] },
+  { match: "ベネフィット", tags: [{ t: "B ベネフィット", c: "#FF0000" }] },
+  { match: "他社との違い", tags: [{ t: "A アドバンテージ", c: "#1a6fd4" }, { t: "C 自社・競合", c: "#1a1a14" }] },
+  { match: "証拠", tags: [{ t: "A の根拠", c: "#1a6fd4" }] },
+  { match: "使用シーン", tags: [{ t: "C 顧客のシーン", c: "#1a1a14" }, { t: "B を情緒で", c: "#FF0000" }] },
+  { match: "不安解消", tags: [{ t: "FAQ・保証", c: "#555" }] },
+  { match: "今買う理由", tags: [{ t: "最終プッシュ", c: "#555" }] },
+];
+function sevenTags(name) {
+  const hit = SEVEN_AB3C_TAGS.find((x) => (name || "").includes(x.match));
+  return hit ? hit.tags : [];
+}
+
 // ===== 商品ページの語り方診断（縦長LPを7ブロックに見立てた図） =====
 function SevenBlocks({ elements }) {
   return (
@@ -580,6 +595,25 @@ function SevenBlocks({ elements }) {
                   <div style={{ fontSize: 19, fontWeight: 700 }}>
                     {i + 1}. {e.name}
                     <span style={{ fontSize: 16, fontWeight: 700, color: ev.color, marginLeft: 10 }}>{e.status}</span>
+                  </div>
+                  <div style={{ margin: "2px 0 4px", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {sevenTags(e.name).map((tag, j) => (
+                      <span
+                        key={j}
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: tag.c,
+                          border: `1.5px solid ${tag.c}`,
+                          borderRadius: 4,
+                          padding: "0 8px",
+                          background: "#fff",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {tag.t}
+                      </span>
+                    ))}
                   </div>
                   <div style={{ fontSize: 16, lineHeight: 1.7, color: "#333" }}>{e.comment}</div>
                 </div>
