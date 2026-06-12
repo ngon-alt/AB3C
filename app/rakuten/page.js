@@ -19,13 +19,14 @@ const C = {
 
 // 評価マーク（信号色。Benefit赤/Advantage青の専用色とは別系統）
 const EVAL = {
+  best: { mark: "◎", color: "#1b5e20", tint: "#d9ecda" },
   good: { mark: "◯", color: "#2e7d32", tint: "#e7f2e8" },
   mid: { mark: "△", color: "#a8770b", tint: "#f7eed3" },
   bad: { mark: "×", color: "#c62828", tint: "#f9e3e3" },
   none: { mark: "—", color: "#888", tint: "#f0f0f0" },
 };
 const verdictEval = (v) =>
-  v === "勝っている" ? EVAL.good : v === "並んでいる" ? EVAL.mid : v === "負けている" ? EVAL.bad : EVAL.none;
+  v === "突出している" ? EVAL.best : v === "勝っている" ? EVAL.good : v === "並んでいる" ? EVAL.mid : v === "負けている" ? EVAL.bad : EVAL.none;
 const statusEval = (s) =>
   s === "整っている" ? EVAL.good : s === "まだ弱い" ? EVAL.mid : s === "見当たらない" ? EVAL.bad : EVAL.none;
 
@@ -412,15 +413,18 @@ function List({ items }) {
 }
 
 // ===== 価値サークル（二重丸・6分割のSVG図） =====
-// 右半分=商品力の3軸、左半分=サービスの3軸。各軸に◯△×を表示する
-function ValueCircle({ sixAxes }) {
-  const AXES = ["機能", "デザイン", "パッケージング", "購入後サービス", "購入中サービス", "購入前サービス"];
+// 上半分=商品力の3軸、下半分=サービスの3軸（権さんの教える際のレイアウトに準拠）。
+// highlight に軸名の配列を渡すと、その軸を青枠で強調する（根本治療との接続用）
+function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
+  // 9時の位置から時計回りに: 上半分（機能→デザイン→パッケージング）→ 下半分（購入前→購入中→購入後）
+  const AXES = ["機能", "デザイン", "パッケージング", "購入前サービス", "購入中サービス", "購入後サービス"];
   const find = (name) => (sixAxes || []).find((a) => (a.axis || "").startsWith(name.slice(0, 3)));
-  const cx = 230, cy = 210, r1 = 70, r2 = 170;
+  const isHl = (name) => highlight.some((h) => (h || "").startsWith(name.slice(0, 3)));
+  const cx = 230, cy = 230, r1 = 70, r2 = 170;
   const segs = AXES.map((name, i) => {
-    // -90度（真上）から時計回りに60度ずつ
-    const a0 = ((i * 60 - 90) * Math.PI) / 180;
-    const a1 = (((i + 1) * 60 - 90) * Math.PI) / 180;
+    // 180度（9時の位置）から時計回りに60度ずつ → i=0..2が上半分、i=3..5が下半分
+    const a0 = ((i * 60 + 180) * Math.PI) / 180;
+    const a1 = (((i + 1) * 60 + 180) * Math.PI) / 180;
     const amid = (a0 + a1) / 2;
     const p = (r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
     const [x0o, y0o] = p(r2, a0);
@@ -431,15 +435,18 @@ function ValueCircle({ sixAxes }) {
     const axisData = find(name);
     const ev = verdictEval(axisData?.verdict);
     const [lx, ly] = p((r1 + r2) / 2, amid);
-    return { name, d, ev, lx, ly };
+    return { name, d, ev, lx, ly, hl: isHl(name) };
   });
 
   return (
     <div style={{ textAlign: "center" }}>
-      <svg viewBox="0 0 460 420" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
+      <svg viewBox="0 0 460 500" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
+        <text x={cx} y={28} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#555" }}>
+          商品力の3軸
+        </text>
         {segs.map((s, i) => (
           <g key={i}>
-            <path d={s.d} fill={s.ev.tint} stroke="#999" strokeWidth="1.5" />
+            <path d={s.d} fill={s.ev.tint} stroke={s.hl ? C.blue : "#999"} strokeWidth={s.hl ? 4 : 1.5} />
             <text x={s.lx} y={s.ly - 14} textAnchor="middle" style={{ fontSize: 15, fontWeight: 700, fill: "#1a1a14" }}>
               {s.name.length > 5 ? s.name.replace("サービス", "") : s.name}
             </text>
@@ -460,17 +467,86 @@ function ValueCircle({ sixAxes }) {
         <text x={cx} y={cy + 16} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#1a1a14" }}>
           サークル
         </text>
-        {/* 右半分/左半分のラベル */}
-        <text x={cx + r2 + 8} y={cy - 60} textAnchor="start" style={{ fontSize: 13, fill: "#555", writingMode: "vertical-rl" }}>
-          商品力の3軸
-        </text>
-        <text x={cx - r2 - 22} y={cy - 60} textAnchor="start" style={{ fontSize: 13, fill: "#555", writingMode: "vertical-rl" }}>
+        <text x={cx} y={cy + r2 + 36} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#555" }}>
           サービスの3軸
         </text>
       </svg>
-      <p style={{ fontSize: 16, color: "#555", margin: "4px 0 0" }}>
-        ◯=競合に勝っている　△=並んでいる　×=負けている　—=比較材料なし
-      </p>
+      {showLegend && (
+        <p style={{ fontSize: 16, color: "#555", margin: "4px 0 0" }}>
+          ◎=突出している　◯=勝っている　△=並んでいる　×=負けている　—=比較材料なし
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ===== AB3C図（顧客・自社・競合の三角形 + B/A） =====
+// C=黒・B=赤・A=青（AB3Cカラー固定ルール）
+function AB3CDiagram({ ab3c }) {
+  if (!ab3c) return null;
+  // 三角形: 顧客=上、自社=左下、競合=右下
+  const P = { customer: [230, 80], company: [90, 300], competitor: [370, 300] };
+  const R = 52;
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const mB = mid(P.customer, P.company); // B: 顧客⇔自社（提供する価値）
+  const mA = mid(P.company, P.competitor); // A: 自社⇔競合（競合ではなく選ばれる理由＝差別的優位）
+  return (
+    <div>
+      <div style={{ textAlign: "center" }}>
+        <svg viewBox="0 0 460 380" style={{ maxWidth: 460, width: "100%" }} role="img" aria-label="AB3C図">
+          <line x1={P.customer[0]} y1={P.customer[1]} x2={P.company[0]} y2={P.company[1]} stroke="#888" strokeWidth="2" />
+          <line x1={P.customer[0]} y1={P.customer[1]} x2={P.competitor[0]} y2={P.competitor[1]} stroke="#888" strokeWidth="2" />
+          <line x1={P.company[0]} y1={P.company[1]} x2={P.competitor[0]} y2={P.competitor[1]} stroke="#888" strokeWidth="2" />
+          {[
+            ["customer", "顧客"],
+            ["company", "自社"],
+            ["competitor", "競合"],
+          ].map(([k, label]) => (
+            <g key={k}>
+              <circle cx={P[k][0]} cy={P[k][1]} r={R} fill={C.black} />
+              <text x={P[k][0]} y={P[k][1] + 7} textAnchor="middle" style={{ fontSize: 20, fontWeight: 700, fill: "#fff" }}>
+                {label}
+              </text>
+            </g>
+          ))}
+          <g>
+            <rect x={mB[0] - 70} y={mB[1] - 20} width={56} height={40} rx={6} fill={C.red} />
+            <text x={mB[0] - 42} y={mB[1] + 7} textAnchor="middle" style={{ fontSize: 19, fontWeight: 700, fill: "#fff" }}>
+              B
+            </text>
+          </g>
+          <g>
+            <rect x={mA[0] - 28} y={mA[1] - 20} width={56} height={40} rx={6} fill={C.blue} />
+            <text x={mA[0]} y={mA[1] + 7} textAnchor="middle" style={{ fontSize: 19, fontWeight: 700, fill: "#fff" }}>
+              A
+            </text>
+          </g>
+        </svg>
+      </div>
+      <table style={tableStyle}>
+        <tbody>
+          <tr>
+            <td style={{ ...tdStyle, fontWeight: 700, whiteSpace: "nowrap", color: C.red }}>B ベネフィット</td>
+            <td style={tdStyle}>{ab3c.benefit}</td>
+          </tr>
+          <tr>
+            <td style={{ ...tdStyle, fontWeight: 700, whiteSpace: "nowrap", color: C.blue }}>A アドバンテージ</td>
+            <td style={tdStyle}>{ab3c.advantage}</td>
+          </tr>
+          <tr>
+            <td style={{ ...tdStyle, fontWeight: 700, whiteSpace: "nowrap" }}>顧客</td>
+            <td style={tdStyle}>{ab3c.customer}</td>
+          </tr>
+          <tr>
+            <td style={{ ...tdStyle, fontWeight: 700, whiteSpace: "nowrap" }}>自社</td>
+            <td style={tdStyle}>{ab3c.company}</td>
+          </tr>
+          <tr>
+            <td style={{ ...tdStyle, fontWeight: 700, whiteSpace: "nowrap" }}>競合</td>
+            <td style={tdStyle}>{ab3c.competitor}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -636,8 +712,48 @@ function Report({ report, meta }) {
       {/* ===== 第三段 ===== */}
       <SectionTitle no="第三段" title="では、どうすればいいのか" lead={s3.lead} />
       <Explain>
-        処方箋は二段階です。まず<strong>対処療法</strong>——商品はそのままに「伝え方」を直す、今週から動ける改善。次に<strong>根本治療</strong>——価値サークルの軸そのものを強くする、戦略レベルの改善。順番が大事です。伝え方を直して初めて、今の商品の本当の実力が分かります。
+        処方は三歩です。まず<strong>戦略を絞る</strong>——誰のどんな価値に賭けるかを決める。次に<strong>対処療法</strong>——商品はそのままに「伝え方」を直す、今週から動ける改善。最後に<strong>根本治療</strong>——価値サークルの軸そのものを強くする、戦略レベルの改善。順番が大事です。絞らずに改善を始めると、どこにでもあるページに戻ってしまいます。
       </Explain>
+
+      {s3.focus && (
+        <Card title="どこに絞るか ── ターゲットとベネフィットの選択" accent={C.black}>
+          <Explain>
+            レビューとページから見えてきた「選ばれ方」の候補を比較し、戦略を一点に絞ります。市場は小さくなるように見えますが、絞ったほうが選ばれる理由は強く立ちます。絞った先の戦略をAB3C（顧客・自社・競合とベネフィット・アドバンテージ）の図で確認してください。
+          </Explain>
+          {(s3.focus.options || []).map((o, i) => (
+            <div
+              key={i}
+              style={{
+                border: o.chosen ? `3px solid ${C.black}` : "1px solid #ccc",
+                borderRadius: 8,
+                padding: 14,
+                marginBottom: 10,
+                background: o.chosen ? "#fffbe9" : "#fff",
+              }}
+            >
+              <div style={{ fontSize: 19, fontWeight: 700, marginBottom: 4 }}>
+                {o.chosen ? "★ ここに絞る： " : "案： "}
+                {o.target} × {o.benefit}
+              </div>
+              <div style={{ fontSize: 18, lineHeight: 1.8 }}>{o.reason}</div>
+            </div>
+          ))}
+          <AB3CDiagram ab3c={s3.focus.ab3c} />
+          {s3.focus.strategyMessage?.message && (
+            <div style={{ background: C.black, color: "#fff", borderRadius: 8, padding: 20, marginTop: 8 }}>
+              <div style={{ fontSize: 16, opacity: 0.8, marginBottom: 6 }}>戦略メッセージ</div>
+              <div style={{ fontSize: 22, lineHeight: 1.7, fontFamily: "var(--font-heading)" }}>
+                {s3.focus.strategyMessage.message}
+              </div>
+              <div style={{ marginTop: 12, fontSize: 16, lineHeight: 1.8 }}>
+                <span style={{ color: "#ff8080" }}>ベネフィット: {s3.focus.strategyMessage.benefit_part}</span>
+                <br />
+                <span style={{ color: "#8ab8f0" }}>アドバンテージ: {s3.focus.strategyMessage.advantage_part}</span>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card title={`対処療法 ── ${s3.stage1?.title || "伝え方を変える（今すぐできる改善）"}`} accent={C.phase1}>
         <h4 style={{ fontSize: 20, margin: "0 0 4px" }}>あなたが重視すべき、お客様の比較ポイント</h4>
@@ -656,29 +772,24 @@ function Report({ report, meta }) {
         <List items={s3.stage1?.appealReset} />
         <h4 style={{ fontSize: 20, margin: "18px 0 8px" }}>コンテンツ増強の優先順位</h4>
         <List items={s3.stage1?.contentPriorities} />
-        {s3.stage1?.strategyMessage?.message && (
-          <div style={{ background: C.black, color: "#fff", borderRadius: 8, padding: 20, marginTop: 18 }}>
-            <div style={{ fontSize: 16, opacity: 0.8, marginBottom: 6 }}>戦略メッセージ</div>
-            <div style={{ fontSize: 22, lineHeight: 1.7, fontFamily: "var(--font-heading)" }}>
-              {s3.stage1.strategyMessage.message}
-            </div>
-            <div style={{ marginTop: 12, fontSize: 16, lineHeight: 1.8 }}>
-              <span style={{ color: "#ff8080" }}>ベネフィット: {s3.stage1.strategyMessage.benefit_part}</span>
-              <br />
-              <span style={{ color: "#8ab8f0" }}>アドバンテージ: {s3.stage1.strategyMessage.advantage_part}</span>
-            </div>
-          </div>
-        )}
       </Card>
 
       <Card title={`根本治療 ── ${s3.stage2?.title || "価値そのものを高める（戦略的な改善）"}`} accent={C.blue}>
         <Explain>
-          伝え方ではなく、提供する価値そのものに手を入れる提案です。価値サークルの弱い軸を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強みになります。
+          伝え方ではなく、提供する価値そのものに手を入れる提案です。第二段の価値サークルで弱かった軸（青枠で示した部分）を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強みになります。
         </Explain>
+        <ValueCircle
+          sixAxes={s2.sixAxes}
+          highlight={(s3.stage2?.valueDevelopment || []).map((v) => v.axis)}
+          showLegend={false}
+        />
+        <p style={{ fontSize: 16, color: "#555", textAlign: "center", marginTop: 0 }}>
+          青枠＝これから強化を提案する軸
+        </p>
         {(s3.stage2?.valueDevelopment || []).map((v, i) => (
-          <div key={i} style={{ marginBottom: 12 }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: C.blue }}>{v.axis}：</span>
-            <span style={{ fontSize: 18, lineHeight: 1.8 }}>{v.proposal}</span>
+          <div key={i} style={{ marginBottom: 14, borderLeft: `4px solid ${C.blue}`, paddingLeft: 12 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.blue }}>{v.axis} を強化する</div>
+            <div style={{ fontSize: 18, lineHeight: 1.8 }}>{v.proposal}</div>
           </div>
         ))}
         <h4 style={{ fontSize: 20, margin: "18px 0 8px" }}>どの軸で戦うか（シナリオ）</h4>
@@ -729,11 +840,11 @@ const DEMO_REPORT = {
       gaps: ["「手頃さ」を訴えているが、お客様は「冷めても甘い」という味の個性を評価しています"],
     },
     sixAxes: [
-      { axis: "機能", own: "「冷めても甘い」という評価が複数", competitorBest: "競合Aは香りの鮮度で圧倒", verdict: "並んでいる" },
+      { axis: "機能", own: "「冷めても甘い」という評価が突出して多い", competitorBest: "競合Aは香りの鮮度で評価", verdict: "突出している" },
       { axis: "デザイン", own: "言及なし", competitorBest: "競合Aのパッケージ写真が好評", verdict: "比較材料なし" },
       { axis: "パッケージング", own: "言及なし", competitorBest: "競合Aのギフト箱", verdict: "負けている" },
       { axis: "購入前サービス", own: "言及なし", competitorBest: "競合Aの選び方ガイド", verdict: "負けている" },
-      { axis: "購入中サービス", own: "梱包の丁寧さへの言及が多い", competitorBest: "競合Aの説明カード同梱", verdict: "並んでいる" },
+      { axis: "購入中サービス", own: "梱包の丁寧さへの言及が多い", competitorBest: "競合Aの説明カード同梱", verdict: "勝っている" },
       { axis: "購入後サービス", own: "言及なし", competitorBest: "目立った言及なし", verdict: "比較材料なし" },
     ],
     sevenElements: [
@@ -747,7 +858,35 @@ const DEMO_REPORT = {
     ],
   },
   story3: {
-    lead: "まず伝え方を直し、その上で価値そのものを高める二段階で進めましょう。",
+    lead: "まず戦略を絞り、伝え方を直し、その上で価値そのものを高める順で進めましょう。",
+    focus: {
+      options: [
+        {
+          target: "家庭で毎日淹れる人",
+          benefit: "冷めても甘い、毎日の一杯",
+          reason: "レビューで最も熱量が高く、競合が誰も語っていない空白です。",
+          chosen: true,
+        },
+        {
+          target: "ギフトを探す人",
+          benefit: "コーヒー好きに喜ばれる贈り物",
+          reason: "市場は大きいものの、競合Aのギフト箱が強く、パッケージ投資が先に必要です。",
+          chosen: false,
+        },
+      ],
+      ab3c: {
+        customer: "家庭で毎日コーヒーを淹れる30〜50代。マグカップでゆっくり飲むため、冷めてからの味に不満を持っている",
+        company: "余韻と冷めた甘みを優先する焙煎を意図的に選択している自家焙煎店",
+        competitor: "競合Aは香りの鮮度、競合Bは容量単価。どちらも「淹れたて」の世界で戦っている",
+        benefit: "時間が経っても最後の一口までおいしい、毎日のコーヒー",
+        advantage: "ピークの香りを譲り、冷めた甘みを取る焙煎設計（誰も語っていない軸）",
+      },
+      strategyMessage: {
+        message: "（デモ）冷めても甘い、毎日の一杯。",
+        benefit_part: "家庭で淹れる毎日のコーヒーがおいしくなる",
+        advantage_part: "余韻と冷めた甘みを取る焙煎の意図的選択",
+      },
+    },
     stage1: {
       title: "伝え方を変える（今すぐできる改善）",
       topPriorities: [
@@ -757,15 +896,14 @@ const DEMO_REPORT = {
       ],
       appealReset: ["ファーストビューを「冷めても甘い」を軸に書き換える"],
       contentPriorities: ["焙煎の意図を語る開発ストーリーを追加する"],
-      strategyMessage: {
-        message: "（デモ）冷めても甘い、毎日の一杯。",
-        benefit_part: "家庭で淹れる毎日のコーヒーがおいしくなる",
-        advantage_part: "余韻と冷めた甘みを取る焙煎の意図的選択",
-      },
     },
     stage2: {
       title: "価値そのものを高める（戦略的な改善）",
-      valueDevelopment: [{ axis: "購入前サービス", proposal: "好みの淹れ方診断のような、選ぶ前の相談コンテンツがあるとよいでしょう。" }],
+      valueDevelopment: [
+        { axis: "購入前サービス", proposal: "好みの淹れ方診断のような、選ぶ前の相談コンテンツがあるとよいでしょう。" },
+        { axis: "パッケージング", proposal: "「冷めても甘い」を体現する保温マグ同梱のギフトセットなど、戦略メッセージと一体のパッケージ開発が考えられます。" },
+        { axis: "購入後サービス", proposal: "購入後1週間目に「冷めた一杯の楽しみ方」を届けるフォローメールで、リピートの入口を作れます。" },
+      ],
       scenarios: [
         { name: "味の個性で戦う", target: "家庭で丁寧に淹れる30〜50代", actions: ["味の比較表を作る"] },
         { name: "ギフトで戦う", target: "コーヒー好きへの贈り物を探す人", actions: ["ギフト包装の写真を充実させる"] },
