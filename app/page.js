@@ -2321,15 +2321,26 @@ const [chatSummaries, setChatSummaries] = useState([]);
     { id: "press", label: "プレスリリース", icon: "📰", preset: true },
     // 事業改善系
     { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
+    { id: "lp", label: "商品LP", icon: "🛒", preset: true },
     { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
     { id: "sales", label: "営業資料・提案書", icon: "💼", preset: true },
   ];
-  // 既存ユーザー向けマイグレーション: 保存済み threads に "general" がなければ先頭に追加
+  // 既存ユーザー向けマイグレーション: 保存済み threads に "general" / "lp" がなければ追加
   const ensureGeneralTheme = (loadedThreads) => {
     if (!Array.isArray(loadedThreads) || loadedThreads.length === 0) return loadedThreads;
-    if (loadedThreads.some(t => t && t.id === "general")) return loadedThreads;
-    return [{ id: "general", label: "AI秘書", icon: "💼", preset: true }, ...loadedThreads];
+    let threads = loadedThreads;
+    if (!threads.some(t => t && t.id === "general")) {
+      threads = [{ id: "general", label: "AI秘書", icon: "💼", preset: true }, ...threads];
+    }
+    if (!threads.some(t => t && t.id === "lp")) {
+      const lpTheme = { id: "lp", label: "商品LP", icon: "🛒", preset: true };
+      const websiteIdx = threads.findIndex(t => t && t.id === "website");
+      threads = websiteIdx >= 0
+        ? [...threads.slice(0, websiteIdx + 1), lpTheme, ...threads.slice(websiteIdx + 1)]
+        : [...threads, lpTheme];
+    }
+    return threads;
   };
 
   // スレッド初期化（戦略確定時）
