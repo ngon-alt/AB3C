@@ -420,7 +420,7 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
   const AXES = ["機能", "デザイン", "パッケージング", "購入前サービス", "購入中サービス", "購入後サービス"];
   const find = (name) => (sixAxes || []).find((a) => (a.axis || "").startsWith(name.slice(0, 3)));
   const isHl = (name) => highlight.some((h) => (h || "").startsWith(name.slice(0, 3)));
-  const cx = 230, cy = 230, r1 = 70, r2 = 170;
+  const cx = 230, cy = 200, r1 = 70, r2 = 170;
   const segs = AXES.map((name, i) => {
     // 180度（9時の位置）から時計回りに60度ずつ → i=0..2が上半分、i=3..5が下半分
     const a0 = ((i * 60 + 180) * Math.PI) / 180;
@@ -440,10 +440,7 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
 
   return (
     <div style={{ textAlign: "center" }}>
-      <svg viewBox="0 0 460 500" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
-        <text x={cx} y={28} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#555" }}>
-          商品力の3軸
-        </text>
+      <svg viewBox="0 0 460 440" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
         {segs.map((s, i) => (
           <g key={i}>
             <path d={s.d} fill={s.ev.tint} stroke={s.hl ? C.blue : "#999"} strokeWidth={s.hl ? 4 : 1.5} />
@@ -461,14 +458,16 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
           </g>
         ))}
         <circle cx={cx} cy={cy} r={r1 - 4} fill="#fff" stroke="#999" strokeWidth="1.5" />
-        <text x={cx} y={cy - 4} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#1a1a14" }}>
-          価値
+        {/* 水平線で二重円を貫通させ、上=商品ブロック・下=サービスブロックを示す */}
+        <line x1={cx - r2} y1={cy} x2={cx + r2} y2={cy} stroke="#1a1a14" strokeWidth="2.5" />
+        <text x={cx} y={cy - 18} textAnchor="middle" style={{ fontSize: 17, fontWeight: 700, fill: "#1a1a14" }}>
+          商品
         </text>
-        <text x={cx} y={cy + 16} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#1a1a14" }}>
-          サークル
+        <text x={cx} y={cy + 30} textAnchor="middle" style={{ fontSize: 17, fontWeight: 700, fill: "#1a1a14" }}>
+          サービス
         </text>
-        <text x={cx} y={cy + r2 + 36} textAnchor="middle" style={{ fontSize: 16, fontWeight: 700, fill: "#555" }}>
-          サービスの3軸
+        <text x={cx} y={cy + r2 + 36} textAnchor="middle" style={{ fontSize: 18, fontWeight: 700, fill: "#1a1a14" }}>
+          価値サークル
         </text>
       </svg>
       {showLegend && (
@@ -484,11 +483,12 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
 // C=黒・B=赤・A=青（AB3Cカラー固定ルール）
 function AB3CDiagram({ ab3c }) {
   if (!ab3c) return null;
-  // 三角形: 顧客=上、自社=左下、競合=右下
-  const P = { customer: [230, 80], company: [90, 300], competitor: [370, 300] };
+  // 三角形: 顧客=上、自社=右下、競合=左下
+  const P = { customer: [230, 80], company: [370, 300], competitor: [90, 300] };
   const R = 52;
   const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
   const mB = mid(P.customer, P.company); // B: 顧客⇔自社（提供する価値）
+  const mB2 = mid(P.customer, P.competitor); // B: 顧客⇔競合（同じベネフィットを提供する者として比較される）
   const mA = mid(P.company, P.competitor); // A: 自社⇔競合（競合ではなく選ばれる理由＝差別的優位）
   return (
     <div>
@@ -509,9 +509,17 @@ function AB3CDiagram({ ab3c }) {
               </text>
             </g>
           ))}
+          {/* B: 顧客⇔自社（提供する価値）。右上の辺の外側 */}
           <g>
-            <rect x={mB[0] - 70} y={mB[1] - 20} width={56} height={40} rx={6} fill={C.red} />
-            <text x={mB[0] - 42} y={mB[1] + 7} textAnchor="middle" style={{ fontSize: 19, fontWeight: 700, fill: "#fff" }}>
+            <rect x={mB[0] + 14} y={mB[1] - 20} width={56} height={40} rx={6} fill={C.red} />
+            <text x={mB[0] + 42} y={mB[1] + 7} textAnchor="middle" style={{ fontSize: 19, fontWeight: 700, fill: "#fff" }}>
+              B
+            </text>
+          </g>
+          {/* B: 顧客⇔競合（同じベネフィットを提供する者として比較される）。左上の辺の外側 */}
+          <g>
+            <rect x={mB2[0] - 70} y={mB2[1] - 20} width={56} height={40} rx={6} fill={C.red} />
+            <text x={mB2[0] - 42} y={mB2[1] + 7} textAnchor="middle" style={{ fontSize: 19, fontWeight: 700, fill: "#fff" }}>
               B
             </text>
           </g>
