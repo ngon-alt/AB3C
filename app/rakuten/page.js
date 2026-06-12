@@ -443,8 +443,9 @@ function ValueCircle({ sixAxes, highlight = [], showLegend = true }) {
       <svg viewBox="0 0 460 440" style={{ maxWidth: 480, width: "100%" }} role="img" aria-label="価値サークル">
         {segs.map((s, i) => (
           <g key={i}>
-            {/* 塗りは「強化を提案している軸」専用。評価はマーク（◎◯△×）だけで表現する */}
-            <path d={s.d} fill={s.hl ? "#d8e6f8" : "#fff"} stroke="#999" strokeWidth="1.5" />
+            {/* 塗りは「強化を提案している軸」専用。評価はマーク（◎◯△×）だけで表現する。
+                色は処方系のティール（赤=B・青=A の専用色は装飾に使わない） */}
+            <path d={s.d} fill={s.hl ? "#d6f0ec" : "#fff"} stroke="#999" strokeWidth="1.5" />
             <text x={s.lx} y={s.ly - 14} textAnchor="middle" style={{ fontSize: 15, fontWeight: 700, fill: "#1a1a14" }}>
               {s.name.length > 5 ? s.name.replace("サービス", "") : s.name}
             </text>
@@ -637,7 +638,7 @@ function Report({ report, meta }) {
   return (
     <div>
       {report.wantsNote && (
-        <Card accent={C.blue}>
+        <Card accent="#555">
           <p style={{ fontSize: 18, lineHeight: 1.9, margin: 0 }}>{report.wantsNote}</p>
         </Card>
       )}
@@ -695,7 +696,7 @@ function Report({ report, meta }) {
 
       {/* ===== 第二段 ===== */}
       <SectionTitle no="第二段" title="自分は、なぜ売れないのか" lead={s2.lead} />
-      <Card title="訴求と評価のズレ" accent={C.red}>
+      <Card title="訴求と評価のズレ" accent={C.black}>
         <Explain>
           あなたの商品ページ（LP）が「売りです」と訴えている内容と、あなたのお客様がレビューで実際に高く評価している内容を、AIが突き合わせた結果です。ここがずれていると、本当の魅力が伝わらないまま売り場に立っていることになります。逆に、お客様だけが知っている強みが見つかれば、それは伝えるだけで価値になります。
         </Explain>
@@ -709,7 +710,7 @@ function Report({ report, meta }) {
             <List items={s2.zure?.customerPraise} />
           </div>
         </div>
-        <h4 style={{ fontSize: 18, margin: "0 0 8px", color: C.red }}>ズレの指摘</h4>
+        <h4 style={{ fontSize: 18, margin: "0 0 8px" }}>ズレの指摘</h4>
         <List items={s2.zure?.gaps} />
       </Card>
 
@@ -817,9 +818,9 @@ function Report({ report, meta }) {
         <List items={s3.stage1?.contentPriorities} />
       </Card>
 
-      <Card title={`根本治療 ── ${s3.stage2?.title || "価値そのものを高める（戦略的な改善）"}`} accent={C.blue}>
+      <Card title={`根本治療 ── ${s3.stage2?.title || "価値そのものを高める（戦略的な改善）"}`} accent="#555">
         <Explain>
-          伝え方ではなく、提供する価値そのものに手を入れる提案です。価値サークルの青く塗った軸を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強みになります。
+          伝え方ではなく、提供する価値そのものに手を入れる提案です。価値サークルの緑に塗った軸を強くする、あるいは誰も立てていない新しい軸を立てる——時間はかかりますが、真似されにくい本物の強み（新しいアドバンテージ）になります。
         </Explain>
         <ValueCircle
           sixAxes={s2.sixAxes}
@@ -827,11 +828,11 @@ function Report({ report, meta }) {
           showLegend={false}
         />
         <p style={{ fontSize: 16, color: "#555", textAlign: "center", marginTop: 0 }}>
-          青い塗り＝これから強化を提案する軸
+          緑の塗り＝これから強化を提案する軸
         </p>
         {(s3.stage2?.valueDevelopment || []).map((v, i) => (
-          <div key={i} style={{ marginBottom: 14, borderLeft: `4px solid ${C.blue}`, paddingLeft: 12 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.blue }}>{v.axis} を強化する</div>
+          <div key={i} style={{ marginBottom: 14, borderLeft: `4px solid ${C.phase1}`, paddingLeft: 12 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.phase1 }}>{v.axis} を強化する</div>
             <div style={{ fontSize: 18, lineHeight: 1.8 }}>{v.proposal}</div>
           </div>
         ))}
@@ -846,7 +847,7 @@ function Report({ report, meta }) {
         {s3.stage2?.newAxis?.name && (
           <div style={{ border: `2px solid ${C.blue}`, borderRadius: 8, padding: 16, marginTop: 14 }}>
             <div style={{ fontSize: 16, color: C.blue, fontWeight: 700, marginBottom: 4 }}>
-              誰も載せていない新しい軸の提案
+              誰も載せていない新しい軸（＝新しいアドバンテージ候補）の提案
             </div>
             <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>{s3.stage2.newAxis.name}</div>
             <div style={{ fontSize: 18, lineHeight: 1.8 }}>{s3.stage2.newAxis.rationale}</div>
