@@ -44,7 +44,7 @@ async function postJson(url, body) {
   return data;
 }
 
-export default function RakutenPage() {
+export default function RakutenPage({ searchParams }) {
   const { data: session, status } = useSession();
   const [ownUrl, setOwnUrl] = useState("");
   const [cats, setCats] = useState({ large: "", mid: "", small: "" });
@@ -138,17 +138,13 @@ export default function RakutenPage() {
     }
   }
 
-  // 開発環境限定のレイアウト確認用デモ（/rakuten?demo=1）。本番ビルドでは無効
-  const isDemo =
-    process.env.NODE_ENV === "development" &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("demo") === "1";
-  if (isDemo && !report) {
-    setReport(DEMO_REPORT);
-    setMeta(DEMO_META);
-  }
+  // 開発環境限定のレイアウト確認用デモ（/rakuten?demo=1）。本番ビルドでは無効。
+  // searchParams から読むことでサーバー側レンダリングでもデモが描画される（PDF書き出し用）
+  const isDemo = process.env.NODE_ENV === "development" && searchParams?.demo === "1";
+  const shownReport = report || (isDemo ? DEMO_REPORT : null);
+  const shownMeta = meta || (isDemo ? DEMO_META : null);
 
-  if (status === "loading") return null;
+  if (status === "loading" && !isDemo) return null;
   if (!session && !isDemo) {
     return (
       <main style={{ maxWidth: 720, margin: "60px auto", padding: 24, fontFamily: "var(--font-body)" }}>
@@ -254,7 +250,12 @@ export default function RakutenPage() {
         )}
       </section>
 
-      {report && <Report report={report} meta={meta} />}
+      {/* id="result-area": 印刷時はレポート部分だけが出力される（app/print.css の規約） */}
+      {shownReport && (
+        <div id="result-area">
+          <Report report={shownReport} meta={shownMeta} />
+        </div>
+      )}
     </main>
   );
 }
