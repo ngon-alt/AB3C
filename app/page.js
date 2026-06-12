@@ -1514,6 +1514,25 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     </div>
   );
 }
+// 商品LPテーマの固定ウェルカム（AI生成なし・即時表示・チケット消費なし）
+const LP_WELCOME = `「商品LP」のコンテンツを一緒に企画していきましょう。
+
+LP（商品ページ）は上から下へ、次の7つの観点の物語順で組み立てます。この並びは、確定したAB3C戦略の物語順と一致しています。
+
+① ターゲットの悩み — 絞ったお客様の課題への共感から入る
+② ベネフィット — 何の商品で、何が得られるかが3秒で分かる
+③ 他社との違い — 差別的優位点。比較表が効果的
+④ 証拠（信頼コンテンツ） — レビュー・専門家としての説明・第三者の証明・開発ストーリー
+⑤ 使用シーン — その場面の情緒を具体的に描く
+⑥ 不安解消 — FAQ・保証・スペック・納期・送料
+⑦ 今買う理由 — 最後のひと押し
+
+まず伺います。この商品のLP（商品ページ）はすでにありますか？
+
+🔗 すでにある場合 → ページのURLを貼ってください。拝見して7つの観点で診断し、弱いところに絞って一緒に磨いていきます。
+
+📝 まだない場合 → 「まだありません」とお送りください。①から順に、確定した戦略をもとに一つずつ組み立てていきます。`;
+
 function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId, strategyVersion, legacyVersionIndex }) {
   const effectiveThemeId = themeId || threadId;
   const displayThemeName = themeLabel || effectiveThemeId;
@@ -1588,6 +1607,13 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
       const hasPreparing = parsed && parsed.some(m => typeof m?.content === "string" && m.content.includes("準備中"));
       if (parsed && parsed.length > 0 && !hasPreparing) {
         setMessages(parsed);
+        initialized.current = true;
+      } else if (effectiveThemeId === "lp" && !chatDescription) {
+        // 商品LPテーマは固定ウェルカムを即時表示（API生成なし・チケット消費なし）
+        setMessages([
+          { role: "user", content: "「商品LP」テーマを開始します。", hidden: true },
+          { role: "assistant", content: LP_WELCOME },
+        ]);
         initialized.current = true;
       } else {
         // 初回アドバイス生成（全体アドバイス or サブチャット概要ベース）
@@ -1963,6 +1989,15 @@ const [strategyConfirmed, setStrategyConfirmed] = useState(false);
 const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
 const [recruitLoading, setRecruitLoading] = useState(false);
+// 伴走フェーズ: 戦略メッセージカードの開閉（チャット領域を広く使うため折りたたみ可能）
+const [strategyCardOpen, setStrategyCardOpen] = useState(() => {
+  try { return localStorage.getItem("ab3c_strategy_card_open") !== "0"; } catch (e) { return true; }
+});
+const toggleStrategyCard = () => setStrategyCardOpen(o => {
+  const next = !o;
+  try { localStorage.setItem("ab3c_strategy_card_open", next ? "1" : "0"); } catch (e) {}
+  return next;
+});
 const [threads, setThreads] = useState([]);
 const [activeThemeId, setActiveThemeId] = useState(null);
 const [activeChatId, setActiveChatId] = useState(null);
@@ -4837,9 +4872,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
-  <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ — 戦略策定タブのPカードと同じデザインに統一 */}
-    <div style={{ padding: "20px 24px", flexShrink: 0 }}>
+  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight }}>
+    {/* 戦略メッセージ — 戦略策定タブのPカードと同じデザインに統一（折りたたみ可） */}
+    <div style={{ padding: "16px 24px 12px", flexShrink: 0 }}>
       {(() => {
         const confirmedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
         const sm = confirmedCombo?.strategy_message || currentResult?.strategy_message || {};
@@ -4848,19 +4883,27 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         return (
           <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden" }}>
             <div style={{ background: pColor, height: 10 }} />
-            <div style={{ padding: "16px 22px" }}>
-              {confirmedCombo && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em" }}>
+            <div style={{ padding: strategyCardOpen ? "16px 22px" : "10px 22px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: strategyCardOpen ? "wrap" : "nowrap", minWidth: 0 }}>
+                {confirmedCombo && (
+                  <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em", flexShrink: 0 }}>
                     P{confirmedCombo.id}
                   </span>
-                  <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-                    {trimRouteSuffix(confirmedCombo.label)}
-                  </span>
-                </div>
-              )}
-              {sm?.message && (
-                <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
+                )}
+                <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4, ...(strategyCardOpen ? {} : { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0, flex: 1 }) }}>
+                  {strategyCardOpen
+                    ? (confirmedCombo ? trimRouteSuffix(confirmedCombo.label) : "確定戦略")
+                    : (sm?.message || (confirmedCombo ? trimRouteSuffix(confirmedCombo.label) : "確定戦略"))}
+                </span>
+                <button
+                  onClick={toggleStrategyCard}
+                  title={strategyCardOpen ? "戦略メッセージをたたんでチャットを広く使う" : "戦略メッセージの全体を表示"}
+                  style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 999, color: "#555", cursor: "pointer", fontSize: 16, padding: "4px 14px", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+                  {strategyCardOpen ? "▲ たたむ" : "▼ ひらく"}
+                </button>
+              </div>
+              {strategyCardOpen && sm?.message && (
+                <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
                   <div style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", padding: "4px 14px", borderRadius: 999, marginBottom: 12 }}>戦略メッセージ</div>
                   <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
                     {sm.message}
@@ -4873,7 +4916,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   )}
                 </div>
               )}
-              {strategyConfirmed && (
+              {strategyCardOpen && strategyConfirmed && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
                   <button
                     onClick={unconfirmStrategy}
@@ -4894,8 +4937,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         );
       })()}
     </div>
-    {/* チャット */}
-    <div style={{ flex: 1, overflow: "hidden" }}>
+    {/* チャット（画面高に固定。メッセージ部分のみ内部スクロール、入力欄は常に下部に表示） */}
+    <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
       {activeChatId ? (
         <ThreadChat key={siteId + "_" + activeChatId + "_c" + chatConfirmId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={chatConfirmId} legacyVersionIndex={chatVersionIndex} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
