@@ -54,7 +54,7 @@ export default function RakutenGuidePage() {
         <li><strong>ターゲットの悩み</strong>〔<span style={{ fontWeight: 700 }}>顧客（C）× ニーズ</span>〕—— 「こんな方に、こんなお悩みありませんか」と、絞った顧客の課題への共感から入る</li>
         <li><strong>ベネフィット</strong>〔<span style={{ color: C.red, fontWeight: 700 }}>B</span>〕—— 開いた瞬間に「何の商品で、何が得られるか」が分かる（3秒が勝負）</li>
         <li><strong>他社との違い</strong>〔<span style={{ color: C.blue, fontWeight: 700 }}>A</span> ＋ <span style={{ fontWeight: 700 }}>自社・競合（2つのC）</span>〕—— なぜ他ではなくこれなのかを示す。比較表があると構図が一目で伝わる</li>
-        <li><strong>証拠（信頼コンテンツ）</strong>〔<span style={{ color: C.blue, fontWeight: 700 }}>Aの根拠</span>〕—— レビューの量と質、売り手が専門家として語るおすすめの理由、第三者の証明（認証・受賞・メディア掲載）、開発ストーリー。レビューがまだ少ない店は、他の3つで客観的な信頼を補う</li>
+        <li><strong>証拠（信頼コンテンツ）</strong>〔<span style={{ color: C.blue, fontWeight: 700 }}>Aの根拠</span> ＋ <span style={{ fontWeight: 700 }}>自社（C）</span>〕—— レビューの量と質、売り手が専門家として語るおすすめの理由、第三者の証明（認証・受賞・メディア掲載）、開発ストーリー。レビューがまだ少ない店は、他の3つで客観的な信頼を補う</li>
         <li><strong>使用シーン</strong>〔<span style={{ fontWeight: 700 }}>顧客（C）のシーン</span> × <span style={{ color: C.red, fontWeight: 700 }}>Bの情緒</span>〕—— 絞ったターゲットの場面を具体的に描く。論理ではなく情緒で、「そのシーンなら、こう感じるな」を想像してもらう</li>
         <li><strong>不安解消</strong>〔FAQ・保証〕—— よくある質問・保証・スペック・配送納期・送料がページの中で分かること。ページを離れないと分からない情報は不安になる</li>
         <li><strong>今買う理由</strong>〔最終プッシュ〕—— 最後のひと押し。やりすぎると嫌味になるが、楽天では定番の作法なので適度に入れる</li>
