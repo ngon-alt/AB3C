@@ -14,6 +14,8 @@ export async function GET() {
   const targets = {
     itemPage: "https://item.rakuten.co.jp/horizonfarms/cd601/",
     reviewPage: "https://review.rakuten.co.jp/item/1/367826_10000702/1.1/",
+    searchPage: "https://search.rakuten.co.jp/search/mall/%E3%82%A2%E3%82%A4%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%A0/",
+    rankingPage: "https://ranking.rakuten.co.jp/daily/100283/",
   };
   const result = {};
   for (const [name, url] of Object.entries(targets)) {
