@@ -1557,6 +1557,9 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
       try { localStorage.setItem(lsKey, JSON.stringify(messages)); } catch (e) {}
+      // queueActionDataPut はバージョンなしキーを読む。_v{version} キーだけに書くと
+      // DB 同期が機能しないため、バージョンなしキーにも常に最新を書いておく。
+      try { localStorage.setItem(`ab3c_thread_${threadSiteId || "default"}_${threadId}`, JSON.stringify(messages)); } catch (e) {}
       // 親（page.js）に通知して DB 同期を起動
       try { window.dispatchEvent(new CustomEvent("ab3c-thread-changed", { detail: { siteId: threadSiteId, threadId } })); } catch (e) {}
     }
@@ -2459,6 +2462,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // 戦略アクションフェーズの DB 同期（debounce 1.5s）
   // threads/themeChats/actions/各threadのmessagesをまとめて PUT
   const actionDataPutTimerRef = useRef(null);
+  const confirmingRef = useRef(false);
   const queueActionDataPut = () => {
     if (!siteId) return;
     if (actionDataPutTimerRef.current) clearTimeout(actionDataPutTimerRef.current);
@@ -2528,7 +2532,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
       }, 1500);
     };
     window.addEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
-    return () => window.removeEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+    return () => {
+      window.removeEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+      // siteId 変化（再分析）時に保留タイマーが旧 siteId でDBに書き戻すのを防ぐ
+      if (analysisChatPutTimerRef.current) clearTimeout(analysisChatPutTimerRef.current);
+    };
   }, [siteId]);
 
   // アクション永続化
@@ -2653,7 +2661,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
 
   useEffect(() => {
     try { const saved = localStorage.getItem("ab3c_history"); if (saved) setHistory(JSON.parse(saved)); } catch (e) {}
-    try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {}
+    try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {} // 後方互換のグローバル読み込み（サイト別キーへの移行前）
     try { const cm = localStorage.getItem("ab3c_chat_minimized"); if (cm === "1") setChatMinimized(true); } catch (e) {}
     if (typeof Notification !== "undefined" && Notification.permission === "default") Notification.requestPermission();
     // URLパラメータからsite_idを読み取り
@@ -2984,11 +2992,22 @@ useEffect(() => {
   }
 }, [currentResult]);
 
+// chatSummaries はサイト別に保存（グローバルキーだと複数サイト運用時に混在・消失する）
 useEffect(() => {
   try {
-    localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
+    const key = siteId ? `ab3c_chat_summaries_${siteId}` : "ab3c_chat_summaries";
+    localStorage.setItem(key, JSON.stringify(chatSummaries));
   } catch (e) {}
-}, [chatSummaries]);
+}, [chatSummaries, siteId]);
+
+// siteId が変わったらサイト別のサマリーをロード
+useEffect(() => {
+  if (!siteId) return;
+  try {
+    const saved = localStorage.getItem(`ab3c_chat_summaries_${siteId}`);
+    if (saved) setChatSummaries(JSON.parse(saved));
+  } catch (e) {}
+}, [siteId]);
   const saveHistory = (inputText, resultData, title, improve = null, visual = null) => {
   const entry = {
     id: Date.now(),
@@ -3123,6 +3142,8 @@ useEffect(() => {
 
   // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
   const confirmStrategy = async () => {
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
     const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
     let siteName = "無題のサイト";
     try { if (siteUrl) siteName = new URL(siteUrl).hostname.replace(/^www\./, ""); } catch (e) {}
@@ -3291,6 +3312,8 @@ useEffect(() => {
       } catch (e) {
         // ネットワーク断・JSONパースエラー等
         alert("保存に失敗しました。ネットワーク接続を確認して再度お試しください。\n\n" + (e?.message || ""));
+      } finally {
+        confirmingRef.current = false;
       }
     }
   };
