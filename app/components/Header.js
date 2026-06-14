@@ -53,6 +53,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [portalLoading, setPortalLoading] = useState(false);
   const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [hoverExpanded, setHoverExpanded] = useState(false);
   useEffect(() => {
     try {
       if (localStorage.getItem("ab3c_header_collapsed") === "1") setHeaderCollapsed(true);
@@ -61,6 +62,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const toggleHeaderCollapsed = () => setHeaderCollapsed(v => {
     const next = !v;
     try { localStorage.setItem("ab3c_header_collapsed", next ? "1" : "0"); } catch (e) {}
+    if (!next) setHoverExpanded(false);
     return next;
   });
 
@@ -181,9 +183,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   };
 
   return (
-    <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}>
+    <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}
+      onMouseEnter={() => { if (headerCollapsed) setHoverExpanded(true); }}
+      onMouseLeave={() => setHoverExpanded(false)}>
       {/* 上段: ロゴ + サブナビ + ユーザー情報（折りたたみ可能） */}
-      {!headerCollapsed && (
+      {(!headerCollapsed || hoverExpanded) && (
       <div style={{ padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>

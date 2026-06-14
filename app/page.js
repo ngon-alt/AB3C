@@ -1341,6 +1341,14 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     } finally { setLoading(false); }
   };
 
+  const retryLastMessage = () => {
+    const msgs = messages.slice(0, -1);
+    const lastUser = [...msgs].reverse().find(m => m.role === "user");
+    if (!lastUser) return;
+    setMessages(msgs);
+    sendMessage(typeof lastUser.content === "string" ? lastUser.content : "", msgs);
+  };
+
   const handleImagePaste = (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -1463,6 +1471,13 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           </div>
         ))}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        {!loading && messages.length > 0 && messages[messages.length - 1]?.content === "エラーが発生しました。" && (
+          <div style={{ padding: "4px 0" }}>
+            <button onClick={retryLastMessage} style={{ background: "transparent", border: "1px solid #ccc", borderRadius: 4, color: "#555", cursor: "pointer", fontSize: 13, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+              🔄 再試行
+            </button>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
@@ -1731,6 +1746,28 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     } finally { setLoading(false); }
   };
 
+  const retryLastMessage = () => {
+    const msgs = messages.slice(0, -1);
+    const lastUser = [...msgs].reverse().find(m => m.role === "user");
+    if (!lastUser) return;
+    setMessages(msgs);
+    setLoading(true);
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: msgs.map(m => ({ role: m.role, content: m.content })),
+        analysisResult,
+        recruitMode: effectiveThemeId === "recruit",
+        threadTheme: effectiveThemeId,
+      }),
+    })
+    .then(r => r.json())
+    .then(data => setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]))
+    .catch(() => setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]))
+    .finally(() => setLoading(false));
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       {/* 補助金テーマの常設免責表示 */}
@@ -1802,6 +1839,13 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
           );
         })}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        {!loading && messages.length > 0 && messages[messages.length - 1]?.content === "エラーが発生しました。" && (
+          <div style={{ padding: "4px 0" }}>
+            <button onClick={retryLastMessage} style={{ background: "transparent", border: "1px solid #ccc", borderRadius: 4, color: "#555", cursor: "pointer", fontSize: 13, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+              🔄 再試行
+            </button>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       {effectiveThemeId === "recruit" && messages.filter(m => m.role === "user" && !m.hidden).length >= 3 && onGenerateRecruit && (
