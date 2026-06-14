@@ -1497,8 +1497,8 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
           onPaste={handleImagePaste}
           placeholder="分析結果について相談する... （画像はCtrl+Vで貼り付け可）"
-          rows={3}
-          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
+          rows={5}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
         {/* 2. チャットに送信（黒：ニュートラルな日常操作） */}
         <button onClick={send} disabled={loading}
@@ -1873,8 +1873,8 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
           onPaste={handleImagePaste}
           placeholder={isPro ? "メッセージを入力... （画像はCtrl+Vで貼り付け可）" : "プロプランでチャットが利用できます"}
           disabled={!isPro}
-          rows={3}
-          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
+          rows={5}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
         <button onClick={send} disabled={loading || !isPro}
           style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
