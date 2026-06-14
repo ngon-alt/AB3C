@@ -73,3 +73,108 @@ export async function listInstallationRepos(installationId) {
     private: r.private,
   }));
 }
+
+// ── Web更新（編集→PR）フローのデータ層 ──────────────────────────
+// すべて installation token 経由。直接 main へ push はしない（必ず作業ブランチ＋PR）。
+
+// 編集対象になりやすいテキスト/コンテンツ系のファイルだけに絞るための拡張子。
+// バイナリ・依存・ビルド成果物はツリーから除外し、AIに渡すトークンを節約する。
+const EDITABLE_EXT = /\.(astro|html?|md|mdx|mdoc|markdown|jsx?|tsx?|vue|svelte|njk|liquid|hbs|ejs|pug|json|ya?ml|toml|css|scss)$/i;
+const EXCLUDE_DIR = /(^|\/)(node_modules|\.next|\.git|dist|build|out|\.vercel|\.netlify|coverage|vendor)(\/|$)/i;
+
+// リポジトリのファイルパス一覧（再帰）。編集対象になりやすいものだけ返す。
+export async function getRepoTree(token, repoFullName, branch) {
+  const res = await ghFetch(token, `/repos/${repoFullName}/git/trees/${encodeURIComponent(branch)}?recursive=1`);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`リポジトリ構成の取得に失敗しました (${res.status}): ${t}`);
+  }
+  const data = await res.json();
+  const paths = (data.tree || [])
+    .filter(n => n.type === "blob" && !EXCLUDE_DIR.test(n.path) && EDITABLE_EXT.test(n.path))
+    .map(n => n.path);
+  return { paths, truncated: !!data.truncated };
+}
+
+// 1ファイルの本文を取得（base64 をデコードして返す）。sha は更新時に必要。
+export async function getFileContent(token, repoFullName, path, ref) {
+  const q = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+  const res = await ghFetch(token, `/repos/${repoFullName}/contents/${path.split("/").map(encodeURIComponent).join("/")}${q}`);
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`ファイル取得に失敗しました（${path}）(${res.status}): ${t}`);
+  }
+  const data = await res.json();
+  if (Array.isArray(data) || data.type !== "file") {
+    throw new Error(`指定パスはファイルではありません（${path}）`);
+  }
+  const content = Buffer.from(data.content || "", data.encoding || "base64").toString("utf-8");
+  return { content, sha: data.sha, path: data.path };
+}
+
+// ブランチの先端コミットSHAを取得
+export async function getBranchHeadSha(token, repoFullName, branch) {
+  const res = await ghFetch(token, `/repos/${repoFullName}/git/ref/heads/${encodeURIComponent(branch)}`);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`ブランチ ${branch} の取得に失敗しました (${res.status}): ${t}`);
+  }
+  const data = await res.json();
+  return data.object?.sha;
+}
+
+// 新しいブランチを作成（fromSha から分岐）
+export async function createBranch(token, repoFullName, newBranch, fromSha) {
+  const res = await ghFetch(token, `/repos/${repoFullName}/git/refs`, {
+    method: "POST",
+    body: JSON.stringify({ ref: `refs/heads/${newBranch}`, sha: fromSha }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`作業ブランチの作成に失敗しました（${newBranch}）(${res.status}): ${t}`);
+  }
+  return res.json();
+}
+
+// ファイルを作成/更新（contents API PUT）。更新時は既存 blob の sha が必須。
+export async function putFile(token, repoFullName, { path, content, message, branch, sha }) {
+  const body = {
+    message,
+    content: Buffer.from(content, "utf-8").toString("base64"),
+    branch,
+  };
+  if (sha) body.sha = sha;
+  const res = await ghFetch(token, `/repos/${repoFullName}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`ファイルのコミットに失敗しました（${path}）(${res.status}): ${t}`);
+  }
+  return res.json();
+}
+
+// プルリクエストを作成
+export async function createPullRequest(token, repoFullName, { head, base, title, body }) {
+  const res = await ghFetch(token, `/repos/${repoFullName}/pulls`, {
+    method: "POST",
+    body: JSON.stringify({ head, base, title, body }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`プルリクエストの作成に失敗しました (${res.status}): ${t}`);
+  }
+  return res.json();
+}
+
+// 作業ブランチ名を生成（衝突しにくいよう日時＋連番ベース）。
+// 例: senryaku/update-20260615-0453-ab12
+export function buildWorkBranchName(prefix = "senryaku/update") {
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  const rand = Math.random().toString(36).slice(2, 6);
+  return `${prefix}-${stamp}-${rand}`;
+}
