@@ -2408,6 +2408,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     // 事業改善系
     { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
     { id: "lp", label: "商品LP", icon: "🛒", preset: true },
+    { id: "lp_kikaku", label: "LP企画", icon: "📝", preset: true },
     { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
     { id: "sales", label: "営業資料・提案書", icon: "💼", preset: true },
@@ -2425,6 +2426,13 @@ const [chatSummaries, setChatSummaries] = useState([]);
       threads = websiteIdx >= 0
         ? [...threads.slice(0, websiteIdx + 1), lpTheme, ...threads.slice(websiteIdx + 1)]
         : [...threads, lpTheme];
+    }
+    if (!threads.some(t => t && t.id === "lp_kikaku")) {
+      const lpKikakuTheme = { id: "lp_kikaku", label: "LP企画", icon: "📝", preset: true };
+      const lpIdx = threads.findIndex(t => t && t.id === "lp");
+      threads = lpIdx >= 0
+        ? [...threads.slice(0, lpIdx + 1), lpKikakuTheme, ...threads.slice(lpIdx + 1)]
+        : [...threads, lpKikakuTheme];
     }
     return threads;
   };
