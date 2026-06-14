@@ -1228,6 +1228,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
   );
 }
 function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+  const fileInputRef = useRef(null);
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
     ? `ab3c_analysis_chat_${siteId}`
@@ -1235,6 +1236,7 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   // 初期ロード完了を追跡: 初回 save 効果が空配列で LS を上書きするのを防ぐ
@@ -1379,24 +1381,43 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     }
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    for (const file of files) {
+      if (!file.name.endsWith(".txt")) continue;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPendingFiles(prev => [...prev, { name: file.name, text: ev.target.result }]);
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+  };
+
   const send = async () => {
-    if ((!input.trim() && pendingImages.length === 0) || loading) return;
+    if ((!input.trim() && pendingImages.length === 0 && pendingFiles.length === 0) || loading) return;
+    let textWithFiles = input;
+    if (pendingFiles.length > 0) {
+      const fileBlock = pendingFiles.map(f => `【ファイル: ${f.name}】\n${f.text}`).join("\n\n");
+      textWithFiles = fileBlock + (input.trim() ? "\n\n" + input : "");
+    }
     let content;
     if (pendingImages.length > 0) {
       content = [];
-      if (input.trim()) content.push({ type: "text", text: input });
+      if (textWithFiles.trim()) content.push({ type: "text", text: textWithFiles });
       for (const img of pendingImages) {
         const base64 = img.dataUrl.split(",")[1];
         content.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: base64 } });
       }
     } else {
-      content = input;
+      content = textWithFiles;
     }
     const userMessage = { role: "user", content };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setPendingImages([]);
+    setPendingFiles([]);
     await sendMessage(content, newMessages);
   };
 
@@ -1493,13 +1514,31 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           </div>
         )}
         {/* 1. 入力欄 */}
+        {pendingFiles.length > 0 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+            {pendingFiles.map((f, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", gap: 4, background: "#e8e8e8", borderRadius: 4, padding: "3px 8px", fontSize: 13, fontFamily: "system-ui, sans-serif" }}>
+                <span>📄 {f.name}</span>
+                <button onClick={() => setPendingFiles(prev => prev.filter((_, i) => i !== idx))}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#555", fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
           onPaste={handleImagePaste}
-          placeholder="分析結果について相談する... （画像はCtrl+Vで貼り付け可）"
+          placeholder="分析結果について相談する... （画像はCtrl+V・テキストファイルは📎で添付可）"
           rows={5}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
+        <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
+          <input ref={fileInputRef} type="file" accept=".txt" multiple style={{ display: "none" }} onChange={handleFileSelect} />
+          <button onClick={() => fileInputRef.current?.click()}
+            style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 4, cursor: "pointer", color: "#555", fontSize: 13, padding: "6px 10px", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+            📎 .txtを添付
+          </button>
+        </div>
         {/* 2. チャットに送信（黒：ニュートラルな日常操作） */}
         <button onClick={send} disabled={loading}
           style={{ width: "100%", marginTop: 8, background: loading ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
@@ -1554,9 +1593,11 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [pendingImages, setPendingImages] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [summarizingIdx, setSummarizingIdx] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // block: "nearest" でチャット内コンテナだけスクロール（ページ全体スクロールを防止）
@@ -1710,23 +1751,42 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     }
   };
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    for (const file of files) {
+      if (!file.name.endsWith(".txt")) continue;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPendingFiles(prev => [...prev, { name: file.name, text: ev.target.result }]);
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+  };
+
   const send = async () => {
-    if ((!input.trim() && pendingImages.length === 0) || loading || !isPro) return;
+    if ((!input.trim() && pendingImages.length === 0 && pendingFiles.length === 0) || loading || !isPro) return;
+    let textWithFiles = input;
+    if (pendingFiles.length > 0) {
+      const fileBlock = pendingFiles.map(f => `【ファイル: ${f.name}】\n${f.text}`).join("\n\n");
+      textWithFiles = fileBlock + (input.trim() ? "\n\n" + input : "");
+    }
     let content;
     if (pendingImages.length > 0) {
       content = [];
-      if (input.trim()) content.push({ type: "text", text: input });
+      if (textWithFiles.trim()) content.push({ type: "text", text: textWithFiles });
       for (const img of pendingImages) {
         const base64 = img.dataUrl.split(",")[1];
         content.push({ type: "image", source: { type: "base64", media_type: img.mediaType, data: base64 } });
       }
     } else {
-      content = input;
+      content = textWithFiles;
     }
     const userMessage = { role: "user", content };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setPendingImages([]);
+    setPendingFiles([]);
     setLoading(true);
     try {
       const res = await fetch("/api/chat", {
@@ -1867,15 +1927,33 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
             ))}
           </div>
         )}
+        {pendingFiles.length > 0 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+            {pendingFiles.map((f, idx) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", gap: 4, background: "#e8e8e8", borderRadius: 4, padding: "3px 8px", fontSize: 13, fontFamily: "system-ui, sans-serif" }}>
+                <span>📄 {f.name}</span>
+                <button onClick={() => setPendingFiles(prev => prev.filter((_, i) => i !== idx))}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "#555", fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+            ))}
+          </div>
+        )}
         <textarea
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
           onPaste={handleImagePaste}
-          placeholder={isPro ? "メッセージを入力... （画像はCtrl+Vで貼り付け可）" : "プロプランでチャットが利用できます"}
+          placeholder={isPro ? "メッセージを入力... （画像はCtrl+V・テキストファイルは📎で添付可）" : "プロプランでチャットが利用できます"}
           disabled={!isPro}
           rows={5}
           style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
+        <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
+          <input ref={fileInputRef} type="file" accept=".txt" multiple style={{ display: "none" }} onChange={handleFileSelect} />
+          <button onClick={() => fileInputRef.current?.click()} disabled={!isPro}
+            style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 4, cursor: isPro ? "pointer" : "not-allowed", color: isPro ? "#555" : C.muted, fontSize: 13, padding: "6px 10px", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+            📎 .txtを添付
+          </button>
+        </div>
         <button onClick={send} disabled={loading || !isPro}
           style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
           💬 チャットに送信
