@@ -1341,6 +1341,14 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     } finally { setLoading(false); }
   };
 
+  const retryLastMessage = () => {
+    const msgs = messages.slice(0, -1);
+    const lastUser = [...msgs].reverse().find(m => m.role === "user");
+    if (!lastUser) return;
+    setMessages(msgs);
+    sendMessage(typeof lastUser.content === "string" ? lastUser.content : "", msgs);
+  };
+
   const handleImagePaste = (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -1463,6 +1471,13 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           </div>
         ))}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        {!loading && messages.length > 0 && messages[messages.length - 1]?.content === "エラーが発生しました。" && (
+          <div style={{ padding: "4px 0" }}>
+            <button onClick={retryLastMessage} style={{ background: "transparent", border: "1px solid #ccc", borderRadius: 4, color: "#555", cursor: "pointer", fontSize: 13, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+              🔄 再試行
+            </button>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div style={{ padding: 12, borderTop: `1px solid ${C.border}`, background: C.phase1Bg }}>
@@ -1482,8 +1497,8 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }}
           onPaste={handleImagePaste}
           placeholder="分析結果について相談する... （画像はCtrl+Vで貼り付け可）"
-          rows={3}
-          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
+          rows={5}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
         {/* 2. チャットに送信（黒：ニュートラルな日常操作） */}
         <button onClick={send} disabled={loading}
@@ -1514,6 +1529,25 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     </div>
   );
 }
+// 商品LPテーマの固定ウェルカム（AI生成なし・即時表示・チケット消費なし）
+const LP_WELCOME = `「商品LP」のコンテンツを一緒に企画していきましょう。
+
+LP（商品ページ）は上から下へ、次の7つの観点の物語順で組み立てます。この並びは、確定したAB3C戦略の物語順と一致しています。
+
+① ターゲットの悩み［顧客（C）× ニーズ］— 絞ったお客様の課題への共感から入る
+② ベネフィット［B］— 何の商品で、何が得られるかが3秒で分かる
+③ 他社との違い［A ＋ 自社・競合（2つのC）］— 差別的優位点。比較表が効果的
+④ 証拠（信頼コンテンツ）［Aの根拠 ＋ 自社（C）］— レビュー・専門家としての説明・第三者の証明・開発ストーリー
+⑤ 使用シーン［顧客（C）のシーン × Bの情緒］— その場面の情緒を具体的に描く
+⑥ 不安解消［FAQ・保証］— スペック・納期・送料を含め、ページ内で完結させる
+⑦ 今買う理由［最終プッシュ］— 最後のひと押し
+
+まず伺います。この商品のLP（商品ページ）はすでにありますか？
+
+🔗 すでにある場合 → ページのURLを貼ってください。拝見して7つの観点で診断し、弱いところに絞って一緒に磨いていきます。
+
+📝 まだない場合 → 「まだありません」とお送りください。①から順に、確定した戦略をもとに一つずつ組み立てていきます。`;
+
 function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisResult, isPro, onAddAction, onGenerateRecruit, siteId: threadSiteId, strategyVersion, legacyVersionIndex }) {
   const effectiveThemeId = themeId || threadId;
   const displayThemeName = themeLabel || effectiveThemeId;
@@ -1538,6 +1572,9 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
   useEffect(() => {
     if (initialized.current && messages.length > 0 && !messages[0]?.content?.includes("準備中")) {
       try { localStorage.setItem(lsKey, JSON.stringify(messages)); } catch (e) {}
+      // queueActionDataPut はバージョンなしキーを読む。_v{version} キーだけに書くと
+      // DB 同期が機能しないため、バージョンなしキーにも常に最新を書いておく。
+      try { localStorage.setItem(`ab3c_thread_${threadSiteId || "default"}_${threadId}`, JSON.stringify(messages)); } catch (e) {}
       // 親（page.js）に通知して DB 同期を起動
       try { window.dispatchEvent(new CustomEvent("ab3c-thread-changed", { detail: { siteId: threadSiteId, threadId } })); } catch (e) {}
     }
@@ -1588,6 +1625,13 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
       const hasPreparing = parsed && parsed.some(m => typeof m?.content === "string" && m.content.includes("準備中"));
       if (parsed && parsed.length > 0 && !hasPreparing) {
         setMessages(parsed);
+        initialized.current = true;
+      } else if (effectiveThemeId === "lp" && !chatDescription) {
+        // 商品LPテーマは固定ウェルカムを即時表示（API生成なし・チケット消費なし）
+        setMessages([
+          { role: "user", content: "「商品LP」テーマを開始します。", hidden: true },
+          { role: "assistant", content: LP_WELCOME },
+        ]);
         initialized.current = true;
       } else {
         // 初回アドバイス生成（全体アドバイス or サブチャット概要ベース）
@@ -1702,6 +1746,28 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
     } finally { setLoading(false); }
   };
 
+  const retryLastMessage = () => {
+    const msgs = messages.slice(0, -1);
+    const lastUser = [...msgs].reverse().find(m => m.role === "user");
+    if (!lastUser) return;
+    setMessages(msgs);
+    setLoading(true);
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: msgs.map(m => ({ role: m.role, content: m.content })),
+        analysisResult,
+        recruitMode: effectiveThemeId === "recruit",
+        threadTheme: effectiveThemeId,
+      }),
+    })
+    .then(r => r.json())
+    .then(data => setMessages(prev => [...prev, { role: "assistant", content: data.message || data.error }]))
+    .catch(() => setMessages(prev => [...prev, { role: "assistant", content: "エラーが発生しました。" }]))
+    .finally(() => setLoading(false));
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       {/* 補助金テーマの常設免責表示 */}
@@ -1773,6 +1839,13 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
           );
         })}
         {loading && <div style={{ fontSize: 13, color: C.muted, padding: "8px 14px" }}>考え中...</div>}
+        {!loading && messages.length > 0 && messages[messages.length - 1]?.content === "エラーが発生しました。" && (
+          <div style={{ padding: "4px 0" }}>
+            <button onClick={retryLastMessage} style={{ background: "transparent", border: "1px solid #ccc", borderRadius: 4, color: "#555", cursor: "pointer", fontSize: 13, padding: "6px 14px", fontFamily: "system-ui, sans-serif" }}>
+              🔄 再試行
+            </button>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       {effectiveThemeId === "recruit" && messages.filter(m => m.role === "user" && !m.hidden).length >= 3 && onGenerateRecruit && (
@@ -1800,8 +1873,8 @@ function ThreadChat({ threadId, themeId, themeLabel, chatDescription, analysisRe
           onPaste={handleImagePaste}
           placeholder={isPro ? "メッセージを入力... （画像はCtrl+Vで貼り付け可）" : "プロプランでチャットが利用できます"}
           disabled={!isPro}
-          rows={3}
-          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "none", boxSizing: "border-box", lineHeight: 1.6 }}
+          rows={5}
+          style={{ width: "100%", background: "#ffffff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", fontSize: 14, outline: "none", fontFamily: "system-ui, sans-serif", resize: "vertical", minHeight: 80, boxSizing: "border-box", lineHeight: 1.6 }}
         />
         <button onClick={send} disabled={loading || !isPro}
           style={{ marginTop: 8, width: "100%", background: loading || !isPro ? C.muted : C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: loading || !isPro ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 13, fontWeight: 700, padding: "10px 16px" }}>
@@ -1963,6 +2036,15 @@ const [strategyConfirmed, setStrategyConfirmed] = useState(false);
 const chatSendTopicRef = useRef(null);
 const [recruitResult, setRecruitResult] = useState(null);
 const [recruitLoading, setRecruitLoading] = useState(false);
+// 伴走フェーズ: 戦略メッセージカードの開閉（チャット領域を広く使うため折りたたみ可能）
+const [strategyCardOpen, setStrategyCardOpen] = useState(() => {
+  try { return localStorage.getItem("ab3c_strategy_card_open") !== "0"; } catch (e) { return true; }
+});
+const toggleStrategyCard = () => setStrategyCardOpen(o => {
+  const next = !o;
+  try { localStorage.setItem("ab3c_strategy_card_open", next ? "1" : "0"); } catch (e) {}
+  return next;
+});
 const [threads, setThreads] = useState([]);
 const [activeThemeId, setActiveThemeId] = useState(null);
 const [activeChatId, setActiveChatId] = useState(null);
@@ -1982,7 +2064,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const [headerHeight, setHeaderHeight] = useState(120);
   useEffect(() => {
     const header = document.querySelector("#app-header");
-    if (header) setHeaderHeight(header.offsetHeight);
+    if (!header) return;
+    setHeaderHeight(header.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderHeight(header.offsetHeight));
+    ro.observe(header);
+    return () => ro.disconnect();
   }, []);
 
   // currentResult が変わったら、選択中の組み合わせパターンを更新。
@@ -2321,15 +2407,26 @@ const [chatSummaries, setChatSummaries] = useState([]);
     { id: "press", label: "プレスリリース", icon: "📰", preset: true },
     // 事業改善系
     { id: "website", label: "ウェブサイト改善", icon: "🔧", preset: true },
+    { id: "lp", label: "商品LP", icon: "🛒", preset: true },
     { id: "recruit", label: "採用コンテンツ企画", icon: "👥", preset: true },
     { id: "subsidy", label: "補助金申請", icon: "📋", preset: true },
     { id: "sales", label: "営業資料・提案書", icon: "💼", preset: true },
   ];
-  // 既存ユーザー向けマイグレーション: 保存済み threads に "general" がなければ先頭に追加
+  // 既存ユーザー向けマイグレーション: 保存済み threads に "general" / "lp" がなければ追加
   const ensureGeneralTheme = (loadedThreads) => {
     if (!Array.isArray(loadedThreads) || loadedThreads.length === 0) return loadedThreads;
-    if (loadedThreads.some(t => t && t.id === "general")) return loadedThreads;
-    return [{ id: "general", label: "AI秘書", icon: "💼", preset: true }, ...loadedThreads];
+    let threads = loadedThreads;
+    if (!threads.some(t => t && t.id === "general")) {
+      threads = [{ id: "general", label: "AI秘書", icon: "💼", preset: true }, ...threads];
+    }
+    if (!threads.some(t => t && t.id === "lp")) {
+      const lpTheme = { id: "lp", label: "商品LP", icon: "🛒", preset: true };
+      const websiteIdx = threads.findIndex(t => t && t.id === "website");
+      threads = websiteIdx >= 0
+        ? [...threads.slice(0, websiteIdx + 1), lpTheme, ...threads.slice(websiteIdx + 1)]
+        : [...threads, lpTheme];
+    }
+    return threads;
   };
 
   // スレッド初期化（戦略確定時）
@@ -2413,6 +2510,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // 戦略アクションフェーズの DB 同期（debounce 1.5s）
   // threads/themeChats/actions/各threadのmessagesをまとめて PUT
   const actionDataPutTimerRef = useRef(null);
+  const confirmingRef = useRef(false);
   const queueActionDataPut = () => {
     if (!siteId) return;
     if (actionDataPutTimerRef.current) clearTimeout(actionDataPutTimerRef.current);
@@ -2482,7 +2580,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
       }, 1500);
     };
     window.addEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
-    return () => window.removeEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+    return () => {
+      window.removeEventListener("ab3c-analysis-chat-changed", onAnalysisChatChanged);
+      // siteId 変化（再分析）時に保留タイマーが旧 siteId でDBに書き戻すのを防ぐ
+      if (analysisChatPutTimerRef.current) clearTimeout(analysisChatPutTimerRef.current);
+    };
   }, [siteId]);
 
   // アクション永続化
@@ -2607,7 +2709,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
 
   useEffect(() => {
     try { const saved = localStorage.getItem("ab3c_history"); if (saved) setHistory(JSON.parse(saved)); } catch (e) {}
-    try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {}
+    try { const cs = localStorage.getItem("ab3c_chat_summaries"); if (cs) setChatSummaries(JSON.parse(cs)); } catch (e) {} // 後方互換のグローバル読み込み（サイト別キーへの移行前）
     try { const cm = localStorage.getItem("ab3c_chat_minimized"); if (cm === "1") setChatMinimized(true); } catch (e) {}
     if (typeof Notification !== "undefined" && Notification.permission === "default") Notification.requestPermission();
     // URLパラメータからsite_idを読み取り
@@ -2938,11 +3040,22 @@ useEffect(() => {
   }
 }, [currentResult]);
 
+// chatSummaries はサイト別に保存（グローバルキーだと複数サイト運用時に混在・消失する）
 useEffect(() => {
   try {
-    localStorage.setItem("ab3c_chat_summaries", JSON.stringify(chatSummaries));
+    const key = siteId ? `ab3c_chat_summaries_${siteId}` : "ab3c_chat_summaries";
+    localStorage.setItem(key, JSON.stringify(chatSummaries));
   } catch (e) {}
-}, [chatSummaries]);
+}, [chatSummaries, siteId]);
+
+// siteId が変わったらサイト別のサマリーをロード
+useEffect(() => {
+  if (!siteId) return;
+  try {
+    const saved = localStorage.getItem(`ab3c_chat_summaries_${siteId}`);
+    if (saved) setChatSummaries(JSON.parse(saved));
+  } catch (e) {}
+}, [siteId]);
   const saveHistory = (inputText, resultData, title, improve = null, visual = null) => {
   const entry = {
     id: Date.now(),
@@ -3077,6 +3190,8 @@ useEffect(() => {
 
   // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
   const confirmStrategy = async () => {
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
     const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
     let siteName = "無題のサイト";
     try { if (siteUrl) siteName = new URL(siteUrl).hostname.replace(/^www\./, ""); } catch (e) {}
@@ -3245,6 +3360,8 @@ useEffect(() => {
       } catch (e) {
         // ネットワーク断・JSONパースエラー等
         alert("保存に失敗しました。ネットワーク接続を確認して再度お試しください。\n\n" + (e?.message || ""));
+      } finally {
+        confirmingRef.current = false;
       }
     }
   };
@@ -4826,9 +4943,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
           )}
 {/* 伴走フェーズ（分析結果ブロックの外） */}
 {phase === "action" && currentResult && (
-  <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 180px)" }}>
-    {/* 戦略メッセージ — 戦略策定タブのPカードと同じデザインに統一 */}
-    <div style={{ padding: "20px 24px", flexShrink: 0 }}>
+  <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - " + headerHeight + "px)", position: "sticky", top: headerHeight }}>
+    {/* 戦略メッセージ — 戦略策定タブのPカードと同じデザインに統一（折りたたみ可） */}
+    <div style={{ padding: "16px 24px 12px", flexShrink: 0 }}>
       {(() => {
         const confirmedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
         const sm = confirmedCombo?.strategy_message || currentResult?.strategy_message || {};
@@ -4837,19 +4954,27 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         return (
           <div style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 4, overflow: "hidden" }}>
             <div style={{ background: pColor, height: 10 }} />
-            <div style={{ padding: "16px 22px" }}>
-              {confirmedCombo && (
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em" }}>
+            <div style={{ padding: strategyCardOpen ? "16px 22px" : "10px 22px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: strategyCardOpen ? "wrap" : "nowrap", minWidth: 0 }}>
+                {confirmedCombo && (
+                  <span style={{ background: pColor, color: "#fff", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "4px 14px", borderRadius: 999, letterSpacing: "0.05em", flexShrink: 0 }}>
                     P{confirmedCombo.id}
                   </span>
-                  <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
-                    {trimRouteSuffix(confirmedCombo.label)}
-                  </span>
-                </div>
-              )}
-              {sm?.message && (
-                <div style={{ marginTop: confirmedCombo ? 14 : 0, paddingTop: confirmedCombo ? 14 : 0, borderTop: confirmedCombo ? `1px solid ${C.border}` : "none" }}>
+                )}
+                <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4, ...(strategyCardOpen ? {} : { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0, flex: 1 }) }}>
+                  {strategyCardOpen
+                    ? (confirmedCombo ? trimRouteSuffix(confirmedCombo.label) : "確定戦略")
+                    : (sm?.message || (confirmedCombo ? trimRouteSuffix(confirmedCombo.label) : "確定戦略"))}
+                </span>
+                <button
+                  onClick={toggleStrategyCard}
+                  title={strategyCardOpen ? "戦略メッセージをたたんでチャットを広く使う" : "戦略メッセージの全体を表示"}
+                  style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 999, color: "#555", cursor: "pointer", fontSize: 16, padding: "4px 14px", fontFamily: "system-ui, sans-serif", whiteSpace: "nowrap" }}>
+                  {strategyCardOpen ? "▲ たたむ" : "▼ ひらく"}
+                </button>
+              </div>
+              {strategyCardOpen && sm?.message && (
+                <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
                   <div style={{ display: "inline-block", background: "#2a2a26", color: "#fff", fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", padding: "4px 14px", borderRadius: 999, marginBottom: 12 }}>戦略メッセージ</div>
                   <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 24, fontWeight: 700, color: C.ink, lineHeight: 1.5 }}>
                     {sm.message}
@@ -4862,7 +4987,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   )}
                 </div>
               )}
-              {strategyConfirmed && (
+              {strategyCardOpen && strategyConfirmed && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
                   <button
                     onClick={unconfirmStrategy}
@@ -4883,8 +5008,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         );
       })()}
     </div>
-    {/* チャット */}
-    <div style={{ flex: 1, overflow: "hidden" }}>
+    {/* チャット（画面高に固定。メッセージ部分のみ内部スクロール、入力欄は常に下部に表示） */}
+    <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
       {activeChatId ? (
         <ThreadChat key={siteId + "_" + activeChatId + "_c" + chatConfirmId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={chatConfirmId} legacyVersionIndex={chatVersionIndex} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {

@@ -269,12 +269,17 @@ export default function DashboardPage() {
       await fetch(`/api/sites?id=${id}`, { method: "DELETE" });
       // localStorage掃除
       try {
-        const threadsKey = `ab3c_threads_${id}`;
-        const threads = JSON.parse(localStorage.getItem(threadsKey) || "[]");
-        threads.forEach(t => localStorage.removeItem(`ab3c_thread_${t.id}`));
-        localStorage.removeItem(threadsKey);
+        // スレッドメッセージ: バージョン付き・なし両方を prefix マッチで削除
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(k => {
+          if (k.startsWith(`ab3c_thread_${id}_`)) localStorage.removeItem(k);
+        });
+        localStorage.removeItem(`ab3c_threads_${id}`);
         localStorage.removeItem(`ab3c_theme_chats_${id}`);
         localStorage.removeItem(`ab3c_actions_${id}`);
+        localStorage.removeItem(`ab3c_confirmations_${id}`);
+        localStorage.removeItem(`ab3c_analysis_chat_${id}`);
+        localStorage.removeItem(`ab3c_chat_summaries_${id}`);
       } catch (e) {}
       setSites(sites.filter(s => s.id !== id));
     } catch (e) { alert("削除に失敗しました。"); }
