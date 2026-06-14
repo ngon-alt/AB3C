@@ -2020,7 +2020,11 @@ const [chatSummaries, setChatSummaries] = useState([]);
   const [headerHeight, setHeaderHeight] = useState(120);
   useEffect(() => {
     const header = document.querySelector("#app-header");
-    if (header) setHeaderHeight(header.offsetHeight);
+    if (!header) return;
+    setHeaderHeight(header.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderHeight(header.offsetHeight));
+    ro.observe(header);
+    return () => ro.disconnect();
   }, []);
 
   // currentResult が変わったら、選択中の組み合わせパターンを更新。

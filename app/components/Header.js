@@ -52,6 +52,17 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("ab3c_header_collapsed") === "1") setHeaderCollapsed(true);
+    } catch (e) {}
+  }, []);
+  const toggleHeaderCollapsed = () => setHeaderCollapsed(v => {
+    const next = !v;
+    try { localStorage.setItem("ab3c_header_collapsed", next ? "1" : "0"); } catch (e) {}
+    return next;
+  });
 
   // ユーザー名ドロップダウンから Stripe Portal を開く
   const openStripePortal = async () => {
@@ -171,7 +182,8 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
 
   return (
     <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}>
-      {/* 上段: ロゴ + サブナビ + ユーザー情報 */}
+      {/* 上段: ロゴ + サブナビ + ユーザー情報（折りたたみ可能） */}
+      {!headerCollapsed && (
       <div style={{ padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
@@ -345,6 +357,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           </div>
         </div>
       </div>
+      )}
       {/* 下段: メインナビ（ピル型ステッパー） */}
       <nav style={{ padding: "12px 24px 14px", display: "flex", alignItems: "center", gap: 6, background: "#fff", borderBottom: `1px solid ${C.border}`, flexWrap: "wrap" }}>
         {/* ⓪ 新規戦略診断 — ①② と同じ墨色＋中立グレーで統一 */}
@@ -502,6 +515,14 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
             )}
           </div>
         )}
+
+        {/* ヘッダー折りたたみトグル */}
+        <button
+          onClick={toggleHeaderCollapsed}
+          title={headerCollapsed ? "ヘッダーを展開する" : "ヘッダーをたたんで作業領域を広くする"}
+          style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 999, color: C.muted, cursor: "pointer", fontSize: 12, padding: "3px 10px", fontFamily: NAV_FONT, whiteSpace: "nowrap" }}>
+          {headerCollapsed ? "▼ 展開" : "▲ たたむ"}
+        </button>
       </nav>
     </div>
   );
