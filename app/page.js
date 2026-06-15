@@ -1672,7 +1672,7 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
       const done = await commit({ path: proposal.path, after: proposal.after, instruction, summary: proposal.summary, kind: "update" });
       setUndoStack(prev => [...prev, { path: proposal.path, before: proposal.before, after: proposal.after, summary: proposal.summary, instruction }]);
       setRedoStack([]);
-      pushSystem(`✅ 反映しました：${proposal.summary || proposal.path}（${proposal.path}）`, { commitUrl: done.commit_url });
+      pushSystem(`✅ ${proposal.summary || "変更をサイトに反映しました。"}`, { commitUrl: done.commit_url, path: proposal.path });
     } catch (e) {
       pushSystem(e?.message || "反映に失敗しました。", { error: true });
     } finally { setLoading(false); setBusyKind(""); }
@@ -1783,7 +1783,8 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
               border: m.role === "user" ? "none" : `1px solid ${m.error ? "#f5c6cb" : C.border}`,
             }}>
               {m.text}
-              {m.commitUrl && <div style={{ marginTop: 6 }}><a href={m.commitUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, color: C.A }}>変更を見る ↗</a></div>}
+              {m.path && <div style={{ marginTop: 4, fontSize: 16, color: "#777" }}>対象ファイル：{m.path}</div>}
+              {m.commitUrl && <div style={{ marginTop: 6 }}><a href={m.commitUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, color: C.A }}>変更箇所（GitHubのコミット）を見る ↗</a></div>}
             </div>
           </div>
         ))}
