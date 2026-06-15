@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { getInstallationToken, getRepoTree, getFileContent } from "../../../lib/github";
+import { SENRYAKU_VOICE } from "../../../lib/voice";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -158,8 +159,11 @@ ${file.content}
 - コードフェンス(\`\`\`)や説明文は付けず、ファイルの中身だけを出力する
 - 事実（社名・実績・数値など）を創作しない。確証のない情報は加えない
 
-最後の行に、変更内容の要約を次の形式で1行だけ付けてください:
-###SUMMARY### 変更内容を、ていねいな日本語（ですます調）で30〜60字。言い切り型（〜した／〜設定した）は使わず「〜しました」で結ぶ。人名には敬称・役職を自然に添える。例：「会社概要に小林真由子さん（理事）のプロフィールを追加しました」`,
+最後の行に、利用者（経営者）への報告メッセージとして、変更内容の要約を次の形式で1行だけ付けてください:
+###SUMMARY### （30〜60字・1行。例：「会社概要に小林真由子さん（理事）のプロフィールを追加しました」）
+
+この要約（SUMMARY行）は、次の共通ルールに従って書いてください（このルールは報告文にのみ適用し、上のファイル本文には適用しないこと）:
+${SENRYAKU_VOICE}`,
       }],
     });
     let raw = edit.content?.[0]?.text || "";

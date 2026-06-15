@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
+import { SENRYAKU_VOICE } from "../../lib/voice";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -849,8 +850,10 @@ ${improveResult && typeof improveResult === "object" && !improveResult.error ? `
 以下はこのサイトのウェブサイト改善レポートです。ユーザーが改善レポートの項目について質問してきた場合は、この内容を参照して具体的に回答してください。
 ${JSON.stringify(improveResult, null, 2)}
 ` : ""}
-回答は日本語で、具体的かつ簡潔に。AB3Cフレームワークの観点から助言してください。
-マークダウン記法（**太字**、###見出し、---区切りなど）は使わず、プレーンテキストで回答してください。${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeContext}${recruitPrompt}`;
+回答は日本語で、具体的かつ簡潔にしてください。
+
+${SENRYAKU_VOICE}
+${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeContext}${recruitPrompt}`;
 
   const VALID_IMG_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
   const sanitizeMessages = (msgs) => (msgs || []).map(m => {
