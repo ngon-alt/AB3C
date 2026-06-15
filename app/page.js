@@ -2372,6 +2372,14 @@ const [actions, setActions] = useState([]);
 const [selectedActionId, setSelectedActionId] = useState(null);
 const [chatExpanded, setChatExpanded] = useState(false);
 const [chatSummaries, setChatSummaries] = useState([]);
+  // Web更新が接続済み（GitHub App環境変数が設定済み）かどうか。
+  // 未接続の環境（本番など）では「Web更新」テーマを専用パネルにせず、従来の助言チャットにフォールバックする。
+  const [webUpdateConnected, setWebUpdateConnected] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/web-update/config").then(r => r.json()).then(d => { if (alive) setWebUpdateConnected(!!d?.connected); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
   
   // フェーズ導出（viewOverrideで表示タブを切り替え、strategyConfirmedは変更しない）
   // 確定済みサイトを開いた場合も既定は「戦略策定」（analysis）。
@@ -5357,7 +5365,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     {/* チャット（画面高に固定。メッセージ部分のみ内部スクロール、入力欄は常に下部に表示） */}
     <div style={{ flex: 1, overflow: "hidden", minHeight: 0 }}>
       {activeChatId ? (
-        activeThemeId === "website" ? (
+        (activeThemeId === "website" && webUpdateConnected) ? (
           <WebUpdatePanel key={siteId + "_webupdate"} siteId={siteId} analysisResult={currentResult} improveResult={improveResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
         ) : (
         <ThreadChat key={siteId + "_" + activeChatId + "_c" + chatConfirmId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} improveResult={improveResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={chatConfirmId} legacyVersionIndex={chatVersionIndex} onAddAction={addAction}
