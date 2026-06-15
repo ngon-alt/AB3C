@@ -98,7 +98,9 @@ export async function listInstallationRepos(installationId) {
 // 編集対象になりやすいテキスト/コンテンツ系のファイルだけに絞るための拡張子。
 // バイナリ・依存・ビルド成果物はツリーから除外し、AIに渡すトークンを節約する。
 const EDITABLE_EXT = /\.(astro|html?|md|mdx|mdoc|markdown|jsx?|tsx?|vue|svelte|njk|liquid|hbs|ejs|pug|json|ya?ml|toml|css|scss)$/i;
-const EXCLUDE_DIR = /(^|\/)(node_modules|\.next|\.git|dist|build|out|\.vercel|\.netlify|coverage|vendor)(\/|$)/i;
+// 編集対象から除外するディレクトリ。.github（CI/ワークフロー）はGitHub Appの権限外かつ
+// サイト内容ではないため必ず除外する。設定・依存・ビルド成果物も同様。
+const EXCLUDE_DIR = /(^|\/)(node_modules|\.next|\.git|\.github|dist|build|out|\.vercel|\.netlify|coverage|vendor)(\/|$)/i;
 
 // リポジトリのファイルパス一覧（再帰）。編集対象になりやすいものだけ返す。
 export async function getRepoTree(token, repoFullName, branch) {
