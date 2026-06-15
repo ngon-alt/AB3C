@@ -1596,6 +1596,7 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
   const SANS = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
   const [config, setConfig] = useState(null);          // {connected, repo, base_branch, has_install_slug}
   const [repos, setRepos] = useState(null);            // 既定リポジトリ未設定時の選択肢
+  const [reposError, setReposError] = useState("");    // リポジトリ一覧取得時のエラー（0件と区別する）
   const [selectedRepo, setSelectedRepo] = useState("");
   const [messages, setMessages] = useState([]);        // {role:'user'|'system', text, commitUrl?, error?}
   const [undoStack, setUndoStack] = useState([]);      // {path, before, after, summary, instruction}
@@ -1620,9 +1621,13 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
     } catch (e) {}
     fetch("/api/web-update/config").then(r => r.json()).then(data => {
       setConfig(data || {});
-      if (data && !data.repo) {
-        // 既定リポジトリ未設定 → 選択肢を取得
-        fetch("/api/github/repos").then(r => r.json()).then(d => setRepos(d.repos || [])).catch(() => setRepos([]));
+      if (data && data.connected && !data.repo) {
+        // 既定リポジトリ未設定 → 選択肢を取得（エラーと0件を区別して保持）
+        fetch("/api/github/repos").then(async r => {
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok || d.error) { setReposError(d.error || `リポジトリ一覧の取得に失敗しました (${r.status})`); setRepos([]); }
+          else { setRepos(d.repos || []); }
+        }).catch(() => { setReposError("リポジトリ一覧の取得に失敗しました（通信エラー）"); setRepos([]); });
       }
     }).catch(() => setConfig({ connected: false }));
     inited.current = true;
@@ -1754,7 +1759,9 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
           <option value="">— 選択してください —</option>
           {(repos || []).map(r => <option key={r.full_name} value={r.full_name}>{r.full_name}</option>)}
         </select>
-        {repos && repos.length === 0 && <p style={{ marginTop: 10, color: "#555", fontSize: 16 }}>アクセスできるリポジトリが見つかりません。GitHub Appのインストール先をご確認ください。</p>}
+        {reposError
+          ? <p style={{ marginTop: 10, color: C.red, fontSize: 16, lineHeight: 1.8 }}>取得エラー：{reposError}<br /><span style={{ color: "#555" }}>GITHUB_APP_INSTALLATION_ID が正しいか、GitHub Appがインストール済みかをご確認ください。</span></p>
+          : (repos && repos.length === 0 && <p style={{ marginTop: 10, color: "#555", fontSize: 16, lineHeight: 1.8 }}>このGitHub Appからアクセスできるリポジトリが0件です。<br />GitHubのApp設定で、対象リポジトリへのアクセスを許可してください（インストール時に「All repositories」または対象リポジトリを選択）。</p>)}
       </div>
     );
   } else {
