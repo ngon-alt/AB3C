@@ -2,19 +2,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
-import {
-  getInstallationToken,
-  getBranchHeadSha,
-  getFileContent,
-  createBranch,
-  putFile,
-  createPullRequest,
-  buildWorkBranchName,
-} from "../../../lib/github";
+import { getInstallationToken, getFileContent, putFile } from "../../../lib/github";
 
-// Web更新フローの中核（後半）：承認された変更を、作業ブランチ＋コミット＋PRとして反映する。
-// 直接 base_branch（main等）へは push しない。マージは人間がGitHub/プレビュー確認の上で行う。
+// Web更新フローの中核（後半）：変更を base_branch（既定 main）へ直接コミットして即反映する。
+// 2026-06-15 方針：プレビュー/PRは挟まず直接反映。git履歴は追記のみで残るため、UI側の
+// 「戻る矢印」（= 直前の内容で再コミット）でいつでも前の見た目に戻せる（履歴は破壊しない）。
+// マージ・force push・reset は一切しない。コミットには [senryaku-web-update] マーカーを付ける。
 export const maxDuration = 120;
+
+const MARKER = "[senryaku-web-update]";
 
 export async function POST(req) {
   const session = await getServerSession(authOptions);
@@ -48,15 +44,15 @@ export async function POST(req) {
     base_branch = process.env.GITHUB_APP_BASE_BRANCH || "main",
     path,
     after,
-    sha,           // propose 時点の blob sha（任意。古ければ再取得する）
     instruction,
     summary,
+    kind = "update",   // "update" | "undo" | "redo"
     installation_id,
   } = body || {};
 
   if (!repo_full_name) return NextResponse.json({ error: "対象リポジトリが指定されていません。" }, { status: 400 });
   if (!path) return NextResponse.json({ error: "対象ファイルが指定されていません。" }, { status: 400 });
-  if (typeof after !== "string" || !after) return NextResponse.json({ error: "変更後の内容がありません。" }, { status: 400 });
+  if (typeof after !== "string") return NextResponse.json({ error: "変更後の内容がありません。" }, { status: 400 });
 
   let token;
   try {
@@ -66,51 +62,40 @@ export async function POST(req) {
   }
 
   try {
-    // ① base_branch の先端から作業ブランチを作成
-    const baseSha = await getBranchHeadSha(token, repo_full_name, base_branch);
-    if (!baseSha) return NextResponse.json({ error: `base ブランチ（${base_branch}）が見つかりませんでした。` }, { status: 422 });
-    const workBranch = buildWorkBranchName();
-    await createBranch(token, repo_full_name, workBranch, baseSha);
-
-    // ② 最新の blob sha を取得して更新（propose からの間に他更新があってもconflictにしない）
+    // 最新の blob sha を取得（直接コミットには既存ファイルの sha が必要）
     const current = await getFileContent(token, repo_full_name, path, base_branch);
-    const fileSha = current?.sha || sha;
-    const title = summary ? `戦略指南AI: ${summary}` : `戦略指南AI: ${path} を更新`;
-    const commitMessage = `${title}\n\n${instruction ? `指示: ${instruction}\n` : ""}（戦略指南AI Web更新が自動生成。マージ前にプレビューでご確認ください）`;
-    await putFile(token, repo_full_name, {
+    const headline = kind === "undo"
+      ? `ひとつ前に戻す: ${path}`
+      : kind === "redo"
+        ? `やり直し: ${path}`
+        : (summary ? summary : `${path} を更新`);
+    const message = [
+      `戦略指南AI: ${headline}`,
+      "",
+      instruction ? `指示: ${instruction}` : "",
+      "（戦略指南AI Web更新が直接反映。元に戻すにはアプリの戻る矢印、または履歴から復元できます）",
+      MARKER,
+    ].filter(Boolean).join("\n");
+
+    const res = await putFile(token, repo_full_name, {
       path,
       content: after,
-      message: commitMessage,
-      branch: workBranch,
-      sha: fileSha,
-    });
-
-    // ③ PR作成
-    const prBody = [
-      "戦略指南AI の「Web更新」から自動生成された変更提案です。",
-      "",
-      instruction ? `**指示**: ${instruction}` : "",
-      summary ? `**変更概要**: ${summary}` : "",
-      `**対象ファイル**: \`${path}\``,
-      "",
-      "自動デプロイ（Vercel/Netlify等）のプレビューで確認のうえ、問題なければマージしてください。",
-    ].filter(Boolean).join("\n");
-    const pr = await createPullRequest(token, repo_full_name, {
-      head: workBranch,
-      base: base_branch,
-      title,
-      body: prBody,
+      message,
+      branch: base_branch,
+      sha: current?.sha,
     });
 
     return NextResponse.json({
       ok: true,
-      pr_url: pr.html_url,
-      pr_number: pr.number,
-      branch: workBranch,
+      repo: repo_full_name,
+      base_branch,
       path,
+      kind,
+      commit_sha: res.commit?.sha,
+      commit_url: res.commit?.html_url,
     });
   } catch (e) {
     console.error("web-update/apply error:", e?.message);
-    return NextResponse.json({ error: e?.message || "PRの作成に失敗しました。" }, { status: 502 });
+    return NextResponse.json({ error: e?.message || "反映に失敗しました。" }, { status: 502 });
   }
 }
