@@ -3,16 +3,29 @@
 > 戦略アクションの「Web更新」テーマを、**チャットから実際にウェブサイトを更新する**機能にする。
 > 2026-06-14 方針合意：**① GitHub・PR方式**／v1対象は **Vercel・Netlify系の自動デプロイサイト**に限定。CMS API（WordPress等）・FTP/SSH（Xserver等）は後回し。
 
+## 方式変更（2026-06-15 権さん合意）：PR方式 → 直接反映＋Undo/Redo
+
+当初のPR/プレビュー方式から、**チャット指示を base_branch（main）へ直接コミットして即反映**する方式に変更（権さん判断）。理由＝「gitなので必ず戻せる。プレビューを挟まず直接反映でよい」。
+
+- `apply` は作業ブランチ＋PRではなく **base_branch へ直接コミット**（即・自動デプロイで本番反映）
+- **戻す**＝「直前の更新の"変更前の内容"で再コミット」（git revert相当・**履歴は破壊しない**追記のみ）。UIに**「↩戻る／↪進む」矢印**を実装
+- 戻したあと新しい変更を加えると **redoのワンタップ経路は途切れる**が、過去版はgit履歴に永久に残り、GitHubから復元可能（権さん了承済み）
+- **force push / reset / merge は一切しない**。コミットに `[senryaku-web-update]` マーカー
+- 留意：直接反映は「戻せる」が「公開を防ぐ」ではない。**戻すまでの間、本番訪問者に変更が見える**。クライアントの重要サイト向けに「直接反映／PR方式」を接続ごと切替できる設定は将来追加（内部フックのみ用意）
+
 ## 実装状況（2026-06-15 時点）
 
-**バックエンド（API・GitHubヘルパー）＝実装済み・ビルド緑・基本動作確認済み**
+**バックエンド＋UI＝実装済み・ビルド緑・基本動作確認済み（認証済み正常系は要実機テスト）**
+
+- `app/page.js` … `WebUpdatePanel`（website＝Web更新テーマ時に表示）。接続状態表示／リポジトリ選択／指示送信→propose→apply直接反映／戻る・進む矢印／会話・undo/redoスタックをlocalStorage永続化
+- `GET /api/web-update/config` … 接続状態・既定リポジトリを返す（秘密情報は返さない）
 
 - `app/lib/github.js` … JWT発行→installation token（都度発行・非保存）／リポジトリ一覧／**ツリー取得・ファイル取得・ブランチ作成・コミット(PUT)・PR作成・作業ブランチ名生成**を実装
 - `GET /api/github/install-url` … 実装済み（要 `GITHUB_APP_SLUG`）
 - `GET /api/github/callback` … 実装済み（完了画面・200確認）
 - `GET /api/github/repos` … 実装済み（要ログイン）
-- `POST /api/web-update/propose` … 実装済み（指示→対象ファイル推定→差分案を返す。コミットしない）
-- `POST /api/web-update/apply` … 実装済み（作業ブランチ＋コミット＋PR作成。直接 main へpushしない）
+- `POST /api/web-update/propose` … 実装済み（指示→対象ファイル推定→変更後内容を返す。コミットしない）
+- `POST /api/web-update/apply` … 実装済み（**base_branch へ直接コミット**＝即反映。`kind` で update/undo/redo を切替。PR・merge・force pushはしない）
 - 検証：本番ビルド緑（新ルート登録確認）／JWT署名パスを使い捨てRSA鍵で単体テスト9件合格／devサーバーで未認証時 401・callback 200 を確認
 - **未認証→401／env未設定→分かりやすいエラー** を返すことを実地確認済み。認証済みの正常系（実際にPRを作る経路）は権さんのログイン＋GitHub App認証情報が必要なため、戻り次第いっしょにテスト
 
