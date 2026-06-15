@@ -1760,7 +1760,7 @@ function WebUpdatePanel({ siteId, analysisResult, improveResult, isPro }) {
           {(repos || []).map(r => <option key={r.full_name} value={r.full_name}>{r.full_name}</option>)}
         </select>
         {reposError
-          ? <p style={{ marginTop: 10, color: C.red, fontSize: 16, lineHeight: 1.8 }}>取得エラー：{reposError}<br /><span style={{ color: "#555" }}>GITHUB_APP_INSTALLATION_ID が正しいか、GitHub Appがインストール済みかをご確認ください。</span></p>
+          ? <p style={{ marginTop: 10, color: C.red, fontSize: 16, lineHeight: 1.8 }}>取得エラー：{reposError}<br /><span style={{ color: "#555" }}>{/DECODER|PEM|private key|unsupported/i.test(reposError) ? "秘密鍵（GITHUB_APP_PRIVATE_KEY）の形式が不正です。Base64で渡す（GITHUB_APP_PRIVATE_KEY_BASE64）のが確実です。" : "GITHUB_APP_INSTALLATION_ID が正しいか、GitHub Appがインストール済みかをご確認ください。"}</span></p>
           : (repos && repos.length === 0 && <p style={{ marginTop: 10, color: "#555", fontSize: 16, lineHeight: 1.8 }}>このGitHub Appからアクセスできるリポジトリが0件です。<br />GitHubのApp設定で、対象リポジトリへのアクセスを許可してください（インストール時に「All repositories」または対象リポジトリを選択）。</p>)}
       </div>
     );

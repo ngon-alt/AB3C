@@ -12,6 +12,15 @@ function b64url(input) {
 }
 
 function getPrivateKey() {
+  // 最優先：Base64で渡された鍵（改行崩れが原理的に起きないため最も確実）。
+  // 設定方法は GITHUB_APP_PRIVATE_KEY_BASE64 に .pem 全体をbase64エンコードした1行を入れる。
+  const b64 = process.env.GITHUB_APP_PRIVATE_KEY_BASE64;
+  if (b64 && b64.trim()) {
+    try {
+      const decoded = Buffer.from(b64.trim(), "base64").toString("utf-8").trim();
+      if (decoded.includes("PRIVATE KEY")) return decoded;
+    } catch (e) {}
+  }
   let key = process.env.GITHUB_APP_PRIVATE_KEY || "";
   key = key.trim();
   // 値を丸ごとクォートで囲んで保存されたケースを剥がす
