@@ -4314,7 +4314,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               <>
                 {/* 施策ナビ */}
                 <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "6px 0" }}>
-                  {threads.map(t => (
+                  {/* Web更新(website)タブは接続済み環境（preview等）でのみ表示。本番では非表示にする */}
+                  {threads.filter(t => t.id !== "website" || webUpdateConnected).map(t => (
                     <div key={t.id}>
                       <div onClick={() => selectTheme(t.id)}
                         style={{
