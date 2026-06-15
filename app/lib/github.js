@@ -13,8 +13,17 @@ function b64url(input) {
 
 function getPrivateKey() {
   let key = process.env.GITHUB_APP_PRIVATE_KEY || "";
-  // Vercel等で改行が "\n" のリテラルとして保存された場合に対応
-  if (key.includes("\\n")) key = key.replace(/\\n/g, "\n");
+  key = key.trim();
+  // 値を丸ごとクォートで囲んで保存されたケースを剥がす
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1).trim();
+  }
+  // Vercel等でエスケープされた改行 "\r\n" / "\n"、および実改行の CRLF を実LFに正規化する
+  key = key
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
   return key;
 }
 
