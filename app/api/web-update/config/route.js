@@ -18,5 +18,7 @@ export async function GET() {
     repo: process.env.GITHUB_APP_REPO || null,
     base_branch: process.env.GITHUB_APP_BASE_BRANCH || "main",
     has_install_slug: !!process.env.GITHUB_APP_SLUG,
+    // 自動デプロイ先（Vercel/Netlify）のライブURL。設定すると更新後に「サイトで見る」リンクを表示する。
+    site_url: process.env.GITHUB_APP_SITE_URL || null,
   });
 }
