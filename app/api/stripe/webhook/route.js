@@ -80,11 +80,18 @@ export async function POST(req) {
     if (email) {
       const sql = neon(process.env.DATABASE_URL);
       const plan = PRICE_PLANS[priceId];
-      const chatCount = getChatCount(plan);
+
+      // AB3C 以外の決済をスキップ（同一 Stripe アカウント上の別事業の決済対策）。
+      // 例: dmia「AIサービス開発合宿」の決済リンク。priceId が PRICE_PLANS に無い決済で
+      // チケット付与・通知メールを行うと「不明プラン / undefinedサイト」の誤通知や、
+      // 0チャットの不要チケットが DB に作られてしまうため、ここで打ち切る。
+      // （新しい AB3C プランを追加した場合は PRICE_PLANS への登録を忘れないこと）
       if (!plan) {
-        // 未登録の priceId はログを残す（PRICE_PLANS に追加すれば次回から動く）
-        console.error(`PRICE_PLANS に未登録の priceId: ${priceId} (email=${email}, sessionId=${session.id})`);
+        console.warn(`[webhook] AB3C 以外の priceId をスキップ: ${priceId} (email=${email}, sessionId=${session.id})`);
+        return Response.json({ received: true, ignored: 'non-AB3C priceId' });
       }
+
+      const chatCount = getChatCount(plan);
 
       // === 戦略指南サブスク置き換え処理 ===
       // 新規購入が support タイプの場合、既存 active な support プランを
