@@ -12,7 +12,24 @@ const ALLOWED_CONTENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, email, company, category, message, pageUrl, userAgent, attachments: rawAttachments } = body;
+    const { name, email, company, category, message, pageUrl, userAgent, attachments: rawAttachments, recaptchaToken } = body;
+
+    // reCAPTCHA 検証
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    if (secretKey) {
+      if (!recaptchaToken) {
+        return NextResponse.json({ error: '不正なリクエストです' }, { status: 400 });
+      }
+      const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `secret=${secretKey}&response=${recaptchaToken}`,
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success || verifyData.score < 0.5) {
+        return NextResponse.json({ error: 'ボット判定されました。時間をおいて再度お試しください。' }, { status: 400 });
+      }
+    }
 
     // バリデーション
     if (!name || !email || !message) {

@@ -7,6 +7,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
 const C = {
   bg: "#ebebeb",
   surface: "#ffffff",
@@ -36,6 +38,18 @@ function ContactInner() {
   const [errorMsg, setErrorMsg] = useState('');
   const [showPricing, setShowPricing] = useState(false);
 
+  // reCAPTCHA v3 スクリプト読み込み
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   // ログイン済みならメール・名前を自動記入
   useEffect(() => {
     if (session?.user) {
@@ -52,11 +66,26 @@ function ContactInner() {
     setStatus('sending');
     setErrorMsg('');
 
+    // reCAPTCHA トークン取得
+    let recaptchaToken = null;
+    if (RECAPTCHA_SITE_KEY && window.grecaptcha) {
+      try {
+        recaptchaToken = await new Promise((resolve) => {
+          window.grecaptcha.ready(() => {
+            window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'contact' }).then(resolve);
+          });
+        });
+      } catch {
+        // reCAPTCHA失敗はブロックせず続行
+      }
+    }
+
     // バグ報告の手がかりとして環境情報を付加
     const payload = {
       ...formData,
       pageUrl: typeof window !== 'undefined' ? document.referrer || window.location.href : '',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      recaptchaToken,
     };
 
     try {
