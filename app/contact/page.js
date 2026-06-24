@@ -268,13 +268,13 @@ function ContactInner() {
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  style={{ 
-                    width: "100%", 
-                    background: status === 'sending' ? C.muted : C.A, 
-                    color: "#fff", 
-                    fontWeight: 600, 
-                    padding: "12px 24px", 
-                    borderRadius: 6, 
+                  style={{
+                    width: "100%",
+                    background: status === 'sending' ? C.muted : C.A,
+                    color: "#fff",
+                    fontWeight: 600,
+                    padding: "12px 24px",
+                    borderRadius: 6,
                     border: "none",
                     cursor: status === 'sending' ? "not-allowed" : "pointer",
                     fontSize: 16,
@@ -283,6 +283,13 @@ function ContactInner() {
                 >
                   {status === 'sending' ? '送信中...' : '送信する'}
                 </button>
+
+                {/* reCAPTCHA 開示テキスト（Google規約準拠） */}
+                <p style={{ marginTop: 12, fontSize: 12, color: C.muted, textAlign: "center", lineHeight: 1.6 }}>
+                  このフォームはreCAPTCHAで保護されています。Googleの
+                  <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>プライバシーポリシー</a>と
+                  <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>利用規約</a>が適用されます。
+                </p>
               </form>
             )}
           </div>

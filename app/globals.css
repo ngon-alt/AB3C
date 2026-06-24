@@ -60,3 +60,8 @@ h1, h2, h3, h4, h5, h6 {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;               /* Chrome / Safari / WebKit */
 }
+
+/* reCAPTCHA v3 バッジ非表示（開示テキストをフォーム内に表示することでGoogle規約に準拠） */
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
