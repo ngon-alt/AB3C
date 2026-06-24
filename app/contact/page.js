@@ -7,6 +7,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
 const C = {
   bg: "#ebebeb",
   surface: "#ffffff",
@@ -36,6 +38,18 @@ function ContactInner() {
   const [errorMsg, setErrorMsg] = useState('');
   const [showPricing, setShowPricing] = useState(false);
 
+  // reCAPTCHA v3 スクリプト読み込み
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   // ログイン済みならメール・名前を自動記入
   useEffect(() => {
     if (session?.user) {
@@ -52,11 +66,26 @@ function ContactInner() {
     setStatus('sending');
     setErrorMsg('');
 
+    // reCAPTCHA トークン取得
+    let recaptchaToken = null;
+    if (RECAPTCHA_SITE_KEY && window.grecaptcha) {
+      try {
+        recaptchaToken = await new Promise((resolve) => {
+          window.grecaptcha.ready(() => {
+            window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'contact' }).then(resolve);
+          });
+        });
+      } catch {
+        // reCAPTCHA失敗はブロックせず続行
+      }
+    }
+
     // バグ報告の手がかりとして環境情報を付加
     const payload = {
       ...formData,
       pageUrl: typeof window !== 'undefined' ? document.referrer || window.location.href : '',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      recaptchaToken,
     };
 
     try {
@@ -239,13 +268,13 @@ function ContactInner() {
                 <button
                   type="submit"
                   disabled={status === 'sending'}
-                  style={{ 
-                    width: "100%", 
-                    background: status === 'sending' ? C.muted : C.A, 
-                    color: "#fff", 
-                    fontWeight: 600, 
-                    padding: "12px 24px", 
-                    borderRadius: 6, 
+                  style={{
+                    width: "100%",
+                    background: status === 'sending' ? C.muted : C.A,
+                    color: "#fff",
+                    fontWeight: 600,
+                    padding: "12px 24px",
+                    borderRadius: 6,
                     border: "none",
                     cursor: status === 'sending' ? "not-allowed" : "pointer",
                     fontSize: 16,
@@ -254,6 +283,13 @@ function ContactInner() {
                 >
                   {status === 'sending' ? '送信中...' : '送信する'}
                 </button>
+
+                {/* reCAPTCHA 開示テキスト（Google規約準拠） */}
+                <p style={{ marginTop: 12, fontSize: 12, color: C.muted, textAlign: "center", lineHeight: 1.6 }}>
+                  このフォームはreCAPTCHAで保護されています。Googleの
+                  <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>プライバシーポリシー</a>と
+                  <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" style={{ color: C.muted }}>利用規約</a>が適用されます。
+                </p>
               </form>
             )}
           </div>
