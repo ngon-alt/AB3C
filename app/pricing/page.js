@@ -228,7 +228,7 @@ export default function PricingPage() {
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>ワンショット利用 / 有効期限1年</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.A, marginBottom: 14, lineHeight: 1.2 }}>
               <span style={{ fontSize: 26 }}>¥22,000</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜（¥7,700〜/サイト・税込）</span>
+              <span style={{ fontSize: 16, fontWeight: 400, color: C.ink, marginLeft: 4 }}>〜（¥7,700〜/サイト・税込）</span>
             </div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
               URLから1発でAB3C分析＋ウェブサイト改善レポートを生成し、<strong>PDF・印刷・シェアURL</strong>で持ち帰るプラン。
@@ -250,7 +250,7 @@ export default function PricingPage() {
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>継続支援 / 月額または年額</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.B, marginBottom: 14, lineHeight: 1.2 }}>
               <span style={{ fontSize: 26 }}>¥66,000</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜/月（¥9,167〜/月/サイト・税込）</span>
+              <span style={{ fontSize: 16, fontWeight: 400, color: C.ink, marginLeft: 4 }}>〜/月（¥9,167〜/月/サイト・税込）</span>
             </div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
               <strong>戦略診断 → 戦略策定 → アクション実行</strong>の3段階を継続的に支援。AIチャットで戦略を磨き、10テーマで施策を検討、AI秘書が日常業務も伴走。
