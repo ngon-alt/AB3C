@@ -227,8 +227,8 @@ export default function PricingPage() {
             </div>
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>ワンショット利用 / 有効期限1年</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.A, marginBottom: 14, lineHeight: 1.2 }}>
-              <span style={{ fontSize: 26 }}>¥7,700</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜/サイト（税込）</span>
+              <span style={{ fontSize: 26 }}>¥22,000</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜（¥7,700〜/サイト・税込）</span>
             </div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
               URLから1発でAB3C分析＋ウェブサイト改善レポートを生成し、<strong>PDF・印刷・シェアURL</strong>で持ち帰るプラン。
@@ -249,8 +249,8 @@ export default function PricingPage() {
             </div>
             <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>継続支援 / 月額または年額</div>
             <div style={{ fontFamily: "'Space Mono', monospace", fontWeight: 700, color: C.B, marginBottom: 14, lineHeight: 1.2 }}>
-              <span style={{ fontSize: 26 }}>¥9,167</span>
-              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜/月/サイト（税込）</span>
+              <span style={{ fontSize: 26 }}>¥66,000</span>
+              <span style={{ fontSize: 13, fontWeight: 400, color: C.muted, marginLeft: 4 }}>〜/月（¥9,167〜/月/サイト・税込）</span>
             </div>
             <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.7, flex: 1 }}>
               <strong>戦略診断 → 戦略策定 → アクション実行</strong>の3段階を継続的に支援。AIチャットで戦略を磨き、10テーマで施策を検討、AI秘書が日常業務も伴走。
@@ -280,11 +280,11 @@ export default function PricingPage() {
                 </th>
                 <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "20%", background: "#0a4a8a" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略診断チケット</div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#cce4ff" }}>¥7,700〜/サイト</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#cce4ff" }}>¥22,000〜（¥7,700〜/サイト）</div>
                 </th>
                 <th style={{ padding: "16px 8px", textAlign: "center", verticalAlign: "top", width: "22%", background: "#7a0c1e" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>戦略指南サブスク</div>
-                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#ffcccc" }}>¥9,167〜/月/サイト</div>
+                  <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "#ffcccc" }}>¥66,000〜/月（¥9,167〜/月/サイト）</div>
                 </th>
               </tr>
             </thead>
