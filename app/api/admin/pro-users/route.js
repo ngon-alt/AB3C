@@ -30,6 +30,11 @@ export async function POST(req) {
     `;
   }
 
+  // 無制限に設定する場合は既存の有料プランを無効化（一覧で伴走○○と表示され続けるのを防ぐ）
+  if (plan === 'unlimited') {
+    await sql`UPDATE user_plans SET status = 'canceled' WHERE user_email = ${email} AND status = 'active'`;
+  }
+
   // プラン登録（unlimited以外）
   if (plan && plan !== 'unlimited' && PLAN_MAP[plan]) {
     const p = PLAN_MAP[plan];
