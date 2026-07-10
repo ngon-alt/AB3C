@@ -5132,6 +5132,39 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
+  {currentInput && !currentInput.startsWith("http") && (() => {
+    const _text = currentInput;
+    const _regex = /【([^】]+)】/g;
+    let _m; const _labels = [], _positions = [];
+    while ((_m = _regex.exec(_text)) !== null) { _labels.push(_m[1]); _positions.push(_m.index + _m[0].length); }
+    const _sf = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+    const _sections = [];
+    for (let _i = 0; _i < _labels.length; _i++) {
+      const _start = _positions[_i];
+      const _end = _i + 1 < _positions.length ? _text.lastIndexOf('【', _positions[_i + 1] - 2) : _text.length;
+      const _c = _text.slice(_start, _end).trim();
+      if (_c) _sections.push({ label: _labels[_i], content: _c });
+    }
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 10 }}>分析対象</div>
+        {_sections.length === 0 ? (
+          <div style={{ background: "#f5f5f0", border: "1px solid #e0e0dc", borderRadius: 6, padding: "14px 18px" }}>
+            <p style={{ fontSize: 16, lineHeight: 1.8, color: C.ink, margin: 0, fontFamily: _sf, whiteSpace: "pre-wrap" }}>{_text}</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            {_sections.map((_s, _i) => (
+              <div key={_i} style={{ background: "#f5f5f0", border: "1px solid #e0e0dc", borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 6 }}>{_s.label}</div>
+                <p style={{ fontSize: 16, lineHeight: 1.75, color: C.ink, margin: 0, fontFamily: _sf }}>{_s.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  })()}
   <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
