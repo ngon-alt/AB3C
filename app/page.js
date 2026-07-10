@@ -3215,10 +3215,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
             }
             if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
             if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+            else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
             if (site.strategy_confirmed) setStrategyConfirmed(true);
             return; // DB復元成功
           }
           if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+          else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
           if (site.strategy_confirmed) setStrategyConfirmed(true);
         }
         // DBに分析結果がない場合、localStorageから復元
@@ -3512,6 +3514,7 @@ useEffect(() => {
       }
       if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
       if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+      else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
       if (site.strategy_confirmed) setStrategyConfirmed(true);
       try {
         const lsConfKey = "ab3c_confirmations_" + site.id;
@@ -4126,11 +4129,11 @@ if (tab === "text" && data && !data.error && !analyzeSiteId) {
     if (textSid) {
       setSiteId(textSid);
       _trackedSiteId = textSid;
-      // 分析結果を DB に保存
+      // 分析結果を DB に保存（入力テキストも input_text に保存）
       await fetch("/api/sites", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now() }),
+        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now(), input_text: savedText }),
       });
       // 戦略診断チケットの場合は分析回数を消費（URL分析と整合）
       try {
