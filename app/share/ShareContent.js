@@ -201,6 +201,40 @@ const SubLabel = ({ color, text }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8 }}>{text}</div>
 );
 
+// 【ラベル】内容 形式のテキストをセクション配列に分解して表示
+function InputSections({ text }) {
+  const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
+  const sections = [];
+  const regex = /【([^】]+)】/g;
+  let match;
+  let lastIndex = 0;
+  let labels = [];
+  let positions = [];
+  while ((match = regex.exec(text)) !== null) {
+    labels.push(match[1]);
+    positions.push(match.index + match[0].length);
+  }
+  if (labels.length === 0) {
+    return <p style={{ fontSize: 16, lineHeight: 1.8, color: C.ink, margin: 0, fontFamily: sansFont }}>{text}</p>;
+  }
+  for (let i = 0; i < labels.length; i++) {
+    const start = positions[i];
+    const end = i + 1 < positions.length ? text.lastIndexOf('【', positions[i + 1] - 2) : text.length;
+    const content = text.slice(start, end).trim();
+    if (content) sections.push({ label: labels[i], content });
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {sections.map((s, i) => (
+        <div key={i} style={{ background: "#fff", border: `1px solid ${C.border}`, borderRadius: 4, padding: "12px 16px" }}>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 6 }}>{s.label}</div>
+          <p style={{ fontSize: 15, lineHeight: 1.75, color: C.ink, margin: 0, fontFamily: sansFont }}>{s.content}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ShareContent({ input, result, improveResult, visualMock, improveResultsByCombination, visualMocksByCombination, error, expiredAt }) {
   // 組み合わせパターンが含まれる新スキーマ対応。タブ切替で表示を変える。
   const hasCombinations = !!(result?.combinations && Array.isArray(result.combinations) && result.combinations.length > 0);
@@ -276,11 +310,11 @@ export default function ShareContent({ input, result, improveResult, visualMock,
           <div>
            {input && (
   <div style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: "16px 20px", marginBottom: 28 }}>
-    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>分析対象</div>
-   {input.startsWith("http") ? (
-      <a href={input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 14, color: C.A, wordBreak: "break-all" }}>{input}</a>
+    <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>分析対象</div>
+    {input.startsWith("http") ? (
+      <a href={input} target="_blank" rel="noopener noreferrer" style={{ fontSize: 16, color: C.A, wordBreak: "break-all" }}>{input}</a>
     ) : (
-      <p style={{ fontSize: 14, lineHeight: 1.8, color: C.ink }}>{input}</p>
+      <InputSections text={input} />
     )}
   </div>
 )}
