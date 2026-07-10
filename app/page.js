@@ -4912,7 +4912,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     return (
       <>
         <button
-          onClick={() => shareResult((currentInput || "").startsWith("http") ? currentInput : "", currentResult)}
+          onClick={() => shareResult(currentInput || "", currentResult)}
           disabled={shareDisabled}
           title={isGenerating ? genTip : undefined}
           style={{ background: shareDisabled ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: shareDisabled ? "not-allowed" : "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "10px 20px", opacity: shareDisabled ? 0.7 : 1 }}>
