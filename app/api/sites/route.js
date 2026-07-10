@@ -46,6 +46,8 @@ async function ensureTable(sql) {
     // 全パターンを一度生成すれば次回以降の切替が高速。reload しても保持される。
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_results_by_combination JSONB`;
     await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mocks_by_combination JSONB`;
+    // テキスト分析時の入力テキストを保存（シェアURLで分析対象を常に表示できるように）
+    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS input_text TEXT`;
     await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
     await sql`
       CREATE TABLE IF NOT EXISTS user_plans (
@@ -257,7 +259,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -362,6 +364,7 @@ export async function PUT(req) {
     const improveByComboJson = (improve_results_by_combination && typeof improve_results_by_combination === "object" && Object.keys(improve_results_by_combination).length > 0) ? JSON.stringify(improve_results_by_combination) : null;
     const visualByComboJson = (visual_mocks_by_combination && typeof visual_mocks_by_combination === "object" && Object.keys(visual_mocks_by_combination).length > 0) ? JSON.stringify(visual_mocks_by_combination) : null;
     const confirmed = strategy_confirmed === true || strategy_confirmed === false ? strategy_confirmed : null;
+    const inputTextVal = input_text !== undefined ? input_text : null;
 
     const siteUrlVal = site_url !== undefined ? site_url : null;
     const siteNameVal = site_name !== undefined ? site_name : null;
@@ -392,6 +395,7 @@ export async function PUT(req) {
         analysis_versions = CASE WHEN ${versionsJson}::text IS NOT NULL THEN (${versionsJson}::jsonb) ELSE analysis_versions END,
         improve_results_by_combination = CASE WHEN ${improveByComboJson}::text IS NOT NULL THEN (${improveByComboJson}::jsonb) ELSE improve_results_by_combination END,
         visual_mocks_by_combination = CASE WHEN ${visualByComboJson}::text IS NOT NULL THEN (${visualByComboJson}::jsonb) ELSE visual_mocks_by_combination END,
+        input_text = COALESCE(${inputTextVal}::text, input_text),
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING *

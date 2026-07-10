@@ -3215,10 +3215,12 @@ const [chatSummaries, setChatSummaries] = useState([]);
             }
             if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
             if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+            else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
             if (site.strategy_confirmed) setStrategyConfirmed(true);
             return; // DB復元成功
           }
           if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+          else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
           if (site.strategy_confirmed) setStrategyConfirmed(true);
         }
         // DBに分析結果がない場合、localStorageから復元
@@ -3512,6 +3514,7 @@ useEffect(() => {
       }
       if (site.analyzed_at) setAnalyzedAt(new Date(site.analyzed_at).getTime());
       if (site.site_url) { setCurrentInput(site.site_url); setUrl(site.site_url); setTab("url"); }
+      else if (site.input_text) { setCurrentInput(site.input_text); setTab("text"); }
       if (site.strategy_confirmed) setStrategyConfirmed(true);
       try {
         const lsConfKey = "ab3c_confirmations_" + site.id;
@@ -4126,11 +4129,11 @@ if (tab === "text" && data && !data.error && !analyzeSiteId) {
     if (textSid) {
       setSiteId(textSid);
       _trackedSiteId = textSid;
-      // 分析結果を DB に保存
+      // 分析結果を DB に保存（入力テキストも input_text に保存）
       await fetch("/api/sites", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now() }),
+        body: JSON.stringify({ id: textSid, latest_analysis: data, analyzed_at: Date.now(), input_text: savedText }),
       });
       // 戦略診断チケットの場合は分析回数を消費（URL分析と整合）
       try {
@@ -5126,6 +5129,39 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         >
           {refining ? "再分析中…" : "🎯 選んだ条件で再分析"}
         </button>
+      </div>
+    );
+  })()}
+  {currentInput && !currentInput.startsWith("http") && (() => {
+    const _text = currentInput;
+    const _regex = /【([^】]+)】/g;
+    let _m; const _labels = [], _positions = [];
+    while ((_m = _regex.exec(_text)) !== null) { _labels.push(_m[1]); _positions.push(_m.index + _m[0].length); }
+    const _sf = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+    const _sections = [];
+    for (let _i = 0; _i < _labels.length; _i++) {
+      const _start = _positions[_i];
+      const _end = _i + 1 < _positions.length ? _text.lastIndexOf('【', _positions[_i + 1] - 2) : _text.length;
+      const _c = _text.slice(_start, _end).trim();
+      if (_c) _sections.push({ label: _labels[_i], content: _c });
+    }
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 10 }}>分析対象</div>
+        {_sections.length === 0 ? (
+          <div style={{ background: "#f5f5f0", border: "1px solid #e0e0dc", borderRadius: 6, padding: "14px 18px" }}>
+            <p style={{ fontSize: 16, lineHeight: 1.8, color: C.ink, margin: 0, fontFamily: _sf, whiteSpace: "pre-wrap" }}>{_text}</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            {_sections.map((_s, _i) => (
+              <div key={_i} style={{ background: "#f5f5f0", border: "1px solid #e0e0dc", borderRadius: 6, padding: "12px 16px" }}>
+                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700, color: C.muted, letterSpacing: "0.08em", marginBottom: 6 }}>{_s.label}</div>
+                <p style={{ fontSize: 16, lineHeight: 1.75, color: C.ink, margin: 0, fontFamily: _sf }}>{_s.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   })()}
