@@ -1425,23 +1425,51 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     if (loading || messages.length < 2) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/chat/reanalyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, analysisResult, reanalyze: true, siteId }),
+        body: JSON.stringify({ messages, analysisResult, siteId }),
       });
-      let data = null;
-      try { data = await res.json(); } catch (e) { data = null; }
-      if (data && data.reanalyzed && data.result) {
-        const summary = data.chatSummary || messages.filter(m => m.role === "user").slice(-1).map(m => m.content.slice(0, 20)).join("、");
-        onReanalyze(data.result, summary);
-        setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
-      } else {
-        // 失敗詳細をメッセージに表示（API エラー or HTTPステータス or 無応答）
-        const httpInfo = !res.ok ? `（HTTP ${res.status}）` : "";
-        const errMsg = (data && data.error) ? data.error : "再分析データの取得に失敗しました。もう一度お試しください。";
-        console.error("再分析失敗:", { status: res.status, ok: res.ok, data });
-        setMessages(prev => [...prev, { role: "assistant", content: `${errMsg}${httpInfo}` }]);
+
+      if (!res.ok && !res.body) {
+        setMessages(prev => [...prev, { role: "assistant", content: `再分析に失敗しました。（HTTP ${res.status}）` }]);
+        return;
+      }
+
+      // SSE ストリーム読み取り（サーバーが ping を送り続けるため接続タイムアウトを防ぐ）
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let handled = false;
+
+      outer: while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // 末尾の不完全行を保持
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6).trim();
+          if (payload === "[DONE]") break outer;
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.reanalyzed && parsed.result) {
+              const summary = parsed.chatSummary || messages.filter(m => m.role === "user").slice(-1).map(m => m.content.slice(0, 20)).join("、");
+              onReanalyze(parsed.result, summary);
+              setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
+              handled = true;
+            } else if (parsed.error) {
+              console.error("再分析失敗:", parsed.error);
+              setMessages(prev => [...prev, { role: "assistant", content: parsed.error }]);
+              handled = true;
+            }
+          } catch {}
+        }
+      }
+
+      if (!handled) {
+        setMessages(prev => [...prev, { role: "assistant", content: "再分析データの取得に失敗しました。もう一度お試しください。" }]);
       }
     } catch (e) {
       console.error("再分析エラー:", e);
