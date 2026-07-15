@@ -1488,6 +1488,11 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
     </div>
   );
 
+  const convTotalChars = messages
+    .filter(m => typeof m.content === "string")
+    .reduce((sum, m) => sum + m.content.length, 0);
+  const convWarnLevel = convTotalChars >= 22000 ? "strong" : convTotalChars >= 18000 ? "mild" : null;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "flex", flexDirection: "column", gap: 10, background: C.phase1Bg }}>
@@ -1576,6 +1581,23 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         {isViewingOldVersion && (
           <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 13, color: "#7a4f00", lineHeight: 1.6 }}>
             🕒 過去の世代を表示中です。再分析・戦略確定するには、各セクションのタブで最新世代に戻してください。
+          </div>
+        )}
+        {/* 会話量警告バナー */}
+        {!isViewingOldVersion && convWarnLevel && (
+          <div style={{
+            marginTop: 8,
+            padding: "10px 12px",
+            background: convWarnLevel === "strong" ? "#fff3cd" : "#fff8e1",
+            border: `1px solid ${convWarnLevel === "strong" ? "#f0a020" : "#ffc107"}`,
+            borderRadius: 6,
+            fontSize: 16,
+            color: convWarnLevel === "strong" ? "#7a4f00" : "#5a3e00",
+            lineHeight: 1.6,
+          }}>
+            {convWarnLevel === "strong"
+              ? "⚠️ 会話が長くなっています。古い内容が反映されない場合があります。一度「戦略に反映」することをおすすめします。"
+              : "💬 会話が増えてきました。重要な内容が出たら「戦略に反映」を押しておくと確実です。"}
           </div>
         )}
         {/* 3. この会話内容を分析に反映する（ティール：戦略策定フェーズ色） */}
