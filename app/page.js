@@ -3511,6 +3511,7 @@ useEffect(() => {
       }
       if (c.analyzedAt) setAnalyzedAt(c.analyzedAt);
       if (c.url) { setCurrentInput(c.url); setUrl(c.url); setTab("url"); }
+      else if (c.inputText) { setCurrentInput(c.inputText); setTab("text"); }
       if (c.confirmed) setStrategyConfirmed(true);
       if (Array.isArray(c.confirmations)) setConfirmHistory(c.confirmations);
       if (Array.isArray(c.threads)) setThreads(ensureGeneralTheme(c.threads));
@@ -4315,6 +4316,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             setPreviousSiteCache({
               id: siteId,
               url: urlSnapshot,
+              inputText: urlSnapshot ? null : currentInput,
               confirmed: strategyConfirmed === true,
               result: currentResult,
               versions: analysisVersions, // 世代履歴も一緒にキャッシュ
@@ -4568,7 +4570,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                         // 履歴は「過去のスナップショットを閲覧する」読み取り専用機能。
                         // この履歴の戦略を再確定したい場合は表示後に「戦略を確定する」ボタンを押せばよい。
                         if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
-                        if (ch.url) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                        if (ch.url) {
+                          if (ch.url.startsWith("http")) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
+                          else { setCurrentInput(ch.url); setTab("text"); }
+                        }
                         // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
                         // それぞれの議論の経緯が見られるよう）。siteId ベースのキーへ書き戻し、
                         // AnalysisChatPanel が再ロードする。
