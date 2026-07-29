@@ -2,7 +2,21 @@ import { neon } from "@neondatabase/serverless";
 import ShareContent from "./ShareContent";
 
 export async function generateMetadata({ searchParams }) {
-  return { title: "AB3C分析結果" };
+  const fallback = { title: "AB3C分析結果" };
+  const id = searchParams?.id;
+  if (!id) return fallback;
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const rows = await sql`SELECT result FROM shared_results WHERE id = ${id}`;
+    if (rows.length === 0) return fallback;
+    const result = typeof rows[0].result === 'string' ? JSON.parse(rows[0].result) : rows[0].result;
+    const message = result?.strategy_message?.message;
+    if (!message) return fallback;
+    const title = message.length > 40 ? message.slice(0, 40) + "…" : message;
+    return { title: `${title}｜AB3C分析結果` };
+  } catch (e) {
+    return fallback;
+  }
 }
 
 export default async function SharePage({ searchParams }) {

@@ -4243,6 +4243,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     }
     setTab("text");
     setResult(null);
+    setCurrentResult(null);
     setSelectedHistory(null);
   };
   const deleteHistory = (id) => {
