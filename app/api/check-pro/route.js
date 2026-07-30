@@ -1,10 +1,14 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { neon } from '@neondatabase/serverless';
+import { isAdminEmail } from '@/app/lib/admin';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return Response.json({ isPro: false, chatTickets: 0, hasTrialChat: false });
+
+  // 管理画面アクセス権（pro_users とは独立。ADMIN_EMAILS で指定した管理者のみ）
+  const isAdmin = isAdminEmail(session.user?.email);
 
   try {
     const sql = neon(process.env.DATABASE_URL);
@@ -102,9 +106,9 @@ export async function GET() {
       }
     } catch (e) {}
 
-    return Response.json({ isPro, chatTickets, trialChats, planLabel, planType, nextRenewalAt, activePlans });
+    return Response.json({ isPro, isAdmin, chatTickets, trialChats, planLabel, planType, nextRenewalAt, activePlans });
   } catch (e) {
     console.error(e);
-    return Response.json({ isPro: false, chatTickets: 0, trialChats: 0, planLabel: null });
+    return Response.json({ isPro: false, isAdmin, chatTickets: 0, trialChats: 0, planLabel: null });
   }
 }
