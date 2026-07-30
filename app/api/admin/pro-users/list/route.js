@@ -17,6 +17,9 @@ export async function GET(req) {
   const usersWithPlan = await Promise.all(users.map(async (user) => {
     user.plan_label = '無制限';
     user.active_plans = [];
+    // 照会失敗をエラーとして返す（以前は握りつぶして「無制限」表示にしていたため、
+    // 追加プランの有無が分からないまま正常に見えてしまい、原因調査を混乱させた）
+    user.plan_fetch_error = false;
     try {
       const plans = await sql`
         SELECT plan_type, site_limit FROM user_plans
@@ -29,7 +32,10 @@ export async function GET(req) {
         siteLimit: p.site_limit,
         label: `${p.plan_type === 'support' ? '伴走' : '分析'}${p.site_limit}`,
       }));
-    } catch (e) {}
+    } catch (e) {
+      console.error(`プラン照会エラー (${user.email}):`, e?.message);
+      user.plan_fetch_error = true;
+    }
     return user;
   }));
   return Response.json({ users: usersWithPlan });
