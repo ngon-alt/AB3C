@@ -381,18 +381,10 @@ useEffect(() => {
                   <div style={{ fontSize: 12, color: C.muted }}>{user.email}</div>
                   <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)}</div>
                   {user.active_plans && user.active_plans.length > 0 && (
-                    <div style={{ marginTop: 4 }}>
-                      <div style={{ fontSize: 11, color: C.muted, marginBottom: 2 }}>他に保有中（user_plans 生データ）:</div>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: C.muted }}>他に保有中:</span>
                       {user.active_plans.map((p, idx) => (
-                        <div key={idx} style={{ fontSize: 11, color: p.currentlyValid ? C.ink : C.muted, fontFamily: "'Space Mono', monospace", display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 2 }}>
-                          <span style={{ background: p.currentlyValid ? '#e8e8e8' : '#f5e0e0', padding: '1px 6px', borderRadius: 3 }}>{p.label}</span>
-                          <span>trial={String(p.isTrial)}</span>
-                          <span>expires={p.expiresAt ? new Date(p.expiresAt).toLocaleString('ja-JP') : 'なし'}</span>
-                          <span>購入={p.purchasedAt ? new Date(p.purchasedAt).toLocaleString('ja-JP') : '?'}</span>
-                          <span>interval={p.interval || '?'}</span>
-                          <span>price_id={p.stripePriceId || 'なし'}</span>
-                          {!p.currentlyValid && <span style={{ color: C.red }}>（期限切れのはず）</span>}
-                        </div>
+                        <span key={idx} style={{ background: '#e8e8e8', color: C.ink, fontSize: 11, padding: '1px 6px', borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{p.label}</span>
                       ))}
                     </div>
                   )}
