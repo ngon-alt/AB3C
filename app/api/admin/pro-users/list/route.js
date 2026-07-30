@@ -18,7 +18,12 @@ export async function GET(req) {
     user.plan_label = '無制限';
     user.active_plans = [];
     try {
-      const plans = await sql`SELECT plan_type, site_limit FROM user_plans WHERE user_email = ${user.email} AND status = 'active' ORDER BY plan_type, site_limit DESC`;
+      const plans = await sql`
+        SELECT plan_type, site_limit FROM user_plans
+        WHERE user_email = ${user.email} AND status = 'active'
+          AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
+        ORDER BY plan_type, site_limit DESC
+      `;
       user.active_plans = plans.map(p => ({
         planType: p.plan_type,
         siteLimit: p.site_limit,
