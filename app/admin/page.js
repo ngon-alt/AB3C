@@ -112,15 +112,26 @@ useEffect(() => {
   };
 
   const changePlan = async (targetEmail, newPlan) => {
+    // 応答を確認せず成功表示していたため、サーバーエラー時に「変更したつもり」に
+    // なる事故があった（2026-07-30 木野さんの無制限化が空振りした件）。
+    // 成否をレスポンスで確認し、失敗時は明確にエラーを出して一覧を再取得する。
     try {
-      await fetch('/api/admin/pro-users', {
+      const res = await fetch('/api/admin/pro-users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ secret, email: targetEmail, name: '', plan: newPlan }),
       });
-      setMessage(`✓ ${targetEmail} のプランを変更しました`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        setMessage(`✓ ${targetEmail} のプランを変更しました`);
+      } else {
+        setMessage(`エラー: ${targetEmail} のプラン変更に失敗しました（${data.error || 'HTTP ' + res.status}）。もう一度お試しください。`);
+      }
       fetchProUsers();
-    } catch (e) { setMessage('エラー: プラン変更に失敗しました'); }
+    } catch (e) {
+      setMessage(`エラー: ${targetEmail} のプラン変更の通信に失敗しました。もう一度お試しください。`);
+      fetchProUsers();
+    }
   };
 
   const deleteUser = async (emailToDelete) => {
@@ -208,7 +219,7 @@ useEffect(() => {
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>契約者統計</div>
-              <button onClick={fetchStats} style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 11, padding: '4px 10px' }}>
+              <button onClick={() => { fetchStats(); fetchProUsers(); }} style={{ background: 'transparent', border: `1px solid ${C.border}`, borderRadius: 4, color: C.muted, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 11, padding: '4px 10px' }}>
                 ↻ 更新
               </button>
             </div>
@@ -380,6 +391,11 @@ useEffect(() => {
                   <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: C.muted }}>{user.email}</div>
                   <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)}</div>
+                  {user.plan_fetch_error && (
+                    <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>
+                      保有プランの取得に失敗しました（ページを再読み込みしてください）
+                    </div>
+                  )}
                   {user.active_plans && user.active_plans.length > 0 && (
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                       <span style={{ fontSize: 11, color: C.muted }}>他に保有中:</span>

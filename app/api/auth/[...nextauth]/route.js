@@ -42,59 +42,75 @@ export const authOptions = {
       // 期限切れ後は user_plans 側のクエリで自動的に除外される。sites データは温存し、
       // 本契約後にそのまま使えるようにする（指南プラン誘導の動線）。
       if (isNewUser) {
+        // PRO付与（pro_users登録）済みなら24時間トライアルは発行しない。
+        // 無制限権限を先に付与された人が後から初回ログインすると、無制限なのに
+        // トライアル行が user_plans に混入し、管理画面のプラン表示が乱れるため。
+        // 照会に失敗した場合は従来どおり発行する（一般ユーザーの体験を止めない側に倒す）。
+        let isProGranted = false;
         try {
-          // user_plans / tickets のテーブル/カラムが存在することを保証
-          // （本来は sites/route.js の ensureTable 経由だが、初回ログイン時はそこを通らない可能性）
-          await sql`
-            CREATE TABLE IF NOT EXISTS user_plans (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              user_email VARCHAR(255) NOT NULL,
-              plan_type VARCHAR(20) NOT NULL,
-              site_limit INTEGER NOT NULL,
-              analyses_used INTEGER DEFAULT 0,
-              interval VARCHAR(10) NOT NULL,
-              stripe_price_id VARCHAR(255),
-              stripe_subscription_id VARCHAR(255),
-              status VARCHAR(20) DEFAULT 'active',
-              purchased_at TIMESTAMPTZ DEFAULT NOW(),
-              expires_at TIMESTAMPTZ,
-              created_at TIMESTAMPTZ DEFAULT NOW()
-            )
-          `;
-          await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`;
-          // tickets にも expires_at を追加（トライアルチケットの24h失効に使用）
-          await sql`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`;
-
-          await sql`
-            INSERT INTO user_plans (user_email, plan_type, site_limit, interval, status, expires_at, is_trial)
-            VALUES (${user.email}, 'support', 1, 'trial', 'active', NOW() + INTERVAL '24 hours', TRUE)
-          `;
-          await sql`
-            INSERT INTO tickets (email, remaining_chats, is_trial, expires_at)
-            VALUES (${user.email}, 100, TRUE, NOW() + INTERVAL '24 hours')
-          `;
+          const proRows = await sql`SELECT email FROM pro_users WHERE email = ${user.email}`;
+          isProGranted = proRows.length > 0;
         } catch (e) {
-          console.error('24時間トライアル発行エラー:', e);
+          console.error('pro_users照会エラー（トライアル発行は続行）:', e);
         }
 
-        // 登録完了メール送信（ユーザー宛）
+        if (!isProGranted) {
+          try {
+            // user_plans / tickets のテーブル/カラムが存在することを保証
+            // （本来は sites/route.js の ensureTable 経由だが、初回ログイン時はそこを通らない可能性）
+            await sql`
+              CREATE TABLE IF NOT EXISTS user_plans (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_email VARCHAR(255) NOT NULL,
+                plan_type VARCHAR(20) NOT NULL,
+                site_limit INTEGER NOT NULL,
+                analyses_used INTEGER DEFAULT 0,
+                interval VARCHAR(10) NOT NULL,
+                stripe_price_id VARCHAR(255),
+                stripe_subscription_id VARCHAR(255),
+                status VARCHAR(20) DEFAULT 'active',
+                purchased_at TIMESTAMPTZ DEFAULT NOW(),
+                expires_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+              )
+            `;
+            await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`;
+            // tickets にも expires_at を追加（トライアルチケットの24h失効に使用）
+            await sql`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`;
+
+            await sql`
+              INSERT INTO user_plans (user_email, plan_type, site_limit, interval, status, expires_at, is_trial)
+              VALUES (${user.email}, 'support', 1, 'trial', 'active', NOW() + INTERVAL '24 hours', TRUE)
+            `;
+            await sql`
+              INSERT INTO tickets (email, remaining_chats, is_trial, expires_at)
+              VALUES (${user.email}, 100, TRUE, NOW() + INTERVAL '24 hours')
+            `;
+          } catch (e) {
+            console.error('24時間トライアル発行エラー:', e);
+          }
+        }
+
+        // 登録完了メール送信（ユーザー宛・PRO付与済みでも送る）
         try {
           await sendRegistrationEmail({ email: user.email, name: user.name });
         } catch (e) {
           console.error('登録完了メール送信エラー:', e);
         }
 
-        // 運営宛の新規トライアル登録通知（有料申込通知と対をなす）
-        try {
-          // 24h 後の失効時刻を計算（DB の expires_at と同じ値）
-          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-          await sendTrialSignupNotificationEmail({
-            buyerEmail: user.email,
-            buyerName: user.name,
-            trialExpiresAt: expiresAt,
-          });
-        } catch (e) {
-          console.error('新規トライアル通知メール送信エラー:', e);
+        // 運営宛の新規トライアル登録通知（トライアルを発行した場合のみ）
+        if (!isProGranted) {
+          try {
+            // 24h 後の失効時刻を計算（DB の expires_at と同じ値）
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            await sendTrialSignupNotificationEmail({
+              buyerEmail: user.email,
+              buyerName: user.name,
+              trialExpiresAt: expiresAt,
+            });
+          } catch (e) {
+            console.error('新規トライアル通知メール送信エラー:', e);
+          }
         }
       }
 
