@@ -85,10 +85,15 @@ export async function GET() {
         };
       }
 
-      // 並び順: 支援 先頭 → 診断
-      activePlans = [...supportEntries, ...(analysisEntry ? [analysisEntry] : [])];
+      // 並び順: 無制限（PRO付与）先頭 → 支援 → 診断
+      // PRO付与ユーザーが別途チケット等を購入していても「無制限」が消えず、
+      // かつ購入済みプランもヘッダーのプラン切替メニューから選べるようにする。
+      const unlimitedEntry = isPro
+        ? [{ id: 'unlimited', planType: 'unlimited', planLabel: '無制限', siteLimit: 999, expiresAt: null }]
+        : [];
+      activePlans = [...unlimitedEntry, ...supportEntries, ...(analysisEntry ? [analysisEntry] : [])];
 
-      // 既存仕様の「単一プラン」表示: 先頭（support 優先、次点 診断合算）
+      // 既存仕様の「単一プラン」表示: 先頭（無制限 > support > 診断合算）
       if (activePlans.length > 0) {
         const first = activePlans[0];
         planType = first.planType;
