@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 
-// admin アクセス権: pro_users テーブルに登録されているユーザー全員に開放（2026-06-04）。
-// 旧実装は ADMIN_EMAIL = 'webconsultant2022@gmail.com' 固定だったため、
-// 権さんが普段使う ngon@gonweb.co.jp でログインしている時に弾かれていた。
-// /api/check-pro で isPro を判定して使う（pro_users 登録の有無 = admin 可否）。
+// admin アクセス権: ADMIN_EMAILS（既定は権さんの2アカウント）のみ（2026-07-30 再設計）。
+// 旧実装（2026-06-04〜）は pro_users 登録者全員に開放していたが、pro_users は
+// 「指南 無制限プラン」の付与リストとして外部のお試しユーザーにも使われるため、
+// 管理画面アクセスを分離した。/api/check-pro の isAdmin を使う。
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
@@ -29,13 +29,13 @@ export default function AdminPage() {
   // pro_users チェックの結果: null=判定中, true=admin, false=拒否
   const [isAdmin, setIsAdmin] = useState(null);
 
-  // セッション確立後に /api/check-pro で pro_users 登録有無を確認
+  // セッション確立後に /api/check-pro で管理者（ADMIN_EMAILS）かどうかを確認
   useEffect(() => {
     if (status === 'loading') return;
     if (!session) { setIsAdmin(false); return; }
     fetch('/api/check-pro')
       .then(res => res.json())
-      .then(data => { setIsAdmin(!!data.isPro); })
+      .then(data => { setIsAdmin(!!data.isAdmin); })
       .catch(() => { setIsAdmin(false); });
   }, [session, status]);
 
@@ -381,7 +381,7 @@ useEffect(() => {
 
         {/* 新規追加 */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24, marginBottom: 24 }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>プロ会員を追加</div>
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>無償プランを付与（無制限 ＝ 指南 無制限プラン）</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
             <input
               type="email"
@@ -427,7 +427,7 @@ useEffect(() => {
         {/* 会員一覧 */}
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 24 }}>
           <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 11, color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 16 }}>
-            プロ会員一覧（{proUsers.length}名）
+            無制限プラン付与者一覧（{proUsers.length}名）
           </div>
           {proUsers.length === 0 ? (
             <div style={{ fontSize: 13, color: C.muted, textAlign: 'center', padding: 20 }}>会員がいません</div>
