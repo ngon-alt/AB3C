@@ -380,8 +380,16 @@ useEffect(() => {
                   <div style={{ fontSize: 14, color: C.ink, fontWeight: 700 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: C.muted }}>{user.email}</div>
                   <div style={{ fontSize: 11, color: C.muted }}>{user.added_at?.slice(0, 10)}</div>
+                  {user.active_plans && user.active_plans.length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                      <span style={{ fontSize: 11, color: C.muted }}>他に保有中:</span>
+                      {user.active_plans.map((p, idx) => (
+                        <span key={idx} style={{ background: '#e8e8e8', color: C.ink, fontSize: 11, padding: '1px 6px', borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{p.label}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <select defaultValue={user.plan_label === '無制限' ? 'unlimited' : `${user.plan_label?.includes('伴走') ? 'support' : 'analysis'}_${user.plan_label?.replace(/[^0-9]/g, '')}`}
+                <select defaultValue="unlimited"
                   onChange={e => changePlan(user.email, e.target.value)}
                   style={{ background: C.highlight, border: `1px solid ${C.border}`, borderRadius: 4, padding: '4px 8px', fontSize: 11 }}>
                   <option value="unlimited">無制限</option>

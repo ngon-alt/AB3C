@@ -249,7 +249,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                 )}
                 {planLoaded && planLabel && !hasMultiplePlans && (
                   <span style={{
-                    background: isTrialPlan ? "#0d9488" : (planLabel.startsWith("指南") ? C.B : C.A),
+                    background: isTrialPlan ? "#0d9488" : ((planLabel.startsWith("指南") || planLabel === "無制限") ? C.B : C.A),
                     color: "#fff", fontSize: 14, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace"
                   }}>
                     {planLabel}{isTrialPlan && trialRemainingLabel ? ` ${trialRemainingLabel}` : ""}
@@ -260,7 +260,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                     <button
                       onClick={() => setShowPlanDropdown(!showPlanDropdown)}
                       title="プランを切り替える"
-                      style={{ background: planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px 2px 10px", borderRadius: 3, fontFamily: "'Space Mono', monospace", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
+                      style={{ background: (planLabel.startsWith("指南") || planLabel === "無制限") ? C.B : C.A, color: "#fff", fontSize: 14, padding: "2px 8px 2px 10px", borderRadius: 3, fontFamily: "'Space Mono', monospace", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }}
                     >
                       {planLabel}<span style={{ fontSize: 10 }}>▼</span>
                     </button>
@@ -280,7 +280,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
                             onMouseEnter={e => { if (p.id !== currentPlan?.id) e.currentTarget.style.background = "#f5f5f0"; }}
                             onMouseLeave={e => { if (p.id !== currentPlan?.id) e.currentTarget.style.background = "transparent"; }}
                           >
-                            <span style={{ background: p.planLabel.startsWith("指南") ? C.B : C.A, color: "#fff", fontSize: 12, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{p.planLabel}</span>
+                            <span style={{ background: (p.planLabel.startsWith("指南") || p.planLabel === "無制限") ? C.B : C.A, color: "#fff", fontSize: 12, padding: "2px 8px", borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{p.planLabel}</span>
                             {p.id === currentPlan?.id && <span style={{ fontSize: 12, color: C.phase1, fontWeight: 700 }}>✓ 選択中</span>}
                           </div>
                         ))}
