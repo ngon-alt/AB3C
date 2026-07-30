@@ -18,29 +18,17 @@ export async function GET(req) {
     user.plan_label = '無制限';
     user.active_plans = [];
     try {
-      // デバッグのため is_trial / expires_at 等の生データも一旦フィルタなしで全件取得し、
-      // フィルタ後件数と食い違いがないか JS 側でも判別できるようにする。
-      const allActiveRows = await sql`
-        SELECT plan_type, site_limit, status, COALESCE(is_trial, FALSE) as is_trial,
-               expires_at, purchased_at, interval, stripe_price_id
-        FROM user_plans
+      const plans = await sql`
+        SELECT plan_type, site_limit FROM user_plans
         WHERE user_email = ${user.email} AND status = 'active'
+          AND (COALESCE(is_trial, FALSE) = FALSE OR expires_at > NOW())
         ORDER BY plan_type, site_limit DESC
       `;
-      user.active_plans = allActiveRows.map(p => {
-        const notExpiredTrial = !p.is_trial || (p.expires_at && new Date(p.expires_at).getTime() > Date.now());
-        return {
-          planType: p.plan_type,
-          siteLimit: p.site_limit,
-          label: `${p.plan_type === 'support' ? '伴走' : '分析'}${p.site_limit}`,
-          isTrial: p.is_trial,
-          expiresAt: p.expires_at,
-          purchasedAt: p.purchased_at,
-          interval: p.interval,
-          stripePriceId: p.stripe_price_id,
-          currentlyValid: notExpiredTrial, // false ならトライアル期限切れ（デバッグ表示のみに使う）
-        };
-      });
+      user.active_plans = plans.map(p => ({
+        planType: p.plan_type,
+        siteLimit: p.site_limit,
+        label: `${p.plan_type === 'support' ? '伴走' : '分析'}${p.site_limit}`,
+      }));
     } catch (e) {}
     return user;
   }));
