@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [proUsers, setProUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [statsExpanded, setStatsExpanded] = useState(false);
+  const [analysisExpanded, setAnalysisExpanded] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [plan, setPlan] = useState('unlimited');
@@ -298,6 +299,52 @@ useEffect(() => {
                               <td style={{ padding: '6px 10px', textAlign: 'right' }}>{p.site_limit}</td>
                               <td style={{ padding: '6px 10px' }}>{intervalLabel}</td>
                               <td style={{ padding: '6px 10px', color: C.muted, fontFamily: "'Space Mono', monospace" }}>{p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('ja-JP') : '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+            {stats.analysis.plans && stats.analysis.plans.length > 0 && (
+              <div style={{ marginTop: 10 }}>
+                <button onClick={() => setAnalysisExpanded(!analysisExpanded)} style={{ background: 'transparent', border: 'none', color: C.A, cursor: 'pointer', fontFamily: "'Space Mono', monospace", fontSize: 12, padding: 0 }}>
+                  {analysisExpanded ? '▼' : '▶'} 戦略診断チケット契約者一覧（{stats.analysis.plans.length}件）
+                </button>
+                {analysisExpanded && (
+                  <div style={{ marginTop: 10, maxHeight: 360, overflowY: 'auto', border: `1px solid ${C.border}`, borderRadius: 4 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <thead>
+                        <tr style={{ background: C.highlight, position: 'sticky', top: 0 }}>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>区分</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>メール</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>名前</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>チケット</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>使用済</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>残</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>購入日</th>
+                          <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>有効期限</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.analysis.plans.map((p, i) => {
+                          const badge = p.is_admin_grant
+                            ? { label: 'ADMIN', bg: '#6f42c1' }
+                            : { label: 'PAID', bg: '#1a7e3a' };
+                          return (
+                            <tr key={i} style={{ borderTop: `1px solid ${C.border}`, background: p.is_admin_grant ? '#f3eafd' : 'transparent' }}>
+                              <td style={{ padding: '6px 10px', whiteSpace: 'nowrap' }}>
+                                <span style={{ background: badge.bg, color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 3, fontFamily: "'Space Mono', monospace" }}>{badge.label}</span>
+                              </td>
+                              <td style={{ padding: '6px 10px' }}>{p.email}</td>
+                              <td style={{ padding: '6px 10px' }}>{p.name}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'right' }}>{p.site_limit}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'right', color: C.muted }}>{p.analyses_used}</td>
+                              <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 700 }}>{p.remaining}</td>
+                              <td style={{ padding: '6px 10px', color: C.muted, fontFamily: "'Space Mono', monospace" }}>{p.purchased_at ? new Date(p.purchased_at).toLocaleDateString('ja-JP') : '—'}</td>
+                              <td style={{ padding: '6px 10px', color: C.muted, fontFamily: "'Space Mono', monospace" }}>{p.expires_at ? new Date(p.expires_at).toLocaleDateString('ja-JP') : '—'}</td>
                             </tr>
                           );
                         })}

@@ -44,10 +44,12 @@ export async function GET(req) {
     const supportMonthly = supportRows.filter(r => !r.is_trial && !r.is_admin_grant && r.interval === 'month').length;
     const supportYearly = supportRows.filter(r => !r.is_trial && !r.is_admin_grant && r.interval === 'year').length;
 
-    // 戦略診断チケット（active）
+    // 戦略診断チケット（active）— 一覧表示用に氏名と管理者付与の識別も取得
     const analysisRows = await sql`
-      SELECT user_email, site_limit, analyses_used, purchased_at, expires_at
-      FROM user_plans
+      SELECT user_email, name, site_limit, analyses_used, purchased_at, expires_at,
+             (interval = 'admin' OR stripe_price_id = 'admin_manual') as is_admin_grant
+      FROM user_plans up
+      LEFT JOIN users u ON u.email = up.user_email
       WHERE plan_type = 'analysis' AND status = 'active'
         AND (expires_at IS NULL OR expires_at > NOW())
       ORDER BY purchased_at DESC
@@ -90,6 +92,16 @@ export async function GET(req) {
         totalTickets: analysisTotalTickets,
         usedTickets: analysisUsedTickets,
         remainingTickets: analysisRemainingTickets,
+        plans: analysisRows.map(r => ({
+          email: r.user_email,
+          name: r.name || '',
+          site_limit: parseInt(r.site_limit || 0),
+          analyses_used: parseInt(r.analyses_used || 0),
+          remaining: Math.max(0, parseInt(r.site_limit || 0) - parseInt(r.analyses_used || 0)),
+          purchased_at: r.purchased_at,
+          expires_at: r.expires_at,
+          is_admin_grant: r.is_admin_grant,
+        })),
       },
     });
   } catch (e) {
