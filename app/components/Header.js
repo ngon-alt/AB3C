@@ -53,7 +53,6 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const [portalLoading, setPortalLoading] = useState(false);
   const [hasUnseenUpdate, setHasUnseenUpdate] = useState(false);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
-  const [hoverExpanded, setHoverExpanded] = useState(false);
   useEffect(() => {
     try {
       if (localStorage.getItem("ab3c_header_collapsed") === "1") setHeaderCollapsed(true);
@@ -62,7 +61,6 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   const toggleHeaderCollapsed = () => setHeaderCollapsed(v => {
     const next = !v;
     try { localStorage.setItem("ab3c_header_collapsed", next ? "1" : "0"); } catch (e) {}
-    if (!next) setHoverExpanded(false);
     return next;
   });
 
@@ -183,11 +181,11 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
   };
 
   return (
-    <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}
-      onMouseEnter={() => { if (headerCollapsed) setHoverExpanded(true); }}
-      onMouseLeave={() => setHoverExpanded(false)}>
-      {/* 上段: ロゴ + サブナビ + ユーザー情報（折りたたみ可能） */}
-      {(!headerCollapsed || hoverExpanded) && (
+    <div id="app-header" style={{ background: "#ffffff", position: "sticky", top: 0, zIndex: 200 }}>
+      {/* 上段: ロゴ + サブナビ + ユーザー情報（折りたたみ可能）。
+          開閉は右上の「▲ たたむ / ▼ 展開」ボタンのみで行う
+          （ホバーでの自動展開は煩わしいとの権さん指摘で 2026-08-01 廃止） */}
+      {!headerCollapsed && (
       <div style={{ padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <a href="/" style={{ textDecoration: "none" }}>
           <div style={{ fontFamily: "var(--font-eb-garamond), serif", fontSize: "clamp(24px, 5vw, 44px)", fontWeight: 900, lineHeight: 1 }}>
@@ -524,7 +522,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <button
           onClick={toggleHeaderCollapsed}
           title={headerCollapsed ? "ヘッダーを展開する" : "ヘッダーをたたんで作業領域を広くする"}
-          style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 999, color: C.muted, cursor: "pointer", fontSize: 12, padding: "3px 10px", fontFamily: NAV_FONT, whiteSpace: "nowrap" }}>
+          style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.muted}`, borderRadius: 999, color: C.ink, cursor: "pointer", fontSize: 16, padding: "4px 14px", fontFamily: NAV_FONT, whiteSpace: "nowrap" }}>
           {headerCollapsed ? "▼ 展開" : "▲ たたむ"}
         </button>
       </nav>
