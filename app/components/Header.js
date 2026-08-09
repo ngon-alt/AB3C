@@ -522,7 +522,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
         <button
           onClick={toggleHeaderCollapsed}
           title={headerCollapsed ? "ヘッダーを展開する" : "ヘッダーをたたんで作業領域を広くする"}
-          style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.border}`, borderRadius: 999, color: C.muted, cursor: "pointer", fontSize: 12, padding: "3px 10px", fontFamily: NAV_FONT, whiteSpace: "nowrap" }}>
+          style={{ marginLeft: "auto", flexShrink: 0, background: "transparent", border: `1px solid ${C.muted}`, borderRadius: 999, color: C.ink, cursor: "pointer", fontSize: 16, padding: "4px 14px", fontFamily: NAV_FONT, whiteSpace: "nowrap" }}>
           {headerCollapsed ? "▼ 展開" : "▲ たたむ"}
         </button>
       </nav>
