@@ -179,8 +179,13 @@ export async function POST(req) {
             created_at TIMESTAMPTZ DEFAULT NOW()
           )
         `;
+        // Stripe顧客IDを保存し、Customer Portal を「決済したアカウント」だけに開く。
+        // 従来はポータル側でログインメール→Stripe請求メールの一致検索に頼っており、
+        // 決済画面で別メールを入力したケース（Payment Link経由等）でアカウント混線が起きた。
+        await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255)`;
         let expiresAt = null;
         const subscriptionId = session.subscription || null;
+        const customerId = typeof session.customer === 'string' ? session.customer : (session.customer?.id || null);
         if (plan.type === 'analysis') {
           // 戦略診断チケット: 1年後に有効期限
           expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
@@ -196,8 +201,8 @@ export async function POST(req) {
           }
         }
         await sql`
-          INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id, stripe_subscription_id, expires_at)
-          VALUES (${email}, ${plan.type}, ${plan.sites}, ${plan.interval}, ${priceId}, ${subscriptionId}, ${expiresAt})
+          INSERT INTO user_plans (user_email, plan_type, site_limit, interval, stripe_price_id, stripe_subscription_id, expires_at, stripe_customer_id)
+          VALUES (${email}, ${plan.type}, ${plan.sites}, ${plan.interval}, ${priceId}, ${subscriptionId}, ${expiresAt}, ${customerId})
         `;
       }
 
