@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
+import { logUsage } from "../../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -269,6 +270,8 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
           return;
         }
 
+        await logUsage(response, { email: session?.user?.email, feature: "reanalyze", siteId });
+
         // Extract structured result
         const stopReason = response.stop_reason;
         const toolUseBlock = (response.content || []).find(b => b.type === "tool_use" && b.name === "return_analysis");
@@ -366,6 +369,7 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
             max_tokens: 100,
             messages: [{ role: "user", content: `以下の会話内容を15文字以内で一言に要約してください。要約のみ返してください。\n\n${conversationSummary}` }],
           });
+          await logUsage(summaryResponse, { email: session?.user?.email, feature: "chat_summary", siteId });
           chatSummary = summaryResponse.content[0].text.trim();
         } catch (sumErr) {
           console.warn("chatSummary 生成失敗:", sumErr?.message);

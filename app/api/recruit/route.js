@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { logUsage } from "../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -59,6 +60,8 @@ ${chatHistory ? `## 採用に関するヒアリング内容\n${chatHistory}` : "
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     });
+
+    await logUsage(response, { email: session?.user?.email, feature: "recruit" });
 
     const text = response.content[0].text;
     const jsonMatch = text.match(/\{[\s\S]*\}/);

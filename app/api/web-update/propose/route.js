@@ -5,6 +5,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { getInstallationToken, getRepoTree, getFileContent } from "../../../lib/github";
 import { SENRYAKU_VOICE } from "../../../lib/voice";
+import { logUsage } from "../../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -119,6 +120,7 @@ ${tree.paths.join("\n")}
 {"path": "選んだファイルのパス（内容変更でなければ null）", "reason": "理由を20〜60字の日本語で"}`,
       }],
     });
+    await logUsage(pick, { email: session?.user?.email, feature: "web_update_pick" });
     const picked = parseJsonLoose(pick.content?.[0]?.text || "");
     targetPath = picked?.path;
     fileReason = picked?.reason || "";
@@ -174,6 +176,7 @@ ${file.content}
 ${SENRYAKU_VOICE}`,
       }],
     });
+    await logUsage(edit, { email: session?.user?.email, feature: "web_update_edit" });
     let raw = edit.content?.[0]?.text || "";
     const sm = raw.match(/###SUMMARY###\s*(.+)\s*$/);
     if (sm) { summary = sm[1].trim(); raw = raw.slice(0, sm.index); }

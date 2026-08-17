@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { neon } from "@neondatabase/serverless";
 import https from "node:https";
+import { logUsage } from "../../lib/usage-log";
 import http from "node:http";
 import { authOptions } from "../auth/[...nextauth]/route";
 // 注: 完了メール送信はこのエンドポイントからは行わない（2026-06-04 案 Y 導入）。
@@ -525,6 +526,12 @@ JSONのみ返してください。
       temperature: 0.7,
       tools: tools.length > 0 ? tools : undefined,
       messages: [{ role: "user", content: prompt }],
+    });
+
+    await logUsage(message, {
+      email: session.user.email,
+      feature: isRefining ? "analyze_refine" : "analyze",
+      meta: { webSearch: useWebSearch, mode: url ? "url" : "text" },
     });
 
     const text = message.content

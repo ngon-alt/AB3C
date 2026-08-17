@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
+import { logUsage } from "../../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -140,6 +141,8 @@ ${JSON.stringify(analysisResult, null, 2)}
       max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     });
+
+    await logUsage(message, { email: session?.user?.email, feature: "improve_visual" });
 
     stopReason = message.stop_reason || "";
     rawText = message.content.filter(b => b.type === "text").map(b => b.text).join("");
