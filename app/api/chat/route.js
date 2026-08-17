@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { SENRYAKU_VOICE } from "../../lib/voice";
+import { logUsage } from "../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -150,6 +151,7 @@ ${conversationText}
         max_tokens: 2000,
         messages: [{ role: "user", content: summaryPrompt }],
       });
+      await logUsage(sumRes, { email: session.user.email, feature: "action_summary", siteId });
       const sumText = sumRes.content.filter(b => b.type === "text").map(b => b.text).join("");
       return NextResponse.json({ summary: sumText });
     } catch (apiErr) {
@@ -366,6 +368,9 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
       return NextResponse.json({ error: `再分析に失敗しました: ${detail}（API ${status}）` }, { status: 502 });
     }
 
+    // 再分析はチャット1枚の消費でありながら実消費が最も大きい操作。必ず記録する。
+    await logUsage(response, { email: session.user.email, feature: "reanalyze", siteId });
+
     try {
       const stopReason = response.stop_reason; // "end_turn" | "tool_use" | "max_tokens" | ...
 
@@ -494,6 +499,7 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
             content: `以下の会話内容を15文字以内で一言に要約してください。要約のみ返してください。\n\n${conversationSummary}`
           }],
         });
+        await logUsage(summaryResponse, { email: session.user.email, feature: "chat_summary", siteId });
         chatSummary = summaryResponse.content[0].text.trim();
       } catch (sumErr) {
         // 要約失敗は致命的ではないので空文字列で続行
@@ -892,6 +898,14 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
     return NextResponse.json({ error: `AI APIエラー: ${detail}` }, { status: 500 });
   }
 
+  await logUsage(response, {
+    email: session.user.email,
+    // 初回アドバイスはチケットを消費しないが、コストは発生するので区別して記録する
+    feature: initialAdvice ? "initial_advice" : recruitMode ? "recruit_chat" : "chat",
+    siteId,
+    meta: { threadTheme: threadTheme || null, hasImages },
+  });
+
   // ツール使用時は content に複数ブロック（text / tool_use / tool_result）が含まれるため、text ブロックを結合
   let text = response.content
     .filter(b => b.type === "text")
@@ -907,6 +921,7 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
         system: systemPrompt,
         messages: [...messages, { role: "assistant", content: text }, { role: "user", content: "続きを書いてください。前の回答の末尾から自然に続くように、途切れた文から再開してください。前置きや「続きです」などの言葉は不要です。" }],
       });
+      await logUsage(continuation, { email: session.user.email, feature: "chat_continuation", siteId });
       const contText = continuation.content.filter(b => b.type === "text").map(b => b.text).join("");
       text = text + contText;
     } catch (e) {

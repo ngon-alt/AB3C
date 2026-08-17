@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { logUsage } from "../../../lib/usage-log";
 
 export const maxDuration = 300;
 
@@ -142,6 +143,7 @@ ${compBlock || "（競合データなし）"}
       temperature: 0.5,
       messages: [{ role: "user", content: prompt }],
     });
+    await logUsage(message, { email: session?.user?.email, feature: "rakuten_synthesize" });
     const text = message.content.filter((b) => b.type === "text").map((b) => b.text).join("");
     const result = extractJson(text);
     return NextResponse.json({ report: result });

@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { logUsage } from "../../../lib/usage-log";
 
 export const maxDuration = 300;
 
@@ -99,6 +100,7 @@ ${isOwn && lpText ? `# この商品のLP（商品ページ）本文テキスト�
       temperature: 0.3, // 仕分けは安定性重視
       messages: [{ role: "user", content: prompt }],
     });
+    await logUsage(message, { email: session?.user?.email, feature: "rakuten_summarize" });
     const text = message.content.filter((b) => b.type === "text").map((b) => b.text).join("");
     const result = extractJson(text);
     return NextResponse.json({ summary: result });

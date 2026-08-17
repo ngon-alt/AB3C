@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
+import { logUsage } from "../../lib/usage-log";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -92,6 +93,8 @@ JSONのみ返してください。`;
     console.error("/api/improve Claude API error:", e?.message);
     return NextResponse.json({ error: "AI への接続に失敗しました。少し時間をおいてもう一度お試しください。" }, { status: 502 });
   }
+
+  await logUsage(message, { email: session?.user?.email, feature: "improve" });
 
   try {
     const stopReason = message.stop_reason;
