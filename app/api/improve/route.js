@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { logUsage } from "../../lib/usage-log";
+import { getSiteSnapshot, buildStructureContext } from "../../lib/site-crawl";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -47,13 +48,41 @@ export async function POST(req) {
 
   const { analysisResult, url } = await req.json();
 
-  const prompt = `あなたはウェブサイト改善の専門家です。以下のAB3C分析結果とウェブサイトURLをもとに、具体的な改善提案を行ってください。
+  // これまでこのレポートは「URLの文字列」と分析JSONだけで書いていた。
+  // つまりサイトを一度も見ずに構造改善を提案していた（2026-08-20 に判明）。
+  // 分析時に取得したスナップショット（キャッシュ済み）を読み、実際のページ構成・
+  // 見出し階層・配色を渡す。テキスト入力での分析（url が事業概要の文章）や
+  // 取得失敗時は、これまで通り分析結果だけで書く。
+  let siteContext = "";
+  const isHttpUrl = typeof url === "string" && /^https?:\/\//i.test(url.trim());
+  if (isHttpUrl) {
+    try {
+      const snapshot = await getSiteSnapshot(url.trim());
+      if (!snapshot.loginWall?.detected && snapshot.pages?.length) {
+        siteContext = buildStructureContext(snapshot);
+        console.log(`[improve] site context pages=${snapshot.pages.length} cache=${!!snapshot.fromCache}`);
+      }
+    } catch (e) {
+      console.error("[improve] サイト取得に失敗（分析結果のみで生成を続行）:", e?.message || e);
+    }
+  }
+
+  const prompt = `あなたはウェブサイト改善の専門家です。以下のAB3C分析結果と、現状サイトの実データをもとに、具体的な改善提案を行ってください。
 
 ## 分析対象URL
 ${url}
 
 ## AB3C分析結果
 ${JSON.stringify(analysisResult, null, 2)}
+
+${siteContext ? `${siteContext}
+
+## 実データの使い方（重要）
+- **すでにあるコンテンツを「追加すべき」として挙げない**。上のページ構成・見出しを確認し、無いもの・弱いものだけを提案してください
+- 構造の提案は、上の実際のナビゲーション・ページ構成・パンくずを踏まえて書いてください（「どのページをどこに置き直すか」まで具体的に）
+- デザインの提案は「現状の批評」ではなく「この戦略に沿うならこうあるべき」を示すものです。配色を提案する場合は、上の現状の使用色（特にロゴに使われていそうな色）から濃淡2色を選び、役割を割り当てる形で書いてください。ベージュ系の多用は避けてください
+- 既存の見出し・文言を引用しながら「この表現をこう変える」と書けると、提案が具体的になります
+` : `（今回はサイトの内容を取得できませんでした。分析結果だけを根拠に提案してください。）`}
 
 以下のJSON形式のみで返してください：
 {
