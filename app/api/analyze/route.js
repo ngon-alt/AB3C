@@ -2,9 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { neon } from "@neondatabase/serverless";
-import https from "node:https";
 import { logUsage } from "../../lib/usage-log";
-import http from "node:http";
+import { getSiteSnapshot, buildAnalysisContext } from "../../lib/site-crawl";
 import { authOptions } from "../auth/[...nextauth]/route";
 // 注: 完了メール送信はこのエンドポイントからは行わない（2026-06-04 案 Y 導入）。
 // フロントが analyze + improve + visual すべて完了後に
@@ -16,97 +15,9 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// 証明書チェーン系のエラーコード。このエラーで失敗したサイトに限り、
-// TLS 検証を緩めた fallback 取得を1回だけ許可する。
-// 原因の多くは「サーバーが中間証明書の送出を忘れている（fullchain でない）」不備で、
-// ブラウザでは見えるが Node の厳格な fetch では検証できず弾かれる。
-const CERT_CHAIN_ERROR_CODES = new Set([
-  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
-  "UNABLE_TO_GET_ISSUER_CERT",
-  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
-  "SELF_SIGNED_CERT_IN_CHAIN",
-  "DEPTH_ZERO_SELF_SIGNED_CERT",
-  "CERT_UNTRUSTED",
-]);
+// Vercel Functions のタイムアウト延長（サイトのクロール＋分析で時間がかかる）
+export const maxDuration = 300;
 
-// 証明書チェーン不備サイト専用の低レベル GET。
-// Node 組み込みの node:https/http を使う（undici は import 解決が不安定なため避ける）。
-// rejectUnauthorized:false は「読み取り専用の公開ページ取得」かつ
-// 「厳格 fetch が証明書エラーで失敗した後の救済」に限定して使用する。最大3リダイレクト追従。
-function insecureGet(targetUrl, redirectsLeft = 3) {
-  return new Promise((resolve, reject) => {
-    let u;
-    try { u = new URL(targetUrl); } catch (e) { return reject(e); }
-    const lib = u.protocol === "http:" ? http : https;
-    const req = lib.request(
-      u,
-      {
-        method: "GET",
-        rejectUnauthorized: false,
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)" },
-        timeout: 10000,
-      },
-      (res) => {
-        const status = res.statusCode || 0;
-        if (status >= 300 && status < 400 && res.headers.location && redirectsLeft > 0) {
-          res.resume(); // ボディを破棄してソケットを解放
-          const next = new URL(res.headers.location, u).toString();
-          return resolve(insecureGet(next, redirectsLeft - 1));
-        }
-        const chunks = [];
-        res.on("data", (c) => chunks.push(c));
-        res.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
-      }
-    );
-    req.on("error", reject);
-    req.on("timeout", () => req.destroy(new Error("timeout")));
-    req.end();
-  });
-}
-
-function extractText(html) {
-  return html
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/data:image\/[^;]+;base64,[^"']*/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 5000);
-}
-
-async function fetchWebsite(url) {
-  let html;
-  try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)" },
-      signal: AbortSignal.timeout(10000),
-    });
-    html = await res.text();
-  } catch (e) {
-    const code = e?.code || e?.cause?.code;
-    if (CERT_CHAIN_ERROR_CODES.has(code)) {
-      // サイト側の証明書チェーン不備。このサイトに限り TLS 検証を緩めて1回だけ再取得する。
-      console.warn(`[fetchWebsite] cert chain incomplete, retrying with relaxed TLS url=${url} code=${code}`);
-      try {
-        html = await insecureGet(url);
-      } catch (e2) {
-        console.error(
-          `[fetchWebsite] relaxed-TLS retry failed url=${url} name=${e2?.name} message=${e2?.message} code=${e2?.code || e2?.cause?.code}`
-        );
-        throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
-      }
-    } else {
-      // 失敗理由を握り潰さずログに出す（IP遮断 vs タイムアウト等の切り分け用）。
-      // 例: ECONNRESET/ECONNREFUSED → ネットワーク/IP遮断、TimeoutError/ETIMEDOUT → タイムアウト。
-      console.error(
-        `[fetchWebsite] failed url=${url} name=${e?.name} message=${e?.message} code=${code} causeMessage=${e?.cause?.message}`
-      );
-      throw new Error("URLの読み込みに失敗しました。URLを確認してください。");
-    }
-  }
-  return extractText(html);
-}
 export async function POST(req) {
   const session = await getServerSession(authOptions);
 
@@ -146,12 +57,37 @@ export async function POST(req) {
       ? String(targetRevenue)
       : "";
 
+  // クロールの結果メタ（取得ページ数・URL一覧）。分析結果に添えて「何を読んだか」を残す。
+  let crawlMeta = null;
+
   if (url && url.trim()) {
     try {
-      const siteText = await fetchWebsite(url.trim());
-      analysisTarget = `以下はウェブサイト（${url}）から取得したテキストです：\n\n${siteText}`;
+      // 1ページ・5000字カットから、同一ドメインの主要ページを上限つきで取得する方式に変更
+      //（2026-08-20）。取得結果はスナップショットとしてキャッシュされ、
+      // 改善レポート（/api/improve）も同じものを読む。
+      const snapshot = await getSiteSnapshot(url.trim());
+
+      // ログイン壁の検知。これまではログインページのHTMLを「サイトの中身」として
+      // そのまま分析してしまい、エラーにならないぶん誤りに気づけなかった。
+      if (snapshot.loginWall?.detected) {
+        return NextResponse.json({
+          error: `このURLはログインが必要なページのようです（${snapshot.loginWall.reason}）。\n\nログイン後のページは読み取れないため、そのまま分析すると誤った結果になります。\n\nお手数ですが、ログイン後の画面の文章をコピーして「テキストで入力」タブから貼り付けるか、公開されているページのURLを指定してください。`,
+        }, { status: 400 });
+      }
+
+      analysisTarget = buildAnalysisContext(snapshot, url.trim());
+      crawlMeta = {
+        pages: snapshot.pages.map(p => ({ url: p.url, title: p.title })),
+        page_count: snapshot.pages.length,
+        total_chars: snapshot.stats?.totalChars || 0,
+        fetched_at: snapshot.fetchedAt,
+        from_cache: !!snapshot.fromCache,
+        colors: (snapshot.colors || []).map(c => c.hex),
+      };
+      console.log(`[analyze] crawl url=${url} pages=${snapshot.pages.length} chars=${snapshot.stats?.totalChars} cache=${!!snapshot.fromCache} elapsed=${snapshot.stats?.elapsedMs}ms`);
       useWebSearch = !isRefining; // 絞り込み時はすでに市場情報が揃っているのでweb検索不要
     } catch (e) {
+      console.error(`[analyze] クロール失敗 url=${url} message=${e?.message}`);
       return NextResponse.json({ error: `URLの読み込みに失敗しました。\n\n以下のようなサイトは読み取りができない場合があります：\n・楽天市場・Yahoo!ショッピング・Amazonなどのモール型ECサイト\n・Instagram・FacebookなどのSNS\n・食べログ・ホットペッパーなどの予約サイト\n・SUUMO・HOME'Sなどの不動産ポータルサイト\n・Indeed・リクナビなどの求人サイト\n・金融・銀行系サイト\n\nこれらのサイトは「テキストで入力」タブから事業概要を直接入力してお試しください。` }, { status: 400 });
     }
   } else if (input && input.trim()) {
@@ -341,7 +277,9 @@ recommendation_scores の項目：
 - 主張は明確だが本人の根拠の言語化がまだ → warn（comment で根拠整理を促す）
 - 主観的すぎて比較困難 → ng（comment で本人なりの根拠の整理を強く促す）
 
-${useWebSearch ? `重要：ウェブ検索を使って競合他社を調査し、対象サービスと比較した上でAB3C分析を行ってください。
+${useWebSearch ? `重要：ウェブ検索は**競合調査と市場規模の調査だけ**に使ってください。
+分析対象そのものの情報は、下の「分析対象」に**サイトから実際に取得したページの内容**として与えてあります。
+自社サイトの中身を検索で探し直す必要はありません（検索は最大4回まで。競合と市場に絞って使うこと）。
 競合が多数存在する場合はAdvantageを厳しく評価し、本当に差別化できているかを判断してください。
 また市場規模（SAM・SOM・成長率）も調査してください。市場規模の算出根拠を必ず明記してください。公的統計や業界レポートを参照した場合は出典名と年度を記載し、フェルミ推定の場合はベースとなる数字と計算過程を簡潔に説明してください。
 競合リストにはウェブサイトURLがわかる場合は「競合名（特徴）｜https://url」の形式で含めてください。
@@ -515,7 +453,10 @@ JSONのみ返してください。
 - JSONパースエラーの原因になるので厳守してください`;
 
   try {
-    const tools = useWebSearch ? [{ type: "web_search_20250305", name: "web_search" }] : [];
+    // 検索回数に上限を置く（2026-08-20）。上限なしだと1回の分析で8回検索が走り、
+    // 入力トークンが15万を超えることがあった（実測 $0.69/回）。自社サイトの内容は
+    // クロール済みのものを渡しているので、検索は競合・市場の調査に絞れば足りる。
+    const tools = useWebSearch ? [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }] : [];
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -531,7 +472,7 @@ JSONのみ返してください。
     await logUsage(message, {
       email: session.user.email,
       feature: isRefining ? "analyze_refine" : "analyze",
-      meta: { webSearch: useWebSearch, mode: url ? "url" : "text" },
+      meta: { webSearch: useWebSearch, mode: url ? "url" : "text", crawledPages: crawlMeta?.page_count || 0, crawledChars: crawlMeta?.total_chars || 0 },
     });
 
     const text = message.content
@@ -644,6 +585,8 @@ function backfillLegacyFields(result) {
 try {
   // 順序: パース → 推奨パターンをスコアから決定 → legacy フィールドを推奨パターンで埋める
   const result = backfillLegacyFields(computeRecommendedCombinationId(JSON.parse(clean)));
+  // 「どのページを読んで分析したか」を結果に添える（表示はしていないが、共有・検証の手がかりになる）
+  if (crawlMeta) result.crawl_meta = crawlMeta;
   // 注: 完了メール送信はこのエンドポイントから削除（2026-06-04 案 Y）。
   // フロントが analyze + improve + visual すべて完了後に
   // /api/analyze/send-completion-email を呼ぶ。判定の一本化により、
@@ -656,6 +599,7 @@ try {
   try {
     const cleaned2 = clean.replace(/[\x00-\x1F\x7F]/g, " ");
     const result2 = backfillLegacyFields(computeRecommendedCombinationId(JSON.parse(cleaned2)));
+    if (crawlMeta) result2.crawl_meta = crawlMeta;
     return NextResponse.json(result2);
   } catch (e2) {
     return NextResponse.json({ error: "AI応答の解析に失敗しました。もう一度お試しください。" }, { status: 500 });
