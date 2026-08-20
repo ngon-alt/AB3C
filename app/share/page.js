@@ -1,8 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import ShareContent from "./ShareContent";
 
+// シェアURLは特定の相手に渡すためのもの。検索エンジンには載せない
+const NOINDEX = { index: false, follow: false };
+
 export async function generateMetadata({ searchParams }) {
-  const fallback = { title: "AB3C分析結果" };
+  const fallback = { title: "AB3C分析結果", robots: NOINDEX };
   const id = searchParams?.id;
   if (!id) return fallback;
   try {
@@ -13,7 +16,7 @@ export async function generateMetadata({ searchParams }) {
     const message = result?.strategy_message?.message;
     if (!message) return fallback;
     const title = message.length > 40 ? message.slice(0, 40) + "…" : message;
-    return { title: `${title}｜AB3C分析結果` };
+    return { title: `${title}｜AB3C分析結果`, robots: NOINDEX };
   } catch (e) {
     return fallback;
   }
