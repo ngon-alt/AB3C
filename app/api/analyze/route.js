@@ -79,12 +79,13 @@ export async function POST(req) {
       crawlMeta = {
         pages: snapshot.pages.map(p => ({ url: p.url, title: p.title })),
         page_count: snapshot.pages.length,
+        index_count: snapshot.index?.length || 0,
         total_chars: snapshot.stats?.totalChars || 0,
         fetched_at: snapshot.fetchedAt,
         from_cache: !!snapshot.fromCache,
         colors: (snapshot.colors || []).map(c => c.hex),
       };
-      console.log(`[analyze] crawl url=${url} pages=${snapshot.pages.length} chars=${snapshot.stats?.totalChars} cache=${!!snapshot.fromCache} elapsed=${snapshot.stats?.elapsedMs}ms`);
+      console.log(`[analyze] crawl url=${url} pages=${snapshot.pages.length} index=${snapshot.index?.length || 0} chars=${snapshot.stats?.totalChars} cache=${!!snapshot.fromCache} elapsed=${snapshot.stats?.elapsedMs}ms`);
       useWebSearch = !isRefining; // 絞り込み時はすでに市場情報が揃っているのでweb検索不要
     } catch (e) {
       console.error(`[analyze] クロール失敗 url=${url} message=${e?.message}`);
@@ -472,7 +473,7 @@ JSONのみ返してください。
     await logUsage(message, {
       email: session.user.email,
       feature: isRefining ? "analyze_refine" : "analyze",
-      meta: { webSearch: useWebSearch, mode: url ? "url" : "text", crawledPages: crawlMeta?.page_count || 0, crawledChars: crawlMeta?.total_chars || 0 },
+      meta: { webSearch: useWebSearch, mode: url ? "url" : "text", crawledPages: crawlMeta?.page_count || 0, indexPages: crawlMeta?.index_count || 0, crawledChars: crawlMeta?.total_chars || 0 },
     });
 
     const text = message.content

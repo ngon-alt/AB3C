@@ -67,7 +67,7 @@ export async function POST(req) {
     }
   }
 
-  const prompt = `あなたはウェブサイト改善の専門家です。以下のAB3C分析結果と、現状サイトの実データをもとに、具体的な改善提案を行ってください。
+  const prompt = `あなたはウェブサイト改善の専門家です。${siteContext ? "上に示した現状サイトの実データと、" : ""}以下のAB3C分析結果をもとに、具体的な改善提案を行ってください。
 
 ## 分析対象URL
 ${url}
@@ -75,9 +75,7 @@ ${url}
 ## AB3C分析結果
 ${JSON.stringify(analysisResult, null, 2)}
 
-${siteContext ? `${siteContext}
-
-## 実データの使い方（重要）
+${siteContext ? `## 実データの使い方（重要）
 - **すでにあるコンテンツを「追加すべき」として挙げない**。上のページ構成・見出しを確認し、無いもの・弱いものだけを提案してください
 - 構造の提案は、上の実際のナビゲーション・ページ構成・パンくずを踏まえて書いてください（「どのページをどこに置き直すか」まで具体的に）
 - デザインの提案は「現状の批評」ではなく「この戦略に沿うならこうあるべき」を示すものです。配色を提案する場合は、上の現状の使用色（特にロゴに使われていそうな色）から濃淡2色を選び、役割を割り当てる形で書いてください。ベージュ系の多用は避けてください
@@ -113,10 +111,18 @@ JSONのみ返してください。`;
 
   let message;
   try {
+    // 実データ（変わらない・大きい）を先頭ブロックにしてキャッシュ対象にする。
+    // 2回目以降（パターン切替）は実データぶんの入力が約1/10の単価で読まれる。
+    const content = siteContext
+      ? [
+          { type: "text", text: siteContext, cache_control: { type: "ephemeral" } },
+          { type: "text", text: prompt },
+        ]
+      : prompt;
     message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 16000, // 15項目×詳細テキストで大きめ
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     });
   } catch (e) {
     console.error("/api/improve Claude API error:", e?.message);

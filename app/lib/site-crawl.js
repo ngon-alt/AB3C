@@ -12,7 +12,13 @@ import { neon } from "@neondatabase/serverless";
 // 本文・見出し階層・ナビ・パンくず・配色まで構造を保ったまま渡す」ための共通土台。
 //
 // 設計方針:
-//   - 上限を必ず持つ（ページ数・深さ・文字数・時間）。相手サーバーへの負荷に配慮する
+//   - 品質最優先。「読める範囲は全部読む」が基本で、上限は暴走防止のためだけに置く
+//     （2026-08-23 権さん判断。当初の8ページ上限は「トークン節約」寄りの設計で、
+//       会社概要の配下だけで使い切る数だった。戦略指南の原則に照らして撤回）
+//   - 二層構造: 本文まで取る「主要ページ」と、タイトル・概要・主見出しだけ拾う「一覧ページ」。
+//     一覧があれば、本文を取っていないページも「サイトに何があるか」として AI に見える
+//   - 取得順はカテゴリー横断（会社概要・サービス・事例・採用…を横に広く）。
+//     同じ階層の兄弟ページを取り尽くす前に、別カテゴリーの代表ページを先に取る
 //   - robots.txt の Disallow を尊重する（ユーザーが指定した開始URLだけは例外＝本人の意思）
 //   - 取得結果はスナップショットとして DB にキャッシュし、分析と改善レポートで共用する
 //     （同じサイトを2度3度取りに行かない）
@@ -20,14 +26,15 @@ import { neon } from "@neondatabase/serverless";
 // ============================================================================
 
 export const CRAWL_LIMITS = {
-  maxPages: 8,          // トップを含む取得ページ数の上限
-  maxDepth: 2,          // トップ = 深さ0。辿るのは深さ2まで
+  maxPages: 100,        // 本文まで取得するページ数の上限（トップを含む）
+  indexMaxPages: 300,   // 本文は取らず、タイトル・概要・主見出しだけ拾う「一覧」ページ数の上限
+  maxDepth: 3,          // トップ = 深さ0。辿るのは深さ3まで
   topPageChars: 6000,   // トップページの本文上限
   perPageChars: 4000,   // 下層1ページあたりの本文上限
-  totalChars: 26000,    // 全ページ合計の本文上限
-  concurrency: 4,       // 同時取得数（相手サーバーへの配慮）
+  totalChars: 400000,   // 全ページ合計の本文上限（100ページ×4000字。約22万トークン・文脈100万の範囲内）
+  concurrency: 6,       // 同時取得数（訪問者6人が同時に閲覧する程度。相手サーバーへの配慮）
   pageTimeoutMs: 9000,  // 1ページの取得タイムアウト
-  totalBudgetMs: 28000, // クロール全体の時間予算
+  totalBudgetMs: 60000, // クロール全体の時間予算（関数の上限は300秒。実測は8ページ0.4秒なので100ページでも十数秒）
   maxCssFiles: 3,       // 配色抽出のために取りにいく外部CSSの数
   maxColors: 14,        // 拾う色コードの数
   maxHeadingsPerPage: 40,
@@ -35,6 +42,11 @@ export const CRAWL_LIMITS = {
 };
 
 const UA = "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)";
+
+// クロール方式のバージョン。上限や構造を変えたら上げる。
+// スナップショットのキャッシュ（TTL 6時間）に古い方式の結果が残っていても、
+// バージョンが違えば取り直す（8ページ版の結果が100ページ版として使われるのを防ぐ）。
+export const CRAWL_VERSION = 2;
 
 // 証明書チェーン系のエラーコード。このエラーで失敗したサイトに限り、
 // TLS 検証を緩めた fallback 取得を1回だけ許可する。
@@ -70,7 +82,7 @@ function insecureGet(targetUrl, redirectsLeft = 3, timeoutMs = CRAWL_LIMITS.page
         }
         const chunks = [];
         res.on("data", (c) => chunks.push(c));
-        res.on("end", () => resolve({ body: Buffer.concat(chunks).toString("utf-8"), finalUrl: u.toString() }));
+        res.on("end", () => resolve({ body: Buffer.concat(chunks).toString("utf-8"), finalUrl: u.toString(), status }));
       }
     );
     req.on("error", reject);
@@ -94,7 +106,7 @@ async function fetchDoc(url, { timeoutMs = CRAWL_LIMITS.pageTimeoutMs } = {}) {
     if (CERT_CHAIN_ERROR_CODES.has(code)) {
       console.warn(`[site-crawl] cert chain incomplete, retrying with relaxed TLS url=${url} code=${code}`);
       const r = await insecureGet(url, 3, timeoutMs);
-      return { body: r.body, finalUrl: r.finalUrl, status: 200, contentType: "text/html" };
+      return { body: r.body, finalUrl: r.finalUrl, status: r.status || 200, contentType: "text/html" };
     }
     // 失敗理由を握り潰さずログに出す（IP遮断 vs タイムアウト等の切り分け用）。
     console.error(
@@ -165,6 +177,41 @@ function scoreCandidate(url, anchorText, depth) {
   score += Math.max(0, 3 - segs);
   score -= depth; // 深さのぶん減点
   return score;
+}
+
+// URL の最初のパス区切りを「カテゴリー」とみなす（/company/..., /service/..., /blog/...）。
+function sectionKey(url) {
+  try {
+    const segs = new URL(url).pathname.split("/").filter(Boolean);
+    return segs.length ? decodeURIComponent(segs[0]).toLowerCase() : "_root";
+  } catch (e) { return "_root"; }
+}
+
+// カテゴリー横断で n 件選ぶ。
+// 単純なスコア順だと「商品ページ60枚」のような同スコアの塊が、事例・採用といった
+// 別カテゴリーの代表ページを押し出してしまう。カテゴリーごとに最良のものから
+// 順番に1枚ずつ取る（総当たり）ことで、まず横に広く、余った枠で縦に深く取る。
+function pickBreadthFirst(cands, n) {
+  if (n <= 0) return [];
+  const buckets = new Map();
+  for (const c of [...cands].sort((a, b) => b.score - a.score)) {
+    const k = sectionKey(c.url);
+    if (!buckets.has(k)) buckets.set(k, []);
+    buckets.get(k).push(c);
+  }
+  const order = [...buckets.values()]; // 挿入順 = 各カテゴリーの最高スコア順
+  const out = [];
+  while (out.length < n) {
+    let progressed = false;
+    for (const b of order) {
+      if (!b.length) continue;
+      out.push(b.shift());
+      progressed = true;
+      if (out.length >= n) break;
+    }
+    if (!progressed) break;
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -447,6 +494,17 @@ function parsePage(html, url, { isTop }) {
   };
 }
 
+// 一覧（二層目）用の軽量パース。本文は持たず、タイトル・概要・主見出しだけ。
+// 「このページが存在し、何についてのページか」を AI に見せるための最小情報。
+function parsePageLight(html, url) {
+  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  const title = titleMatch ? decodeEntities(titleMatch[1]).replace(/\s+/g, " ").trim().slice(0, 120) : "";
+  const description = extractMeta(html, "description").slice(0, 160);
+  const h1m = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+  const heading = h1m ? tagText(h1m[1]).slice(0, 100) : "";
+  return { url, title, description, heading };
+}
+
 // 全ページに共通して現れる短い行（グローバルナビ・フッター）は本文から落とす。
 // ナビはナビとして別に渡しているので、本文側では繰り返しぶんのトークンが無駄になる。
 function dropBoilerplate(pages) {
@@ -482,13 +540,24 @@ async function runPool(items, worker, concurrency) {
   return results;
 }
 
-// sitemap.xml から候補URLを拾う（トップページのリンクが JavaScript 生成で取れない場合の保険）
-async function fetchSitemapUrls(origin, baseUrl) {
+// sitemap.xml から候補URLを拾う。
+// 当初は「トップページのリンクが JavaScript 生成で取れない場合の保険」だったが、
+// 取得上限を広げた（2026-08-23）ことで「サイト全体の候補を揃える常用の手段」になった。
+// サイトマップインデックス（子サイトマップの一覧）なら子を最大5本まで読む。
+async function fetchSitemapUrls(origin, baseUrl, limit = 1000) {
+  const readLocs = async (url) => {
+    const { body } = await fetchDoc(url, { timeoutMs: 5000 });
+    return [...String(body).matchAll(/<loc>([^<]+)<\/loc>/gi)].map(m => m[1].trim());
+  };
   try {
-    const { body } = await fetchDoc(`${origin}/sitemap.xml`, { timeoutMs: 5000 });
-    const locs = [...String(body).matchAll(/<loc>([^<]+)<\/loc>/gi)].map(m => m[1].trim());
+    let locs = await readLocs(`${origin}/sitemap.xml`);
+    const children = locs.filter(l => /sitemap[^/]*\.xml(\?|$)/i.test(l)).slice(0, 5);
+    if (children.length) {
+      const nested = await Promise.all(children.map(c => readLocs(c).catch(() => [])));
+      locs = locs.filter(l => !children.includes(l)).concat(nested.flat());
+    }
     const urls = [];
-    for (const loc of locs.slice(0, 300)) {
+    for (const loc of locs.slice(0, limit)) {
       const u = normalizeUrl(loc, baseUrl);
       if (u && isSameSite(u, baseUrl) && !SKIP_EXT.test(u) && !SKIP_PATH.test(u)) urls.push(u);
     }
@@ -509,10 +578,26 @@ export async function crawlSite(startUrl, opts = {}) {
   const notes = [];
 
   // --- 開始ページ（ユーザーが指定したURL。robots.txt の判定対象外＝本人の意思による取得） ---
-  const first = await fetchDoc(startUrl, { timeoutMs: limits.pageTimeoutMs });
-  const topUrl = normalizeUrl(first.finalUrl || startUrl) || startUrl;
-  const topHtml = String(first.body || "");
-  const topPage = parsePage(topHtml, topUrl, { isTop: true });
+  let first = await fetchDoc(startUrl, { timeoutMs: limits.pageTimeoutMs });
+  let topUrl = normalizeUrl(first.finalUrl || startUrl) || startUrl;
+  let topHtml = String(first.body || "");
+  let topPage = parsePage(topHtml, topUrl, { isTop: true });
+
+  // 裸ドメインと www の片方だけが生きているサイトがある（2026-08-23 komagomeku.tokyo で確認:
+  // 裸ドメインが 404、www は正常）。開始ページが 4xx/5xx か中身が空なら相方を1回だけ試す。
+  if ((first.status >= 400 || topPage.textLength === 0)) {
+    try {
+      const u = new URL(startUrl);
+      u.hostname = /^www\./i.test(u.hostname) ? u.hostname.replace(/^www\./i, "") : `www.${u.hostname}`;
+      const alt = await fetchDoc(u.toString(), { timeoutMs: limits.pageTimeoutMs });
+      const altUrl = normalizeUrl(alt.finalUrl || u.toString()) || u.toString();
+      const altPage = parsePage(String(alt.body || ""), altUrl, { isTop: true });
+      if (alt.status < 400 && altPage.textLength > topPage.textLength) {
+        notes.push(`指定URLが${first.status >= 400 ? `ステータス${first.status}` : "空のページ"}だったため ${u.hostname} で取得しました`);
+        first = alt; topUrl = altUrl; topHtml = String(alt.body || ""); topPage = altPage;
+      }
+    } catch (e) { /* 相方も駄目なら元の結果で続行 */ }
+  }
 
   const loginWall = detectLoginWall({ html: topHtml, title: topPage.title, textLength: topPage.textLength });
 
@@ -522,6 +607,7 @@ export async function crawlSite(startUrl, opts = {}) {
   // --- 巡回対象の選定 ---
   const visited = new Set([topUrl]);
   const collected = [topPage];
+  const indexPages = []; // 二層目（本文なしの一覧）
   const colorsPromise = collectSiteColors(topHtml, topUrl).catch(() => []);
 
   if (!loginWall.detected && origin) {
@@ -534,28 +620,36 @@ export async function crawlSite(startUrl, opts = {}) {
         if (!isSameSite(l.url, topUrl)) continue;
         if (SKIP_EXT.test(l.url) || SKIP_PATH.test(l.url)) continue;
         if (!robotsAllows(disallow, l.url)) continue;
-        candidates.set(l.url, { url: l.url, text: l.text, depth, score: scoreCandidate(l.url, l.text, depth) });
+        const d = Number.isFinite(l.depth) ? l.depth : depth;
+        candidates.set(l.url, { url: l.url, text: l.text, depth: d, score: scoreCandidate(l.url, l.text, d) });
       }
     };
     addCandidates(topPage.links, 1);
 
-    // トップのリンクがほとんど取れない（JavaScript でメニューを組んでいる）場合の保険
-    if (candidates.size < 2) {
+    // sitemap.xml で候補を広げる。トップのリンクだけでは深い階層のページが見えない
+    // （JavaScript でメニューを組むサイトでは、そもそもリンクが取れない）。
+    if (candidates.size < limits.maxPages) {
       const sitemapUrls = await fetchSitemapUrls(origin, topUrl);
       if (sitemapUrls.length) {
-        notes.push("トップページのリンクが少なかったため sitemap.xml から主要ページを補いました");
-        addCandidates(sitemapUrls.map(u => ({ url: u, text: "" })), 1);
+        if (candidates.size < 2) notes.push("トップページのリンクが少なかったため sitemap.xml から主要ページを補いました");
+        // サイトマップ由来のURLは階層が分からないので、パスの深さを深さとみなす
+        addCandidates(
+          sitemapUrls.map(u => {
+            let d = 1;
+            try { d = Math.min(limits.maxDepth, Math.max(1, new URL(u).pathname.split("/").filter(Boolean).length)); } catch (e) { d = 1; }
+            return { url: u, text: "", depth: d };
+          }),
+          1
+        );
       }
     }
 
-    // 深さ1 → 深さ2 の順に、優先度の高いものから取得する
+    // --- 一層目: 本文まで取る主要ページ。深さ1 → 2 → 3 の順、各深さ内はカテゴリー横断 ---
     for (let depth = 1; depth <= limits.maxDepth; depth++) {
       if (collected.length >= limits.maxPages) break;
       if (timeLeft() <= 3000) { notes.push("時間の上限に達したため取得を打ち切りました"); break; }
-      const batch = [...candidates.values()]
-        .filter(c => c.depth === depth && !visited.has(c.url) && c.score > -3)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, limits.maxPages - collected.length);
+      const pool = [...candidates.values()].filter(c => c.depth === depth && !visited.has(c.url) && c.score > -3);
+      const batch = pickBreadthFirst(pool, limits.maxPages - collected.length);
       if (!batch.length) continue;
       batch.forEach(c => visited.add(c.url));
 
@@ -571,14 +665,46 @@ export async function crawlSite(startUrl, opts = {}) {
       }, limits.concurrency);
 
       for (const p of fetched) {
-        if (!p || collected.length >= limits.maxPages) continue;
-        if (p.textLength < 120) continue; // 中身の無いページは入れない
+        if (!p) continue;
+        if (collected.length >= limits.maxPages || p.textLength < 120) {
+          // 枠に入らない・中身が薄いページも「存在」は一覧に残す
+          indexPages.push({ url: p.url, title: p.title, description: p.description, heading: p.headings?.[0]?.text || "", fetched: true });
+          continue;
+        }
         collected.push(p);
       }
       // 次の深さの候補を、いま取れたページのリンクから足す
       if (depth < limits.maxDepth) {
         for (const p of fetched) if (p) addCandidates(p.links, depth + 1);
       }
+    }
+
+    // --- 二層目: 本文は取らず、タイトル・概要・主見出しだけ拾う「一覧」 ---
+    // 本文を渡していないページでも「サイトに何があるか」を AI が把握できるようにする。
+    const leftovers = [...candidates.values()]
+      .filter(c => !visited.has(c.url) && c.score > -3)
+      .sort((a, b) => b.score - a.score);
+    const toFetch = leftovers.slice(0, Math.max(0, limits.indexMaxPages - indexPages.length));
+    if (toFetch.length && timeLeft() > 5000) {
+      toFetch.forEach(c => visited.add(c.url));
+      const light = await runPool(toFetch, async (c) => {
+        if (timeLeft() <= 1500) return { url: c.url, title: "", description: "", heading: "", anchorText: c.text, fetched: false };
+        try {
+          const r = await fetchDoc(c.url, { timeoutMs: Math.min(6000, Math.max(2000, timeLeft())) });
+          if (r.contentType && !/text\/html|application\/xhtml/i.test(r.contentType)) return null;
+          return { ...parsePageLight(String(r.body || ""), c.url), anchorText: c.text, fetched: true };
+        } catch (e) {
+          return { url: c.url, title: "", description: "", heading: "", anchorText: c.text, fetched: false };
+        }
+      }, limits.concurrency);
+      for (const e of light) if (e) indexPages.push(e);
+    }
+    // 時間や枠の都合で取りに行けなかった残りは、URLとリンク文言だけで一覧に載せる
+    for (const c of leftovers.slice(toFetch.length, toFetch.length + 300)) {
+      indexPages.push({ url: c.url, title: "", description: "", heading: "", anchorText: c.text, fetched: false });
+    }
+    if (leftovers.length > toFetch.length + 300) {
+      notes.push(`一覧に載せきれなかったページが${leftovers.length - toFetch.length - 300}件あります`);
     }
   }
 
@@ -599,13 +725,21 @@ export async function crawlSite(startUrl, opts = {}) {
       truncated,
       isTop: p.isTop,
     };
-  }).filter(p => p.isTop || p.text.length > 0);
+  });
+  // 文字数上限で本文が入らなかったページは、一覧側に回して「存在」だけは残す
+  for (const p of pages) {
+    if (!p.isTop && p.text.length === 0) {
+      indexPages.push({ url: p.url, title: p.title, description: p.description, heading: p.headings?.[0]?.text || "", fetched: true });
+    }
+  }
+  const keptPages = pages.filter(p => p.isTop || p.text.length > 0);
 
   const colors = await colorsPromise;
   const nav = extractNav(topHtml, topUrl);
   const logoUrl = extractLogoUrl(topHtml, topUrl);
 
   return {
+    crawlVersion: CRAWL_VERSION,
     startUrl,
     topUrl,
     host: origin ? new URL(topUrl).hostname : "",
@@ -614,11 +748,13 @@ export async function crawlSite(startUrl, opts = {}) {
     nav,
     logoUrl,
     colors,
-    pages,
+    pages: keptPages,
+    index: indexPages,
     notes,
     stats: {
-      pageCount: pages.length,
-      totalChars: pages.reduce((n, p) => n + p.text.length, 0),
+      pageCount: keptPages.length,
+      indexCount: indexPages.length,
+      totalChars: keptPages.reduce((n, p) => n + p.text.length, 0),
       elapsedMs: Date.now() - startedAt,
     },
   };
@@ -693,7 +829,7 @@ export async function getSiteSnapshot(url, opts = {}) {
   const ttl = opts.ttlHours ?? CRAWL_LIMITS.snapshotTtlHours;
   if (opts.forceRefresh !== true) {
     const cached = await readSnapshot(key, ttl);
-    if (cached) return { ...cached, fromCache: true };
+    if (cached && cached.crawlVersion === CRAWL_VERSION) return { ...cached, fromCache: true };
   }
   const snapshot = await crawlSite(url, opts);
   await writeSnapshot(key, url, snapshot);
@@ -710,11 +846,21 @@ function headingOutline(headings) {
     .join("\n");
 }
 
+// 二層目（本文なしの一覧）を1行1ページで整形する。
+function indexLines(index) {
+  return (index || []).map(e => {
+    const label = e.title || e.heading || e.anchorText || "(タイトル未取得)";
+    const extra = [e.heading && e.heading !== e.title ? e.heading : "", e.description].filter(Boolean).join(" — ");
+    return `- ${label}｜${e.url}${extra ? `（${extra}）` : ""}`;
+  }).join("\n");
+}
+
 /** AB3C 分析用。サイトの骨格（ナビ・ページ構成）＋各ページの見出しと本文。 */
 export function buildAnalysisContext(snapshot, sourceUrl) {
   const parts = [];
   parts.push(`以下はウェブサイト（${sourceUrl || snapshot.topUrl}）から実際に取得した内容です。`);
-  parts.push(`取得ページ数: ${snapshot.pages.length}ページ（同一ドメインの主要ページを自動選択）／取得日時: ${snapshot.fetchedAt}`);
+  const idxCount = snapshot.index?.length || 0;
+  parts.push(`本文を取得したページ: ${snapshot.pages.length}ページ${idxCount ? `／題名のみ把握したページ: ${idxCount}ページ` : ""}／取得日時: ${snapshot.fetchedAt}`);
   if (snapshot.nav?.length) {
     parts.push(`\n## グローバルナビゲーション（サイトが自ら示す情報の柱）\n${snapshot.nav.map(n => `- ${n.text || "(無題)"}｜${n.url}`).join("\n")}`);
   }
@@ -726,6 +872,9 @@ export function buildAnalysisContext(snapshot, sourceUrl) {
     if (p.headings?.length) parts.push(`見出し階層:\n${headingOutline(p.headings)}`);
     parts.push(`本文:\n${p.text}${p.truncated ? "\n（本文はここまで。以降は文字数上限のため省略）" : ""}`);
   });
+  if (idxCount) {
+    parts.push(`\n---\n## その他のページ一覧（本文は未取得・存在と題名のみ。${idxCount}ページ）\nサイト全体にどんなページがあるかの把握に使ってください。\n${indexLines(snapshot.index)}`);
+  }
   if (snapshot.notes?.length) parts.push(`\n（取得メモ: ${snapshot.notes.join(" / ")}）`);
   return parts.join("\n");
 }
@@ -733,7 +882,8 @@ export function buildAnalysisContext(snapshot, sourceUrl) {
 /** ウェブサイト改善レポート用。構造・ナビ・見出し・配色を主に、本文は要点だけ。 */
 export function buildStructureContext(snapshot) {
   const parts = [];
-  parts.push(`## 現状サイトの実データ（実際に取得したもの・${snapshot.pages.length}ページ／取得日時 ${snapshot.fetchedAt}）`);
+  const idxCount = snapshot.index?.length || 0;
+  parts.push(`## 現状サイトの実データ（本文取得 ${snapshot.pages.length}ページ${idxCount ? `＋題名のみ把握 ${idxCount}ページ` : ""}／取得日時 ${snapshot.fetchedAt}）`);
   if (snapshot.nav?.length) {
     parts.push(`\n### グローバルナビゲーション\n${snapshot.nav.map(n => `- ${n.text || "(無題)"}｜${n.url}`).join("\n")}`);
   }
@@ -751,5 +901,8 @@ export function buildStructureContext(snapshot) {
     const body = p.isTop ? p.text.slice(0, 2500) : p.text.slice(0, 1200);
     if (body) parts.push(`本文（抜粋）:\n${body}`);
   });
+  if (idxCount) {
+    parts.push(`\n---\n### その他のページ一覧（本文は未取得・存在と題名のみ。${idxCount}ページ）\n構造の提案では、これらのページの置き場所・統廃合も対象に含めてください。\n${indexLines(snapshot.index)}`);
+  }
   return parts.join("\n");
 }
