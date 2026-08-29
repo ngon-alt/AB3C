@@ -1,5 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", ink: "#1a1a14",
@@ -7,6 +8,15 @@ const C = {
 };
 
 export default function LoginPage() {
+  // 停止中アカウントのログインは signIn コールバックで拒否され、
+  // /login?error=AccessDenied に戻ってくる。理由は画面に書かず、連絡先だけ示す。
+  const [denied, setDenied] = useState(false);
+  useEffect(() => {
+    try {
+      setDenied(new URLSearchParams(window.location.search).get("error") === "AccessDenied");
+    } catch (e) {}
+  }, []);
+
   return (
     <main style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "48px 40px", maxWidth: 400, width: "100%", textAlign: "center", boxShadow: `4px 4px 0 ${C.border}` }}>
@@ -15,6 +25,12 @@ export default function LoginPage() {
           <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: "1.5rem", color: C.ink, marginLeft: 8 }}>戦略指南 AI</span>
         </div>
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 32 }}>「選ばれる理由」を見つけるフレームワーク</div>
+        {denied && (
+          <div style={{ background: "#fdf3e0", border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px 16px", marginBottom: 20, fontSize: 13, lineHeight: 1.8, color: C.ink, textAlign: "left" }}>
+            現在、このアカウントはご利用を停止しております。<br />
+            お心当たりのない場合は、事務局までご連絡ください。
+          </div>
+        )}
         <button
           onClick={() => signIn("google", { callbackUrl: "/" })}
           style={{ width: "100%", background: C.ink, border: "none", borderRadius: 4, color: "#fff", cursor: "pointer", fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700, padding: "14px 24px", marginBottom: 16 }}>
