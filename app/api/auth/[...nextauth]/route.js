@@ -142,6 +142,9 @@ export const authOptions = {
   },
   pages: {
     signIn: "/login",
+    // 停止中アカウントの拒否（AccessDenied）を既定のエラーページではなく
+    // 自前のログイン画面に返し、日本語の案内を出す。
+    error: "/login",
   },
 };
 
