@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { neon } from "@neondatabase/serverless";
 import { sendWelcomeEmail, sendWelcomeEmailAgency, sendRegistrationEmail, sendTrialSignupNotificationEmail } from "@/app/lib/email";
+import { isSuspendedEmail } from "@/app/lib/suspended";
 
 export const authOptions = {
   providers: [
@@ -12,6 +13,12 @@ export const authOptions = {
   ],
   callbacks: {
     async signIn({ user }) {
+      // 停止中アカウントはここで弾く。users への upsert もメール送信も行わない。
+      if (isSuspendedEmail(user?.email)) {
+        console.log("signIn blocked (suspended):", user?.email);
+        return false;
+      }
+
       const sql = neon(process.env.DATABASE_URL);
 
       // usersテーブル作成・ユーザー登録
@@ -117,6 +124,12 @@ export const authOptions = {
       return true;
     },
     async session({ session }) {
+      // 停止中アカウントは既存セッションも無効化する。
+      // これがないと、停止前にログイン済みのブラウザからは使い続けられる。
+      if (isSuspendedEmail(session?.user?.email)) {
+        return null;
+      }
+
       const sql = neon(process.env.DATABASE_URL);
       const rows = await sql`SELECT * FROM users WHERE email = ${session.user.email}`;
       if (rows.length > 0) {
