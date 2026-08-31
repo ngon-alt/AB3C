@@ -875,12 +875,29 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
     Array.isArray(m.content) && m.content.some(b => b.type === "image")
   );
 
+  // 履歴の末尾ブロックにキャッシュの切れ目を付ける。会話は末尾に追記される一方なので、
+  // 次のターンでは「前ターンの切れ目まで」がキャッシュから読まれる（毎ターン差分だけ全額課金）。
+  const withCacheBreakpoint = (msgs) => {
+    if (!msgs.length) return msgs;
+    const out = msgs.map(m => ({ ...m }));
+    const last = out[out.length - 1];
+    if (typeof last.content === "string") {
+      last.content = [{ type: "text", text: last.content, cache_control: { type: "ephemeral" } }];
+    } else if (Array.isArray(last.content) && last.content.length) {
+      const blocks = last.content.map(b => ({ ...b }));
+      const tail = blocks[blocks.length - 1];
+      if (tail.type === "text") blocks[blocks.length - 1] = { ...tail, cache_control: { type: "ephemeral" } };
+      last.content = blocks;
+    }
+    return out;
+  };
+
   let response;
   try {
     response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 6000,
-      system: systemPrompt,
+      system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
       ...(hasImages ? {} : {
         tools: threadTheme === "lp"
           // 商品LPテーマはユーザーが貼ったLPのURLを直接読むため web_fetch も使う
@@ -890,7 +907,7 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
             ]
           : [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
       }),
-      messages: safeMessages,
+      messages: withCacheBreakpoint(safeMessages),
     });
   } catch (apiErr) {
     const detail = apiErr?.error?.error?.message || apiErr?.message || "不明なエラー";
@@ -918,8 +935,9 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
       const continuation = await client.messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 6000,
-        system: systemPrompt,
-        messages: [...messages, { role: "assistant", content: text }, { role: "user", content: "続きを書いてください。前の回答の末尾から自然に続くように、途切れた文から再開してください。前置きや「続きです」などの言葉は不要です。" }],
+        // 直前の呼び出しと同じ前置き（system＋履歴）なので、切れ目まではキャッシュが効く
+        system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+        messages: [...withCacheBreakpoint(safeMessages), { role: "assistant", content: text }, { role: "user", content: "続きを書いてください。前の回答の末尾から自然に続くように、途切れた文から再開してください。前置きや「続きです」などの言葉は不要です。" }],
       });
       await logUsage(continuation, { email: session.user.email, feature: "chat_continuation", siteId });
       const contText = continuation.content.filter(b => b.type === "text").map(b => b.text).join("");
