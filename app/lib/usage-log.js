@@ -11,10 +11,11 @@ function getSql() {
 
 // モデル別の単価（USD / 100万トークン）。Anthropic の価格改定時はここだけ直す。
 // 未知のモデルが来たら DEFAULT_PRICING で概算する（記録自体は落とさない）。
+// cacheWrite は5分キャッシュ（入力の1.25倍）、cacheWrite1h は1時間キャッシュ（入力の2倍）。
 const PRICING = {
-  "claude-sonnet-4-6": { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.3 },
+  "claude-sonnet-4-6": { input: 3, output: 15, cacheWrite: 3.75, cacheWrite1h: 6, cacheRead: 0.3 },
 };
-const DEFAULT_PRICING = { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.3 };
+const DEFAULT_PRICING = { input: 3, output: 15, cacheWrite: 3.75, cacheWrite1h: 6, cacheRead: 0.3 };
 // ウェブ検索は 1,000 回あたり $10
 const WEB_SEARCH_USD_PER_CALL = 0.01;
 
@@ -55,9 +56,13 @@ export function summarizeUsage(response) {
   const cacheRead = u.cache_read_input_tokens || 0;
   const webSearch = u.server_tool_use?.web_search_requests || 0;
 
+  // 書き込みのうち1時間キャッシュ分は単価が違う（内訳が無い古い応答は全て5分扱い）
+  const cacheWrite1h = Math.min(u.cache_creation?.ephemeral_1h_input_tokens || 0, cacheWrite);
+  const cacheWrite5m = cacheWrite - cacheWrite1h;
+
   const p = PRICING[model] || DEFAULT_PRICING;
   const cost =
-    (input * p.input + output * p.output + cacheWrite * p.cacheWrite + cacheRead * p.cacheRead) / 1_000_000 +
+    (input * p.input + output * p.output + cacheWrite5m * p.cacheWrite + cacheWrite1h * p.cacheWrite1h + cacheRead * p.cacheRead) / 1_000_000 +
     webSearch * WEB_SEARCH_USD_PER_CALL;
 
   return { model, input, output, cacheWrite, cacheRead, webSearch, cost };
