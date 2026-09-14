@@ -1452,19 +1452,24 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
           if (!line.startsWith("data: ")) continue;
           const payload = line.slice(6).trim();
           if (payload === "[DONE]") break outer;
-          try {
-            const parsed = JSON.parse(payload);
-            if (parsed.reanalyzed && parsed.result) {
-              const summary = parsed.chatSummary || messages.filter(m => m.role === "user").slice(-1).map(m => m.content.slice(0, 20)).join("、");
+          let parsed;
+          try { parsed = JSON.parse(payload); } catch { continue; }
+          if (parsed.reanalyzed && parsed.result) {
+            handled = true;
+            // 画面への反映で例外が出ても「データ取得に失敗」と誤表示しない（受信自体は成功している）
+            try {
+              const summary = parsed.chatSummary || messages.filter(m => m.role === "user" && typeof m.content === "string").slice(-1).map(m => m.content.slice(0, 20)).join("、");
               onReanalyze(parsed.result, summary);
               setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
-              handled = true;
-            } else if (parsed.error) {
-              console.error("再分析失敗:", parsed.error);
-              setMessages(prev => [...prev, { role: "assistant", content: parsed.error }]);
-              handled = true;
+            } catch (applyErr) {
+              console.error("再分析結果の反映に失敗:", applyErr);
+              setMessages(prev => [...prev, { role: "assistant", content: "再分析は完了しましたが、画面への反映中にエラーが発生しました。画面をリロードしてご確認ください。" }]);
             }
-          } catch {}
+          } else if (parsed.error) {
+            console.error("再分析失敗:", parsed.error);
+            setMessages(prev => [...prev, { role: "assistant", content: parsed.error }]);
+            handled = true;
+          }
         }
       }
 
@@ -3474,8 +3479,26 @@ useEffect(() => {
   };
   const newHistory = [entry, ...history];
   setHistory(newHistory);
-  localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+  persistHistory(newHistory);
 };
+
+  // localStorage の容量（約5MB）超過で例外を投げると、呼び出し元（再分析の反映・DB保存）まで止まる。
+  // 超過時は古い履歴から削って保存し直す。画面上の履歴（state）と DB のデータは削らない。
+  const persistHistory = (list) => {
+    let toSave = list;
+    while (true) {
+      try {
+        localStorage.setItem("ab3c_history", JSON.stringify(toSave));
+        return;
+      } catch (e) {
+        if (toSave.length <= 1) {
+          console.warn("ab3c_history を localStorage に保存できませんでした:", e?.message);
+          return;
+        }
+        toSave = toSave.slice(0, Math.ceil(toSave.length / 2));
+      }
+    }
+  };
 
   // 「戻る先」サイトを in-place で復元（ページリロードなし）
   // ⓪ → ① / ② 遷移時にフルリロードを避けることで、②タブが一瞬グレーアウトする問題を解消
@@ -4249,7 +4272,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   const deleteHistory = (id) => {
     const newHistory = history.filter(h => h.id !== id);
     setHistory(newHistory);
-    localStorage.setItem("ab3c_history", JSON.stringify(newHistory));
+    persistHistory(newHistory);
     if (selectedHistory?.id === id) setSelectedHistory(null);
   };
 
