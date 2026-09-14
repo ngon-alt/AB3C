@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { fetchSitesList } from "../lib/sites-list";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14",
@@ -245,8 +246,7 @@ export default function DashboardPage() {
   const fetchSites = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sites");
-      const data = await res.json();
+      const data = await fetchSitesList();
       setSites(data.sites || []);
       if (data.planLimit) setPlanLimit(data.planLimit);
       setMonthlyRegLimit(data.monthlyRegistrationLimit);

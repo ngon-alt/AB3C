@@ -8,7 +8,10 @@ let tableReady = false;
 async function ensureTable(sql) {
   if (tableReady) return;
   try {
-    await sql`
+    // サーバー起動直後の初回だけ実行される。以前は約20個の命令を1つずつ順に送っていたため
+    // 起動直後の応答が遅くなっていた。同じ命令を同じ順番で、1回の通信（1トランザクション）にまとめて送る。
+    await sql.transaction([
+    sql`
       CREATE TABLE IF NOT EXISTS sites (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_email VARCHAR(255) NOT NULL,
@@ -28,28 +31,28 @@ async function ensureTable(sql) {
         created_at TIMESTAMPTZ DEFAULT NOW(),
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
-    `;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_result JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mock JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMPTZ`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS confirmations JSONB`;
+    `,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_result JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mock JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMPTZ`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS confirmations JSONB`,
     // 戦略アクションフェーズのデータ永続化用（別ブラウザでも履歴を引き継げるように）
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS threads JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS theme_chats JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS thread_messages JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS actions JSONB`;
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS threads JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS theme_chats JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS thread_messages JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS actions JSONB`,
     // 戦略策定タブの進行中チャット（確定前の議論）の永続化
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_chat JSONB`;
-    // 分析結果の世代履歴（最大5世代・新しい順）。各要素 { id, result, created_at, source, confirmed }
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_versions JSONB DEFAULT '[]'::jsonb`;
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_chat JSONB`,
+    // 分析結果の世代履歴（新しい順・全世代保持）。各要素 { id, result, created_at, source, confirmed }
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS analysis_versions JSONB DEFAULT '[]'::jsonb`,
     // パターン別の改善レポート/ビジュアルモックキャッシュ（{ comboId: data, ... }）
     // 全パターンを一度生成すれば次回以降の切替が高速。reload しても保持される。
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_results_by_combination JSONB`;
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mocks_by_combination JSONB`;
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS improve_results_by_combination JSONB`,
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mocks_by_combination JSONB`,
     // テキスト分析時の入力テキストを保存（シェアURLで分析対象を常に表示できるように）
-    await sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS input_text TEXT`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`;
-    await sql`
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS input_text TEXT`,
+    sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`,
+    sql`
       CREATE TABLE IF NOT EXISTS user_plans (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_email VARCHAR(255) NOT NULL,
@@ -64,28 +67,29 @@ async function ensureTable(sql) {
         expires_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT NOW()
       )
-    `;
-    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`;
-    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_used INTEGER DEFAULT 0`;
-    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_reset_at TIMESTAMPTZ`;
+    `,
+    sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS analyses_used INTEGER DEFAULT 0`,
+    sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_used INTEGER DEFAULT 0`,
+    sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS monthly_registrations_reset_at TIMESTAMPTZ`,
     // 24h 無料トライアル（戦略指南サブスク体験）用フラグ
     // is_trial=TRUE の行は expires_at を厳格にチェックする（期限切れで自動失効）
     // 既存の有料プランは expires_at を過ぎても active のままで月次更新される設計のため、
     // 既存挙動への影響を避けるためトライアル行のみ期限チェックを適用する
-    await sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`;
+    sql`ALTER TABLE user_plans ADD COLUMN IF NOT EXISTS is_trial BOOLEAN DEFAULT FALSE`,
     // 既存の戦略指南サブスク契約者に対する初回バックフィル:
     // 既に登録済みのサイト数分を「月次登録済み」としてカウントし、
     // 月初からの登録猶予が過剰に付与されないようにする。
     // monthly_registrations_reset_at が NULL のプランにのみ適用（＝未バックフィル）。
-    await sql`
+    sql`
       UPDATE user_plans SET
         monthly_registrations_used = COALESCE((
           SELECT COUNT(*) FROM sites WHERE sites.user_email = user_plans.user_email
         ), 0),
         monthly_registrations_reset_at = NOW()
       WHERE plan_type = 'support' AND status = 'active' AND monthly_registrations_reset_at IS NULL
-    `;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`;
+    `,
+    sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`,
+    ]);
     tableReady = true;
   } catch (e) {
     console.error("ensureTable error:", e);
@@ -98,12 +102,14 @@ async function ensureTable(sql) {
 //  - 戦略診断チケット（analysis）は「回数チケット」のためサイトスロットにはカウントしない
 //  - PRO会員は無制限
 async function getSiteLimit(sql, email) {
-  const supportPlans = await sql`
-    SELECT COALESCE(SUM(site_limit), 0) as total_sites FROM user_plans
-    WHERE user_email = ${email} AND status = 'active' AND plan_type = 'support'
-      AND (is_trial IS NOT TRUE OR expires_at > NOW())
-  `;
-  const proRows = await sql`SELECT email FROM pro_users WHERE email = ${email}`;
+  const [supportPlans, proRows] = await Promise.all([
+    sql`
+      SELECT COALESCE(SUM(site_limit), 0) as total_sites FROM user_plans
+      WHERE user_email = ${email} AND status = 'active' AND plan_type = 'support'
+        AND (is_trial IS NOT TRUE OR expires_at > NOW())
+    `,
+    sql`SELECT email FROM pro_users WHERE email = ${email}`,
+  ]);
   if (supportPlans[0]?.total_sites > 0) return parseInt(supportPlans[0].total_sites);
   if (proRows.length > 0) return 999;
   return 1; // 支援プランなし = 1サイト（無料 or 診断のみ）
@@ -162,35 +168,61 @@ function synthesizeVersionsForSite(site) {
   };
 }
 
+// 処理時間の内訳を Server-Timing ヘッダーで返す（開発者ツールの「Timing」で確認できる。画面には出ない）
+// auth=ログイン確認 / schema=表の準備（起動直後のみ） / db=データ取得
+function createTimer() {
+  const start = performance.now();
+  let last = start;
+  const parts = [];
+  return {
+    lap(name) {
+      const now = performance.now();
+      parts.push(`${name};dur=${(now - last).toFixed(1)}`);
+      last = now;
+    },
+    headers() {
+      return { "Server-Timing": [...parts, `total;dur=${(performance.now() - start).toFixed(1)}`].join(", ") };
+    },
+  };
+}
+
 // GET: ユーザーのサイト一覧取得（?id= 指定時はそのサイト1件の全データ）
 // 一覧は軽い列だけを返す。分析結果・チャット・確定履歴まで全サイト分返すと
 // 大口ユーザーで応答が10MBを超え、表示のたびに数秒かかっていた（2026-09-14 計測）。
 // 重いデータが必要な画面は ?id= で1件ずつ取得する。
 export async function GET(req) {
+  const timer = createTimer();
   try {
     const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
+    timer.lap("auth");
+    if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401, headers: timer.headers() });
 
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
+    timer.lap("schema");
 
     const id = new URL(req.url).searchParams.get("id");
     if (id) {
       const rows = await sql`SELECT * FROM sites WHERE id::text = ${id} AND user_email = ${session.user.email}`;
-      if (rows.length === 0) return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
-      return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) });
+      timer.lap("db");
+      if (rows.length === 0) return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404, headers: timer.headers() });
+      return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) }, { headers: timer.headers() });
     }
 
-    const sites = await sql`
-      SELECT id, user_email, site_url, site_name, company_name, industry, target_customer,
-             analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
-             (latest_analysis IS NOT NULL) AS has_analysis
-      FROM sites
-      WHERE user_email = ${session.user.email}
-      ORDER BY updated_at DESC
-    `;
-    const planLimit = await getSiteLimit(sql, session.user.email);
-    const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
+    // 一覧・プラン上限・月次登録数は互いに独立しているので同時に問い合わせる
+    const [sites, planLimit, monthly] = await Promise.all([
+      sql`
+        SELECT id, user_email, site_url, site_name, company_name, industry, target_customer,
+               analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
+               (latest_analysis IS NOT NULL) AS has_analysis
+        FROM sites
+        WHERE user_email = ${session.user.email}
+        ORDER BY updated_at DESC
+      `,
+      getSiteLimit(sql, session.user.email),
+      getMonthlyRegistrationInfo(sql, session.user.email),
+    ]);
+    timer.lap("db");
 
     return NextResponse.json({
       sites,
@@ -198,7 +230,7 @@ export async function GET(req) {
       monthlyRegistrationLimit: monthly.isSupport ? monthly.limit : null,
       monthlyRegistrationUsed: monthly.isSupport ? monthly.used : null,
       monthlyRegistrationRemaining: monthly.isSupport ? monthly.remaining : null,
-    });
+    }, { headers: timer.headers() });
   } catch (e) {
     console.error("GET /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });
