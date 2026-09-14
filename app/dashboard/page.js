@@ -15,7 +15,7 @@ const FONT = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino K
 function SiteCard({ site, onSelect, onDelete, onRename }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(site.site_name);
-  const hasAnalysis = !!site.latest_analysis;
+  const hasAnalysis = !!site.has_analysis;
   const confirmed = site.strategy_confirmed;
 
   const handleSaveName = () => {

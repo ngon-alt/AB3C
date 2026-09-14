@@ -162,7 +162,10 @@ function synthesizeVersionsForSite(site) {
   };
 }
 
-// GET: ユーザーのサイト一覧取得
+// GET: ユーザーのサイト一覧取得（?id= 指定時はそのサイト1件の全データ）
+// 一覧は軽い列だけを返す。分析結果・チャット・確定履歴まで全サイト分返すと
+// 大口ユーザーで応答が10MBを超え、表示のたびに数秒かかっていた（2026-09-14 計測）。
+// 重いデータが必要な画面は ?id= で1件ずつ取得する。
 export async function GET(req) {
   try {
     const session = await getServerSession(authOptions);
@@ -171,12 +174,21 @@ export async function GET(req) {
     const sql = neon(process.env.DATABASE_URL);
     await ensureTable(sql);
 
-    const rawSites = await sql`
-      SELECT * FROM sites
+    const id = new URL(req.url).searchParams.get("id");
+    if (id) {
+      const rows = await sql`SELECT * FROM sites WHERE id::text = ${id} AND user_email = ${session.user.email}`;
+      if (rows.length === 0) return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
+      return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) });
+    }
+
+    const sites = await sql`
+      SELECT id, user_email, site_url, site_name, company_name, industry, target_customer,
+             analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
+             (latest_analysis IS NOT NULL) AS has_analysis
+      FROM sites
       WHERE user_email = ${session.user.email}
       ORDER BY updated_at DESC
     `;
-    const sites = rawSites.map(synthesizeVersionsForSite);
     const planLimit = await getSiteLimit(sql, session.user.email);
     const monthly = await getMonthlyRegistrationInfo(sql, session.user.email);
 
@@ -266,7 +278,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, append_confirmation, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -361,6 +373,9 @@ export async function PUT(req) {
     const chatJson = chat_history ? JSON.stringify(chat_history) : null;
     // confirmations は空配列[] もユーザー意図（解除後の状態保存等）なので許容する
     const confirmationsJson = Array.isArray(confirmations) ? JSON.stringify(confirmations) : null;
+    // 確定履歴1件の追記。配列を丸ごと送り返すと、確定履歴が大きいサイトで
+    // リクエスト本文の上限（4.5MB）を超えて保存に失敗するため、サーバー側で末尾に足す。
+    const appendConfirmationJson = (append_confirmation && typeof append_confirmation === "object" && !Array.isArray(append_confirmation)) ? JSON.stringify(append_confirmation) : null;
     // 戦略アクションフェーズのデータ。null は「未指定」、空配列・空オブジェクトは「クリアの意図」として保存
     const threadsJson = Array.isArray(threads) ? JSON.stringify(threads) : null;
     const themeChatsJson = (theme_chats && typeof theme_chats === "object") ? JSON.stringify(theme_chats) : null;
@@ -394,7 +409,10 @@ export async function PUT(req) {
         strategy_confirmed = CASE WHEN ${confirmed}::boolean IS NOT NULL THEN ${confirmed}::boolean ELSE strategy_confirmed END,
         strategy_confirmed_at = CASE WHEN ${confirmed}::boolean = TRUE AND strategy_confirmed = FALSE THEN NOW() ELSE strategy_confirmed_at END,
         chat_history = CASE WHEN ${chatJson}::text IS NOT NULL THEN (${chatJson}::jsonb) ELSE chat_history END,
-        confirmations = CASE WHEN ${confirmationsJson}::text IS NOT NULL THEN (${confirmationsJson}::jsonb) ELSE confirmations END,
+        confirmations = CASE
+          WHEN ${confirmationsJson}::text IS NOT NULL THEN (${confirmationsJson}::jsonb)
+          WHEN ${appendConfirmationJson}::text IS NOT NULL THEN (CASE WHEN jsonb_typeof(confirmations) = 'array' THEN confirmations ELSE '[]'::jsonb END) || jsonb_build_array(${appendConfirmationJson}::jsonb)
+          ELSE confirmations END,
         threads = CASE WHEN ${threadsJson}::text IS NOT NULL THEN (${threadsJson}::jsonb) ELSE threads END,
         theme_chats = CASE WHEN ${themeChatsJson}::text IS NOT NULL THEN (${themeChatsJson}::jsonb) ELSE theme_chats END,
         thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL THEN (${threadMessagesJson}::jsonb) ELSE thread_messages END,
@@ -406,10 +424,13 @@ export async function PUT(req) {
         input_text = COALESCE(${inputTextVal}::text, input_text),
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
-      RETURNING *
+      RETURNING id, user_email, site_url, site_name, company_name, industry, target_customer,
+                analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
+                (latest_analysis IS NOT NULL) AS has_analysis
     `;
 
-    return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) });
+    // 応答は軽い列だけ（保存のたびに確定履歴・チャット全文を送り返さない）。全データは GET ?id= で取得する
+    return NextResponse.json({ site: rows[0] });
   } catch (e) {
     console.error("PUT /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });

@@ -2279,6 +2279,36 @@ function TitleEditor({ title, onChange }) {
   );
 }
 
+// サイト1件の全データ（分析結果・世代履歴・チャット・確定履歴）を取得する。
+// 一覧 GET /api/sites は軽い列だけを返すので、画面の復元には必ずこちらを使う。
+// 取得失敗は null ではなく例外にする。null を「DB が空」と誤認すると、
+// localStorage の古いデータで DB を上書きする移行処理が走ってしまうため。
+async function fetchSiteDetail(id) {
+  const res = await fetch("/api/sites?id=" + encodeURIComponent(id));
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("サイトの取得に失敗しました（HTTP " + res.status + "）");
+  const data = await res.json();
+  return data.site || null;
+}
+
+// URL 末尾スラッシュ・http/https・大文字小文字の差を吸収（API 側 POST /api/sites と同じ正規化）
+const normalizeSiteUrl = u => (u ? String(u).replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase() : "");
+
+// ID で探し、見つからなければ URL で探して、そのサイトの全データを返す
+async function findSiteDetail(id, url) {
+  if (id) {
+    const site = await fetchSiteDetail(id);
+    if (site) return site;
+  }
+  if (!url) return null;
+  const res = await fetch("/api/sites");
+  if (!res.ok) throw new Error("サイト一覧の取得に失敗しました（HTTP " + res.status + "）");
+  const data = await res.json();
+  const n = normalizeSiteUrl(url);
+  const hit = (data.sites || []).find(s => normalizeSiteUrl(s.site_url) === n);
+  return hit ? fetchSiteDetail(hit.id) : null;
+}
+
 export default function Home() {
   const { data: session } = useSession();
 const [tab, setTab] = useState("url");
@@ -2734,14 +2764,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       const inputForLookup = data.input;
       const savedSiteId = data.siteId;
       if (savedSiteId || (inputForLookup && inputForLookup.startsWith("http"))) {
-        const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
-        fetch("/api/sites").then(r => r.json()).then(d => {
-          const allSites = d.sites || [];
-          let match = savedSiteId ? allSites.find(s => String(s.id) === String(savedSiteId)) : null;
-          if (!match && inputForLookup) {
-            const nInput = norm(inputForLookup);
-            match = allSites.find(s => norm(s.site_url) === nInput);
-          }
+        findSiteDetail(savedSiteId, inputForLookup).then(match => {
           if (!match) return;
           setSiteId(match.id);
           // 分析結果と世代履歴は DB を正とする。sessionStorage は最新結果1件しか持たないため、
@@ -3139,21 +3162,9 @@ const [chatSummaries, setChatSummaries] = useState([]);
       if (sid) setSiteId(sid);
       if (urlParam) { setUrl(urlParam); setTab("url"); setCurrentInput(urlParam); }
       // DBからサイトの分析結果を復元
-      fetch("/api/sites").then(function(r) { return r.json(); }).then(function(data) {
-        var sites = data.sites || [];
-        // 型不一致バグ修正: URL から取れる sid は文字列、DB の s.id は数値（SERIAL）。
-        // === で比較すると常に false になり、URL fallback に頼ることになる。
-        // 確定済みサイトを管理ページから「分析を開く」で開いた時に strategy_confirmed が
-        // 復元されないバグの根本原因はこれ（URL末尾スラッシュ等の差で fallback も失敗するケース）。
-        var site = sid ? sites.find(function(s) { return String(s.id) === String(sid); }) : null;
-        if (!site && urlParam) {
-          // URL 末尾スラッシュ・https/http・大文字小文字の差を正規化して照合する。
-          // 直接 URL で開いた時に DB と string-equal で一致せず、確定履歴やフラグが
-          // 復元されないバグの修正（権さん指摘）。API 側 (POST /api/sites) と同じ正規化を使う。
-          var normalizeUrl = function(u) { return u ? String(u).replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase() : ""; };
-          var nUrlParam = normalizeUrl(urlParam);
-          site = sites.find(function(s) { return normalizeUrl(s.site_url) === nUrlParam; });
-        }
+      // ID で探し、無ければ URL を正規化して照合（直接 URL で開いた時に確定履歴やフラグが
+      // 復元されないバグの修正・権さん指摘）。一覧は軽い列だけなので、見つけたサイトの全データを取り直す。
+      findSiteDetail(sid, urlParam).then(function(site) {
         if (site) {
           setSiteId(site.id);
           // 戦略確定履歴を DB から復元（LS より DB を信頼）
@@ -3559,9 +3570,7 @@ useEffect(() => {
     }
     // 2. キャッシュなし or 別セッション: DB から取得（後方互換）
     try {
-      const res = await fetch("/api/sites");
-      const data = await res.json();
-      const site = (data.sites || []).find(s => String(s.id) === String(previousSiteId));
+      const site = await fetchSiteDetail(previousSiteId);
       if (!site) {
         const params = [`site_id=${previousSiteId}`];
         if (previousSiteUrl) params.push(`url=${encodeURIComponent(previousSiteUrl)}`);
@@ -3719,24 +3728,10 @@ useEffect(() => {
           url: siteUrl || currentInput || "",
         };
         var chKey2 = "ab3c_confirmations_" + (targetSiteId || "default");
-        // DB を真実の源として既存 confirmations を取得（LS だけに頼ると別ブラウザ・キャッシュクリア後に
-        // DB が空配列で上書きされて過去履歴が消失する事故が起きる）。
-        // DB 取得失敗時のみ LS にフォールバック。
-        var existing2 = [];
-        var dbFetchFailed = false;
-        try {
-          const dbRes = await fetch("/api/sites");
-          const dbData = await dbRes.json();
-          const dbSite = (dbData.sites || []).find(function(s) { return String(s.id) === String(targetSiteId); });
-          if (dbSite && Array.isArray(dbSite.confirmations)) {
-            existing2 = dbSite.confirmations.slice();
-          }
-        } catch (e) { dbFetchFailed = true; }
-        if (dbFetchFailed) {
-          try { var e2 = localStorage.getItem(chKey2); if (e2) existing2 = JSON.parse(e2); } catch (e) {}
-        }
-        existing2.push(snapshot);
-        // DB に確定状態 + confirmations 配列を保存（チャット履歴もスナップショット内に同梱）
+        // DB に確定状態を保存し、確定履歴はサーバー側で既存配列の末尾に1件追記する（チャット履歴もスナップショット内に同梱）。
+        // 以前は DB から既存配列を取得して丸ごと送り返していたが、確定履歴が大きいサイトで
+        // リクエスト本文の上限（4.5MB）を超えて保存に失敗するため、追記方式に変更（2026-09-14）。
+        // 追記なので、LS だけを頼りに DB の過去履歴を上書きしてしまう事故も起きない。
         // レスポンスステータスを必ず検証する。HTTP エラー（401/403/500 等）でも fetch は throw しないため、
         // 検証なしで進めると「ローカル UI は確定済み・DB は未確定」のズレが発生する（過去にこれで履歴消失バグ発生）。
         // 確定時の改善レポート・ビジュアルモックも一緒に保存する。
@@ -3747,7 +3742,7 @@ useEffect(() => {
         // useEffect [currentResult] がこれを参照して確定パターン (P2 等) を選択できる。
         // currentResult を使うと confirmed_combination_id が無く、recommended の P1 が
         // 復元されてしまう（権さん指摘）。
-        const confirmBody = { id: targetSiteId, latest_analysis: snapshotResult, strategy_confirmed: true, confirmations: existing2 };
+        const confirmBody = { id: targetSiteId, latest_analysis: snapshotResult, strategy_confirmed: true, append_confirmation: snapshot };
         if (improveResult && !improveResult.error) confirmBody.improve_result = improveResult;
         if (visualMock && !visualMock.error) confirmBody.visual_mock = visualMock;
         const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(confirmBody) });
@@ -3793,11 +3788,16 @@ useEffect(() => {
         // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
         setViewOverride("action");
         window.scrollTo(0, 0);
-        // LS にも保存（DBのキャッシュとして）
+        // 確定履歴は DB を正として取り直し、LS にもキャッシュする。
+        // 取り直しに失敗した時だけ、手元の履歴に今回分を足して表示する（DB には追記済み）。
+        var savedConfirmations = null;
         try {
-          localStorage.setItem(chKey2, JSON.stringify(existing2));
-          setConfirmHistory(existing2);
+          const fresh = await fetchSiteDetail(targetSiteId);
+          if (fresh && Array.isArray(fresh.confirmations)) savedConfirmations = fresh.confirmations;
         } catch (e) {}
+        if (!savedConfirmations) savedConfirmations = (Array.isArray(confirmHistory) ? confirmHistory : []).concat([snapshot]);
+        try { localStorage.setItem(chKey2, JSON.stringify(savedConfirmations)); } catch (e) {}
+        setConfirmHistory(savedConfirmations);
       } catch (e) {
         // ネットワーク断・JSONパースエラー等
         alert("保存に失敗しました。ネットワーク接続を確認して再度お試しください。\n\n" + (e?.message || ""));
@@ -3900,10 +3900,7 @@ useEffect(() => {
     setActiveConfirmId(null);
     if (!siteId) return;
     try {
-      const res = await fetch("/api/sites");
-      const d = await res.json();
-      const norm = u => (u || "").replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
-      const live = (d.sites || []).find(s => String(s.id) === String(siteId));
+      const live = await fetchSiteDetail(siteId);
       if (!live) return;
       if (live.latest_analysis) {
         setCurrentResult(live.latest_analysis);
