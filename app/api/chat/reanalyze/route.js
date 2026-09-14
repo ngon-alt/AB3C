@@ -82,7 +82,9 @@ export async function POST(req) {
 
       try {
         // Build conversation summary (same logic as /api/chat)
-        const MAX_CONV_CHARS = 24000;
+        // 戦略の土台はご本人との対話そのものなので、会話は全文を渡すのが原則（2026-09-14 権さん判断）。
+        // 上限は暴走防止のみ。15万字＋分析結果でも長文割増の閾値（20万トークン）を超えない水準。
+        const MAX_CONV_CHARS = 150000;
         const convPieces = messages
           .filter(m => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
           .map(m => `【${m.role === "user" ? "ユーザー" : "AI"}】${m.content}`);
