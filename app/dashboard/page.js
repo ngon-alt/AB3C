@@ -325,8 +325,8 @@ export default function DashboardPage() {
   }
 
   const confirmedSites = sites.filter(s => s.strategy_confirmed);
-  const analyzedSites = sites.filter(s => s.latest_analysis && !s.strategy_confirmed);
-  const pendingSites = sites.filter(s => !s.latest_analysis);
+  const analyzedSites = sites.filter(s => s.has_analysis && !s.strategy_confirmed);
+  const pendingSites = sites.filter(s => !s.has_analysis);
 
   // 診断チケットユーザー向けダッシュボード（シェアURL一覧）
   if (isDiagnosisMode) {
