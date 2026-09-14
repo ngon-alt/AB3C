@@ -6,6 +6,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState, useEffect } from "react";
 import { latestUpdateId } from "../data/updates";
 import TargetSwitch from "./TargetSwitch";
+import { fetchSitesList } from "../lib/sites-list";
 
 const C = {
   bg: "#ebebeb",
@@ -125,8 +126,7 @@ export default function Header({ onShowPricing, currentSiteUrl, currentSiteId, p
           } catch (e) {}
         })
         .catch(() => { setIsPro(false); setChatTickets(0); setPlanLoaded(true); });
-      fetch("/api/sites")
-        .then((r) => r.json())
+      fetchSitesList()
         .then((d) => setSites(d.sites || []))
         .catch(() => {});
     }
