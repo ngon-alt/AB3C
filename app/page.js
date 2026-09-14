@@ -2744,6 +2744,16 @@ const [chatSummaries, setChatSummaries] = useState([]);
           }
           if (!match) return;
           setSiteId(match.id);
+          // 分析結果と世代履歴は DB を正とする。sessionStorage は最新結果1件しか持たないため、
+          // ここで上書きしないと世代タブが1世代に潰れて見える（2026-09-14 権さん指摘）。
+          if (match.latest_analysis) {
+            setResult(match.latest_analysis);
+            setCurrentResult(match.latest_analysis);
+            if (match.latest_analysis.strategy_message?.message) setHistoryTitle(match.latest_analysis.strategy_message.message);
+            if (Array.isArray(match.analysis_versions) && match.analysis_versions.length > 0) {
+              setVersionsFromDB(match.analysis_versions);
+            }
+          }
           if (match.strategy_confirmed) setStrategyConfirmed(true);
           // 全パターンキャッシュ復元（reload 後のパターン切替を即時表示）
           if (match.improve_results_by_combination && typeof match.improve_results_by_combination === "object") {
