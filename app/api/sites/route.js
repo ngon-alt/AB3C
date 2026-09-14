@@ -135,10 +135,17 @@ async function getMonthlyRegistrationInfo(sql, email) {
 
 // 既存サイト用: analysis_versions が空なら latest_analysis から v1 を生成して返す
 // （DB の書き込みは行わない。フロントは常に analysis_versions を読めば良い形に整形）
+// DB には全世代を保持し、一覧応答で画面に返すのは最新からこの件数まで（応答サイズ対策）
+const VERSIONS_IN_RESPONSE = 5;
+
 function synthesizeVersionsForSite(site) {
   if (!site) return site;
   const hasVersions = Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0;
-  if (hasVersions) return site;
+  if (hasVersions) {
+    return site.analysis_versions.length > VERSIONS_IN_RESPONSE
+      ? { ...site, analysis_versions: site.analysis_versions.slice(0, VERSIONS_IN_RESPONSE) }
+      : site;
+  }
   if (!site.latest_analysis) return { ...site, analysis_versions: [] };
   const ts = site.analyzed_at ? new Date(site.analyzed_at).getTime() : Date.now();
   return {
@@ -323,7 +330,8 @@ export async function PUT(req) {
           }];
         }
       } else if (newResultStr !== headResultStr) {
-        // 新世代: 先頭に追加して 5 件で打ち切り
+        // 新世代: 先頭に追加。古い世代は削除しない（データを消さない原則）。
+        // 画面へ返す件数は GET 側で絞る（一覧応答の肥大化対策）。
         const newVersion = {
           id: Date.now(),
           result: latest_analysis,
@@ -331,7 +339,7 @@ export async function PUT(req) {
           source: version_source || "reanalyze",
           confirmed: false,
         };
-        versionsUpdate = [newVersion, ...currentVersions].slice(0, 5);
+        versionsUpdate = [newVersion, ...currentVersions];
       }
       // 同じ内容なら versionsUpdate は null のまま（変更しない）
     }
