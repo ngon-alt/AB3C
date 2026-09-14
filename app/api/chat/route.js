@@ -883,11 +883,11 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
     const out = msgs.map(m => ({ ...m }));
     const last = out[out.length - 1];
     if (typeof last.content === "string") {
-      last.content = [{ type: "text", text: last.content, cache_control: { type: "ephemeral" } }];
+      last.content = [{ type: "text", text: last.content, cache_control: { type: "ephemeral", ttl: "1h" } }];
     } else if (Array.isArray(last.content) && last.content.length) {
       const blocks = last.content.map(b => ({ ...b }));
       const tail = blocks[blocks.length - 1];
-      if (tail.type === "text") blocks[blocks.length - 1] = { ...tail, cache_control: { type: "ephemeral" } };
+      if (tail.type === "text") blocks[blocks.length - 1] = { ...tail, cache_control: { type: "ephemeral", ttl: "1h" } };
       last.content = blocks;
     }
     return out;
@@ -898,7 +898,7 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
     response = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 6000,
-      system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+      system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral", ttl: "1h" } }],
       ...(hasImages ? {} : {
         tools: threadTheme === "lp"
           // 商品LPテーマはユーザーが貼ったLPのURLを直接読むため web_fetch も使う
@@ -937,7 +937,7 @@ ${actionInstruction}${promptOfferInstruction}${initialAdvicePrompts}${themeConte
         model: "claude-sonnet-4-6",
         max_tokens: 6000,
         // 直前の呼び出しと同じ前置き（system＋履歴）なので、切れ目まではキャッシュが効く
-        system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral" } }],
+        system: [{ type: "text", text: systemPrompt, cache_control: { type: "ephemeral", ttl: "1h" } }],
         messages: [...withCacheBreakpoint(safeMessages), { role: "assistant", content: text }, { role: "user", content: "続きを書いてください。前の回答の末尾から自然に続くように、途切れた文から再開してください。前置きや「続きです」などの言葉は不要です。" }],
       });
       await logUsage(continuation, { email: session.user.email, feature: "chat_continuation", siteId });
