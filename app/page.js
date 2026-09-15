@@ -3977,7 +3977,8 @@ useEffect(() => {
     // 既存の分析がある場合（確定有無問わず）警告を出す
     const dbConfirmed = !!(prefoundSite && prefoundSite.strategy_confirmed === true);
     const isConfirmedState = (strategyConfirmed && currentResult) || dbConfirmed;
-    if (isConfirmedState || prefoundSite) {
+    // 登録だけされた未分析サイトには出さない（以前は登録済みなら分析結果が無くても「分析済み」と警告していた）
+    if (isConfirmedState || (prefoundSite && prefoundSite.has_analysis)) {
       const ok = confirm(
         isConfirmedState
           ? "このサイトは戦略確定済みです。\n再分析しても過去の確定履歴（サイドバー）は保持されますが、\n現在表示中の分析結果は新しい内容で上書きされ、確定状態も解除されます。\n\n続けて再分析しますか？"
