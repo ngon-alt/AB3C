@@ -19,6 +19,8 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 export const maxDuration = 300;
 
 export async function POST(req) {
+  // 所要時間の内訳（サイト取得／AI生成／全体）を api_usage.meta に残す（2026-09-18）
+  const startedAt = Date.now();
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -59,13 +61,16 @@ export async function POST(req) {
 
   // クロールの結果メタ（取得ページ数・URL一覧）。分析結果に添えて「何を読んだか」を残す。
   let crawlMeta = null;
+  let crawlMs = null;
 
   if (url && url.trim()) {
     try {
       // 1ページ・5000字カットから、同一ドメインの主要ページを上限つきで取得する方式に変更
       //（2026-08-20）。取得結果はスナップショットとしてキャッシュされ、
       // 改善レポート（/api/improve）も同じものを読む。
+      const crawlStartedAt = Date.now();
       const snapshot = await getSiteSnapshot(url.trim());
+      crawlMs = Date.now() - crawlStartedAt;
 
       // ログイン壁の検知。これまではログインページのHTMLを「サイトの中身」として
       // そのまま分析してしまい、エラーにならないぶん誤りに気づけなかった。
@@ -459,6 +464,15 @@ JSONのみ返してください。
     // クロール済みのものを渡しているので、検索は競合・市場の調査に絞れば足りる。
     const tools = useWebSearch ? [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }] : [];
 
+    // 検索を使う分析では、AIは検索のたびにプロンプト全文（サイト実データ約15万トークンを含む）を
+    // 読み直す。検索3回なら4回読みで、2026-09-17 の実測は入力62万トークン・$2.06 だった。
+    // キャッシュを付けると2回目以降の読み直しが1/10の単価になる。
+    // 検索しない分析（テキスト入力・絞り込み）は1回読みで終わり、書き込み割増だけが乗るので付けない。
+    const content = useWebSearch
+      ? [{ type: "text", text: prompt, cache_control: { type: "ephemeral" } }]
+      : prompt;
+
+    const aiStartedAt = Date.now();
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 12000, // 3パターン分の完全AB3C出力に対応するため引き上げ
@@ -467,13 +481,19 @@ JSONのみ返してください。
       //   問題を抑えるため、デフォルトの 1.0 から下げる（権さん指示・2026-05-14）。
       temperature: 0.7,
       tools: tools.length > 0 ? tools : undefined,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     });
+    const aiMs = Date.now() - aiStartedAt;
 
     await logUsage(message, {
       email: session.user.email,
       feature: isRefining ? "analyze_refine" : "analyze",
-      meta: { webSearch: useWebSearch, mode: url ? "url" : "text", crawledPages: crawlMeta?.page_count || 0, indexPages: crawlMeta?.index_count || 0, crawledChars: crawlMeta?.total_chars || 0 },
+      meta: {
+        webSearch: useWebSearch, mode: url ? "url" : "text",
+        crawledPages: crawlMeta?.page_count || 0, indexPages: crawlMeta?.index_count || 0, crawledChars: crawlMeta?.total_chars || 0,
+        // 所要時間（ミリ秒）。crawlFromCache=true は6時間以内の取得結果を再利用した回
+        crawlMs, crawlFromCache: crawlMeta ? crawlMeta.from_cache : null, aiMs, totalMs: Date.now() - startedAt,
+      },
     });
 
     const text = message.content
