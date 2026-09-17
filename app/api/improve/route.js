@@ -58,7 +58,7 @@ export async function POST(req) {
   if (isHttpUrl) {
     try {
       const snapshot = await getSiteSnapshot(url.trim());
-      if (!snapshot.loginWall?.detected && snapshot.pages?.length) {
+      if (!snapshot.loginWall?.detected && !snapshot.blocked?.detected && snapshot.pages?.length) {
         siteContext = buildStructureContext(snapshot);
         console.log(`[improve] site context pages=${snapshot.pages.length} cache=${!!snapshot.fromCache}`);
       }

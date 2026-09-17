@@ -62,6 +62,7 @@ export async function POST(req) {
   // クロールの結果メタ（取得ページ数・URL一覧）。分析結果に添えて「何を読んだか」を残す。
   let crawlMeta = null;
   let crawlMs = null;
+  let siteBlocked = null;
 
   if (url && url.trim()) {
     try {
@@ -80,15 +81,22 @@ export async function POST(req) {
         }, { status: 400 });
       }
 
-      analysisTarget = buildAnalysisContext(snapshot, url.trim());
+      // 取得を拒否された（Access Denied 等）・本文が空のときは、拒否ページを中身として渡さず、
+      // 自社の情報もウェブ検索で集めさせる（2026-09-18 権さん判断。大手サイトほど拒否されやすく、
+      // そういうサイトは検索で情報が十分に集まる）。
+      siteBlocked = snapshot.blocked?.detected ? snapshot.blocked : null;
+      analysisTarget = siteBlocked
+        ? `分析対象のウェブサイト: ${url.trim()}\n\n（このサイトの内容は直接取得できませんでした。理由: ${siteBlocked.reason}）`
+        : buildAnalysisContext(snapshot, url.trim());
       crawlMeta = {
-        pages: snapshot.pages.map(p => ({ url: p.url, title: p.title })),
-        page_count: snapshot.pages.length,
-        index_count: snapshot.index?.length || 0,
-        total_chars: snapshot.stats?.totalChars || 0,
+        pages: siteBlocked ? [] : snapshot.pages.map(p => ({ url: p.url, title: p.title })),
+        page_count: siteBlocked ? 0 : snapshot.pages.length,
+        index_count: siteBlocked ? 0 : (snapshot.index?.length || 0),
+        total_chars: siteBlocked ? 0 : (snapshot.stats?.totalChars || 0),
         fetched_at: snapshot.fetchedAt,
         from_cache: !!snapshot.fromCache,
         colors: (snapshot.colors || []).map(c => c.hex),
+        blocked: !!siteBlocked,
       };
       console.log(`[analyze] crawl url=${url} pages=${snapshot.pages.length} index=${snapshot.index?.length || 0} chars=${snapshot.stats?.totalChars} cache=${!!snapshot.fromCache} elapsed=${snapshot.stats?.elapsedMs}ms`);
       useWebSearch = !isRefining; // 絞り込み時はすでに市場情報が揃っているのでweb検索不要
@@ -283,9 +291,11 @@ recommendation_scores の項目：
 - 主張は明確だが本人の根拠の言語化がまだ → warn（comment で根拠整理を促す）
 - 主観的すぎて比較困難 → ng（comment で本人なりの根拠の整理を強く促す）
 
-${useWebSearch ? `重要：ウェブ検索は**競合調査と市場規模の調査だけ**に使ってください。
+${useWebSearch && siteBlocked ? `重要：分析対象のサイトは**内容を直接取得できませんでした**（下の「分析対象」を参照）。
+まずウェブ検索でこのサイト・会社名を調べ、事業内容・商品やサービス・会社の特徴・理念を把握してから、競合調査と市場規模の調査に進んでください（検索は最大10回まで）。
+サイトから取得した情報が無い前提なので、推測で事業内容を補わず、検索で確認できた事実に基づいて分析してください。` : ""}${useWebSearch && !siteBlocked ? `重要：ウェブ検索は**競合調査と市場規模の調査だけ**に使ってください。
 分析対象そのものの情報は、下の「分析対象」に**サイトから実際に取得したページの内容**として与えてあります。
-自社サイトの中身を検索で探し直す必要はありません（検索は最大10回まで。競合と市場に絞って使うこと）。
+自社サイトの中身を検索で探し直す必要はありません（検索は最大10回まで。競合と市場に絞って使うこと）。` : ""}${useWebSearch ? `
 競合が多数存在する場合はAdvantageを厳しく評価し、本当に差別化できているかを判断してください。
 また市場規模（SAM・SOM・成長率）も調査してください。市場規模の算出根拠を必ず明記してください。公的統計や業界レポートを参照した場合は出典名と年度を記載し、フェルミ推定の場合はベースとなる数字と計算過程を簡潔に説明してください。
 競合リストにはウェブサイトURLがわかる場合は「競合名（特徴）｜https://url」の形式で含めてください。
@@ -491,7 +501,7 @@ JSONのみ返してください。
         webSearch: useWebSearch, mode: url ? "url" : "text",
         crawledPages: crawlMeta?.page_count || 0, indexPages: crawlMeta?.index_count || 0, crawledChars: crawlMeta?.total_chars || 0,
         // 所要時間（ミリ秒）。crawlFromCache=true は6時間以内の取得結果を再利用した回
-        crawlMs, crawlFromCache: crawlMeta ? crawlMeta.from_cache : null, aiMs, totalMs: Date.now() - startedAt,
+        crawlMs, crawlFromCache: crawlMeta ? crawlMeta.from_cache : null, siteBlocked: !!siteBlocked, aiMs, totalMs: Date.now() - startedAt,
       },
     });
 
