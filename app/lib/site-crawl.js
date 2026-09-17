@@ -46,7 +46,7 @@ const UA = "Mozilla/5.0 (compatible; AB3CAnalyzer/1.0)";
 // クロール方式のバージョン。上限や構造を変えたら上げる。
 // スナップショットのキャッシュ（TTL 6時間）に古い方式の結果が残っていても、
 // バージョンが違えば取り直す（8ページ版の結果が100ページ版として使われるのを防ぐ）。
-export const CRAWL_VERSION = 2;
+export const CRAWL_VERSION = 3;
 
 // 証明書チェーン系のエラーコード。このエラーで失敗したサイトに限り、
 // TLS 検証を緩めた fallback 取得を1回だけ許可する。
@@ -360,6 +360,24 @@ function detectLoginWall({ html, title, textLength }) {
   return { detected: false, reason: "" };
 }
 
+// 取得拒否・エラーページの検知（2026-09-18 追加）。
+// 大手サイトはボット対策で自動取得を門前払いすることがあり、その「Access Denied」ページを
+// サイトの中身として分析に渡していた（uniqlo.com で発生）。検知したら下層の巡回はせず、
+// 分析側は自社の情報も検索で集める方式に切り替える。
+const BLOCK_TITLE_RE = /(access denied|forbidden|attention required|just a moment|request (was )?blocked|too many requests|not acceptable|service unavailable|captcha|アクセス(が|は)?拒否|アクセスできません|ページが見つかりません|not found)/i;
+function detectBlocked({ status, title, text, textLength }) {
+  if (status >= 400) {
+    return { detected: true, reason: `サイトが取得を受け付けませんでした（ステータス${status}）` };
+  }
+  if (textLength < 600 && (BLOCK_TITLE_RE.test(title || "") || BLOCK_TITLE_RE.test(String(text || "").slice(0, 200)))) {
+    return { detected: true, reason: `取得できたのがアクセス拒否・エラーのページでした（「${(title || String(text || "").split("\n")[0]).slice(0, 40)}」）` };
+  }
+  if (textLength === 0) {
+    return { detected: true, reason: "ページの本文を取得できませんでした（画面を JavaScript で組み立てるサイトの可能性があります）" };
+  }
+  return { detected: false, reason: "" };
+}
+
 // ---------------------------------------------------------------------------
 // 配色（CSS から色コードをテキストとして拾う）
 // ---------------------------------------------------------------------------
@@ -600,6 +618,9 @@ export async function crawlSite(startUrl, opts = {}) {
   }
 
   const loginWall = detectLoginWall({ html: topHtml, title: topPage.title, textLength: topPage.textLength });
+  const blocked = loginWall.detected
+    ? { detected: false, reason: "" }
+    : detectBlocked({ status: first.status || 0, title: topPage.title, text: topPage.text, textLength: topPage.textLength });
 
   let origin = "";
   try { origin = new URL(topUrl).origin; } catch (e) { origin = ""; }
@@ -610,7 +631,7 @@ export async function crawlSite(startUrl, opts = {}) {
   const indexPages = []; // 二層目（本文なしの一覧）
   const colorsPromise = collectSiteColors(topHtml, topUrl).catch(() => []);
 
-  if (!loginWall.detected && origin) {
+  if (!loginWall.detected && !blocked.detected && origin) {
     const disallow = await fetchRobots(origin);
 
     const candidates = new Map(); // url -> { url, text, depth, score }
@@ -745,6 +766,7 @@ export async function crawlSite(startUrl, opts = {}) {
     host: origin ? new URL(topUrl).hostname : "",
     fetchedAt: new Date().toISOString(),
     loginWall,
+    blocked,
     nav,
     logoUrl,
     colors,
@@ -832,7 +854,8 @@ export async function getSiteSnapshot(url, opts = {}) {
     if (cached && cached.crawlVersion === CRAWL_VERSION) return { ...cached, fromCache: true };
   }
   const snapshot = await crawlSite(url, opts);
-  await writeSnapshot(key, url, snapshot);
+  // 拒否・エラーは一時的なこともあるので保存しない（6時間取り直せなくなるのを避ける）
+  if (!snapshot.blocked?.detected) await writeSnapshot(key, url, snapshot);
   return { ...snapshot, fromCache: false };
 }
 
