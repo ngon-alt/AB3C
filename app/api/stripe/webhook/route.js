@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-import { sendPaymentNotificationEmail, sendCancellationNotificationEmail } from '@/app/lib/email';
+import { sendPaymentNotificationEmail, sendCancellationNotificationEmail, sendPointsPaymentNotificationEmail } from '@/app/lib/email';
+import { POINT_PURCHASES, POINT_TIERS, grantPoints, handlePointSubscriptionInvoice, setPointSubscriptionStatus } from '@/app/lib/points';
 // ※ ライセンス上限超過時のサイト削除はユーザー選択型 UI に変更したため、
 //    webhook では自動削除しない（/api/sites/cap-resolve 経由で削除される）。
 
@@ -56,6 +57,41 @@ export async function POST(req) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
+
+    // === ポイント購入（2026-09-22）===
+    // /api/points/checkout 経由の決済。既存のチケット・サブスク処理（下）には入れない。
+    // サブスクのポイントは invoice.paid 側で付与するので、ここでは従量・追加購入だけ付与する。
+    if (session.metadata?.kind === 'points') {
+      const email = session.metadata.email || session.customer_details?.email || session.customer_email;
+      const type = session.metadata.type;
+      let granted = 0;
+      if (type === 'payg' || type === 'addon') {
+        const item = POINT_PURCHASES[type];
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 10 });
+        const qty = lineItems.data.filter(li => li.price?.id === item.priceId).reduce((s, li) => s + (li.quantity || 0), 0);
+        if (qty > 0) {
+          // 失敗時は例外 → 500 を返して Stripe に再送させる（ref＝決済IDで二重付与はしない）
+          await grantPoints({ email, points: item.pointsPerUnit * qty, source: type, ref: session.id, note: `${item.label} ${qty}口` });
+          granted = item.pointsPerUnit * qty;
+        }
+      }
+      try {
+        await sendPointsPaymentNotificationEmail({
+          buyerEmail: email,
+          label: type === 'subscription'
+            ? `${POINT_TIERS[session.metadata.tier]?.label || session.metadata.tier}（${session.metadata.interval === 'year' ? '年間契約' : '月払い'}）`
+            : (POINT_PURCHASES[type]?.label || type),
+          points: granted,
+          amountJpy: typeof session.amount_total === 'number' ? session.amount_total : null,
+          stripeSessionId: session.id,
+        });
+      } catch (e) {
+        console.error('ポイント決済通知メール送信エラー:', e?.message);
+      }
+      console.log(`[points] 決済完了: ${email} / ${type} / 付与 ${granted}pt / session ${session.id}`);
+      return Response.json({ received: true, points: true });
+    }
+
     // 自前 /api/stripe/checkout 経由の場合は metadata に email/priceId が入っている
     let email = session.metadata?.email;
     let priceId = session.metadata?.priceId;
@@ -297,6 +333,12 @@ export async function POST(req) {
   // サブスクリプション解約（期間終了で正式に解約完了）
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object;
+    // ポイントのサブスク：記録を解約にするだけ（付与済みのポイントはその月の期限まで使える）
+    if (subscription.metadata?.kind === 'points') {
+      await setPointSubscriptionStatus(subscription.id, 'canceled');
+      console.log(`[points] サブスク解約: ${subscription.id}`);
+      return Response.json({ received: true, points: true });
+    }
     const sql = neon(process.env.DATABASE_URL);
     // 解約前にユーザー情報を取得（DB更新前に取らないとプラン情報が消える）
     let planInfo = null;
@@ -352,6 +394,32 @@ export async function POST(req) {
     const invoice = event.data.object;
     const reason = invoice.billing_reason;
     const subscriptionId = invoice.subscription;
+
+    // === ポイントのサブスク（2026-09-22）===
+    // 初回（subscription_create）も含めて毎回の請求で付与する。年間契約は初月だけここで付与し、
+    // 2か月目以降は /api/cron/points-monthly が毎月付与する。
+    if (subscriptionId) {
+      // 請求に写っているサブスクの metadata を使う。古い API 形式で写っていない時だけ取りに行く
+      let meta = invoice.subscription_details?.metadata || null;
+      if (!invoice.subscription_details) {
+        try { meta = (await stripe.subscriptions.retrieve(subscriptionId)).metadata; } catch (e) { meta = null; }
+      }
+      if (meta?.kind === 'points') {
+        const line = invoice.lines?.data?.[0];
+        const periodStart = line?.period?.start ? new Date(line.period.start * 1000) : new Date();
+        const periodEnd = line?.period?.end ? new Date(line.period.end * 1000).toISOString() : null;
+        const customerId = typeof invoice.customer === 'string' ? invoice.customer : (invoice.customer?.id || null);
+        // 失敗時は例外 → 500 で Stripe に再送させる（ref＝契約ID＋月の開始日で二重付与はしない）
+        const r = await handlePointSubscriptionInvoice({
+          email: meta.email || invoice.customer_email,
+          subscriptionId, customerId, tier: meta.tier, interval: meta.interval,
+          periodStart, periodEnd,
+        });
+        console.log(`[points] サブスク請求: ${meta.email || invoice.customer_email} / ${meta.tier} ${meta.interval} / ${reason}`, r);
+        return Response.json({ received: true, points: true });
+      }
+    }
+
     if (subscriptionId && reason !== 'subscription_create') {
       const sql = neon(process.env.DATABASE_URL);
       // 該当のuser_planを取得

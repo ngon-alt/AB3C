@@ -219,6 +219,27 @@ export async function sendCancellationNotificationEmail({
 
 // 決済完了時に運営（info@digi-kaku.or.jp）へ通知するメール
 // 決裁者プロフィール・選択メニュー・金額を含む
+// ポイント購入の運営向け通知（2026-09-22）
+export async function sendPointsPaymentNotificationEmail({ buyerEmail, label, points, amountJpy, stripeSessionId }) {
+  const NOTIFY_TO = process.env.PAYMENT_NOTIFY_EMAIL || 'info@digi-kaku.or.jp';
+  const amountStr = typeof amountJpy === 'number' ? `¥${amountJpy.toLocaleString('ja-JP')}` : '—';
+  const pointsStr = points > 0 ? `${points.toLocaleString('ja-JP')}ポイント` : 'サブスク（毎月付与）';
+  const subject = `【戦略指南 AI／ポイント決済】${label} ${amountStr} — ${buyerEmail}`;
+  const row = (k, v) => `<tr><td style="padding:8px 12px;background:#f5f2eb;width:160px;font-weight:bold">${k}</td><td style="padding:8px 12px;border-bottom:1px solid #e5e5e0">${v}</td></tr>`;
+  const html = `<div style="font-family:sans-serif;max-width:640px;margin:0 auto;padding:32px 24px;color:#1a1a14">
+    <div style="font-size:22px;font-weight:bold;margin-bottom:8px">戦略指南 AI — ポイント決済の完了通知</div>
+    <table style="width:100%;border-collapse:collapse;font-size:16px;margin:16px 0 24px">
+      ${row('購入内容', label)}
+      ${row('付与', pointsStr)}
+      ${row('決済金額', `${amountStr}（税込）`)}
+      ${row('購入者メール', `<a href="mailto:${buyerEmail}" style="color:#1a6fd4">${buyerEmail}</a>`)}
+      ${row('Stripe Session ID', `<span style="font-family:monospace">${stripeSessionId || '—'}</span>`)}
+    </table>
+    <p style="font-size:16px;color:#78716c">このメールは Stripe webhook により自動送信されています。</p>
+  </div>`;
+  return sendEmail(NOTIFY_TO, subject, html);
+}
+
 export async function sendPaymentNotificationEmail({
   buyerEmail,
   buyerName,

@@ -7,6 +7,10 @@
       "schedule": "0 0 * * *"
     },
     {
+      "path": "/api/cron/points-monthly",
+      "schedule": "10 0 * * *"
+    },
+    {
       "path": "/api/cron/webhook-health-check",
       "schedule": "30 0 1 * *"
     }

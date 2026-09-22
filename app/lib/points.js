@@ -41,6 +41,21 @@ const MAX_MONTHS = 6;
 
 export const TRIAL_POINTS = 12700;
 
+/**
+ * 購入メニューと Stripe の価格ID（2026-09-22 本番に作成。lookup_key は ab3c_points_*）。
+ * 金額は税込。商品名は Stripe 側で変更しても価格IDは変わらない。
+ */
+export const POINT_PURCHASES = {
+  payg:  { priceId: "price_1UIRJDCYHZ66REnUvytPrQSs", pointsPerUnit: 500,  unitYen: 1100, label: "従量購入" },
+  addon: { priceId: "price_1UIRJECYHZ66REnUJMkUNLOs", pointsPerUnit: 1000, unitYen: 1100, label: "追加購入" },
+};
+export const POINT_TIERS = {
+  entry: { label: "月5,000円プラン", points: 5000,  monthYen: 5500,  priceMonth: "price_1UIRJECYHZ66REnUGXJGWkze", priceYear: "price_1UIRJFCYHZ66REnU7VUfYLtz" },
+  mid:   { label: "月1万円プラン",   points: 12500, monthYen: 11000, priceMonth: "price_1UIRJGCYHZ66REnUvwXQhPzD", priceYear: "price_1UIRJHCYHZ66REnUkxmsMgCZ" },
+  upper: { label: "月2万円プラン",   points: 30000, monthYen: 22000, priceMonth: "price_1UIRJHCYHZ66REnUXEYf4axG", priceYear: "price_1UIRJICYHZ66REnUdDHSbxWj" },
+  top:   { label: "月5万円プラン",   points: 87500, monthYen: 55000, priceMonth: "price_1UIRJJCYHZ66REnUuAgw0kpu", priceYear: "price_1UIRJJCYHZ66REnUhaCUg133" },
+};
+
 // ---------------------------------------------------------------------------
 
 let _sql = null;
@@ -86,6 +101,22 @@ async function ensureTables() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_point_tx_user ON point_transactions(user_email, created_at)`;
   await sql`CREATE INDEX IF NOT EXISTS idx_point_tx_ref ON point_transactions(ref)`;
+  // ポイントのサブスク（月次付与の管理用。年間契約は毎月の付与を cron で行う）
+  await sql`
+    CREATE TABLE IF NOT EXISTS point_subscriptions (
+      stripe_subscription_id VARCHAR(255) PRIMARY KEY,
+      user_email VARCHAR(255) NOT NULL,
+      stripe_customer_id VARCHAR(255),
+      tier VARCHAR(20) NOT NULL,
+      interval VARCHAR(10) NOT NULL,
+      status VARCHAR(20) NOT NULL DEFAULT 'active',
+      current_period_end TIMESTAMPTZ,
+      next_grant_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_point_subs_user ON point_subscriptions(user_email, status)`;
   tableReady = true;
 }
 
@@ -247,4 +278,118 @@ export async function getTransactions(email, limit = 50) {
     ORDER BY t.created_at DESC
     LIMIT ${Math.min(Math.max(1, Number(limit) || 50), 500)}
   `;
+}
+
+// ---------------------------------------------------------------------------
+// サブスク（毎月付与・その月限り）
+// ---------------------------------------------------------------------------
+
+/** 月を足す。月末日は翌月の末日に丸める（1/31 → 2/28）。Stripe の契約日基準の更新と揃える */
+function addMonthsClamped(date, months) {
+  const d = new Date(date);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  return d;
+}
+
+/** 契約中のポイントサブスク（無ければ null） */
+export async function getActivePointSubscription(email) {
+  const e = normEmail(email);
+  await ensureTables();
+  const sql = getSql();
+  const rows = await sql`
+    SELECT stripe_subscription_id, tier, interval, status, current_period_end, next_grant_at
+    FROM point_subscriptions
+    WHERE user_email = ${e} AND status = 'active'
+    ORDER BY created_at DESC LIMIT 1
+  `;
+  if (!rows[0]) return null;
+  return { ...rows[0], tierLabel: POINT_TIERS[rows[0].tier]?.label || rows[0].tier, monthlyPoints: POINT_TIERS[rows[0].tier]?.points || 0 };
+}
+
+/** Stripe のサブスク情報で記録を作る・更新する */
+export async function upsertPointSubscription({ email, subscriptionId, customerId = null, tier, interval, status = "active", currentPeriodEnd = null }) {
+  await ensureTables();
+  const sql = getSql();
+  await sql`
+    INSERT INTO point_subscriptions (stripe_subscription_id, user_email, stripe_customer_id, tier, interval, status, current_period_end)
+    VALUES (${subscriptionId}, ${normEmail(email)}, ${customerId}, ${tier}, ${interval}, ${status}, ${currentPeriodEnd})
+    ON CONFLICT (stripe_subscription_id) DO UPDATE SET
+      status = EXCLUDED.status,
+      current_period_end = COALESCE(EXCLUDED.current_period_end, point_subscriptions.current_period_end),
+      stripe_customer_id = COALESCE(EXCLUDED.stripe_customer_id, point_subscriptions.stripe_customer_id),
+      updated_at = NOW()
+  `;
+}
+
+export async function setPointSubscriptionStatus(subscriptionId, status) {
+  await ensureTables();
+  const sql = getSql();
+  await sql`UPDATE point_subscriptions SET status = ${status}, updated_at = NOW() WHERE stripe_subscription_id = ${subscriptionId}`;
+}
+
+/**
+ * 1か月ぶんを付与する。期限は「次の付与日」＝その月限り。
+ * ref に契約IDと月の開始日を入れるので、webhook の再送や cron の重複実行でも二重に付与しない。
+ */
+export async function grantSubscriptionMonth({ email, subscriptionId, tier, monthStart }) {
+  const t = POINT_TIERS[tier];
+  if (!t) throw new Error(`不明なプランです: ${tier}`);
+  const start = new Date(monthStart);
+  const end = addMonthsClamped(start, 1);
+  if (end <= new Date()) return { skipped: "期限切れの月" }; // 取りこぼした過去の月は付与しない
+  return grantPoints({
+    email, points: t.points, source: "subscription", expiresAt: end,
+    ref: `${subscriptionId}:${start.toISOString().slice(0, 10)}`,
+    note: `${t.label}（${start.toISOString().slice(0, 10)}〜）`,
+  });
+}
+
+/**
+ * 請求の支払い完了（invoice.paid）時の処理。
+ * 月払いは毎月の請求ごとに付与。年間契約は初月を付与し、2か月目以降は cron（runYearlyMonthlyGrants）で付与する。
+ */
+export async function handlePointSubscriptionInvoice({ email, subscriptionId, customerId, tier, interval, periodStart, periodEnd }) {
+  await upsertPointSubscription({ email, subscriptionId, customerId, tier, interval, status: "active", currentPeriodEnd: periodEnd });
+  const r = await grantSubscriptionMonth({ email, subscriptionId, tier, monthStart: periodStart });
+  if (interval === "year") {
+    const sql = getSql();
+    await sql`
+      UPDATE point_subscriptions SET next_grant_at = ${addMonthsClamped(new Date(periodStart), 1).toISOString()}, updated_at = NOW()
+      WHERE stripe_subscription_id = ${subscriptionId}
+    `;
+  }
+  return r;
+}
+
+/** 年間契約の2か月目以降の付与（毎日 cron から呼ぶ。止まっていた分も順に追いつく） */
+export async function runYearlyMonthlyGrants() {
+  await ensureTables();
+  const sql = getSql();
+  const due = await sql`
+    SELECT stripe_subscription_id, user_email, tier, next_grant_at, current_period_end
+    FROM point_subscriptions
+    WHERE status = 'active' AND interval = 'year' AND next_grant_at IS NOT NULL
+      AND next_grant_at <= NOW() AND next_grant_at < current_period_end
+  `;
+  const results = [];
+  for (const s of due) {
+    let next = new Date(s.next_grant_at);
+    const periodEnd = new Date(s.current_period_end);
+    while (next <= new Date() && next < periodEnd) {
+      try {
+        const r = await grantSubscriptionMonth({ email: s.user_email, subscriptionId: s.stripe_subscription_id, tier: s.tier, monthStart: next });
+        results.push({ subscriptionId: s.stripe_subscription_id, month: next.toISOString().slice(0, 10), ...r });
+      } catch (e) {
+        results.push({ subscriptionId: s.stripe_subscription_id, month: next.toISOString().slice(0, 10), error: e?.message });
+        break; // 失敗した月で止め、次回の実行で再試行する
+      }
+      next = addMonthsClamped(next, 1);
+    }
+    await sql`UPDATE point_subscriptions SET next_grant_at = ${next.toISOString()}, updated_at = NOW() WHERE stripe_subscription_id = ${s.stripe_subscription_id}`;
+  }
+  return results;
 }
