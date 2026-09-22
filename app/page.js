@@ -1233,7 +1233,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionNum, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   const fileInputRef = useRef(null);
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
@@ -1591,8 +1591,15 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         {/* 古い世代を表示中の場合は再分析・確定ボタンを非表示 */}
         {isViewingOldVersion && (
           <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 16, color: "#7a4f00", lineHeight: 1.6 }}>
-            🕒 過去の世代を表示中です。分析結果の上の案内から、この版のまま確定するか、最新に戻せます。
+            🕒 過去の世代{viewedVersionNum ? `（v${viewedVersionNum}）` : ""}を表示中です。この版のまま確定するか、分析結果の案内から最新に戻せます。
           </div>
+        )}
+        {/* 過去の世代を表示中の確定（通常の確定ボタンと同じ場所・同じ見た目） */}
+        {isViewingOldVersion && onConfirmOldVersion && (
+          <button onClick={onConfirmOldVersion}
+            style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+            この版（v{viewedVersionNum}）で確定して ② へ →
+          </button>
         )}
         {/* 会話量警告バナー */}
         {!isViewingOldVersion && convWarnLevel && (
@@ -4425,6 +4432,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     ? confirmHistory[confirmHistory.length - 1].id
     : null;
   const chatConfirmId = activeConfirmId || liveSnapId || "current";
+  // 過去の世代を表示中のとき、その世代（全項目が同じ世代を表示しているので、どの項目の値でもよい）
+  const viewedVersionIdx = Math.max(0, ...Object.values(activeVersionPerSection).map(v => v || 0));
+  const viewedVersionNum = versionDisplayNumber(analysisVersions, viewedVersionIdx);
+  // 表示中の過去の世代で確定する。その中身が新しい最新世代になり、それまでの最新は残る
+  const confirmViewedOldVersion = () => {
+    const viewedResult = analysisVersions[viewedVersionIdx]?.result;
+    if (!viewedResult) return;
+    const latestNum = analysisVersions.length;
+    const ok = window.confirm(
+      `v${viewedVersionNum} の内容で戦略を確定します。\n\n` +
+      `・v${viewedVersionNum} の内容が新しい最新（v${latestNum + 1}）になります\n` +
+      `・今の最新（v${latestNum}）は消えずに残ります\n` +
+      `・戦略アクションは、この戦略のもの（以前にこの戦略で作ったものがあれば、それ）に切り替わります\n\n` +
+      `よろしいですか？`
+    );
+    if (ok) confirmStrategy({ baseResult: viewedResult });
+  };
+
   // テーマ別チャットの会話をブラウザに保存するキーの版。確定中は戦略の版 ID（中身が同じなら確定し直しても同じ）。
   // 確定履歴を開いて過去の確定を見ているときは、従来どおりその確定の ID。
   const threadStorageVersion = (!activeConfirmId && strategyVersionId) ? strategyVersionId : chatConfirmId;
@@ -5185,10 +5210,40 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   })()}
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
-    // 古い世代を見ている時は確定ボタンを非表示にする。
-    // ただし確定中なら「確定済み」表示と解除ボタンは残す（過去の世代を見比べただけで
-    // 確定状態が画面から消えると、確定しているのか分からなくなるため・2026-09-22 権さん指摘）
-    if (isViewingOldVersion && !strategyConfirmed) return null;
+    // 過去の世代を表示中: 確定ボタンを「この版で確定する」に切り替える（いつもの確定ボタンと同じ場所）。
+    // 確定中なら解除ボタンも残す（過去の世代を見ただけで確定状態が画面から消えないように・2026-09-22 権さん指摘）
+    if (isViewingOldVersion) {
+      return (
+        <>
+          <button
+            onClick={canConfirm ? confirmViewedOldVersion : null}
+            disabled={!canConfirm}
+            title={!canConfirm ? "戦略指南サブスクで戦略確定・戦略アクションが利用可" : "表示中の過去の世代の内容で戦略を確定します（今の最新は残ります）"}
+            style={{
+              background: !canConfirm ? "#cccccc" : "#2a2a26", border: "none", borderRadius: 999,
+              color: "#fff", cursor: canConfirm ? "pointer" : "not-allowed",
+              fontSize: 16, fontWeight: 700, padding: "10px 20px",
+              opacity: !canConfirm ? 0.7 : 1,
+            }}
+          >
+            この版（v{viewedVersionNum}）で確定する →
+          </button>
+          {strategyConfirmed && (
+            <button
+              onClick={unconfirmStrategy}
+              title="戦略の確定を解除して策定フェーズに戻ります（確定履歴は保持）"
+              style={{
+                background: C.B, border: "none", borderRadius: 999,
+                color: "#fff", cursor: "pointer",
+                fontSize: 16, fontWeight: 700, padding: "10px 20px",
+              }}
+            >
+              ↺ 戦略を解除
+            </button>
+          )}
+        </>
+      );
+    }
     // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
     // 「この履歴で再確定」ボタンに切替、解除ボタンは隠す（live でないので解除対象外）。
     // 「現在の戦略」（confirmHistory の最終 = 最新確定）を選択中の場合は live 状態と等価なので
@@ -5321,43 +5376,17 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
   {/* 古い世代を見ている時の案内バー */}
-  {isViewingOldVersion && (() => {
-    // 全項目が同じ世代を表示しているので、どの項目の値でもよい
-    const viewedIdx = Math.max(0, ...Object.values(activeVersionPerSection).map(v => v || 0));
-    const viewedNum = versionDisplayNumber(analysisVersions, viewedIdx);
-    const latestNum = analysisVersions.length;
-    const viewedResult = analysisVersions[viewedIdx]?.result;
-    const canConfirmOld = !!viewedResult && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
-    const confirmOld = () => {
-      const ok = window.confirm(
-        `v${viewedNum} の内容で戦略を確定します。\n\n` +
-        `・v${viewedNum} の内容が新しい最新（v${latestNum + 1}）になります\n` +
-        `・今の最新（v${latestNum}）は消えずに残ります\n` +
-        `・戦略アクションは、この戦略のもの（以前にこの戦略で作ったものがあれば、それ）に切り替わります\n\n` +
-        `よろしいですか？`
-      );
-      if (ok) confirmStrategy({ baseResult: viewedResult });
-    };
-    return (
-      <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <b>🕒 過去の世代（v{viewedNum}）を表示中です。</b> この版のまま確定することも、最新（v{latestNum}）に戻すこともできます。
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {canConfirmOld && (
-            <button onClick={confirmOld}
-              style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
-              この版（v{viewedNum}）で確定する →
-            </button>
-          )}
-          <button onClick={() => setActiveVersionPerSection({})}
-            style={{ background: "#fff", border: "1px solid #2a2a26", borderRadius: 999, color: "#2a2a26", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
-            最新（v{latestNum}）に戻す
-          </button>
-        </div>
+  {isViewingOldVersion && (
+    <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div>
+        <b>🕒 過去の世代（v{viewedVersionNum}）を表示中です。</b> この版で確定するときは、上の「この版（v{viewedVersionNum}）で確定する」ボタンを押してください。
       </div>
-    );
-  })()}
+      <button onClick={() => setActiveVersionPerSection({})}
+        style={{ background: "#fff", border: "1px solid #2a2a26", borderRadius: 999, color: "#2a2a26", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
+        最新（v{analysisVersions.length}）に戻す
+      </button>
+    </div>
+  )}
   {(() => {
     const needsLen = currentResult.benefit?.needs?.length ?? 0;
     const wantsLen = currentResult.benefit?.wants?.length ?? 0;
@@ -5839,6 +5868,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                     onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
+                    onConfirmOldVersion={!isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmViewedOldVersion : null}
+                    viewedVersionNum={isViewingOldVersion ? viewedVersionNum : null}
                   />
                 </div>
                 ) : (
