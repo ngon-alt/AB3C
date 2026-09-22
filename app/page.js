@@ -1273,7 +1273,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatternInfo, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionLabel, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatternInfo, reflectMarks, onReflectMark, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionLabel, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   const fileInputRef = useRef(null);
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
@@ -1469,6 +1469,26 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
 
   const reanalyze = async () => {
     if (loading || messages.length < 2) return;
+    // パターンごとに「前回どこまで反映したか」を持ち、それより後の会話だけを反映する（2026-09-22）。
+    // 会話はサイトに1本でパターンをまたぐため、発言には印を付けない。選り分けは AI への指示で行う
+    const patternKey = selectedPatternInfo && selectedPatternInfo.id != null ? String(selectedPatternInfo.id) : "main";
+    const patternName = selectedPatternInfo ? `P${selectedPatternInfo.id}「${selectedPatternInfo.label || ""}」` : "この戦略";
+    const mark = Math.min(Number(reflectMarks?.[patternKey]) || 0, messages.length);
+    const newMessages = messages.slice(mark);
+    if (!newMessages.some(m => m.role === "user" && !m.hidden && typeof m.content === "string")) {
+      alert(`前回${patternName}に反映してから、新しい会話がありません。\nチャットで相談してから、もう一度押してください。`);
+      return;
+    }
+    // 初めてこのパターンに反映するとき、ほかのパターンへの反映があれば、会話が混ざっていることを知らせる
+    const otherReflected = Object.entries(reflectMarks || {}).some(([k, v]) => k !== patternKey && Number(v) > 0);
+    if (mark === 0 && otherReflected && selectedPatternInfo) {
+      const ok = window.confirm(
+        `このチャットには、P${selectedPatternInfo.id}以外のパターンについての会話も含まれています。\n\n` +
+        `${patternName}に当てはまる内容だけを選んで反映します。よろしいですか？`
+      );
+      if (!ok) return;
+    }
+    const uptoAtSend = messages.length;
     setLoading(true);
     try {
       const res = await fetch("/api/chat/reanalyze", {
@@ -1477,7 +1497,7 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
         // 選んでいるパターンを作り直す。表の階層（benefit〜checkpoints）を選択中パターンの内容にそろえて渡す。
         // 以前はおすすめパターン（P1）の内容のまま渡していたため、P2 で反映すると P1 をもとにした内容が
         // P2 に書き込まれることがあった（2026-09-22）
-        body: JSON.stringify({ messages, analysisResult: reanalyzeBase || analysisResult, selectedPattern: selectedPatternInfo || null, siteId }),
+        body: JSON.stringify({ messages: newMessages, analysisResult: reanalyzeBase || analysisResult, selectedPattern: selectedPatternInfo || null, siteId }),
       });
 
       if (!res.ok && !res.body) {
@@ -1509,7 +1529,8 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
             try {
               const summary = parsed.chatSummary || messages.filter(m => m.role === "user" && typeof m.content === "string").slice(-1).map(m => m.content.slice(0, 20)).join("、");
               onReanalyze(parsed.result, summary);
-              setMessages(prev => [...prev, { role: "assistant", content: "✓ 会話内容を反映して分析を更新しました！" }]);
+              if (onReflectMark) onReflectMark(patternKey, uptoAtSend);
+              setMessages(prev => [...prev, { role: "assistant", content: `✓ 会話内容を${patternName}に反映して分析を更新しました！` }]);
             } catch (applyErr) {
               console.error("再分析結果の反映に失敗:", applyErr);
               setMessages(prev => [...prev, { role: "assistant", content: "再分析は完了しましたが、画面への反映中にエラーが発生しました。画面をリロードしてご確認ください。" }]);
@@ -2485,6 +2506,14 @@ const [chatMinimized, setChatMinimized] = useState(false);
 const [strategyVersionId, setStrategyVersionIdState] = useState(null);
 const strategyVersionIdRef = useRef(null);
 const setStrategyVersionId = (v) => { strategyVersionIdRef.current = v || null; setStrategyVersionIdState(v || null); };
+// パターンごとに「戦略策定チャットのどこまでを反映したか」（{ パターンID: 反映済みの発言数 }・2026-09-22）
+const [reflectMarks, setReflectMarks] = useState({});
+const recordReflectMark = (patternKey, upto) => {
+  setReflectMarks((prev) => ({ ...prev, [patternKey]: upto }));
+  if (siteId) {
+    fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, reflect_marks: { [patternKey]: upto } }) }).catch(() => {});
+  }
+};
 const chatResizing = useRef(false);
 // パターン切替時の API コスト削減用：旧 in-flight fetch を AbortController で abort する。
 // 表示の正確性は ID 引き派生値設計（improveResult/visualMock）で構造的に保証されるため、
@@ -2833,7 +2862,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
         findSiteDetail(savedSiteId, inputForLookup).then(match => {
           if (!match) return;
           setSiteId(match.id);
-          setStrategyVersionId(match.current_strategy_version_id || null);
+          setStrategyVersionId(match.current_strategy_version_id || null); setReflectMarks(match.reflect_marks && typeof match.reflect_marks === "object" ? match.reflect_marks : {});
           // 分析結果と世代履歴は DB を正とする。sessionStorage は最新結果1件しか持たないため、
           // ここで上書きしないと世代タブが1世代に潰れて見える（2026-09-14 権さん指摘）。
           if (match.latest_analysis) {
@@ -3318,7 +3347,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
       findSiteDetail(sid, urlParam).then(function(site) {
         if (site) {
           setSiteId(site.id);
-          setStrategyVersionId(site.current_strategy_version_id || null);
+          setStrategyVersionId(site.current_strategy_version_id || null); setReflectMarks(site.reflect_marks && typeof site.reflect_marks === "object" ? site.reflect_marks : {});
           rescueLocalThreadMessages(site);
           // 戦略確定履歴を DB から復元（LS より DB を信頼）
           try {
@@ -3733,7 +3762,7 @@ useEffect(() => {
         return;
       }
       setSiteId(site.id);
-      setStrategyVersionId(site.current_strategy_version_id || null);
+      setStrategyVersionId(site.current_strategy_version_id || null); setReflectMarks(site.reflect_marks && typeof site.reflect_marks === "object" ? site.reflect_marks : {});
       if (site.latest_analysis) {
         setResult(site.latest_analysis);
         setCurrentResult(site.latest_analysis);
@@ -4186,7 +4215,7 @@ if (prefoundSite) {
 }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null); setImproveStale(false);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
-setSiteId(null); setStrategyVersionId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
 setVersionsFromInitial(null);
 setLiveStateBackup(null); // 新規分析でライブ状態が完全リセットされるため破棄
@@ -4620,7 +4649,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               strategyVersionId,
             });
           }
-          reset(); setSiteId(null); setStrategyVersionId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
+          reset(); setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
         }}
         onSwitchToAnalysis={async () => {
           // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」を in-place で復元
@@ -5810,6 +5839,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     analysisResult={currentResult}
                     reanalyzeBase={reanalyzeBaseResult}
                     selectedPatternInfo={selectedPatternInfo}
+                    reflectMarks={reflectMarks}
+                    onReflectMark={recordReflectMark}
                     improveResult={improveResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
