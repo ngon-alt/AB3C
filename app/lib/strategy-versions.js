@@ -90,6 +90,9 @@ export async function ensureVersionTables(sql) {
     `,
     sql`CREATE INDEX IF NOT EXISTS idx_analysis_chat_archives_site ON analysis_chat_archives(site_id)`,
     sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS current_strategy_version_id UUID`,
+    // パターンごとに「戦略策定チャットのどこまでを反映したか」（{ パターンID: 反映済みの発言数 }）。
+    // チャットはサイトに1本でパターンをまたぐため、発言には印を付けず、反映した位置だけを持つ（2026-09-22）
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS reflect_marks JSONB`,
   ]);
 }
 
