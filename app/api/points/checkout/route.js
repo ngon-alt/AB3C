@@ -14,7 +14,11 @@ export async function POST(req) {
   }
   const email = session.user.email;
   const { type, quantity, tier, interval } = await req.json();
-  const base = process.env.NEXTAUTH_URL;
+  // 決済後の戻り先は、いま開いているドメインから組み立てる（preview・新規事業版の別ドメインでもそのまま動く）。
+  // NEXTAUTH_URL は preview に https:// 付きで入っておらず、Stripe に「URLが不正」と断られた（2026-09-23）
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || new URL(req.url).host;
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const base = `${proto}://${host}`;
   const successUrl = `${base}/points?purchased=1`;
   const cancelUrl = `${base}/points`;
 
