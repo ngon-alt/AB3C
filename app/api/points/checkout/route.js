@@ -3,7 +3,7 @@
 import Stripe from "stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { POINT_PURCHASES, POINT_TIERS, getActivePointSubscription } from "../../../lib/points";
+import { POINT_PURCHASES, POINT_TIERS, getActivePointSubscription, getOrCreatePointCustomer } from "../../../lib/points";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -22,7 +22,15 @@ export async function POST(req) {
   const successUrl = `${base}/points?purchased=1`;
   const cancelUrl = `${base}/points`;
 
+  // 保存したカードを次の購入で呼び出す（2026-09-23）。
+  // お客様ごとに Stripe の顧客を1つ持ち、決済画面に保存済みのカードを最初から出す。
+  // サブスクで登録したカード（allow_redisplay=limited）も出すため、表示条件を3種類とも許可する。
+  // Link を切っても毎回カード番号を入れ直さずに済む。
+  const SAVED_CARDS = ["always", "limited", "unspecified"];
+
   try {
+    const customer = await getOrCreatePointCustomer(stripe, email);
+
     if (type === "payg" || type === "addon") {
       const item = POINT_PURCHASES[type];
       // 追加購入（1pt＝1円）はサブスク契約者だけ
@@ -34,8 +42,9 @@ export async function POST(req) {
         mode: "payment",
         payment_method_types: ["card"],
         line_items: [{ price: item.priceId, quantity: qty, adjustable_quantity: { enabled: true, minimum: 1, maximum: 100 } }],
-        customer_email: email,
-        customer_creation: "always",
+        customer,
+        // 「カードを保存する」を選べるようにし、保存済みのカードは最初から表示する
+        saved_payment_method_options: { payment_method_save: "enabled", allow_redisplay_filters: SAVED_CARDS },
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: { kind: "points", type, email },
@@ -57,7 +66,8 @@ export async function POST(req) {
         mode: "subscription",
         payment_method_types: ["card"],
         line_items: [{ price: interval === "year" ? t.priceYear : t.priceMonth, quantity: 1 }],
-        customer_email: email,
+        customer,
+        saved_payment_method_options: { allow_redisplay_filters: SAVED_CARDS },
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: { kind: "points", type: "subscription", tier, interval, email },

@@ -117,6 +117,15 @@ async function ensureTables() {
     )
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_point_subs_user ON point_subscriptions(user_email, status)`;
+  // ポイント購入に使う Stripe の顧客（メールごとに1つ）。保存したカードを次の購入で呼び出すため。
+  // 今の戦略指南の user_plans.stripe_customer_id とは別に持つ（新規事業版を今の環境から切り離す方針）
+  await sql`
+    CREATE TABLE IF NOT EXISTS point_customers (
+      user_email VARCHAR(255) PRIMARY KEY,
+      stripe_customer_id VARCHAR(255) NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
   tableReady = true;
 }
 
@@ -392,4 +401,34 @@ export async function runYearlyMonthlyGrants() {
     await sql`UPDATE point_subscriptions SET next_grant_at = ${next.toISOString()}, updated_at = NOW() WHERE stripe_subscription_id = ${s.stripe_subscription_id}`;
   }
   return results;
+}
+
+// ---------------------------------------------------------------------------
+// Stripe の顧客（保存したカードを次の購入で呼び出す）
+// ---------------------------------------------------------------------------
+
+/**
+ * メールに対応する Stripe の顧客IDを返す。無ければ作って記録する。
+ * 契約中のサブスクがあれば、その顧客（カード登録済み）を優先して使う。
+ */
+export async function getOrCreatePointCustomer(stripe, email) {
+  const e = normEmail(email);
+  await ensureTables();
+  const sql = getSql();
+  const sub = await sql`
+    SELECT stripe_customer_id FROM point_subscriptions
+    WHERE user_email = ${e} AND status = 'active' AND stripe_customer_id IS NOT NULL
+    ORDER BY created_at DESC LIMIT 1
+  `;
+  if (sub[0]?.stripe_customer_id) return sub[0].stripe_customer_id;
+  const rows = await sql`SELECT stripe_customer_id FROM point_customers WHERE user_email = ${e}`;
+  if (rows[0]) return rows[0].stripe_customer_id;
+  const customer = await stripe.customers.create({ email: e, metadata: { kind: "points" } });
+  // 同時に2つ作られた場合は先に記録された方を使う
+  const saved = await sql`
+    INSERT INTO point_customers (user_email, stripe_customer_id) VALUES (${e}, ${customer.id})
+    ON CONFLICT (user_email) DO UPDATE SET user_email = EXCLUDED.user_email
+    RETURNING stripe_customer_id
+  `;
+  return saved[0].stripe_customer_id;
 }
