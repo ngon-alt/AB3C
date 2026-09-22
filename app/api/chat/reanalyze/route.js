@@ -63,7 +63,7 @@ export async function POST(req) {
   let reqBody;
   try { reqBody = await req.json(); } catch { return sendError("リクエストの解析に失敗しました。", 400); }
 
-  const { messages, analysisResult, siteId } = reqBody;
+  const { messages, analysisResult, selectedPattern, siteId } = reqBody;
 
   if (!analysisResult || typeof analysisResult !== "object")
     return sendError("再分析の元になる分析結果が取得できませんでした。画面をリロードしてからもう一度お試しください。");
@@ -95,8 +95,22 @@ export async function POST(req) {
         }
         conversationSummary = conversationSummary.trim();
 
-        const userPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果を return_analysis ツールで返してください。
+        // 複数の戦略パターンがある場合、作り直すのは「ユーザーが選んでいるパターン」だけ（2026-09-22）。
+        // 表の階層（benefit〜checkpoints）は画面側で選択中パターンの内容にそろえて送られてくる。
+        // 会話はサイトに1本で、複数のパターンを比べる話も含まれるため、このパターンに当てはまる内容だけを反映させる
+        const hasPatterns = Array.isArray(analysisResult.combinations) && analysisResult.combinations.length > 1;
+        const patternGuidance = hasPatterns && selectedPattern && selectedPattern.id != null
+          ? `
+## 作り直す対象（最重要）
+この分析には複数の戦略パターン（combinations）があります。今回作り直すのは、ユーザーが選んでいる「パターン${selectedPattern.id}：${selectedPattern.label || ""}」だけです。
+- 元の分析結果の表の階層（benefit / advantage / three_c / strategy_message / checkpoints）は、このパターンの内容です。これを土台に改善してください
+- ほかのパターンの内容を、このパターンに持ち込まないこと（ターゲット・ベネフィット・競合はパターンごとに別です）
+- 会話には、パターン同士を比べる話や、ほかのパターンについての話も含まれます。その中から、このパターンに当てはまる内容だけを反映してください
+`
+          : "";
 
+        const userPrompt = `あなたはAB3C分析の専門家です。以下の元の分析結果とユーザーとの会話内容をもとに、改善されたAB3C分析結果を return_analysis ツールで返してください。
+${patternGuidance}
 ## 元の分析結果
 ${JSON.stringify(analysisResult)}
 
