@@ -298,11 +298,7 @@ function getDisplayedSectionData(result, sectionKey, selectedCombinationId) {
       case "customer": return combo.customer;
       case "competitor": return combo.competitor;
       case "company": {
-        var allStrengths = Array.isArray(result.company_core?.all_strengths) ? result.company_core.all_strengths : [];
-        var usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
-        var usedStrengths = usedIdx.length > 0
-          ? usedIdx.map(function (i) { return allStrengths[i]; }).filter(Boolean)
-          : allStrengths;
+        var usedStrengths = comboStrengths(combo, result.company_core).texts;
         return {
           strength: usedStrengths,
           structure: result.company_core?.structure || "",
@@ -582,11 +578,7 @@ function CombinationCard({ combo, companyCore, isSelected, isRecommended, onSele
     .filter(Boolean)
     .join(" / ");
   // 自社強み：strengths_used のindexで company_core.all_strengths を解決
-  const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
-  const usedIdx = Array.isArray(combo?.strengths_used) ? combo.strengths_used : [];
-  const strengthText = usedIdx.length > 0 && allStrengths.length > 0
-    ? usedIdx.slice(0, 2).map(i => allStrengths[i]).filter(Boolean).join(" / ")
-    : "";
+  const strengthText = comboStrengths(combo, companyCore).texts.slice(0, 2).filter(Boolean).join(" / ");
 
   const Row = ({ label, labelColor, valueBold, value }) => (
     <>
@@ -851,14 +843,23 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect, 
 // 既存の `d.benefit / d.advantage / d.three_c / d.strategy_message / d.checkpoints` を読む render コードに、
 // 組み合わせごとのデータをそのまま流し込めるようにすることで、ResultView 本体の render 部の大幅な書き換えを避ける。
 // company.strength は company_core.all_strengths を strengths_used のindexで解決する。
-function buildShadowResultFromCombo(combo, companyCore) {
-  if (!combo) return null;
+// パターンが使う自社の強みと、その根拠評価。
+// 反映でそのパターン用に書き直した強み（combo.strength_texts / combo.strength_evaluations）があればそれを使い、
+// 無ければ全パターン共通の一覧（company_core）から strengths_used の番号で引く。
+// 反映の結果を共通の一覧に書き込むと、同じ強みを使うほかのパターンまで変わってしまうため（2026-09-22 権さん指摘）
+function comboStrengths(combo, companyCore) {
   const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
   const allEvals = Array.isArray(companyCore?.all_strengths_evaluations) ? companyCore.all_strengths_evaluations : [];
-  const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
+  const usedIdx = Array.isArray(combo?.strengths_used) ? combo.strengths_used : [];
   const pickByIdx = (arr) => usedIdx.length > 0 ? usedIdx.map(i => arr[i]).filter(Boolean) : arr;
-  const usedStrengths = pickByIdx(allStrengths);
-  const usedEvaluations = pickByIdx(allEvals);
+  const texts = Array.isArray(combo?.strength_texts) && combo.strength_texts.length > 0 ? combo.strength_texts : pickByIdx(allStrengths);
+  const evals = Array.isArray(combo?.strength_evaluations) && combo.strength_evaluations.length > 0 ? combo.strength_evaluations : pickByIdx(allEvals);
+  return { texts, evals };
+}
+
+function buildShadowResultFromCombo(combo, companyCore) {
+  if (!combo) return null;
+  const { texts: usedStrengths, evals: usedEvaluations } = comboStrengths(combo, companyCore);
   return {
     benefit: combo.benefit || {},
     advantage: combo.advantage || {},
@@ -2578,11 +2579,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
     if (!currentResult?.combinations) return;
     const combo = currentResult.combinations.find(c => c?.id === combinationId);
     if (!combo) return;
-    const allStrengths = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
-    const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
-    const usedStrengths = usedIdx.length > 0
-      ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
-      : allStrengths;
+    const usedStrengths = comboStrengths(combo, currentResult.company_core).texts;
     const comboResult = {
       ...currentResult,
       benefit: combo.benefit || {},
@@ -3860,11 +3857,7 @@ useEffect(() => {
         // 過去の世代に選択中のパターンが無い場合は、画面表示と同じく先頭のパターンで確定する
         if (!selectedCombo && fromOldVersion && Array.isArray(baseResult?.combinations)) selectedCombo = baseResult.combinations[0];
         if (selectedCombo && Array.isArray(baseResult?.combinations)) {
-          var allStrengthsArr = Array.isArray(baseResult.company_core?.all_strengths) ? baseResult.company_core.all_strengths : [];
-          var usedIdxArr = Array.isArray(selectedCombo.strengths_used) ? selectedCombo.strengths_used : [];
-          var usedStrengthsArr = usedIdxArr.length > 0
-            ? usedIdxArr.map(function(i) { return allStrengthsArr[i]; }).filter(Boolean)
-            : allStrengthsArr;
+          var usedStrengthsArr = comboStrengths(selectedCombo, baseResult.company_core).texts;
           snapshotResult = Object.assign({}, baseResult, {
             benefit: selectedCombo.benefit || baseResult.benefit,
             advantage: selectedCombo.advantage || baseResult.advantage,
@@ -5882,26 +5875,21 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                           }),
                         });
 
-                        // 強みの根拠評価をルートの three_c.company.strength_evaluations から
-                        // company_core.all_strengths_evaluations へ伝播する。
-                        // shadowResult は companyCore.all_strengths_evaluations を strengths_used でマップして
-                        // UI に渡すため、ここを更新しないと「チャットで根拠を提示しても赤い吹き出しが消えない」
-                        // バグになる（権さん指摘・2026-05-15）。
+                        // 反映で書き直された強みと根拠評価は、選んでいるパターンの中にだけ持たせる
+                        // （combo.strength_texts / combo.strength_evaluations）。以前は全パターン共通の一覧
+                        // （company_core）に書き込んでいたため、同じ強みを使うほかのパターンまで変わっていた。
+                        // ほかのパターンには、そのパターンに反映したときに取り込む（2026-09-22 権さん指示）。
+                        // 根拠評価を反映しないと「チャットで根拠を提示しても赤い吹き出しが消えない」ため、書き込み自体は必要（2026-05-15）
                         var newEvals = newResult.three_c?.company?.strength_evaluations;
                         var newStrengths = newResult.three_c?.company?.strength;
-                        var targetCombo = newResult.combinations.find(function(c) { return c?.id === selectedCombinationId; });
-                        var usedIdx = Array.isArray(targetCombo?.strengths_used) ? targetCombo.strengths_used : [];
-                        if (Array.isArray(newEvals) && newEvals.length > 0 && usedIdx.length > 0 && newResult.company_core) {
-                          var origAllStrengths = Array.isArray(newResult.company_core.all_strengths) ? newResult.company_core.all_strengths.slice() : [];
-                          var origAllEvals = Array.isArray(newResult.company_core.all_strengths_evaluations) ? newResult.company_core.all_strengths_evaluations.slice() : [];
-                          usedIdx.forEach(function(absIdx, relIdx) {
-                            if (newEvals[relIdx]) origAllEvals[absIdx] = newEvals[relIdx];
-                            if (Array.isArray(newStrengths) && newStrengths[relIdx]) origAllStrengths[absIdx] = newStrengths[relIdx];
-                          });
+                        if ((Array.isArray(newEvals) && newEvals.length > 0) || (Array.isArray(newStrengths) && newStrengths.length > 0)) {
                           newResult = Object.assign({}, newResult, {
-                            company_core: Object.assign({}, newResult.company_core, {
-                              all_strengths: origAllStrengths,
-                              all_strengths_evaluations: origAllEvals,
+                            combinations: newResult.combinations.map(function(combo) {
+                              if (!combo || combo.id !== selectedCombinationId) return combo;
+                              var patch = {};
+                              if (Array.isArray(newStrengths) && newStrengths.length > 0) patch.strength_texts = newStrengths;
+                              if (Array.isArray(newEvals) && newEvals.length > 0) patch.strength_evaluations = newEvals;
+                              return Object.assign({}, combo, patch);
                             }),
                           });
                         }
