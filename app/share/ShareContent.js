@@ -26,11 +26,14 @@ function patternColor(id) {
 // （メイン側 page.js の buildShadowResultFromCombo と同じロジック）
 function buildShadowResultFromCombo(combo, companyCore) {
   if (!combo) return null;
+  // 反映でそのパターン用に書き直した強み（combo.strength_texts）があればそれを使う（page.js の comboStrengths と同じ）
   const allStrengths = Array.isArray(companyCore?.all_strengths) ? companyCore.all_strengths : [];
   const usedIdx = Array.isArray(combo.strengths_used) ? combo.strengths_used : [];
-  const usedStrengths = usedIdx.length > 0
-    ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
-    : allStrengths;
+  const usedStrengths = Array.isArray(combo.strength_texts) && combo.strength_texts.length > 0
+    ? combo.strength_texts
+    : usedIdx.length > 0
+      ? usedIdx.map(i => allStrengths[i]).filter(Boolean)
+      : allStrengths;
   return {
     benefit: combo.benefit || {},
     advantage: combo.advantage || {},
