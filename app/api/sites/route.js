@@ -5,7 +5,21 @@ import { NextResponse } from "next/server";
 import {
   ensureVersionTables, ensureCurrentVersion, switchConfirmedVersion, registerAllPatterns,
   saveActionSet, versionBelongsToSite, saveVersionReports, rescueThreadMessages,
+  stableStringify,
 } from "@/app/lib/strategy-versions";
+
+// 確定時に画面が付け足す項目（確定パターンを表の階層に写したもの・確定パターン ID）を除けば、
+// 比較先の結果と全く同じか。＝最新の世代をそのまま確定しただけか。
+// 過去の世代で確定し直した場合は他のパターンの中身も違うので false になり、新しい世代として積まれる
+const CONFIRM_SHIM_KEYS = ["benefit", "advantage", "three_c", "strategy_message", "checkpoints", "confirmed_combination_id"];
+function sameConfirmedPattern(confirmedResult, otherResult) {
+  if (!confirmedResult || !otherResult) return false;
+  if (!Array.isArray(confirmedResult.combinations) || confirmedResult.combinations.length === 0) {
+    return stableStringify(confirmedResult) === stableStringify(otherResult);
+  }
+  const strip = (r) => Object.fromEntries(Object.entries(r).filter(([k]) => !CONFIRM_SHIM_KEYS.includes(k)));
+  return stableStringify(strip(confirmedResult)) === stableStringify(strip(otherResult));
+}
 
 // テーブル作成（なければ）
 let tableReady = false;
@@ -154,10 +168,12 @@ function synthesizeVersionsForSite(site, allVersions = false) {
   if (!site) return site;
   const hasVersions = Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0;
   if (hasVersions) {
+    // 各世代に通し番号（v1 = 最初の分析）を付ける。画面には最新5件しか送らないため、
+    // 画面側で件数から数えると「11件目が v5」のように番号がずれる（2026-09-22 権さん指摘）
+    const total = site.analysis_versions.length;
+    const numbered = site.analysis_versions.map((v, i) => ({ ...v, number: total - i }));
     // allVersions: 確定履歴から古い版を開くとき（画面が最新5件に無い版を探す）だけ全世代を返す
-    return !allVersions && site.analysis_versions.length > VERSIONS_IN_RESPONSE
-      ? { ...site, analysis_versions: site.analysis_versions.slice(0, VERSIONS_IN_RESPONSE) }
-      : site;
+    return { ...site, analysis_versions: !allVersions && total > VERSIONS_IN_RESPONSE ? numbered.slice(0, VERSIONS_IN_RESPONSE) : numbered };
   }
   if (!site.latest_analysis) return { ...site, analysis_versions: [] };
   const ts = site.analyzed_at ? new Date(site.analyzed_at).getTime() : Date.now();
@@ -170,6 +186,7 @@ function synthesizeVersionsForSite(site, allVersions = false) {
         created_at: site.analyzed_at ? new Date(site.analyzed_at).toISOString() : new Date().toISOString(),
         source: "initial",
         confirmed: !!site.strategy_confirmed,
+        number: 1,
       },
     ],
   };
@@ -393,6 +410,11 @@ export async function PUT(req) {
             confirmed: !!existingRow.strategy_confirmed,
           }];
         }
+      } else if (newResultStr !== headResultStr && strategy_confirmed === true && sameConfirmedPattern(latest_analysis, currentVersions[0].result)) {
+        // 最新の世代をそのまま確定した場合: 確定用に整えた結果（確定パターン ID 等）で最新世代を置き換える。
+        // 中身（確定したパターン）は同じなので、新しい世代は作らない。以前は確定のたびに同じ中身の世代が
+        // 1つ増え、画面とデータベースで世代番号がずれていた（2026-09-22）
+        versionsUpdate = [{ ...currentVersions[0], result: latest_analysis }, ...currentVersions.slice(1)];
       } else if (newResultStr !== headResultStr) {
         // 新世代: 先頭に追加。古い世代は削除しない（データを消さない原則）。
         // 画面へ返す件数は GET 側で絞る（一覧応答の肥大化対策）。

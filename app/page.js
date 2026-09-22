@@ -351,8 +351,24 @@ function getSectionTabs(versions, sectionKey, selectedCombinationId) {
 }
 
 // versions の dataIdx に対する「v番号」(1始まり、古い=v1)
+// サーバーが付けた通し番号（number）を優先する。画面に届くのは最新5件だけなので、
+// 件数から数えると番号がずれる（11件目が v5 になる）
 function versionDisplayNumber(versions, dataIdx) {
+  var v = versions[dataIdx];
+  if (v && typeof v.number === "number") return v.number;
   return versions.length - dataIdx;
+}
+// 世代タブ・案内に出す表示名（"v12"。世代の記録に無い確定を一覧に加えたものは「確定時」）
+function versionLabel(versions, dataIdx) {
+  var v = versions[dataIdx];
+  if (v && v.label) return v.label;
+  return "v" + versionDisplayNumber(versions, dataIdx);
+}
+// 画面で新しい世代を先頭に積むときの番号（最新の番号＋1）
+function nextVersionNumber(versions) {
+  var head = Array.isArray(versions) ? versions[0] : null;
+  if (head && typeof head.number === "number") return head.number + 1;
+  return (Array.isArray(versions) ? versions.length : 0) + 1;
 }
 
 // ----------------------------------------------------------------------
@@ -494,52 +510,47 @@ function isViewingOldForSection(versions, sectionKey, idx, selectedCombinationId
 }
 
 // 世代タブのスタイル小コンポーネント
-function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, onChange, disabled }) {
+function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, onChange, disabled, liveConfirmedIdx }) {
   if (!Array.isArray(versions) || versions.length <= 1) return null;
   var tabs = getSectionTabs(versions, sectionKey, selectedCombinationId);
-  // タブが1つ以下のセクション（＝そのセクションは世代間で変化していない）は
-  // 世代切替コントロール自体を表示しない。1個しかないタブを押せてしまうと
-  // 「実質的に最新と同じ内容なのに過去の世代扱い」というおかしい状態になるため。
+  // どの世代でも中身が変わっていない項目には、世代タブ自体を出さない
   if (tabs.length <= 1) return null;
-  // 全セクションで同じ世代番号を並べる（どのセクションでも「今見ている版」が同じ番号で光る）。
-  // このセクションが変化していない世代は薄く表示する（押せば全体がその世代に切り替わる）
-  var changedSet = {};
-  tabs.forEach(function (t) { changedSet[t.index] = true; });
+  // 全世代を同じ見た目で並べ、状態は3つだけで表す（2026-09-22 権さん指摘: バリエーションが多く現在地が分からない）
+  //   塗り＝いま表示している版 ／「（最新）」＝一番新しい版 ／ 赤い「確定中」＝いま確定している版
+  // 世代ごとの色分け・点線・過去に確定したことがある印（✓）は出さない
   var allTabs = [];
-  for (var vi = versions.length - 1; vi >= 0; vi--) allTabs.push({ index: vi, isInitial: vi === versions.length - 1, changed: !!changedSet[vi] });
+  for (var vi = versions.length - 1; vi >= 0; vi--) allTabs.push(vi);
   return (
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
-      <span style={{ fontSize: 11, color: "#78716c", fontFamily: "'Space Mono', monospace", letterSpacing: "0.05em", marginRight: 4 }}>世代</span>
-      {allTabs.map(function (t) {
-        var num = versionDisplayNumber(versions, t.index);
-        var col = getVersionColor(num);
-        var isActive = (active || 0) === t.index;
-        var isLatest = t.index === 0;
-        var confirmed = versions[t.index]?.confirmed === true;
+      <span style={{ fontSize: 16, color: "#78716c", marginRight: 4 }}>世代</span>
+      {allTabs.map(function (idx) {
+        var isActive = (active || 0) === idx;
+        var isLatest = idx === 0;
+        var isLive = liveConfirmedIdx === idx;
         return (
           <button
-            key={t.index}
-            onClick={disabled ? undefined : function () { onChange && onChange(sectionKey, t.index); }}
+            key={idx}
+            onClick={disabled ? undefined : function () { onChange && onChange(sectionKey, idx); }}
             disabled={disabled}
-            title={(isLatest ? "最新" : "過去の世代") + (confirmed ? "・確定済み" : "") + (t.isInitial ? "・初回" : "") + (t.changed ? "" : "・この版ではこの項目は変わっていません") + "（押すと全項目がこの版に切り替わります）"}
+            title={(isActive ? "表示中・" : "") + (isLatest ? "最新" : "過去の世代") + (isLive ? "・確定中" : "") + "（押すと全項目がこの版に切り替わります）"}
             style={{
-              background: isActive ? col.tab : "#fff",
-              color: isActive ? col.tabText : col.text,
-              border: "1.5px " + (t.changed || isActive ? "solid " : "dashed ") + col.tab,
-              opacity: disabled ? 0.6 : (t.changed || isActive ? 1 : 0.55),
-              borderRadius: 14,
-              padding: "3px 10px",
-              fontSize: 12,
+              background: isActive ? "#2a2a26" : "#fff",
+              color: isActive ? "#fff" : "#2a2a26",
+              border: "1.5px solid #2a2a26",
+              borderRadius: 999,
+              padding: "4px 12px",
+              fontSize: 16,
               fontWeight: 700,
-              fontFamily: "'Space Mono', monospace",
-              letterSpacing: "0.04em",
               cursor: disabled ? "not-allowed" : "pointer",
+              opacity: disabled ? 0.6 : 1,
               lineHeight: 1.4,
-              boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
-              transition: "background 0.12s, color 0.12s",
+              display: "inline-flex", alignItems: "center", gap: 6,
             }}
           >
-            v{num}{isLatest ? "（最新）" : ""}{confirmed ? " ✓" : ""}
+            {versionLabel(versions, idx)}{isLatest ? "（最新）" : ""}
+            {isLive && (
+              <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "0 8px", fontSize: 16, fontWeight: 700 }}>確定中</span>
+            )}
           </button>
         );
       })}
@@ -906,7 +917,7 @@ function buildShadowResultFromCombo(combo, companyCore) {
   };
 }
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination }) {
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination, liveConfirmedVersionIdx }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -993,7 +1004,9 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* Phase B再: 組み合わせパターンタブバー（選択中タブの完全AB3Cが下に表示される） */}
       {hasCombinations && (
         <CombinationTabBar
-          combinations={d.combinations}
+          // 表示中の世代のパターン（戦略メッセージ）を出す。最新の d.combinations を出すと、
+          // 過去の世代を選んでも上のカードだけ最新のままになる（2026-09-22 権さん指摘）
+          combinations={(hasVersions && (avps.strategy_message || 0) > 0 && Array.isArray(versions[avps.strategy_message]?.result?.combinations)) ? versions[avps.strategy_message].result.combinations : d.combinations}
           selectedId={currentCombo?.id}
           recommendedId={d.recommended_combination_id}
           onSelect={onSelectCombination}
@@ -1002,7 +1015,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
-        <VersionTabBar versions={versions} sectionKey="benefit" selectedCombinationId={selectedCombinationId} active={avps.benefit || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="benefit" selectedCombinationId={selectedCombinationId} active={avps.benefit || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={g2}>
           <div style={hasVersions ? {} : hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。" textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null}><UL items={benefitData.needs || []} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.needs} onToggle={refineToggleEffective && ((i) => refineToggleEffective("needs", i))} textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null} /></Card></div>
           <div style={hasVersions ? {} : hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。" textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null}><UL items={benefitData.wants || []} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.wants} onToggle={refineToggleEffective && ((i) => refineToggleEffective("wants", i))} textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null} /></Card></div>
@@ -1012,7 +1025,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* === Advantage セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
-        <VersionTabBar versions={versions} sectionKey="advantage" selectedCombinationId={selectedCombinationId} active={avps.advantage || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="advantage" selectedCombinationId={selectedCombinationId} active={avps.advantage || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={g3}>
           <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} titleColor="#1a1a14" title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: "#000000", lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
           <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} titleColor="#1a1a14" title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
@@ -1024,7 +1037,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
-        <VersionTabBar versions={versions} sectionKey="customer" selectedCombinationId={selectedCombinationId} active={avps.customer || 0} onChange={onSectionTabChange} />
+        <VersionTabBar versions={versions} sectionKey="customer" selectedCombinationId={selectedCombinationId} active={avps.customer || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={{ ...g2, marginBottom: 14 }}>
           <div style={hasVersions ? {} : hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", customerData.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。" textColor={(customerChanges.changed.has("three_c.customer.target") || customerChanges.changed.has("three_c.customer.profile")) ? customerChanges.color : null}>
             <div style={txt(customerChanges.changed.has("three_c.customer.target") ? customerChanges.color : null, { fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 })}>{customerData.target}</div>
@@ -1091,14 +1104,14 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
         <div style={g2}>
           <div>
             <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} help="直接競合（同業）だけでなく、同じニーズを満たす異業種競合も含めて検討。『お客様がどれと比較するか』の視点で洗い出します。" />
-            <VersionTabBar versions={versions} sectionKey="competitor" selectedCombinationId={selectedCombinationId} active={avps.competitor || 0} onChange={onSectionTabChange} />
+            <VersionTabBar versions={versions} sectionKey="competitor" selectedCombinationId={selectedCombinationId} active={avps.competitor || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
             <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null}>
               <UL items={[...(competitorData.direct || []), ...((competitorData.indirect || []).map(i => `↳ ${i}`))]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null} />
             </Card>
           </div>
           <div>
             <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
-            <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} />
+            <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
             <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
               <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL
@@ -1116,7 +1129,7 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <Divider />
       {/* 戦略メッセージは選択中Pカード内（上部）に統合済みのため、ここでの重複表示は廃止 */}
       {/* === チェックポイント === */}
-      <VersionTabBar versions={versions} sectionKey="checkpoints" selectedCombinationId={selectedCombinationId} active={avps.checkpoints || 0} onChange={onSectionTabChange} />
+      <VersionTabBar versions={versions} sectionKey="checkpoints" selectedCombinationId={selectedCombinationId} active={avps.checkpoints || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative", ...(hasVersions && cpChanges.changed.has("checkpoints") ? { boxShadow: "0 0 0 2px " + cpChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
 {onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1260,7 +1273,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionNum, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionLabel, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   const fileInputRef = useRef(null);
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
@@ -1618,14 +1631,14 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         {/* 古い世代を表示中の場合は再分析・確定ボタンを非表示 */}
         {isViewingOldVersion && (
           <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 16, color: "#7a4f00", lineHeight: 1.6 }}>
-            🕒 過去の世代{viewedVersionNum ? `（v${viewedVersionNum}）` : ""}を表示中です。この版のまま確定するか、分析結果の案内から最新に戻せます。
+            🕒 過去の世代{viewedVersionLabel ? `（${viewedVersionLabel}）` : ""}を表示中です。この版のまま確定するか、分析結果の案内から最新に戻せます。
           </div>
         )}
         {/* 過去の世代を表示中の確定（通常の確定ボタンと同じ場所・同じ見た目） */}
         {isViewingOldVersion && onConfirmOldVersion && (
           <button onClick={onConfirmOldVersion}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
-            この版（v{viewedVersionNum}）で確定して ② へ →
+            この版（{viewedVersionLabel}）で確定して ② へ →
           </button>
         )}
         {/* 会話量警告バナー */}
@@ -2445,7 +2458,7 @@ const addAnalysisVersion = function (newResult, source) {
     if (!newResult) return prev;
     var head = prev[0]?.result;
     if (head && JSON.stringify(head) === JSON.stringify(newResult)) return prev;
-    var newVersion = { id: Date.now(), result: newResult, created_at: new Date().toISOString(), source: source || "reanalyze", confirmed: false };
+    var newVersion = { id: Date.now(), result: newResult, created_at: new Date().toISOString(), source: source || "reanalyze", confirmed: false, number: nextVersionNumber(prev) };
     return [newVersion].concat(prev).slice(0, 5);
   });
   setActiveVersionPerSection({}); // 新世代追加時は全セクションを最新に戻す
@@ -3939,7 +3952,7 @@ useEffect(() => {
           // その版で作ったアクションが戻ってくる。
           setAnalysisVersions(function (prev) {
             var list = Array.isArray(prev) ? prev : [];
-            return [{ id: Date.now(), result: snapshotResult, created_at: new Date().toISOString(), source: "reconfirm", confirmed: true }].concat(list);
+            return [{ id: Date.now(), result: snapshotResult, created_at: new Date().toISOString(), source: "reconfirm", confirmed: true, number: nextVersionNumber(list) }].concat(list);
           });
           setActiveVersionPerSection({});
         } else {
@@ -4461,21 +4474,32 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   const chatConfirmId = activeConfirmId || liveSnapId || "current";
   // 過去の世代を表示中のとき、その世代（全項目が同じ世代を表示しているので、どの項目の値でもよい）
   const viewedVersionIdx = Math.max(0, ...Object.values(activeVersionPerSection).map(v => v || 0));
-  const viewedVersionNum = versionDisplayNumber(analysisVersions, viewedVersionIdx);
+  const viewedVersionLabel = versionLabel(analysisVersions, viewedVersionIdx);
   // 表示中の過去の世代で確定する。その中身が新しい最新世代になり、それまでの最新は残る
   const confirmViewedOldVersion = () => {
     const viewedResult = analysisVersions[viewedVersionIdx]?.result;
     if (!viewedResult) return;
-    const latestNum = analysisVersions.length;
+    const latestNum = versionDisplayNumber(analysisVersions, 0);
     const ok = window.confirm(
-      `v${viewedVersionNum} の内容で戦略を確定します。\n\n` +
-      `・v${viewedVersionNum} の内容が新しい最新（v${latestNum + 1}）になります\n` +
+      `${viewedVersionLabel} の内容で戦略を確定します。\n\n` +
+      `・${viewedVersionLabel} の内容が新しい最新（v${latestNum + 1}）になります\n` +
       `・今の最新（v${latestNum}）は消えずに残ります\n` +
       `・戦略アクションは、この戦略のもの（以前にこの戦略で作ったものがあれば、それ）に切り替わります\n\n` +
       `よろしいですか？`
     );
     if (ok) confirmStrategy({ baseResult: viewedResult });
   };
+
+  // いま確定している版が、世代の一覧のどれか（世代タブに「確定中」を出す）。
+  // 確定中のパターンを表示しているときだけ出す（別のパターンを見ているときは該当なし）
+  const liveConfirmedVersionIdx = (() => {
+    if (!strategyConfirmed || !confirmHistory.length || !Array.isArray(analysisVersions)) return -1;
+    const lc = confirmHistory[confirmHistory.length - 1];
+    const pid = confirmedPatternIdOfResult(lc?.result);
+    if (pid !== "main" && String(selectedCombinationId) !== pid) return -1;
+    const key = patternKeyOf(lc.result, pid);
+    return analysisVersions.findIndex((v) => patternKeyOf(v?.result, pid) === key);
+  })();
 
   // 確定履歴を押したとき: 別の画面（スナップショット）に切り替えず、世代タブでその確定の版を選ぶ。
   // 戻るときは世代タブの最新／「最新に戻す」を押すだけ（過去の世代を見たときと同じ操作）。
@@ -4498,7 +4522,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       } catch (e) {}
     }
     if (idx < 0) {
-      const entry = { id: ch.id, result: ch.result, created_at: new Date(Number(ch.id) || Date.now()).toISOString(), source: "confirmation", confirmed: true };
+      // 世代の記録には無いので番号は持たない（タブには「確定時」と表示する）
+      const entry = { id: ch.id, result: ch.result, created_at: new Date(Number(ch.id) || Date.now()).toISOString(), source: "confirmation", confirmed: true, number: null, label: "確定時" };
       list = list.concat([entry]).sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
       idx = list.indexOf(entry);
     }
@@ -5210,7 +5235,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               opacity: !canConfirm ? 0.7 : 1,
             }}
           >
-            この版（v{viewedVersionNum}）で確定する →
+            この版（{viewedVersionLabel}）で確定する →
           </button>
           {strategyConfirmed && (
             <button
@@ -5363,11 +5388,11 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   {isViewingOldVersion && (
     <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
       <div>
-        <b>🕒 過去の世代（v{viewedVersionNum}）を表示中です。</b> この版で確定するときは、上の「この版（v{viewedVersionNum}）で確定する」ボタンを押してください。
+        <b>🕒 過去の世代（{viewedVersionLabel}）を表示中です。</b> この版で確定するときは、上の「この版（{viewedVersionLabel}）で確定する」ボタンを押してください。
       </div>
       <button onClick={() => setActiveVersionPerSection({})}
         style={{ background: "#fff", border: "1px solid #2a2a26", borderRadius: 999, color: "#2a2a26", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
-        最新（v{analysisVersions.length}）に戻す
+        最新（{versionLabel(analysisVersions, 0)}）に戻す
       </button>
     </div>
   )}
@@ -5435,7 +5460,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
+  <ResultView d={currentResult} liveConfirmedVersionIdx={liveConfirmedVersionIdx} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];
@@ -5853,7 +5878,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     }}
                     onConfirmStrategy={!strategyConfirmed && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmStrategy : null}
                     onConfirmOldVersion={!isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0) ? confirmViewedOldVersion : null}
-                    viewedVersionNum={isViewingOldVersion ? viewedVersionNum : null}
+                    viewedVersionLabel={isViewingOldVersion ? viewedVersionLabel : null}
                   />
                 </div>
                 ) : (
