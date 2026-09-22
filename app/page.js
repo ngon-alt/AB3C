@@ -1273,7 +1273,7 @@ function WelcomeModal({ session, onClose, onShowPricing }) {
     </div>
   );
 }
-function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionLabel, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
+function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatternInfo, improveResult, onReanalyze, onSendTopic, onConfirmStrategy, onConfirmOldVersion, viewedVersionLabel, siteId, isViewingOldVersion, isTextMode, initialUserInput }) {
   const fileInputRef = useRef(null);
   // siteId があれば siteId ベースの新キー、なければ分析結果ハッシュベース（後方互換）
   const chatKey = siteId
@@ -1474,7 +1474,10 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
       const res = await fetch("/api/chat/reanalyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages, analysisResult, siteId }),
+        // 選んでいるパターンを作り直す。表の階層（benefit〜checkpoints）を選択中パターンの内容にそろえて渡す。
+        // 以前はおすすめパターン（P1）の内容のまま渡していたため、P2 で反映すると P1 をもとにした内容が
+        // P2 に書き込まれることがあった（2026-09-22）
+        body: JSON.stringify({ messages, analysisResult: reanalyzeBase || analysisResult, selectedPattern: selectedPatternInfo || null, siteId }),
       });
 
       if (!res.ok && !res.body) {
@@ -4490,6 +4493,18 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     if (ok) confirmStrategy({ baseResult: viewedResult });
   };
 
+  // 「この会話内容を分析に反映する」で作り直す土台: 表の階層を、選んでいるパターンの内容にそろえた結果。
+  // パターンの一覧（combinations）などはそのまま残す（反映後に選択中パターンへ書き戻すため）
+  const selectedComboForReanalyze = Array.isArray(currentResult?.combinations)
+    ? currentResult.combinations.find((c) => c && c.id === selectedCombinationId) || null
+    : null;
+  const reanalyzeBaseResult = selectedComboForReanalyze
+    ? { ...currentResult, ...buildShadowResultFromCombo(selectedComboForReanalyze, currentResult.company_core) }
+    : currentResult;
+  const selectedPatternInfo = selectedComboForReanalyze
+    ? { id: selectedComboForReanalyze.id, label: selectedComboForReanalyze.label || "" }
+    : null;
+
   // いま確定している版が、世代の一覧のどれか（世代タブに「確定中」を出す）。
   // 確定中のパターンを表示しているときだけ出す（別のパターンを見ているときは該当なし）
   const liveConfirmedVersionIdx = (() => {
@@ -5793,6 +5808,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     key={"chat-panel-" + (siteId || "default") + "-" + (activeConfirmId || "current")}
                     isPro={isPro || chatTickets > 0 || trialChats > 0}
                     analysisResult={currentResult}
+                    reanalyzeBase={reanalyzeBaseResult}
+                    selectedPatternInfo={selectedPatternInfo}
                     improveResult={improveResult}
                     siteId={siteId}
                     isViewingOldVersion={isViewingOldVersion}
