@@ -150,11 +150,12 @@ async function getMonthlyRegistrationInfo(sql, email) {
 // DB には全世代を保持し、一覧応答で画面に返すのは最新からこの件数まで（応答サイズ対策）
 const VERSIONS_IN_RESPONSE = 5;
 
-function synthesizeVersionsForSite(site) {
+function synthesizeVersionsForSite(site, allVersions = false) {
   if (!site) return site;
   const hasVersions = Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0;
   if (hasVersions) {
-    return site.analysis_versions.length > VERSIONS_IN_RESPONSE
+    // allVersions: 確定履歴から古い版を開くとき（画面が最新5件に無い版を探す）だけ全世代を返す
+    return !allVersions && site.analysis_versions.length > VERSIONS_IN_RESPONSE
       ? { ...site, analysis_versions: site.analysis_versions.slice(0, VERSIONS_IN_RESPONSE) }
       : site;
   }
@@ -217,7 +218,8 @@ export async function GET(req) {
       if (!site.current_strategy_version_id && (site.strategy_confirmed || (Array.isArray(site.confirmations) && site.confirmations.length > 0))) {
         try { site.current_strategy_version_id = await ensureCurrentVersion(sql, site.id); } catch (e) { console.error("ensureCurrentVersion error:", e); }
       }
-      return NextResponse.json({ site: synthesizeVersionsForSite(site) }, { headers: timer.headers() });
+      const allVersions = new URL(req.url).searchParams.get("versions") === "all";
+      return NextResponse.json({ site: synthesizeVersionsForSite(site, allVersions) }, { headers: timer.headers() });
     }
 
     // 一覧・プラン上限・月次登録数は互いに独立しているので同時に問い合わせる
