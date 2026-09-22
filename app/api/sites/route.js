@@ -340,7 +340,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, append_confirmation, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text, strategy_version_id, rescue_thread_messages } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, append_confirmation, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text, strategy_version_id, rescue_thread_messages, reflect_marks } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -488,6 +488,8 @@ export async function PUT(req) {
 
     // 戦略策定タブの進行中チャット
     const analysisChatJson = Array.isArray(analysis_chat) ? JSON.stringify(analysis_chat) : null;
+    // パターンごとの「反映済みの位置」（届いたパターンの分だけ上書き・ほかのパターンの記録は残す）
+    const reflectMarksJson = (reflect_marks && typeof reflect_marks === "object" && !Array.isArray(reflect_marks)) ? JSON.stringify(reflect_marks) : null;
     // 会話を空にする・短くする保存の前に、それまでの会話をしまっておく（消さずに戻れるように）
     if (Array.isArray(analysis_chat) && analysis_chat.length < (existingRow.analysis_chat_len || 0)) {
       await sql`
@@ -495,6 +497,8 @@ export async function PUT(req) {
         SELECT id, analysis_chat, ${analysis_chat.length === 0 ? "cleared" : "shortened"}
         FROM sites WHERE id = ${id} AND jsonb_typeof(analysis_chat) = 'array' AND jsonb_array_length(analysis_chat) > 0
       `;
+      // 会話が入れ替わったので「どこまで反映したか」の記録も最初からにする（古い会話の位置は意味を持たない）
+      await sql`UPDATE sites SET reflect_marks = '{}'::jsonb WHERE id = ${id}`;
     }
     // パターン別の改善レポート/ビジュアルキャッシュ。空オブジェクト{} もクリア意図ではなく「指定なし」として無視
     const improveByComboJson = (improve_results_by_combination && typeof improve_results_by_combination === "object" && Object.keys(improve_results_by_combination).length > 0) ? JSON.stringify(improve_results_by_combination) : null;
@@ -538,6 +542,9 @@ export async function PUT(req) {
         improve_results_by_combination = CASE WHEN ${improveByComboJson}::text IS NOT NULL THEN (${improveByComboJson}::jsonb) ELSE improve_results_by_combination END,
         visual_mocks_by_combination = CASE WHEN ${visualByComboJson}::text IS NOT NULL THEN (${visualByComboJson}::jsonb) ELSE visual_mocks_by_combination END,
         input_text = COALESCE(${inputTextVal}::text, input_text),
+        reflect_marks = CASE WHEN ${reflectMarksJson}::text IS NOT NULL
+          THEN (CASE WHEN jsonb_typeof(reflect_marks) = 'object' THEN reflect_marks ELSE '{}'::jsonb END) || (${reflectMarksJson}::jsonb)
+          ELSE reflect_marks END,
         updated_at = NOW()
       WHERE id = ${id} AND user_email = ${session.user.email}
       RETURNING id, user_email, site_url, site_name, company_name, industry, target_customer,
