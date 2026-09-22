@@ -459,6 +459,33 @@ function getChangedCardPathsAt(versions, cardPaths, activeIdx) {
 // セクション単位で「実際に切替可能な世代タブが存在するか」を判定するヘルパー。
 // idx === 0 は常に「最新表示中」。idx > 0 でもタブが1個以下なら、UI上タブは出ていないので
 // 「過去の世代表示中」とは扱わない（avps が前の操作で残っていても無効化）。
+// ---- 確定履歴と世代の対応づけ（2026-09-22）----
+// 確定履歴の1件は「どのパターンのどの版を確定したか」の記録。中身（パターン＋自社の核）が同じ世代を探して、
+// 世代タブでその版を選ぶ。サーバーの版 ID（app/lib/strategy-versions.js）と同じ考え方。
+// キー順に依存しない文字列化（DB 由来と画面で組み立てた結果で、キーの並びが違っても同じになるように）
+function stableStr(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value ?? null);
+  if (Array.isArray(value)) return "[" + value.map(stableStr).join(",") + "]";
+  return "{" + Object.keys(value).filter(function (k) { return value[k] !== undefined; }).sort()
+    .map(function (k) { return JSON.stringify(k) + ":" + stableStr(value[k]); }).join(",") + "}";
+}
+// 確定した結果が、どのパターンを確定したものか
+function confirmedPatternIdOfResult(result) {
+  var combos = Array.isArray(result?.combinations) && result.combinations.length > 0 ? result.combinations : null;
+  if (!combos) return "main";
+  return String(result.confirmed_combination_id ?? result.recommended_combination_id ?? combos[0]?.id);
+}
+// 指定パターンの中身を比較用の文字列にする（同じ中身なら同じ版）
+function patternKeyOf(result, patternId) {
+  if (!result || typeof result !== "object") return null;
+  var combos = Array.isArray(result.combinations) && result.combinations.length > 0 ? result.combinations : null;
+  if (combos) {
+    var combo = combos.find(function (c) { return c && String(c.id) === String(patternId); });
+    return combo ? stableStr({ pattern: combo, company_core: result.company_core ?? null }) : null;
+  }
+  return stableStr({ benefit: result.benefit ?? null, advantage: result.advantage ?? null, three_c: result.three_c ?? null, strategy_message: result.strategy_message ?? null });
+}
+
 // 表示中の世代で、このセクションの中身が最新と違うか（同じなら「最新を見ている」のと同じ扱い）
 function isViewingOldForSection(versions, sectionKey, idx, selectedCombinationId) {
   if (!Array.isArray(versions) || versions.length <= 1) return false;
@@ -4450,6 +4477,37 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     if (ok) confirmStrategy({ baseResult: viewedResult });
   };
 
+  // 確定履歴を押したとき: 別の画面（スナップショット）に切り替えず、世代タブでその確定の版を選ぶ。
+  // 戻るときは世代タブの最新／「最新に戻す」を押すだけ（過去の世代を見たときと同じ操作）。
+  // 画面に届いている最新5件に無い古い版なら、全世代を読み込み直して探す。
+  // それでも無い（版の記録が始まる前の確定など）場合は、その確定の中身を世代の一覧に加えて表示する。
+  const openConfirmationVersion = async (ch) => {
+    if (!ch?.result) return;
+    const pid = confirmedPatternIdOfResult(ch.result);
+    const key = patternKeyOf(ch.result, pid);
+    const findIdx = (list) => list.findIndex((v) => patternKeyOf(v?.result, pid) === key);
+    let list = Array.isArray(analysisVersions) ? analysisVersions : [];
+    let idx = findIdx(list);
+    if (idx < 0 && siteId) {
+      try {
+        const r = await fetch("/api/sites?id=" + encodeURIComponent(siteId) + "&versions=all");
+        if (r.ok) {
+          const all = (await r.json())?.site?.analysis_versions;
+          if (Array.isArray(all) && all.length > 0) { list = all; idx = findIdx(all); }
+        }
+      } catch (e) {}
+    }
+    if (idx < 0) {
+      const entry = { id: ch.id, result: ch.result, created_at: new Date(Number(ch.id) || Date.now()).toISOString(), source: "confirmation", confirmed: true };
+      list = list.concat([entry]).sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+      idx = list.indexOf(entry);
+    }
+    if (list !== analysisVersions) setVersionsFromDB(list);
+    if (ch.result.confirmed_combination_id != null) setSelectedCombinationId(ch.result.confirmed_combination_id);
+    handleSectionTabChange(null, idx);
+    setChangedPaths(new Map());
+  };
+
   // テーマ別チャットの会話をブラウザに保存するキーの版。確定中は戦略の版 ID（中身が同じなら確定し直しても同じ）。
   // 確定履歴を開いて過去の確定を見ているときは、従来どおりその確定の ID。
   const threadStorageVersion = (!activeConfirmId && strategyVersionId) ? strategyVersionId : chatConfirmId;
@@ -4649,43 +4707,24 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     //   - なければ currentResult が live なので、それを最後の確定と比較
                     //   - 編集中エントリの strategy_message は live のものを表示
                     var lastConfirm = confirmHistory[confirmHistory.length - 1];
-                    var liveResultForCompare = liveStateBackup ? liveStateBackup.result : currentResult;
-                    var liveStrategyMessageForLabel = liveStateBackup ? liveStateBackup.historyTitle : historyTitle;
+                    var liveResultForCompare = currentResult;
+                    var liveStrategyMessageForLabel = historyTitle;
                     var hasUnconfirmedWork = false;
                     try {
+                      var lastPid = lastConfirm ? confirmedPatternIdOfResult(lastConfirm.result) : null;
                       hasUnconfirmedWork = !!(lastConfirm && liveResultForCompare &&
-                        JSON.stringify(liveResultForCompare) !== JSON.stringify(lastConfirm.result));
+                        patternKeyOf(liveResultForCompare, lastPid) !== patternKeyOf(lastConfirm.result, lastPid));
                     } catch (e) { hasUnconfirmedWork = false; }
-                    // ✏️ 編集中エントリが「アクティブ」= ライブ状態を表示中（過去履歴閲覧していない）。
-                    // activeConfirmId が null の場合、現在表示中はライブ状態と判定。
-                    var isEditingEntryActive = hasUnconfirmedWork && activeConfirmId == null;
+                    // 表示中の世代（全項目共通）とパターンの中身。確定履歴のどれを見ているかの判定に使う
+                    var viewedResultForSidebar = analysisVersions[viewedVersionIdx]?.result || currentResult;
+                    // ✏️ 編集中エントリが「アクティブ」= 最新の世代を表示中
+                    var isEditingEntryActive = hasUnconfirmedWork && viewedVersionIdx === 0;
 
                     var editingEntry = hasUnconfirmedWork ? (
                       <div key="editing"
                         onClick={function() {
-                          // バックアップがあれば復元（=過去履歴を覗いていた状態から戻る）。
-                          // バックアップがない場合は既にライブ状態が表示中なので activeConfirmId だけクリア。
-                          if (liveStateBackup) {
-                            setCurrentResult(liveStateBackup.result);
-                            setResult(liveStateBackup.result);
-                            setAnalysisVersions(Array.isArray(liveStateBackup.versions) ? liveStateBackup.versions : []);
-                            setActiveVersionPerSection(liveStateBackup.activeVersionPerSection || {});
-                            if (liveStateBackup.selectedCombinationId) setSelectedCombinationId(liveStateBackup.selectedCombinationId);
-                            setHistoryTitle(liveStateBackup.historyTitle || "");
-                            if (Array.isArray(liveStateBackup.chatSummaries)) setChatSummaries(liveStateBackup.chatSummaries);
-                            if (liveStateBackup.currentInput != null) setCurrentInput(liveStateBackup.currentInput);
-                            if (liveStateBackup.url != null) setUrl(liveStateBackup.url);
-                            if (liveStateBackup.tab != null) setTab(liveStateBackup.tab);
-                            // チャット履歴も復元
-                            try {
-                              if (siteId && Array.isArray(liveStateBackup.chatMessages)) {
-                                localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(liveStateBackup.chatMessages));
-                                window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
-                              }
-                            } catch (e) {}
-                            setLiveStateBackup(null);
-                          }
-                          setActiveConfirmId(null);
+                          // 最新の世代（検討中の版）に戻す。過去の世代を見ていた場合も、この操作で戻れる
+                          setActiveVersionPerSection({});
                           setChangedPaths(new Map());
                         }}
                         style={{
@@ -4713,71 +4752,16 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     ) : null;
 
                     var confirmEntries = confirmHistory.slice().reverse().map(function(ch, i) {
-                    // ID で判定（同じタイトルの複数エントリでも別々に選択フィードバックできるよう）
-                    var isActive = activeConfirmId === ch.id;
+                    // 表示中の世代・パターンの中身が、この確定の中身と同じなら選択中として光らせる
+                    var chPid = confirmedPatternIdOfResult(ch.result);
+                    var samePattern = chPid === "main" || String(selectedCombinationId) === chPid;
+                    var isActive = samePattern && patternKeyOf(viewedResultForSidebar, chPid) === patternKeyOf(ch.result, chPid);
                     var isLive = ch.id === liveConfirmedSnapId;
                     return (
                       <div key={ch.id} onClick={function() {
-                        // 過去履歴（確定スナップショット）を初めて開く時、現在のライブ状態をバックアップする。
-                        // ライブ状態 = 未確定の検討中バージョン or 最後の確定そのまま。どちらにせよ
-                        // サイドバー上部の「✏️ 編集中」エントリ経由で戻れるよう保存しておく。
-                        // 既にバックアップがあれば上書きしない（過去履歴 A→B→編集中 でも最初のライブに戻れる）。
-                        if (!liveStateBackup) {
-                          var savedChatMessages = null;
-                          try {
-                            if (siteId) {
-                              var lsChat = localStorage.getItem("ab3c_analysis_chat_" + siteId);
-                              savedChatMessages = lsChat ? JSON.parse(lsChat) : null;
-                            }
-                          } catch (e) {}
-                          setLiveStateBackup({
-                            result: currentResult,
-                            versions: analysisVersions,
-                            activeVersionPerSection: activeVersionPerSection,
-                            selectedCombinationId: selectedCombinationId,
-                            historyTitle: historyTitle,
-                            chatSummaries: chatSummaries,
-                            chatMessages: savedChatMessages,
-                            currentInput: currentInput,
-                            url: url,
-                            tab: tab,
-                          });
-                        }
-
-                        setActiveConfirmId(ch.id);
-                        setCurrentResult(ch.result);
-                        setResult(ch.result);
-                        setVersionsFromInitial(ch.result); // 確定履歴閲覧時は単一世代として扱う
-                        setHistoryTitle(ch.strategyMessage || "");
-                        // 確定時に選んでいたパターン（confirmed_combination_id）を明示的に復元する。
-                        // これを呼ばないと、別パターン閲覧中に履歴クリックしても useEffect が
-                        // 「prev が valid なら維持」ロジックでパターン切替が発生せず、
-                        // P2を確定したのにP1が表示される、というバグが起きる。
-                        if (ch.result?.confirmed_combination_id) {
-                          setSelectedCombinationId(ch.result.confirmed_combination_id);
-                        }
-                        // 注意: ここで setStrategyConfirmed(true) を呼ばない。
-                        // strategyConfirmed は DB の strategy_confirmed を反映する状態であり、
-                        // 履歴クリックで「ローカル UI だけ確定中に見せる」と DB と不整合になる
-                        // （ダッシュボードは未確定、分析画面は確定中、という権さん指摘の混乱が起きる）。
-                        // 履歴は「過去のスナップショットを閲覧する」読み取り専用機能。
-                        // この履歴の戦略を再確定したい場合は表示後に「戦略を確定する」ボタンを押せばよい。
-                        if (ch.chatSummaries) setChatSummaries(ch.chatSummaries);
-                        if (ch.url) {
-                          if (ch.url.startsWith("http")) { setCurrentInput(ch.url); setUrl(ch.url); setTab("url"); }
-                          else { setCurrentInput(ch.url); setTab("text"); }
-                        }
-                        // 確定時のチャット履歴も復元（同じパターンを別タイミングで確定した場合に
-                        // それぞれの議論の経緯が見られるよう）。siteId ベースのキーへ書き戻し、
-                        // AnalysisChatPanel が再ロードする。
-                        try {
-                          if (siteId && Array.isArray(ch.chatMessages)) {
-                            localStorage.setItem("ab3c_analysis_chat_" + siteId, JSON.stringify(ch.chatMessages));
-                            // AnalysisChatPanel に変更を通知（同コンポーネントは siteId ベースキーを監視）
-                            window.dispatchEvent(new CustomEvent("ab3c-analysis-chat-changed", { detail: { siteId } }));
-                          }
-                        } catch (e) {}
-                        setChangedPaths(new Map());
+                        // 別の画面（スナップショット）に切り替えず、世代タブでこの確定の版を選ぶ。
+                        // 戦略策定チャットはサイトに1本なので、ここでは入れ替えない（2026-09-22）
+                        openConfirmationVersion(ch);
                       }}
                         style={{
                           padding: "10px 14px",
