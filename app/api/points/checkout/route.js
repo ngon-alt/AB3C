@@ -1,5 +1,5 @@
 // ポイントの購入（従量・追加購入・サブスク）の Stripe チェックアウトを作る。
-// 付与は webhook（/api/stripe/webhook の metadata.kind === 'points' の分岐）で行う。
+// 付与はポイント専用の webhook（/api/points/webhook）で行う。今の決済処理（/api/stripe/webhook）とは独立。
 import Stripe from "stripe";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
