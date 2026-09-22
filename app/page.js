@@ -1591,7 +1591,7 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         {/* 古い世代を表示中の場合は再分析・確定ボタンを非表示 */}
         {isViewingOldVersion && (
           <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 16, color: "#7a4f00", lineHeight: 1.6 }}>
-            🕒 過去の世代を表示中です。再分析・戦略確定するには、どれか一つの項目の世代タブで最新を押してください。全項目が最新に戻ります。
+            🕒 過去の世代を表示中です。分析結果の上の案内から、この版のまま確定するか、最新に戻せます。
           </div>
         )}
         {/* 会話量警告バナー */}
@@ -3744,7 +3744,11 @@ useEffect(() => {
   };
 
   // 戦略確定の共通処理（URL重複チェック+上書き確認付き）
-  const confirmStrategy = async () => {
+  // opts.baseResult を渡すと、表示中の最新ではなくその結果（過去の世代）で確定する。
+  // ボタンの onClick から呼ばれるとクリックイベントが渡るため、baseResult の有無だけで判定する。
+  const confirmStrategy = async (opts) => {
+    const baseResult = (opts && opts.baseResult) || currentResult;
+    const fromOldVersion = !!(opts && opts.baseResult);
     if (confirmingRef.current) return;
     confirmingRef.current = true;
     const siteUrl = currentInput?.startsWith("http") ? currentInput : null;
@@ -3796,30 +3800,32 @@ useEffect(() => {
         } catch (e) {}
         // 確定時に選択中パターンのデータを top-level にシム（保存後にこの確定履歴を開いたとき、
         // その時に選んでいたパターンの AB3C・改善レポートが復元されるように）。
-        var snapshotResult = currentResult;
-        var confirmedStrategyMessageText = currentResult?.strategy_message?.message || "";
-        var selectedCombo = currentResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
-        if (selectedCombo && Array.isArray(currentResult?.combinations)) {
-          var allStrengthsArr = Array.isArray(currentResult.company_core?.all_strengths) ? currentResult.company_core.all_strengths : [];
+        var snapshotResult = baseResult;
+        var confirmedStrategyMessageText = baseResult?.strategy_message?.message || "";
+        var selectedCombo = baseResult?.combinations?.find(function(c) { return c?.id === selectedCombinationId; });
+        // 過去の世代に選択中のパターンが無い場合は、画面表示と同じく先頭のパターンで確定する
+        if (!selectedCombo && fromOldVersion && Array.isArray(baseResult?.combinations)) selectedCombo = baseResult.combinations[0];
+        if (selectedCombo && Array.isArray(baseResult?.combinations)) {
+          var allStrengthsArr = Array.isArray(baseResult.company_core?.all_strengths) ? baseResult.company_core.all_strengths : [];
           var usedIdxArr = Array.isArray(selectedCombo.strengths_used) ? selectedCombo.strengths_used : [];
           var usedStrengthsArr = usedIdxArr.length > 0
             ? usedIdxArr.map(function(i) { return allStrengthsArr[i]; }).filter(Boolean)
             : allStrengthsArr;
-          snapshotResult = Object.assign({}, currentResult, {
-            benefit: selectedCombo.benefit || currentResult.benefit,
-            advantage: selectedCombo.advantage || currentResult.advantage,
+          snapshotResult = Object.assign({}, baseResult, {
+            benefit: selectedCombo.benefit || baseResult.benefit,
+            advantage: selectedCombo.advantage || baseResult.advantage,
             three_c: {
-              customer: selectedCombo.customer || currentResult.three_c?.customer || {},
-              competitor: selectedCombo.competitor || currentResult.three_c?.competitor || { direct: [], indirect: [] },
+              customer: selectedCombo.customer || baseResult.three_c?.customer || {},
+              competitor: selectedCombo.competitor || baseResult.three_c?.competitor || { direct: [], indirect: [] },
               company: {
                 strength: usedStrengthsArr,
-                structure: currentResult.company_core?.structure || currentResult.three_c?.company?.structure || "",
-                passion: currentResult.company_core?.passion || currentResult.three_c?.company?.passion || "",
+                structure: baseResult.company_core?.structure || baseResult.three_c?.company?.structure || "",
+                passion: baseResult.company_core?.passion || baseResult.three_c?.company?.passion || "",
               },
             },
-            strategy_message: selectedCombo.strategy_message || currentResult.strategy_message,
-            checkpoints: Array.isArray(selectedCombo.checkpoints) ? selectedCombo.checkpoints : (currentResult.checkpoints || []),
-            confirmed_combination_id: selectedCombinationId,
+            strategy_message: selectedCombo.strategy_message || baseResult.strategy_message,
+            checkpoints: Array.isArray(selectedCombo.checkpoints) ? selectedCombo.checkpoints : (baseResult.checkpoints || []),
+            confirmed_combination_id: selectedCombo.id,
           });
           confirmedStrategyMessageText = selectedCombo.strategy_message?.message || confirmedStrategyMessageText;
         }
@@ -3848,6 +3854,7 @@ useEffect(() => {
         // currentResult を使うと confirmed_combination_id が無く、recommended の P1 が
         // 復元されてしまう（権さん指摘）。
         const confirmBody = { id: targetSiteId, latest_analysis: snapshotResult, strategy_confirmed: true, append_confirmation: snapshot };
+        if (fromOldVersion) confirmBody.version_source = "reconfirm";
         if (improveResult && !improveResult.error) confirmBody.improve_result = improveResult;
         if (visualMock && !visualMock.error) confirmBody.visual_mock = visualMock;
         // 予約中のアクション保存を先に送る（確定で版が切り替わる前に、直前の会話を元の版へ保存）
@@ -3892,12 +3899,23 @@ useEffect(() => {
         setCurrentResult(snapshotResult);
         setResult(snapshotResult);
         // 世代タブの最新世代を確定済みマークに + result も snapshot に統一
-        setAnalysisVersions(function (prev) {
-          if (!Array.isArray(prev) || prev.length === 0) return prev;
-          var copy = prev.slice();
-          copy[0] = Object.assign({}, copy[0], { confirmed: true, result: snapshotResult });
-          return copy;
-        });
+        if (fromOldVersion) {
+          // 過去の世代で確定した場合: その中身を新しい最新世代として先頭に積む（DB 側も同じく先頭に追加される）。
+          // それまでの最新世代は消さずに残す。中身が過去の世代と同じなので、戦略の版 ID も同じになり、
+          // その版で作ったアクションが戻ってくる。
+          setAnalysisVersions(function (prev) {
+            var list = Array.isArray(prev) ? prev : [];
+            return [{ id: Date.now(), result: snapshotResult, created_at: new Date().toISOString(), source: "reconfirm", confirmed: true }].concat(list);
+          });
+          setActiveVersionPerSection({});
+        } else {
+          setAnalysisVersions(function (prev) {
+            if (!Array.isArray(prev) || prev.length === 0) return prev;
+            var copy = prev.slice();
+            copy[0] = Object.assign({}, copy[0], { confirmed: true, result: snapshotResult });
+            return copy;
+          });
+        }
         // 確定直後は戦略アクションタブへ遷移（"→" の遷移意図を保持）
         setViewOverride("action");
         window.scrollTo(0, 0);
@@ -5303,11 +5321,43 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     </div>
   </div>
   {/* 古い世代を見ている時の案内バー */}
-  {isViewingOldVersion && (
-    <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
-      <b>🕒 過去の世代を表示中です。</b> 再分析・戦略確定するには、どれか一つの項目の世代タブで<b>v{analysisVersions.length}（最新）</b>を押してください。全項目が最新に戻ります。
-    </div>
-  )}
+  {isViewingOldVersion && (() => {
+    // 全項目が同じ世代を表示しているので、どの項目の値でもよい
+    const viewedIdx = Math.max(0, ...Object.values(activeVersionPerSection).map(v => v || 0));
+    const viewedNum = versionDisplayNumber(analysisVersions, viewedIdx);
+    const latestNum = analysisVersions.length;
+    const viewedResult = analysisVersions[viewedIdx]?.result;
+    const canConfirmOld = !!viewedResult && !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
+    const confirmOld = () => {
+      const ok = window.confirm(
+        `v${viewedNum} の内容で戦略を確定します。\n\n` +
+        `・v${viewedNum} の内容が新しい最新（v${latestNum + 1}）になります\n` +
+        `・今の最新（v${latestNum}）は消えずに残ります\n` +
+        `・戦略アクションは、この戦略のもの（以前にこの戦略で作ったものがあれば、それ）に切り替わります\n\n` +
+        `よろしいですか？`
+      );
+      if (ok) confirmStrategy({ baseResult: viewedResult });
+    };
+    return (
+      <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <b>🕒 過去の世代（v{viewedNum}）を表示中です。</b> この版のまま確定することも、最新（v{latestNum}）に戻すこともできます。
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {canConfirmOld && (
+            <button onClick={confirmOld}
+              style={{ background: "#2a2a26", border: "none", borderRadius: 999, color: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
+              この版（v{viewedNum}）で確定する →
+            </button>
+          )}
+          <button onClick={() => setActiveVersionPerSection({})}
+            style={{ background: "#fff", border: "1px solid #2a2a26", borderRadius: 999, color: "#2a2a26", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
+            最新（v{latestNum}）に戻す
+          </button>
+        </div>
+      </div>
+    );
+  })()}
   {(() => {
     const needsLen = currentResult.benefit?.needs?.length ?? 0;
     const wantsLen = currentResult.benefit?.wants?.length ?? 0;
