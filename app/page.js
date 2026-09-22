@@ -2419,6 +2419,11 @@ const setVersionsFromDB = function (versionsArray) {
 };
 const [chatWidth, setChatWidth] = useState(500);
 const [chatMinimized, setChatMinimized] = useState(false);
+// 確定中の戦略の版 ID（サイト×パターン×版）。戦略アクションはこの版にぶら下がる（2026-09-22）。
+// ref はアクション保存の予約時点の版を記録するため（確定の切り替えと保存が前後しても、元の版に保存される）
+const [strategyVersionId, setStrategyVersionIdState] = useState(null);
+const strategyVersionIdRef = useRef(null);
+const setStrategyVersionId = (v) => { strategyVersionIdRef.current = v || null; setStrategyVersionIdState(v || null); };
 const chatResizing = useRef(false);
 // パターン切替時の API コスト削減用：旧 in-flight fetch を AbortController で abort する。
 // 表示の正確性は ID 引き派生値設計（improveResult/visualMock）で構造的に保証されるため、
@@ -2953,10 +2958,16 @@ const [chatSummaries, setChatSummaries] = useState([]);
   // threads/themeChats/actions/各threadのmessagesをまとめて PUT
   const actionDataPutTimerRef = useRef(null);
   const confirmingRef = useRef(false);
+  // 予約中の保存（確定の切り替え前に即時送信するため、送信処理ごと保持する）
+  const pendingActionPutRef = useRef(null);
   const queueActionDataPut = () => {
     if (!siteId) return;
     if (actionDataPutTimerRef.current) clearTimeout(actionDataPutTimerRef.current);
-    actionDataPutTimerRef.current = setTimeout(() => {
+    // 予約した時点の版に保存する（送信までに確定が切り替わっても、別の版に書き込まない）
+    const svidAtQueue = strategyVersionIdRef.current;
+    const send = () => {
+      pendingActionPutRef.current = null;
+      actionDataPutTimerRef.current = null;
       // themeChats を辿って各 chatId のメッセージを LS から収集
       const tm = {};
       try {
@@ -2969,7 +2980,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
           });
         });
       } catch (e) {}
-      fetch("/api/sites", {
+      return fetch("/api/sites", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2978,9 +2989,87 @@ const [chatSummaries, setChatSummaries] = useState([]);
           theme_chats: themeChats,
           thread_messages: tm,
           actions,
+          strategy_version_id: svidAtQueue || undefined,
         }),
       }).catch(() => {});
-    }, 1500);
+    };
+    pendingActionPutRef.current = send;
+    actionDataPutTimerRef.current = setTimeout(send, 1500);
+  };
+  // 予約中の保存があれば今すぐ送る（確定の切り替え前に、直前の会話を元の版へ確実に保存する）
+  const flushActionDataPut = async () => {
+    const send = pendingActionPutRef.current;
+    if (!send) return;
+    if (actionDataPutTimerRef.current) clearTimeout(actionDataPutTimerRef.current);
+    await send();
+  };
+
+  // 版 ID 導入前、テーマ別チャットの会話は「確定ごと」にこのブラウザの中にだけ保存されていた
+  // （DB には最新の1本しか無い）。サイトを開いたときに、それぞれの確定の版の下へ DB に引き上げる。
+  // DB に既にある会話は上書きしない。一度引き上げたサイトは印を付けて繰り返さない。
+  const rescueLocalThreadMessages = async (site) => {
+    try {
+      if (!site?.id) return;
+      const flag = "ab3c_thread_rescued_" + site.id;
+      if (localStorage.getItem(flag)) return;
+      const confIds = new Set((Array.isArray(site.confirmations) ? site.confirmations : []).map((c) => String(c?.id)));
+      const prefix = "ab3c_thread_" + site.id + "_";
+      const byConfirm = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !k.startsWith(prefix)) continue;
+        const m = k.slice(prefix.length).match(/^(.+)_v(\d{10,})$/);
+        if (!m || !confIds.has(m[2])) continue;
+        let msgs = null;
+        try { msgs = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+        if (!Array.isArray(msgs) || !msgs.some((x) => x?.role === "user" && !x.hidden)) continue;
+        (byConfirm[m[2]] ||= []).push({ confirm_id: m[2], chat_id: m[1], messages: msgs });
+      }
+      let allOk = true;
+      for (const items of Object.values(byConfirm)) {
+        // 1回の送信量の上限（4.5MB）に近い場合は1件ずつ送る
+        const batches = JSON.stringify(items).length > 3000000 ? items.map((it) => [it]) : [items];
+        for (const batch of batches) {
+          const r = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: site.id, rescue_thread_messages: batch }) }).catch(() => null);
+          if (!r || !r.ok) allOk = false;
+        }
+      }
+      if (allOk) localStorage.setItem(flag, "1");
+    } catch (e) {}
+  };
+
+  // 確定の切り替えで、別の版のアクション一式（無ければ空）に入れ替える。
+  // 元の版のアクションはサーバー側で保存済み。この版に戻して確定し直せば戻ってくる。
+  const applySwitchedActionData = (sid, data) => {
+    const d = data || {};
+    const nextThreads = Array.isArray(d.threads) && d.threads.length > 0 ? ensureGeneralTheme(d.threads) : DEFAULT_THREADS;
+    const nextThemeChats = d.theme_chats && typeof d.theme_chats === "object" ? d.theme_chats : {};
+    const nextActions = Array.isArray(d.actions) ? d.actions : [];
+    const nextMessages = d.thread_messages && typeof d.thread_messages === "object" ? d.thread_messages : {};
+    try {
+      // 版番号なしの会話キーは「今の版の作業中の会話」。前の版の分を残すと、同じ ID のチャット
+      // （各テーマの「全体アドバイス」等）に前の版の会話が紛れ込むため入れ替える
+      const prefix = "ab3c_thread_" + sid + "_";
+      const stale = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix) && !/_v[^_]+$/.test(k)) stale.push(k);
+      }
+      stale.forEach((k) => localStorage.removeItem(k));
+      Object.entries(nextMessages).forEach(([chatId, msgs]) => {
+        localStorage.setItem(prefix + chatId, JSON.stringify(msgs));
+      });
+      localStorage.setItem("ab3c_threads_" + sid, JSON.stringify(nextThreads));
+      if (Object.keys(nextThemeChats).length > 0) localStorage.setItem("ab3c_theme_chats_" + sid, JSON.stringify(nextThemeChats));
+      else localStorage.removeItem("ab3c_theme_chats_" + sid);
+      if (nextActions.length > 0) localStorage.setItem("ab3c_actions_" + sid, JSON.stringify(nextActions));
+      else localStorage.removeItem("ab3c_actions_" + sid);
+    } catch (e) {}
+    setActiveThemeId(null);
+    setActiveChatId(null);
+    setThreads(nextThreads);
+    setThemeChats(nextThemeChats);
+    setActions(nextActions);
   };
 
   // threads / themeChats / actions のいずれかが変わったら DB 同期をキュー
@@ -3167,6 +3256,8 @@ const [chatSummaries, setChatSummaries] = useState([]);
       findSiteDetail(sid, urlParam).then(function(site) {
         if (site) {
           setSiteId(site.id);
+          setStrategyVersionId(site.current_strategy_version_id || null);
+          rescueLocalThreadMessages(site);
           // 戦略確定履歴を DB から復元（LS より DB を信頼）
           try {
             var lsConfKey = "ab3c_confirmations_" + site.id;
@@ -3530,6 +3621,7 @@ useEffect(() => {
     if (previousSiteCache && previousSiteCache.id === previousSiteId) {
       const c = previousSiteCache;
       setSiteId(c.id);
+      setStrategyVersionId(c.strategyVersionId || null);
       if (c.result) {
         setResult(c.result);
         setCurrentResult(c.result);
@@ -3579,6 +3671,7 @@ useEffect(() => {
         return;
       }
       setSiteId(site.id);
+      setStrategyVersionId(site.current_strategy_version_id || null);
       if (site.latest_analysis) {
         setResult(site.latest_analysis);
         setCurrentResult(site.latest_analysis);
@@ -3745,6 +3838,8 @@ useEffect(() => {
         const confirmBody = { id: targetSiteId, latest_analysis: snapshotResult, strategy_confirmed: true, append_confirmation: snapshot };
         if (improveResult && !improveResult.error) confirmBody.improve_result = improveResult;
         if (visualMock && !visualMock.error) confirmBody.visual_mock = visualMock;
+        // 予約中のアクション保存を先に送る（確定で版が切り替わる前に、直前の会話を元の版へ保存）
+        await flushActionDataPut();
         const resp = await fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(confirmBody) });
         if (!resp.ok) {
           let errMsg = "保存に失敗しました（HTTP " + resp.status + "）。";
@@ -3755,8 +3850,10 @@ useEffect(() => {
         // レスポンス本文から「実際に DB に確定状態が反映されたか」を検証する。
         // 200 OK でも WHERE 句で 0 件マッチ（例: targetSiteId が他ユーザー所有・既に削除済み）の場合、
         // site が null/undefined で返ってきて UI だけ確定済みになる silent bug を防ぐ。
+        let confirmRespJson = null;
         try {
           const respJson = await resp.json();
+          confirmRespJson = respJson;
           const savedSite = respJson?.site;
           if (!savedSite) {
             alert("保存に失敗しました（サーバーから対象サイトのデータが返ってきませんでした）。\nサイトIDが正しいか、サイトが削除されていないか確認してください。\n対象ID: " + targetSiteId);
@@ -3770,6 +3867,10 @@ useEffect(() => {
           // 本文パースに失敗しても 200 は返ったので、警告だけ出して続行（保守的）
           console.warn("確定後のレスポンス本文パース失敗:", e);
         }
+        // 版の切り替え: 戦略を変えて確定し直した場合、アクションはその版のもの（無ければ空）に入れ替わる。
+        // 確定状態にする前に入れ替える（確定時の初期化処理が前の版の保存データを読み込まないように）
+        if (confirmRespJson?.strategy_version_id) setStrategyVersionId(confirmRespJson.strategy_version_id);
+        if (confirmRespJson?.action_switched) applySwitchedActionData(targetSiteId, confirmRespJson.action_data);
         setStrategyConfirmed(true);
         setLiveStateBackup(null); // 戦略確定でライブ状態がスナップショット化されたためバックアップ不要
         // 確定後はライブ状態(currentResult)を確定スナップショット(snapshotResult)に揃える。
@@ -3992,7 +4093,8 @@ useEffect(() => {
         } catch (e) {}
       }
     }
-// 同じURLの再分析: 戦略策定タブのチャット履歴をクリア（localStorage + DB 両方）
+// 同じURLの再分析: 戦略策定タブのチャットを空にして新しい分析から始める（localStorage + DB 両方）。
+// それまでの会話は消さない。サーバー側が空にする前に analysis_chat_archives へしまう（2026-09-22）。
 // 戦略アクションタブのスレッド・アクション・戦略確定履歴は確定戦略に紐づくため残す
 if (prefoundSite) {
   try { localStorage.removeItem("ab3c_analysis_chat_" + prefoundSite.id); } catch (e) {}
@@ -4004,7 +4106,7 @@ if (prefoundSite) {
 }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null); setImproveStale(false);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
-setSiteId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+setSiteId(null); setStrategyVersionId(null); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
 setVersionsFromInitial(null);
 setLiveStateBackup(null); // 新規分析でライブ状態が完全リセットされるため破棄
@@ -4293,6 +4395,9 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
     ? confirmHistory[confirmHistory.length - 1].id
     : null;
   const chatConfirmId = activeConfirmId || liveSnapId || "current";
+  // テーマ別チャットの会話をブラウザに保存するキーの版。確定中は戦略の版 ID（中身が同じなら確定し直しても同じ）。
+  // 確定履歴を開いて過去の確定を見ているときは、従来どおりその確定の ID。
+  const threadStorageVersion = (!activeConfirmId && strategyVersionId) ? strategyVersionId : chatConfirmId;
   const chatVersionIndex = (() => {
     if (!activeConfirmId && !liveSnapId) return 0;
     const idx = confirmHistory.findIndex(c => c.id === chatConfirmId);
@@ -4359,9 +4464,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               threads,
               themeChats,
               actions,
+              strategyVersionId,
             });
           }
-          reset(); setSiteId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
+          reset(); setSiteId(null); setStrategyVersionId(null); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
         }}
         onSwitchToAnalysis={async () => {
           // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」を in-place で復元
@@ -5492,7 +5598,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         (activeThemeId === "website" && webUpdateConnected) ? (
           <WebUpdatePanel key={siteId + "_webupdate"} siteId={siteId} analysisResult={currentResult} improveResult={improveResult} isPro={isPro || chatTickets > 0 || trialChats > 0} />
         ) : (
-        <ThreadChat key={siteId + "_" + activeChatId + "_c" + chatConfirmId} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} improveResult={improveResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={chatConfirmId} legacyVersionIndex={chatVersionIndex} onAddAction={addAction}
+        <ThreadChat key={siteId + "_" + activeChatId + "_c" + threadStorageVersion} threadId={activeChatId} themeId={activeThemeId} themeLabel={threads.find(t => t.id === activeThemeId)?.label} siteId={siteId} chatDescription={themeChats[activeThemeId]?.find(c => c.id === activeChatId)?.description} analysisResult={currentResult} improveResult={improveResult} isPro={isPro || chatTickets > 0 || trialChats > 0} strategyVersion={threadStorageVersion} legacyVersionIndex={threadStorageVersion === strategyVersionId ? 0 : chatVersionIndex} onAddAction={addAction}
           onGenerateRecruit={async (msgs) => {
             setRecruitLoading(true);
             try { const chatHistory = msgs.filter(m => m.role === "user" || m.role === "assistant").map(m => `${m.role === "user" ? "ユーザー" : "AI"}: ${m.content}`).join("\n"); const res = await fetch("/api/recruit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisResult: currentResult, chatHistory }) }); const data = await res.json(); if (data.error) { alert(data.error); } else { setRecruitResult(data); } } catch (e) { alert("エラーが発生しました。"); } finally { setRecruitLoading(false); }
