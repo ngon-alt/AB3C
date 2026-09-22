@@ -2,6 +2,10 @@ import { neon } from "@neondatabase/serverless";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
+import {
+  ensureVersionTables, ensureCurrentVersion, switchConfirmedVersion, registerAllPatterns,
+  saveActionSet, versionBelongsToSite, saveVersionReports, rescueThreadMessages,
+} from "@/app/lib/strategy-versions";
 
 // テーブル作成（なければ）
 let tableReady = false;
@@ -90,6 +94,8 @@ async function ensureTable(sql) {
     `,
     sql`CREATE INDEX IF NOT EXISTS idx_user_plans_email ON user_plans(user_email)`,
     ]);
+    // 戦略の版・版ごとのアクション・しまった会話（sites を参照するので sites の後）
+    await ensureVersionTables(sql);
     tableReady = true;
   } catch (e) {
     console.error("ensureTable error:", e);
@@ -206,7 +212,12 @@ export async function GET(req) {
       const rows = await sql`SELECT * FROM sites WHERE id::text = ${id} AND user_email = ${session.user.email}`;
       timer.lap("db");
       if (rows.length === 0) return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404, headers: timer.headers() });
-      return NextResponse.json({ site: synthesizeVersionsForSite(rows[0]) }, { headers: timer.headers() });
+      const site = rows[0];
+      // 版 ID 導入前から確定済みのサイトは、ここで現在の版を割り当てる（今あるアクションは最新の確定に帰属）
+      if (!site.current_strategy_version_id && (site.strategy_confirmed || (Array.isArray(site.confirmations) && site.confirmations.length > 0))) {
+        try { site.current_strategy_version_id = await ensureCurrentVersion(sql, site.id); } catch (e) { console.error("ensureCurrentVersion error:", e); }
+      }
+      return NextResponse.json({ site: synthesizeVersionsForSite(site) }, { headers: timer.headers() });
     }
 
     // 一覧・プラン上限・月次登録数は互いに独立しているので同時に問い合わせる
@@ -310,7 +321,7 @@ export async function PUT(req) {
     if (!session) return NextResponse.json({ error: "ログインが必要です。" }, { status: 401 });
 
     const body = await req.json();
-    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, append_confirmation, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text } = body;
+    const { id, site_url, site_name, company_name, industry, target_customer, latest_analysis, improve_result, visual_mock, analyzed_at, strategy_confirmed, chat_history, confirmations, append_confirmation, threads, theme_chats, thread_messages, actions, analysis_chat, version_source, improve_results_by_combination, visual_mocks_by_combination, input_text, strategy_version_id, rescue_thread_messages } = body;
 
     if (!id) {
       return NextResponse.json({ error: "サイトIDは必須です。" }, { status: 400 });
@@ -321,11 +332,18 @@ export async function PUT(req) {
 
     // 所有権チェック + 現状の analysis_versions / latest_analysis / analyzed_at / strategy_confirmed を取得
     const existing = await sql`
-      SELECT id, latest_analysis, analysis_versions, analyzed_at, strategy_confirmed
+      SELECT id, latest_analysis, analysis_versions, analyzed_at, strategy_confirmed, current_strategy_version_id,
+             CASE WHEN jsonb_typeof(analysis_chat) = 'array' THEN jsonb_array_length(analysis_chat) ELSE 0 END AS analysis_chat_len
       FROM sites WHERE id = ${id} AND user_email = ${session.user.email}
     `;
     if (existing.length === 0) {
       return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
+    }
+
+    // ブラウザの中にだけ残っていた「確定ごとの会話」の引き上げ（他の項目とは独立に処理して返す）
+    if (Array.isArray(rescue_thread_messages)) {
+      const rescued = await rescueThreadMessages(sql, id, rescue_thread_messages);
+      return NextResponse.json({ rescued });
     }
 
     // === 分析結果の世代履歴を自動管理 ===
@@ -409,12 +427,51 @@ export async function PUT(req) {
     // リクエスト本文の上限（4.5MB）を超えて保存に失敗するため、サーバー側で末尾に足す。
     const appendConfirmationJson = (append_confirmation && typeof append_confirmation === "object" && !Array.isArray(append_confirmation)) ? JSON.stringify(append_confirmation) : null;
     // 戦略アクションフェーズのデータ。null は「未指定」、空配列・空オブジェクトは「クリアの意図」として保存
-    const threadsJson = Array.isArray(threads) ? JSON.stringify(threads) : null;
-    const themeChatsJson = (theme_chats && typeof theme_chats === "object") ? JSON.stringify(theme_chats) : null;
-    const threadMessagesJson = (thread_messages && typeof thread_messages === "object") ? JSON.stringify(thread_messages) : null;
-    const actionsJson = Array.isArray(actions) ? JSON.stringify(actions) : null;
+    const actionPayload = {
+      threadsJson: Array.isArray(threads) ? JSON.stringify(threads) : null,
+      themeChatsJson: (theme_chats && typeof theme_chats === "object") ? JSON.stringify(theme_chats) : null,
+      threadMessagesJson: (thread_messages && typeof thread_messages === "object") ? JSON.stringify(thread_messages) : null,
+      actionsJson: Array.isArray(actions) ? JSON.stringify(actions) : null,
+    };
+    const hasActionData = Object.values(actionPayload).some(v => v !== null);
+
+    // === 戦略の版（2026-09-22）===
+    // アクション一式は確定した版（サイト×パターン×版）にぶら下げる。
+    // 版 ID 導入前から確定済みのサイトは、まず今の確定に版を割り当てる（確定履歴に今回分を足す前に行う）
+    let currentSvid = existingRow.current_strategy_version_id || null;
+    if (!currentSvid && (hasActionData || strategy_confirmed === true)) {
+      currentSvid = await ensureCurrentVersion(sql, id);
+    }
+    // 届いたアクション一式が、今の版ではなく以前の版のもの（確定を切り替える直前の保存が遅れて届いた等）なら、
+    // 作業中の欄には書かず、その版の下にだけ保存する
+    let actionTargetSvid = currentSvid;
+    let writeWorkingActions = true;
+    if (hasActionData && strategy_version_id && currentSvid && String(strategy_version_id) !== String(currentSvid)) {
+      writeWorkingActions = false;
+      actionTargetSvid = (await versionBelongsToSite(sql, id, strategy_version_id)) ? strategy_version_id : null;
+    }
+    const threadsJson = writeWorkingActions ? actionPayload.threadsJson : null;
+    const themeChatsJson = writeWorkingActions ? actionPayload.themeChatsJson : null;
+    const threadMessagesJson = writeWorkingActions ? actionPayload.threadMessagesJson : null;
+    const actionsJson = writeWorkingActions ? actionPayload.actionsJson : null;
+
+    // 確定: 版が変わったら、今のアクションを元の版に保存し、新しい版のアクション（無ければ空）に切り替える
+    let versionSwitch = null;
+    if (strategy_confirmed === true && latest_analysis) {
+      versionSwitch = await switchConfirmedVersion(sql, id, currentSvid, latest_analysis);
+      currentSvid = versionSwitch.strategyVersionId || currentSvid;
+    }
+
     // 戦略策定タブの進行中チャット
     const analysisChatJson = Array.isArray(analysis_chat) ? JSON.stringify(analysis_chat) : null;
+    // 会話を空にする・短くする保存の前に、それまでの会話をしまっておく（消さずに戻れるように）
+    if (Array.isArray(analysis_chat) && analysis_chat.length < (existingRow.analysis_chat_len || 0)) {
+      await sql`
+        INSERT INTO analysis_chat_archives (site_id, messages, reason)
+        SELECT id, analysis_chat, ${analysis_chat.length === 0 ? "cleared" : "shortened"}
+        FROM sites WHERE id = ${id} AND jsonb_typeof(analysis_chat) = 'array' AND jsonb_array_length(analysis_chat) > 0
+      `;
+    }
     // パターン別の改善レポート/ビジュアルキャッシュ。空オブジェクト{} もクリア意図ではなく「指定なし」として無視
     const improveByComboJson = (improve_results_by_combination && typeof improve_results_by_combination === "object" && Object.keys(improve_results_by_combination).length > 0) ? JSON.stringify(improve_results_by_combination) : null;
     const visualByComboJson = (visual_mocks_by_combination && typeof visual_mocks_by_combination === "object" && Object.keys(visual_mocks_by_combination).length > 0) ? JSON.stringify(visual_mocks_by_combination) : null;
@@ -447,7 +504,10 @@ export async function PUT(req) {
           ELSE confirmations END,
         threads = CASE WHEN ${threadsJson}::text IS NOT NULL THEN (${threadsJson}::jsonb) ELSE threads END,
         theme_chats = CASE WHEN ${themeChatsJson}::text IS NOT NULL THEN (${themeChatsJson}::jsonb) ELSE theme_chats END,
-        thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL THEN (${threadMessagesJson}::jsonb) ELSE thread_messages END,
+        -- 会話は置き換えずに統合する（届いた分に含まれないチャットの会話を消さない）
+        thread_messages = CASE WHEN ${threadMessagesJson}::text IS NOT NULL
+          THEN (CASE WHEN jsonb_typeof(thread_messages) = 'object' THEN thread_messages ELSE '{}'::jsonb END) || (${threadMessagesJson}::jsonb)
+          ELSE thread_messages END,
         actions = CASE WHEN ${actionsJson}::text IS NOT NULL THEN (${actionsJson}::jsonb) ELSE actions END,
         analysis_chat = CASE WHEN ${analysisChatJson}::text IS NOT NULL THEN (${analysisChatJson}::jsonb) ELSE analysis_chat END,
         analysis_versions = CASE WHEN ${versionsJson}::text IS NOT NULL THEN (${versionsJson}::jsonb) ELSE analysis_versions END,
@@ -461,8 +521,33 @@ export async function PUT(req) {
                 (latest_analysis IS NOT NULL) AS has_analysis
     `;
 
+    // 版の記録（本体の保存は済んでいるので、ここで失敗しても保存自体は失敗扱いにしない）
+    try {
+      // 分析結果が生成・更新されたら、全パターンに版 ID を振る
+      if (latest_analysis) await registerAllPatterns(sql, id, latest_analysis);
+      // アクション一式を版の下にも保存（版を切り替えても、この版に戻れば戻ってくる）
+      if (hasActionData && actionTargetSvid) await saveActionSet(sql, id, actionTargetSvid, actionPayload);
+      // 改善レポート・ビジュアルを版ごとに保存
+      if (improve_results_by_combination || visual_mocks_by_combination || versionSwitch) {
+        await saveVersionReports(sql, id, latest_analysis || existingLatest, {
+          improveByCombo: improve_results_by_combination && typeof improve_results_by_combination === "object" ? improve_results_by_combination : null,
+          visualByCombo: visual_mocks_by_combination && typeof visual_mocks_by_combination === "object" ? visual_mocks_by_combination : null,
+          confirmedSvid: versionSwitch?.strategyVersionId || null,
+          improveResult: improve_result && !improve_result.error ? improve_result : null,
+          visualMock: visual_mock && !visual_mock.error ? visual_mock : null,
+        });
+      }
+    } catch (e) {
+      console.error("PUT /api/sites version bookkeeping error:", e);
+    }
+
     // 応答は軽い列だけ（保存のたびに確定履歴・チャット全文を送り返さない）。全データは GET ?id= で取得する
-    return NextResponse.json({ site: rows[0] });
+    return NextResponse.json({
+      site: rows[0],
+      strategy_version_id: currentSvid,
+      action_switched: !!versionSwitch?.switched,
+      action_data: versionSwitch?.switched ? versionSwitch.actionData : undefined,
+    });
   } catch (e) {
     console.error("PUT /api/sites error:", e);
     return NextResponse.json({ error: "サーバーエラー: " + e.message }, { status: 500 });
