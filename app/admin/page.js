@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import PointsAdmin from './PointsAdmin';
 
 // admin アクセス権: ADMIN_EMAILS（既定は権さんの2アカウント）のみ（2026-07-30 再設計）。
 // 旧実装（2026-06-04〜）は pro_users 登録者全員に開放していたが、pro_users は
@@ -214,6 +215,9 @@ useEffect(() => {
             </button>
           </div>
         </div>
+
+        {/* ポイント（付与・照会） */}
+        {secret && <PointsAdmin secret={secret} />}
 
         {/* 契約者統計 */}
         {stats && (
