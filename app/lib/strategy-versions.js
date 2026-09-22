@@ -7,6 +7,7 @@
 // 版を変えて確定し直すと、アクション画面は空から始まる。以前のアクションは元の版の下に保存され、
 // その版を確定し直すと戻ってくる。何も消さない（「データを消さない」原則）。
 import crypto from "crypto";
+import { coreForVersion } from "./pattern-version";
 
 // キー順に依存しない JSON 文字列化。JSONB は保存時にキー順を並べ替えるため、
 // 画面から送られた結果と DB から読んだ結果で同じハッシュを得るのに必要。
@@ -31,7 +32,7 @@ export function versionContentOf(result, patternId) {
   if (hasCombinations(result)) {
     const combo = result.combinations.find((c) => c && String(c.id) === String(patternId));
     if (!combo) return null;
-    return { patternId: String(combo.id), content: { pattern: combo, company_core: result.company_core ?? null } };
+    return { patternId: String(combo.id), content: { pattern: combo, company_core: coreForVersion(result.company_core) } };
   }
   return {
     patternId: "main",
@@ -96,9 +97,27 @@ export async function ensureVersionTables(sql) {
   ]);
 }
 
+// 保存済みの中身を、今の数え方にそろえる（強みの根拠評価を数えなかった頃との互換）
+function normalizeStoredContent(content) {
+  if (content && typeof content === "object" && "pattern" in content) {
+    return { ...content, company_core: coreForVersion(content.company_core) };
+  }
+  return content;
+}
+
 // 版を登録して ID を返す（同じ中身なら既存の ID）
 export async function registerVersion(sql, siteId, patternId, content) {
   const hash = hashOf(content);
+  const found = await sql`SELECT id FROM strategy_versions WHERE site_id = ${siteId} AND pattern_id = ${patternId} AND content_hash = ${hash}`;
+  if (found[0]?.id) return found[0].id;
+  // 数え方を変える前に登録された版で、今の数え方では同じ中身のものがあれば、その ID を引き継ぐ
+  // （その版にぶら下がったアクションを切り離さないため）
+  const olds = await sql`SELECT id, content FROM strategy_versions WHERE site_id = ${siteId} AND pattern_id = ${patternId}`;
+  const same = olds.find((row) => hashOf(normalizeStoredContent(row.content)) === hash);
+  if (same) {
+    await sql`UPDATE strategy_versions SET content_hash = ${hash}, content = ${JSON.stringify(content)}::jsonb, updated_at = NOW() WHERE id = ${same.id}`;
+    return same.id;
+  }
   const rows = await sql`
     INSERT INTO strategy_versions (site_id, pattern_id, content_hash, content)
     VALUES (${siteId}, ${patternId}, ${hash}, ${JSON.stringify(content)}::jsonb)

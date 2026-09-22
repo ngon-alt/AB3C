@@ -1,6 +1,6 @@
 "use client";
 // Updated: 2025-04-07 - Force page rebuild
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Header from "./components/Header";
@@ -12,6 +12,7 @@ import UpdateHistoryModal from "./components/UpdateHistoryModal";
 // SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
 import { buildSlides } from "./lib/exporters/build-slides";
+import { versionIndexEntry, buildPatternTree, patternInfo, confirmedPatternId } from "./lib/pattern-version";
 
 const C = {
   A: "#1a6fd4", B: "#FF0000", C: "#1a1a14", red: "#c0392b",
@@ -509,54 +510,6 @@ function isViewingOldForSection(versions, sectionKey, idx, selectedCombinationId
   return sectionChangedBetween(versions, sectionKey, idx, 0, selectedCombinationId);
 }
 
-// 世代タブのスタイル小コンポーネント
-function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, onChange, disabled, liveConfirmedIdx }) {
-  if (!Array.isArray(versions) || versions.length <= 1) return null;
-  var tabs = getSectionTabs(versions, sectionKey, selectedCombinationId);
-  // どの世代でも中身が変わっていない項目には、世代タブ自体を出さない
-  if (tabs.length <= 1) return null;
-  // 全世代を同じ見た目で並べ、状態は3つだけで表す（2026-09-22 権さん指摘: バリエーションが多く現在地が分からない）
-  //   塗り＝いま表示している版 ／「（最新）」＝一番新しい版 ／ 赤い「確定中」＝いま確定している版
-  // 世代ごとの色分け・点線・過去に確定したことがある印（✓）は出さない
-  var allTabs = [];
-  for (var vi = versions.length - 1; vi >= 0; vi--) allTabs.push(vi);
-  return (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
-      <span style={{ fontSize: 16, color: "#78716c", marginRight: 4 }}>世代</span>
-      {allTabs.map(function (idx) {
-        var isActive = (active || 0) === idx;
-        var isLatest = idx === 0;
-        var isLive = liveConfirmedIdx === idx;
-        return (
-          <button
-            key={idx}
-            onClick={disabled ? undefined : function () { onChange && onChange(sectionKey, idx); }}
-            disabled={disabled}
-            title={(isActive ? "表示中・" : "") + (isLatest ? "最新" : "過去の世代") + (isLive ? "・確定中" : "") + "（押すと全項目がこの版に切り替わります）"}
-            style={{
-              background: isActive ? "#2a2a26" : "#fff",
-              color: isActive ? "#fff" : "#2a2a26",
-              border: "1.5px solid #2a2a26",
-              borderRadius: 999,
-              padding: "4px 12px",
-              fontSize: 16,
-              fontWeight: 700,
-              cursor: disabled ? "not-allowed" : "pointer",
-              opacity: disabled ? 0.6 : 1,
-              lineHeight: 1.4,
-              display: "inline-flex", alignItems: "center", gap: 6,
-            }}
-          >
-            {versionLabel(versions, idx)}{isLatest ? "（最新）" : ""}
-            {isLive && (
-              <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "0 8px", fontSize: 16, fontWeight: 700 }}>確定中</span>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 const SubLabel = ({ color, text, onChat, help }) => (
   <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 16, letterSpacing: "0.1em", color, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 8, position: "relative" }} {...(onChat ? hoverShow : {})}>
@@ -731,7 +684,7 @@ function patternColor(id) {
 // 組み合わせパターンの切替コントロール（ピル型ボタン群＋現在表示中の大見出し帯）。
 // タブUIではなく「切替スイッチ＋見出し」で構成し、下のAB3C本体とは
 // セクション見出しによって接続される（タブのような容器メタファは持たない）。
-function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }) {
+function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect, versionBadge, versionBadgeLive }) {
   if (!Array.isArray(combinations) || combinations.length === 0) return null;
   const sansFont = "system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif";
   const selectedCombo = combinations.find(c => c?.id === selectedId);
@@ -858,6 +811,15 @@ function CombinationTabBar({ combinations, selectedId, recommendedId, onSelect }
               <span style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.4 }}>
                 {trimRouteSuffix(selectedCombo.label)}
               </span>
+              {/* 表示中の版（パターンごとの版番号）。過去の版を選ぶとここも変わる */}
+              {versionBadge && (
+                <span style={{ border: "1.5px solid #2a2a26", color: "#2a2a26", borderRadius: 999, padding: "2px 12px", fontSize: 16, fontWeight: 700 }}>
+                  {versionBadge}
+                </span>
+              )}
+              {versionBadgeLive && (
+                <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "2px 12px", fontSize: 16, fontWeight: 700 }}>確定中</span>
+              )}
             </div>
             {/* 戦略メッセージ（タイトル）：このパターンの提供価値の核心 */}
             {selectedCombo.strategy_message?.message && (
@@ -917,7 +879,7 @@ function buildShadowResultFromCombo(combo, companyCore) {
   };
 }
 
-function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination, liveConfirmedVersionIdx }) {
+function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, versions: rawVersions, activeVersionPerSection, onSectionTabChange, selectedCombinationId, onSelectCombination, liveConfirmedVersionIdx, patternVersionBadge, patternVersionBadgeLive }) {
   const g2 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 };
   const g3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 };
   const q = (section, detail) => onChat && (() => onChat(`${section}の「${(detail||"").slice(0,30)}」について詳しく教えてください`));
@@ -1010,12 +972,13 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
           selectedId={currentCombo?.id}
           recommendedId={d.recommended_combination_id}
           onSelect={onSelectCombination}
+          versionBadge={patternVersionBadge}
+          versionBadgeLive={patternVersionBadgeLive}
         />
       )}
       {/* === Benefit セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.B} letter="B" jp="Benefit（お客様が求める価値）" en="Needs → Wants" desc={`核心：${benefitData.core || ""}`} onChat={qs("Benefit（お客様が求める価値）")} help="お客様がその商品・サービスを通じて得られる価値です。ニーズ（まだ曖昧な欠乏感）とウォンツ（具体的な欲求）の両面から捉えます。" />
-        <VersionTabBar versions={versions} sectionKey="benefit" selectedCombinationId={selectedCombinationId} active={avps.benefit || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={g2}>
           <div style={hasVersions ? {} : hl("benefit.needs")}><Card color={C.B} title="ニーズ（欠乏感・曖昧な欲求）" onChat={qs("ニーズ")} help="お客様がまだ言語化できていない、漠然とした欠乏感や欲求。『何かを変えたい』『もっとこうしたい』という状態です。チェックを外して『絞り込んで再分析』すると、残した項目を軸に戦略を研ぎ澄ませます。" textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null}><UL items={benefitData.needs || []} onChatItem={onChat && ((item) => onChat(`ニーズの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.needs} onToggle={refineToggleEffective && ((i) => refineToggleEffective("needs", i))} textColor={benefitChanges.changed.has("benefit.needs") ? benefitChanges.color : null} /></Card></div>
           <div style={hasVersions ? {} : hl("benefit.wants")}><Card color={C.B} title="ウォンツ（具体的欲求）" onChat={qs("ウォンツ")} help="具体的に欲しいものが決まっている欲求。『これが欲しい』『これを買いたい』と明確に意識できる状態です。" textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null}><UL items={benefitData.wants || []} onChatItem={onChat && ((item) => onChat(`ウォンツの「${item.slice(0,30)}」について詳しく教えてください`))} checkable={!!refineToggleEffective} checkedIndexes={refineSelection?.wants} onToggle={refineToggleEffective && ((i) => refineToggleEffective("wants", i))} textColor={benefitChanges.changed.has("benefit.wants") ? benefitChanges.color : null} /></Card></div>
@@ -1025,7 +988,6 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       {/* === Advantage セクション === */}
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.A} letter="A" jp="Advantage（差別的優位点・好ましい違い）" en="競合より選ばれる理由" onChat={qs("Advantage（差別的優位点）")} help="競合と比較したとき『こちらのほうがいい』と思ってもらえる違い。単なる違いではなく、お客様にとって好ましく、真似されにくい自社の強みに根差していることが重要です。" />
-        <VersionTabBar versions={versions} sectionKey="advantage" selectedCombinationId={selectedCombinationId} active={avps.advantage || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={g3}>
           <div style={hasVersions ? {} : hl("advantage.what")}><Card color={C.A} titleColor="#1a1a14" title="アドバンテージ" onChat={q("アドバンテージ", advantageData.what)} help="差別的優位点の内容を一言で表現したもの。" textColor={advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null}><div style={txt(advantageChanges.changed.has("advantage.what") ? advantageChanges.color : null, { fontSize: 16, fontWeight: 700, color: "#000000", lineHeight: 1.6 })}>{advantageData.what}</div></Card></div>
           <div style={hasVersions ? {} : hl("advantage.why_good")}><Card color={C.A} titleColor="#1a1a14" title="なぜ好ましいのか" onChat={q("なぜ好ましいのか", advantageData.why_good)} help="競合と比較してなぜお客様にとって好ましい違いなのかを示します。" textColor={advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null}><p style={txt(advantageChanges.changed.has("advantage.why_good") ? advantageChanges.color : null, { fontSize: 16, lineHeight: 1.7, color: "#000000" })}>{advantageData.why_good}</p></Card></div>
@@ -1037,7 +999,6 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <div style={{ marginBottom: 28 }}>
         <SectionLabel color={C.C} letter="3C" jp="3C分析" en="Customer · Competitor · Company" onChat={qs("3C分析")} help="Customer（お客様）・Competitor（競合）・Company（自社）の3つの観点から事業環境を分析するフレームワーク。" />
         <SubLabel color={C.C} text="Customer（お客様）" onChat={qs("Customer（お客様）分析")} help="ターゲット顧客の絞り込み。誰にとってのオンリーワンか、ニーズ段階かウォンツ段階か、切り捨てたお客様は誰かを明確にします。" />
-        <VersionTabBar versions={versions} sectionKey="customer" selectedCombinationId={selectedCombinationId} active={avps.customer || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
         <div style={{ ...g2, marginBottom: 14 }}>
           <div style={hasVersions ? {} : hl("three_c.customer.target")}><Card color={C.C} title="ターゲット" onChat={q("ターゲット", customerData.target)} help="主役となるお客様像。プロフィール項目のチェックを外して絞り込み再分析すると、特定ユーザーに研ぎ澄ませた戦略に変わります。" textColor={(customerChanges.changed.has("three_c.customer.target") || customerChanges.changed.has("three_c.customer.profile")) ? customerChanges.color : null}>
             <div style={txt(customerChanges.changed.has("three_c.customer.target") ? customerChanges.color : null, { fontSize: 16, fontWeight: 700, color: C.C, marginBottom: 12 })}>{customerData.target}</div>
@@ -1104,14 +1065,12 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
         <div style={g2}>
           <div>
             <SubLabel color={C.C} text="Competitor（競合）" onChat={qs("競合分析")} help="直接競合（同業）だけでなく、同じニーズを満たす異業種競合も含めて検討。『お客様がどれと比較するか』の視点で洗い出します。" />
-            <VersionTabBar versions={versions} sectionKey="competitor" selectedCombinationId={selectedCombinationId} active={avps.competitor || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
             <Card color={C.C} title="直接競合 / 異業種競合" onChat={qs("競合について")} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null}>
               <UL items={[...(competitorData.direct || []), ...((competitorData.indirect || []).map(i => `↳ ${i}`))]} onChatItem={onChat && ((item) => onChat(`競合「${item.replace("↳ ","").slice(0,30)}」について詳しく教えてください`))} textColor={(competitorChanges.changed.has("three_c.competitor.direct") || competitorChanges.changed.has("three_c.competitor.indirect")) ? competitorChanges.color : null} />
             </Card>
           </div>
           <div>
             <SubLabel color={C.C} text="Company（自社）" onChat={qs("自社分析")} help="強み（できること）・仕組み（強みを生む体制やプロセス）・価値観（その源にある経営者の信念）の3層で掘り下げます。外側ほど目に見え、内側ほど真似されにくい。" />
-            <VersionTabBar versions={versions} sectionKey="company" selectedCombinationId={selectedCombinationId} active={avps.company || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
             <Card color={C.C} title="強み ← 仕組み ← 価値観" onChat={qs("自社の強み・仕組み・価値観")} textColor={(companyChanges.changed.has("three_c.company.strength") || companyChanges.changed.has("three_c.company.structure") || companyChanges.changed.has("three_c.company.passion")) ? companyChanges.color : null}>
               <p style={txt(companyChanges.changed.has("three_c.company.strength") ? companyChanges.color : null, { fontSize: 16, color: C.muted, marginBottom: 4 })}>強み</p>
               <UL
@@ -1129,7 +1088,6 @@ function ResultView({ d, onChat, changedPaths, refineSelection, onRefineToggle, 
       <Divider />
       {/* 戦略メッセージは選択中Pカード内（上部）に統合済みのため、ここでの重複表示は廃止 */}
       {/* === チェックポイント === */}
-      <VersionTabBar versions={versions} sectionKey="checkpoints" selectedCombinationId={selectedCombinationId} active={avps.checkpoints || 0} onChange={onSectionTabChange} liveConfirmedIdx={liveConfirmedVersionIdx} />
 <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: "20px 24px", marginBottom: 28, position: "relative", ...(hasVersions && cpChanges.changed.has("checkpoints") ? { boxShadow: "0 0 0 2px " + cpChanges.color } : {}) }} {...(onChat ? hoverShow : {})}>
 {onChat && <ChatBtn onClick={() => onChat("5つのチェックポイント全体の改善方法を教えてください")} abs />}
 <div style={{ fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, color: C.ink, marginBottom: 16 }}>AB3C 5つのチェックポイント</div>  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -2506,6 +2464,11 @@ const [chatMinimized, setChatMinimized] = useState(false);
 const [strategyVersionId, setStrategyVersionIdState] = useState(null);
 const strategyVersionIdRef = useRef(null);
 const setStrategyVersionId = (v) => { strategyVersionIdRef.current = v || null; setStrategyVersionIdState(v || null); };
+// 全世代の見出し（パターンごとの指紋・名前・戦略メッセージ）。サーバーが全世代分を軽い形で送る。
+// 戦略ディレクトリ（左の列）でパターンごとの版を数えるのに使う（2026-09-22）
+const [versionIndex, setVersionIndex] = useState([]);
+// 戦略ディレクトリで開いているパターン（{ パターンID: true/false }。未指定は表示中のパターンだけ開く）
+const [treeOpen, setTreeOpen] = useState({});
 // パターンごとに「戦略策定チャットのどこまでを反映したか」（{ パターンID: 反映済みの発言数 }・2026-09-22）
 const [reflectMarks, setReflectMarks] = useState({});
 const recordReflectMark = (patternKey, upto) => {
@@ -2514,6 +2477,18 @@ const recordReflectMark = (patternKey, upto) => {
     fetch("/api/sites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: siteId, reflect_marks: { [patternKey]: upto } }) }).catch(() => {});
   }
 };
+// 戦略ディレクトリの中身: パターンごとの版の一覧（新しい版が上）。
+// サーバーの全世代の見出しに、画面で新しく積んだ世代（反映・過去の版で確定）を足して作る
+const patternTree = useMemo(() => {
+  const byId = new Map();
+  (Array.isArray(versionIndex) ? versionIndex : []).forEach((e) => byId.set(String(e.id), e));
+  (Array.isArray(analysisVersions) ? analysisVersions : []).forEach((v) => {
+    if (!v || v.source === "confirmation") return;
+    if (!byId.has(String(v.id))) byId.set(String(v.id), versionIndexEntry(v));
+  });
+  const list = [...byId.values()].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+  return buildPatternTree(list);
+}, [versionIndex, analysisVersions]);
 const chatResizing = useRef(false);
 // パターン切替時の API コスト削減用：旧 in-flight fetch を AbortController で abort する。
 // 表示の正確性は ID 引き派生値設計（improveResult/visualMock）で構造的に保証されるため、
@@ -2870,7 +2845,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
             setCurrentResult(match.latest_analysis);
             if (match.latest_analysis.strategy_message?.message) setHistoryTitle(match.latest_analysis.strategy_message.message);
             if (Array.isArray(match.analysis_versions) && match.analysis_versions.length > 0) {
-              setVersionsFromDB(match.analysis_versions);
+              setVersionsFromDB(match.analysis_versions); setVersionIndex(Array.isArray(match.version_index) ? match.version_index : []);
             }
           }
           if (match.strategy_confirmed) setStrategyConfirmed(true);
@@ -3451,7 +3426,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
             setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
             // 世代履歴の復元（DBから or 同期取得した versions、無ければ初回として暫定登録）
             if (Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0) {
-              setVersionsFromDB(site.analysis_versions);
+              setVersionsFromDB(site.analysis_versions); setVersionIndex(Array.isArray(site.version_index) ? site.version_index : []);
             } else {
               setVersionsFromInitial(site.latest_analysis);
             }
@@ -3768,7 +3743,7 @@ useEffect(() => {
         setCurrentResult(site.latest_analysis);
         setHistoryTitle(site.latest_analysis.strategy_message?.message || "");
         if (Array.isArray(site.analysis_versions) && site.analysis_versions.length > 0) {
-          setVersionsFromDB(site.analysis_versions);
+          setVersionsFromDB(site.analysis_versions); setVersionIndex(Array.isArray(site.version_index) ? site.version_index : []);
         } else {
           setVersionsFromInitial(site.latest_analysis);
         }
@@ -4132,11 +4107,19 @@ useEffect(() => {
 
   // 戦略の確定を解除（確定履歴は保持、フェーズだけ analysis に戻す）
   const unconfirmStrategy = async () => {
-    const ok = confirm(
-      "戦略の確定を解除しますか？\n\n" +
-      "・確定履歴（サイドバー）は保持されます\n" +
-      "・戦略策定タブに戻って内容を練り直せます\n" +
-      "・解除後、再度確定することも可能です"
+    // 戦略アクションの段階から戦略を変えるのは、根底から見直す重大な決断。はっきり伝える（2026-09-22 権さん指示）
+    const ok = confirm(phase === "action"
+      ? "【戦略を根底から見直す操作です】\n\n" +
+        "戦略アクションは、いま確定している戦略を前提に企画しています。\n" +
+        "確定を解除すると、戦略策定まで戻って戦略そのものを練り直すことになります。\n\n" +
+        "・これまでのアクションとチャットは、この戦略の下に保存されたまま残ります\n" +
+        "・同じ戦略を確定し直せば、そのアクションが戻ってきます\n" +
+        "・戦略を変えて確定すると、アクションは新しい戦略用に空から始まります\n\n" +
+        "本当に確定を解除しますか？"
+      : "戦略の確定を解除しますか？\n\n" +
+        "・確定した版は戦略ディレクトリに残ります\n" +
+        "・戦略策定で内容を練り直せます\n" +
+        "・解除後、再度確定することも可能です"
     );
     if (!ok) return;
     try {
@@ -4215,7 +4198,7 @@ if (prefoundSite) {
 }
 setError(""); setResult(null); setSelectedHistory(null); setLoading(true); setChatSummaries([]); setImproveResultsByCombination({}); setVisualMocksByCombination({}); setActiveConfirmId(null); setImproveStale(false);
 // 新URLが既存サイトと一致しない場合に siteId が誤って残らないよう初期化（URL一致時は直後に再設定される）
-setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
+setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); setVersionIndex([]); setCurrentResult(null); setCurrentInput(""); setStrategyConfirmed(false); setActiveThemeId(null); setActiveChatId(null); setThreads([]);
 // 新規分析時は世代履歴もリセット（後で初回バージョンとして登録）
 setVersionsFromInitial(null);
 setLiveStateBackup(null); // 新規分析でライブ状態が完全リセットされるため破棄
@@ -4506,16 +4489,68 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   const chatConfirmId = activeConfirmId || liveSnapId || "current";
   // 過去の世代を表示中のとき、その世代（全項目が同じ世代を表示しているので、どの項目の値でもよい）
   const viewedVersionIdx = Math.max(0, ...Object.values(activeVersionPerSection).map(v => v || 0));
-  const viewedVersionLabel = versionLabel(analysisVersions, viewedVersionIdx);
+  // ---- 戦略ディレクトリ上の現在地（パターン × パターンごとの版）----
+  const viewedResultForTree = analysisVersions[viewedVersionIdx]?.result || currentResult;
+  const viewedPatternId = Array.isArray(viewedResultForTree?.combinations) && viewedResultForTree.combinations.length > 0
+    ? String(selectedCombinationId ?? viewedResultForTree.combinations[0]?.id)
+    : "main";
+  const viewedPatternH = patternInfo(viewedResultForTree, viewedPatternId)?.h || null;
+  const viewedTreeNode = (patternTree[viewedPatternId] || []).find((n) => n.h === viewedPatternH) || null;
+  // 確定中の版（パターンと中身）
+  const liveConfirmedNode = (() => {
+    if (!strategyConfirmed || !confirmHistory.length) return null;
+    const lc = confirmHistory[confirmHistory.length - 1]?.result;
+    const pid = confirmedPatternId(lc);
+    const h = patternInfo(lc, pid)?.h;
+    return h ? { pid, h } : null;
+  })();
+  // 「P1 v3」のような表示名（パターンの無い旧形式は「v3」）
+  const patternVersionLabel = (pid, node) => node ? (pid !== "main" ? `P${pid} ` : "") + `v${node.pv}` : "";
+  const viewedVersionLabel = viewedTreeNode ? patternVersionLabel(viewedPatternId, viewedTreeNode) : versionLabel(analysisVersions, viewedVersionIdx);
+  const latestTreeNode = (() => {
+    const h = patternInfo(analysisVersions[0]?.result || currentResult, viewedPatternId)?.h;
+    return (patternTree[viewedPatternId] || []).find((n) => n.h === h) || null;
+  })();
+  const latestVersionLabel = latestTreeNode ? patternVersionLabel(viewedPatternId, latestTreeNode) : versionLabel(analysisVersions, 0);
+
+  // 戦略ディレクトリで版を押したとき: そのパターンを選び、その中身を持つ一番新しい世代を表示する。
+  // 画面に届いている最新5件に無ければ、全世代を読み込み直して探す
+  const openPatternVersion = async (pid, node) => {
+    const findIdx = (list) => (Array.isArray(list) ? list : []).findIndex((v) => patternInfo(v?.result, pid)?.h === node.h);
+    let list = analysisVersions;
+    let idx = findIdx(list);
+    if (idx < 0 && siteId) {
+      try {
+        const r = await fetch("/api/sites?id=" + encodeURIComponent(siteId) + "&versions=all");
+        if (r.ok) {
+          const site = (await r.json())?.site;
+          if (Array.isArray(site?.analysis_versions) && site.analysis_versions.length > 0) {
+            list = site.analysis_versions;
+            idx = findIdx(list);
+            setVersionsFromDB(list);
+            if (Array.isArray(site.version_index)) setVersionIndex(site.version_index);
+          }
+        }
+      } catch (e) {}
+    }
+    if (idx < 0) return;
+    const combos = list[idx]?.result?.combinations;
+    if (pid !== "main" && Array.isArray(combos)) {
+      const combo = combos.find((c) => c && String(c.id) === pid);
+      // パターンが変わるときは、パターン切替ボタンと同じ処理（タイトル同期・改善レポートの準備）を通す
+      if (combo && String(selectedCombinationId) !== pid) handleCombinationSwitch(combo.id);
+    }
+    handleSectionTabChange(null, idx);
+    setChangedPaths(new Map());
+  };
   // 表示中の過去の世代で確定する。その中身が新しい最新世代になり、それまでの最新は残る
   const confirmViewedOldVersion = () => {
     const viewedResult = analysisVersions[viewedVersionIdx]?.result;
     if (!viewedResult) return;
-    const latestNum = versionDisplayNumber(analysisVersions, 0);
     const ok = window.confirm(
       `${viewedVersionLabel} の内容で戦略を確定します。\n\n` +
-      `・${viewedVersionLabel} の内容が新しい最新（v${latestNum + 1}）になります\n` +
-      `・今の最新（v${latestNum}）は消えずに残ります\n` +
+      `・${viewedVersionLabel} の内容が、このパターンの一番新しい版として扱われます\n` +
+      `・今の最新（${latestVersionLabel}）は消えずに残ります\n` +
       `・戦略アクションは、この戦略のもの（以前にこの戦略で作ったものがあれば、それ）に切り替わります\n\n` +
       `よろしいですか？`
     );
@@ -4649,7 +4684,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               strategyVersionId,
             });
           }
-          reset(); setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
+          reset(); setSiteId(null); setStrategyVersionId(null); setReflectMarks({}); setVersionIndex([]); sessionStorage.removeItem("ab3c_last_analysis"); setViewOverride(null); window.history.replaceState(null, "", "/"); window.scrollTo(0, 0);
         }}
         onSwitchToAnalysis={async () => {
           // 現在のサイトの分析結果があればそれを表示、なければ「戻る先」を in-place で復元
@@ -4679,7 +4714,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
             {/* カラム見出し + 開閉ボタン */}
             <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(0,0,0,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 18, fontWeight: 400, color: "#2a2a26" }}>
-                {phase === "action" ? "施策一覧" : "戦略確定履歴"}
+                {phase === "action" ? "施策一覧" : "戦略ディレクトリ"}
               </div>
               <button onClick={function() { setSidebarOpen(false); }} style={{ background: "transparent", border: "none", color: "#2a2a26", cursor: "pointer", fontSize: 14, padding: "2px 4px" }}>◀ 閉じる</button>
             </div>
@@ -4756,113 +4791,72 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                 </div>
               </>
             ) : (
-              <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto" }}>
-                {confirmHistory.length === 0 ? (
-                  <div style={{ padding: 16, fontSize: 14, color: "#888", textAlign: "center", lineHeight: 1.6 }}>
-                    戦略を確定すると<br/>ここに履歴が残ります
-                  </div>
-                ) : (
-                  // 「現在の戦略」= confirmHistory の最終エントリ（最新確定）。
-                  // strategy_confirmed=true の時のみ「現在の」マーカーを表示する
-                  // （未確定状態だとすべてが「過去の履歴」扱い）。
-                  (function() {
-                    var liveConfirmedSnapId = strategyConfirmed && confirmHistory.length > 0
-                      ? confirmHistory[confirmHistory.length - 1].id
-                      : null;
-
-                    // ✏️ 編集中エントリの判定:
-                    //   - 未確定の検討中バージョン（最後の確定スナップショットと異なる）が存在する場合に表示
-                    //   - liveStateBackup があれば「過去履歴を覗いている最中」、その backup result を比較対象に
-                    //   - なければ currentResult が live なので、それを最後の確定と比較
-                    //   - 編集中エントリの strategy_message は live のものを表示
-                    var lastConfirm = confirmHistory[confirmHistory.length - 1];
-                    var liveResultForCompare = currentResult;
-                    var liveStrategyMessageForLabel = historyTitle;
-                    var hasUnconfirmedWork = false;
-                    try {
-                      var lastPid = lastConfirm ? confirmedPatternIdOfResult(lastConfirm.result) : null;
-                      hasUnconfirmedWork = !!(lastConfirm && liveResultForCompare &&
-                        patternKeyOf(liveResultForCompare, lastPid) !== patternKeyOf(lastConfirm.result, lastPid));
-                    } catch (e) { hasUnconfirmedWork = false; }
-                    // 表示中の世代（全項目共通）とパターンの中身。確定履歴のどれを見ているかの判定に使う
-                    var viewedResultForSidebar = analysisVersions[viewedVersionIdx]?.result || currentResult;
-                    // ✏️ 編集中エントリが「アクティブ」= 最新の世代を表示中
-                    var isEditingEntryActive = hasUnconfirmedWork && viewedVersionIdx === 0;
-
-                    var editingEntry = hasUnconfirmedWork ? (
-                      <div key="editing"
-                        onClick={function() {
-                          // 最新の世代（検討中の版）に戻す。過去の世代を見ていた場合も、この操作で戻れる
-                          setActiveVersionPerSection({});
-                          setChangedPaths(new Map());
-                        }}
-                        style={{
-                          padding: "10px 14px",
-                          paddingRight: isEditingEntryActive ? "15px" : "14px",
-                          marginRight: isEditingEntryActive ? "-1px" : "0",
-                          borderBottom: "1px solid rgba(0,0,0,0.06)",
-                          cursor: "pointer",
-                          background: isEditingEntryActive ? C.bg : "#fff8e1",  // ライブ表示中は灰、それ以外は薄ベージュ
-                          // 左ボーダーは 3px だと薄ベージュ背景に埋もれて視認しづらいので 6px に倍増（権さん指摘）
-                          borderLeft: isEditingEntryActive ? "6px solid #d97706" : "6px solid #f59e0b",
-                          position: "relative",
-                          zIndex: isEditingEntryActive ? 2 : 1,
-                        }}>
-                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span>✏️ 編集中</span>
-                          <span style={{ display: "inline-block", background: "#d97706", color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
-                            未確定
-                          </span>
-                        </div>
-                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isEditingEntryActive ? 700 : 400 }}>
-                          {(liveStrategyMessageForLabel || "").slice(0, 50)}
-                        </div>
-                      </div>
-                    ) : null;
-
-                    var confirmEntries = confirmHistory.slice().reverse().map(function(ch, i) {
-                    // 表示中の世代・パターンの中身が、この確定の中身と同じなら選択中として光らせる
-                    var chPid = confirmedPatternIdOfResult(ch.result);
-                    var samePattern = chPid === "main" || String(selectedCombinationId) === chPid;
-                    var isActive = samePattern && patternKeyOf(viewedResultForSidebar, chPid) === patternKeyOf(ch.result, chPid);
-                    var isLive = ch.id === liveConfirmedSnapId;
-                    return (
-                      <div key={ch.id} onClick={function() {
-                        // 別の画面（スナップショット）に切り替えず、世代タブでこの確定の版を選ぶ。
-                        // 戦略策定チャットはサイトに1本なので、ここでは入れ替えない（2026-09-22）
-                        openConfirmationVersion(ch);
-                      }}
-                        style={{
-                          padding: "10px 14px",
-                          paddingRight: isActive ? "15px" : "14px",  // 選択中は +1px してメイン領域へ視覚的に繋ぐ
-                          marginRight: isActive ? "-1px" : "0",       // サイドバー右枠線を覆って「タブ」感を出す
-                          borderBottom: "1px solid rgba(0,0,0,0.06)",
-                          cursor: "pointer",
-                          background: isActive ? C.bg : "transparent",  // メイン領域と同じグレーで選択中を明示
-                          // 編集中エントリと同じ 6px に揃える（権さん指摘）。確定済みは黒。
-                          borderLeft: isActive ? "6px solid #2a2a26" : "6px solid transparent",
-                          position: "relative",
-                          zIndex: isActive ? 2 : 1,
-                        }}>
-                        <div style={{ fontSize: 12, color: "#888", marginBottom: 3, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span>#{confirmHistory.length - i} · {ch.date}</span>
-                          {isLive && (
-                            <span style={{ display: "inline-block", background: C.B, color: "#fff", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", padding: "1px 7px", borderRadius: 999 }}>
-                              確定中
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 14, color: "#2a2a26", lineHeight: 1.4, fontWeight: isLive ? 700 : 400 }}>{(ch.strategyMessage || "").slice(0, 50)}</div>
-                        {ch.chatSummaries && ch.chatSummaries.length > 0 && (
-                          <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>💬 {ch.chatSummaries.length}件反映</div>
-                        )}
-                      </div>
-                    );
-                    });
-                    // ✏️ 編集中エントリは常に最上部に。confirmEntries は新しい順で並ぶ。
-                    return [editingEntry].concat(confirmEntries);
-                  })()
-                )}
+              <div className="hide-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "6px 0 16px" }}>
+                {/* 戦略ディレクトリ（2026-09-22）: サイト → パターン → 版 → 確定中の版の下に戦略アクション。
+                    確定履歴の一覧をやめ、戦略の構造そのものを現在地として見せる。版はパターンごとに数え、
+                    中身が変わったときだけ増える。表示中の版を塗り、いま確定している版に「確定中」を付ける */}
+                {(() => {
+                  const siteLabel = currentInput?.startsWith("http")
+                    ? (() => { try { return new URL(currentInput).hostname.replace(/^www./, ""); } catch (e) { return currentInput; } })()
+                    : "テキストで入力した事業";
+                  const currentIds = Array.isArray(currentResult?.combinations) && currentResult.combinations.length > 0
+                    ? currentResult.combinations.filter(Boolean).map((c) => String(c.id))
+                    : ["main"];
+                  const pids = currentIds.concat(Object.keys(patternTree).filter((k) => !currentIds.includes(k)));
+                  return (
+                    <>
+                      <div style={{ padding: "8px 14px 6px", fontSize: 16, fontWeight: 700, color: "#2a2a26", wordBreak: "break-all" }}>{siteLabel}</div>
+                      {pids.map((pid) => {
+                        const nodes = patternTree[pid] || [];
+                        if (nodes.length === 0) return null;
+                        const isOpen = treeOpen[pid] ?? (pid === viewedPatternId);
+                        const patternLabel = nodes[0]?.label || "";
+                        const isViewedPattern = pid === viewedPatternId;
+                        return (
+                          <div key={pid} style={{ marginTop: 4 }}>
+                            <div onClick={() => setTreeOpen((prev) => ({ ...prev, [pid]: !isOpen }))}
+                              style={{ padding: "6px 14px", cursor: "pointer", display: "flex", gap: 6, alignItems: "baseline", fontSize: 16, fontWeight: isViewedPattern ? 700 : 400, color: "#2a2a26" }}>
+                              <span style={{ width: 14, flexShrink: 0 }}>{isOpen ? "▼" : "▶"}</span>
+                              <span>{pid !== "main" ? `P${pid} ${patternLabel}` : "戦略"}{!isOpen && <span style={{ color: "#888", fontWeight: 400 }}>（{nodes.length}版）</span>}</span>
+                            </div>
+                            {isOpen && nodes.map((node) => {
+                              const isViewed = isViewedPattern && viewedTreeNode && node.h === viewedTreeNode.h;
+                              const isLive = !!liveConfirmedNode && liveConfirmedNode.pid === pid && liveConfirmedNode.h === node.h;
+                              return (
+                                <div key={node.h}>
+                                  <div onClick={() => openPatternVersion(pid, node)}
+                                    title={isViewed ? "表示中の版" : "この版を表示する"}
+                                    style={{
+                                      margin: "2px 8px 2px 28px", padding: "6px 8px", borderRadius: 6, cursor: "pointer",
+                                      background: isViewed ? "#2a2a26" : "transparent",
+                                      color: isViewed ? "#fff" : "#2a2a26",
+                                    }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 16, fontWeight: 700 }}>
+                                      <span>v{node.pv}</span>
+                                      {isLive && <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "0 8px", fontSize: 14, fontWeight: 700 }}>確定中</span>}
+                                    </div>
+                                    {node.message && (
+                                      <div style={{ fontSize: 14, lineHeight: 1.5, marginTop: 2, color: isViewed ? "#fff" : "#444", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                        {node.message}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* 確定中の版の下に戦略アクションがぶら下がる */}
+                                  {isLive && (
+                                    <div onClick={() => { setViewOverride("action"); window.scrollTo(0, 0); }}
+                                      style={{ margin: "0 8px 4px 44px", padding: "4px 8px", fontSize: 14, color: C.phase2, cursor: "pointer", fontWeight: 700 }}>
+                                      └ 戦略アクション（{actions.length}件）
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </div>
             )}
 
@@ -4871,7 +4865,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
         {/* サイドバー閉じ時の開くボタン（input フェーズでは非表示） */}
         {!sidebarOpen && phase !== "input" && (
           <button onClick={function() { setSidebarOpen(true); }} style={{ position: "fixed", left: 0, top: headerHeight + 10, zIndex: 200, background: phase === "action" ? C.phase2 : C.phase1, border: "none", borderRadius: "0 6px 6px 0", padding: "12px 10px", cursor: "pointer", color: "#fff", fontSize: 16, fontWeight: 400, boxShadow: "2px 2px 8px rgba(0,0,0,0.2)", writingMode: "vertical-rl", letterSpacing: "0.15em" }}>
-            {phase === "action" ? "施策一覧 ▶" : "戦略確定履歴 ▶"}
+            {phase === "action" ? "施策一覧 ▶" : "戦略ディレクトリ ▶"}
           </button>
         )}
         <div ref={mainContentRef} style={{ flex: 1, padding: "0", overflowY: "auto", display: "flex", flexDirection: "column" }}>
@@ -5413,6 +5407,22 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                   )}
                 </div>
               )}
+{/* パンくず（戦略ディレクトリ上の現在地）: サイト ＞ パターン ＞ 版 ＞ 戦略策定 */}
+{viewedTreeNode && (() => {
+  const site = currentInput?.startsWith("http") ? (() => { try { return new URL(currentInput).hostname.replace(/^www./, ""); } catch (e) { return currentInput; } })() : "テキストで入力した事業";
+  const sep = <span style={{ color: "#888", margin: "0 8px" }}>＞</span>;
+  return (
+    <div style={{ fontSize: 16, color: "#2a2a26", marginBottom: 12, display: "flex", flexWrap: "wrap", alignItems: "center", lineHeight: 1.6 }}>
+      <span>{site}</span>{sep}
+      <span>{viewedPatternId !== "main" ? `P${viewedPatternId} ${trimRouteSuffix(viewedTreeNode.label || "")}` : "戦略"}</span>{sep}
+      <span style={{ fontWeight: 700 }}>v{viewedTreeNode.pv}</span>
+      {liveConfirmedNode && liveConfirmedNode.pid === viewedPatternId && liveConfirmedNode.h === viewedTreeNode.h && (
+        <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "0 8px", fontSize: 14, fontWeight: 700, marginLeft: 6 }}>確定中</span>
+      )}
+      {sep}<span>戦略策定</span>
+    </div>
+  );
+})()}
 <div id="result-area">
   <div style={{ borderTop: "6px solid #2a2a26", borderBottom: "1px solid #2a2a26", padding: "18px 8px 16px", marginBottom: 24 }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -5436,7 +5446,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
       <button onClick={() => setActiveVersionPerSection({})}
         style={{ background: "#fff", border: "1px solid #2a2a26", borderRadius: 999, color: "#2a2a26", cursor: "pointer", fontSize: 16, fontWeight: 700, padding: "10px 20px", whiteSpace: "nowrap" }}>
-        最新（{versionLabel(analysisVersions, 0)}）に戻す
+        最新（{latestVersionLabel}）に戻す
       </button>
     </div>
   )}
@@ -5504,7 +5514,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       </div>
     );
   })()}
-  <ResultView d={currentResult} liveConfirmedVersionIdx={liveConfirmedVersionIdx} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
+  <ResultView d={currentResult} liveConfirmedVersionIdx={liveConfirmedVersionIdx} patternVersionBadge={viewedTreeNode ? "v" + viewedTreeNode.pv : null} patternVersionBadgeLive={!!(viewedTreeNode && liveConfirmedNode && liveConfirmedNode.pid === viewedPatternId && liveConfirmedNode.h === viewedTreeNode.h)} versions={analysisVersions} activeVersionPerSection={activeVersionPerSection} onSectionTabChange={handleSectionTabChange} onChat={(topic) => chatSendTopicRef.current?.(topic)} changedPaths={changedPaths} refineSelection={refineSelection} selectedCombinationId={selectedCombinationId} onSelectCombination={handleCombinationSwitch} onRefineToggle={(strategyConfirmed || isViewingOldVersion) ? null : (key, i) => {
     setRefineSelection(prev => {
       const list = prev[key] || [];
       const next = list.includes(i) ? list.filter(x => x !== i) : [...list, i];

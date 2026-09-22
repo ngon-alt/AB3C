@@ -7,6 +7,7 @@ import {
   saveActionSet, versionBelongsToSite, saveVersionReports, rescueThreadMessages,
   stableStringify,
 } from "@/app/lib/strategy-versions";
+import { versionIndexEntry } from "@/app/lib/pattern-version";
 
 // 確定時に画面が付け足す項目（確定パターンを表の階層に写したもの・確定パターン ID）を除けば、
 // 比較先の結果と全く同じか。＝最新の世代をそのまま確定しただけか。
@@ -172,24 +173,23 @@ function synthesizeVersionsForSite(site, allVersions = false) {
     // 画面側で件数から数えると「11件目が v5」のように番号がずれる（2026-09-22 権さん指摘）
     const total = site.analysis_versions.length;
     const numbered = site.analysis_versions.map((v, i) => ({ ...v, number: total - i }));
-    // allVersions: 確定履歴から古い版を開くとき（画面が最新5件に無い版を探す）だけ全世代を返す
-    return { ...site, analysis_versions: !allVersions && total > VERSIONS_IN_RESPONSE ? numbered.slice(0, VERSIONS_IN_RESPONSE) : numbered };
+    // 全世代の見出し（パターンごとの指紋・名前・戦略メッセージだけ）。戦略ディレクトリで
+    // パターンごとの版を数えるのに使う。中身の全文は最新5件だけ送る（応答サイズ対策）
+    const version_index = numbered.map(versionIndexEntry);
+    // allVersions: 古い版を開くとき（画面が最新5件に無い版を探す）だけ全世代を返す
+    return { ...site, version_index, analysis_versions: !allVersions && total > VERSIONS_IN_RESPONSE ? numbered.slice(0, VERSIONS_IN_RESPONSE) : numbered };
   }
   if (!site.latest_analysis) return { ...site, analysis_versions: [] };
   const ts = site.analyzed_at ? new Date(site.analyzed_at).getTime() : Date.now();
-  return {
-    ...site,
-    analysis_versions: [
-      {
-        id: ts,
-        result: site.latest_analysis,
-        created_at: site.analyzed_at ? new Date(site.analyzed_at).toISOString() : new Date().toISOString(),
-        source: "initial",
-        confirmed: !!site.strategy_confirmed,
-        number: 1,
-      },
-    ],
+  const only = {
+    id: ts,
+    result: site.latest_analysis,
+    created_at: site.analyzed_at ? new Date(site.analyzed_at).toISOString() : new Date().toISOString(),
+    source: "initial",
+    confirmed: !!site.strategy_confirmed,
+    number: 1,
   };
+  return { ...site, version_index: [versionIndexEntry(only)], analysis_versions: [only] };
 }
 
 // 処理時間の内訳を Server-Timing ヘッダーで返す（開発者ツールの「Timing」で確認できる。画面には出ない）
