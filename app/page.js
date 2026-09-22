@@ -459,11 +459,11 @@ function getChangedCardPathsAt(versions, cardPaths, activeIdx) {
 // セクション単位で「実際に切替可能な世代タブが存在するか」を判定するヘルパー。
 // idx === 0 は常に「最新表示中」。idx > 0 でもタブが1個以下なら、UI上タブは出ていないので
 // 「過去の世代表示中」とは扱わない（avps が前の操作で残っていても無効化）。
+// 表示中の世代で、このセクションの中身が最新と違うか（同じなら「最新を見ている」のと同じ扱い）
 function isViewingOldForSection(versions, sectionKey, idx, selectedCombinationId) {
   if (!Array.isArray(versions) || versions.length <= 1) return false;
   if (!idx || idx === 0) return false;
-  var tabs = getSectionTabs(versions, sectionKey, selectedCombinationId);
-  return tabs.length > 1;
+  return sectionChangedBetween(versions, sectionKey, idx, 0, selectedCombinationId);
 }
 
 // 世代タブのスタイル小コンポーネント
@@ -474,13 +474,19 @@ function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, on
   // 世代切替コントロール自体を表示しない。1個しかないタブを押せてしまうと
   // 「実質的に最新と同じ内容なのに過去の世代扱い」というおかしい状態になるため。
   if (tabs.length <= 1) return null;
+  // 全セクションで同じ世代番号を並べる（どのセクションでも「今見ている版」が同じ番号で光る）。
+  // このセクションが変化していない世代は薄く表示する（押せば全体がその世代に切り替わる）
+  var changedSet = {};
+  tabs.forEach(function (t) { changedSet[t.index] = true; });
+  var allTabs = [];
+  for (var vi = versions.length - 1; vi >= 0; vi--) allTabs.push({ index: vi, isInitial: vi === versions.length - 1, changed: !!changedSet[vi] });
   return (
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10, alignItems: "center" }}>
       <span style={{ fontSize: 11, color: "#78716c", fontFamily: "'Space Mono', monospace", letterSpacing: "0.05em", marginRight: 4 }}>世代</span>
-      {tabs.map(function (t) {
+      {allTabs.map(function (t) {
         var num = versionDisplayNumber(versions, t.index);
         var col = getVersionColor(num);
-        var isActive = active === t.index;
+        var isActive = (active || 0) === t.index;
         var isLatest = t.index === 0;
         var confirmed = versions[t.index]?.confirmed === true;
         return (
@@ -488,11 +494,12 @@ function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, on
             key={t.index}
             onClick={disabled ? undefined : function () { onChange && onChange(sectionKey, t.index); }}
             disabled={disabled}
-            title={(isLatest ? "最新" : "過去の世代") + (confirmed ? "・確定済み" : "") + (t.isInitial ? "・初回" : "")}
+            title={(isLatest ? "最新" : "過去の世代") + (confirmed ? "・確定済み" : "") + (t.isInitial ? "・初回" : "") + (t.changed ? "" : "・この版ではこの項目は変わっていません") + "（押すと全項目がこの版に切り替わります）"}
             style={{
               background: isActive ? col.tab : "#fff",
               color: isActive ? col.tabText : col.text,
-              border: "1.5px solid " + col.tab,
+              border: "1.5px " + (t.changed || isActive ? "solid " : "dashed ") + col.tab,
+              opacity: disabled ? 0.6 : (t.changed || isActive ? 1 : 0.55),
               borderRadius: 14,
               padding: "3px 10px",
               fontSize: 12,
@@ -501,7 +508,6 @@ function VersionTabBar({ versions, sectionKey, selectedCombinationId, active, on
               letterSpacing: "0.04em",
               cursor: disabled ? "not-allowed" : "pointer",
               lineHeight: 1.4,
-              opacity: disabled ? 0.6 : 1,
               boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
               transition: "background 0.12s, color 0.12s",
             }}
@@ -1584,8 +1590,8 @@ function AnalysisChatPanel({ isPro, analysisResult, improveResult, onReanalyze, 
         </button>
         {/* 古い世代を表示中の場合は再分析・確定ボタンを非表示 */}
         {isViewingOldVersion && (
-          <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 13, color: "#7a4f00", lineHeight: 1.6 }}>
-            🕒 過去の世代を表示中です。再分析・戦略確定するには、各セクションのタブで最新世代に戻してください。
+          <div style={{ marginTop: 12, padding: "10px 12px", background: "#fff8e1", border: "1px solid #f0a020", borderRadius: 6, fontSize: 16, color: "#7a4f00", lineHeight: 1.6 }}>
+            🕒 過去の世代を表示中です。再分析・戦略確定するには、どれか一つの項目の世代タブで最新を押してください。全項目が最新に戻ります。
           </div>
         )}
         {/* 会話量警告バナー */}
@@ -2390,9 +2396,14 @@ const [activeVersionPerSection, setActiveVersionPerSection] = useState({});
 const isViewingOldVersion = Object.entries(activeVersionPerSection).some(function (entry) {
   return isViewingOldForSection(analysisVersions, entry[0], entry[1] || 0, selectedCombinationId);
 });
-// 世代タブのクリック: 該当セクションの表示世代を切り替え
+// 世代タブのクリック: どのセクションのタブを押しても、全セクションが同じ世代に一斉に切り替わる。
+// セクションごとに別々の世代を表示できると、v3 と v4 が混ざった状態になり
+// 「今見ている版」が定まらないため（2026-09-22 権さん指示）。
+const VERSIONED_SECTION_KEYS = ["strategy_message", "benefit", "advantage", "customer", "competitor", "company", "checkpoints"];
 const handleSectionTabChange = function (sectionKey, versionIndex) {
-  setActiveVersionPerSection(function (prev) { return Object.assign({}, prev, ({ [sectionKey]: versionIndex })); });
+  var next = {};
+  VERSIONED_SECTION_KEYS.forEach(function (k) { next[k] = versionIndex; });
+  setActiveVersionPerSection(next);
 };
 // 新しい世代を先頭に追加（max 5）
 const addAnalysisVersion = function (newResult, source) {
@@ -2772,6 +2783,7 @@ const [chatSummaries, setChatSummaries] = useState([]);
         findSiteDetail(savedSiteId, inputForLookup).then(match => {
           if (!match) return;
           setSiteId(match.id);
+          setStrategyVersionId(match.current_strategy_version_id || null);
           // 分析結果と世代履歴は DB を正とする。sessionStorage は最新結果1件しか持たないため、
           // ここで上書きしないと世代タブが1世代に潰れて見える（2026-09-14 権さん指摘）。
           if (match.latest_analysis) {
@@ -5155,8 +5167,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   })()}
   {(() => {
     const canConfirm = !isDiagnosisActive && (isPro || chatTickets > 0 || trialChats > 0);
-    // 古い世代を見ている時は確定ボタンを非表示にする
-    if (isViewingOldVersion) return null;
+    // 古い世代を見ている時は確定ボタンを非表示にする。
+    // ただし確定中なら「確定済み」表示と解除ボタンは残す（過去の世代を見比べただけで
+    // 確定状態が画面から消えると、確定しているのか分からなくなるため・2026-09-22 権さん指摘）
+    if (isViewingOldVersion && !strategyConfirmed) return null;
     // 履歴閲覧モード: 過去のスナップショットを表示中。「確定済み」表示は混乱の元なので
     // 「この履歴で再確定」ボタンに切替、解除ボタンは隠す（live でないので解除対象外）。
     // 「現在の戦略」（confirmHistory の最終 = 最新確定）を選択中の場合は live 状態と等価なので
@@ -5290,8 +5304,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   </div>
   {/* 古い世代を見ている時の案内バー */}
   {isViewingOldVersion && (
-    <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 14, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
-      <b>🕒 過去の世代を表示中です。</b> 再分析・戦略確定するには、各セクションのタブで<b>v{analysisVersions.length}（最新）</b>に戻してください。
+    <div style={{ background: "#fff8e1", border: "2px solid #f0a020", borderRadius: 6, padding: "12px 16px", marginBottom: 16, fontSize: 16, color: C.ink, lineHeight: 1.6, fontFamily: "system-ui, sans-serif" }}>
+      <b>🕒 過去の世代を表示中です。</b> 再分析・戦略確定するには、どれか一つの項目の世代タブで<b>v{analysisVersions.length}（最新）</b>を押してください。全項目が最新に戻ります。
     </div>
   )}
   {(() => {
