@@ -4841,7 +4841,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                                   {isLive && (
                                     <div onClick={() => { setViewOverride("action"); window.scrollTo(0, 0); }}
                                       style={{ margin: "0 8px 4px 44px", padding: "4px 8px", fontSize: 14, color: C.phase2, cursor: "pointer", fontWeight: 700 }}>
-                                      └ 戦略アクション（{actions.length}件）
+                                      └ アクションリスト（{actions.length}件）
                                     </div>
                                   )}
                                 </div>
