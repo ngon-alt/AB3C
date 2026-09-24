@@ -4495,11 +4495,15 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
   // 確定中の版（パターンと中身）
   const liveConfirmedNode = (() => {
     if (!strategyConfirmed || !confirmHistory.length) return null;
-    const lc = confirmHistory[confirmHistory.length - 1]?.result;
+    const confirmation = confirmHistory[confirmHistory.length - 1];
+    const lc = confirmation?.result;
     const pid = confirmedPatternId(lc);
-    const h = patternInfo(lc, pid)?.h;
-    return h ? { pid, h } : null;
+    const info = patternInfo(lc, pid);
+    return info?.h ? { pid, h: info.h, label: info.label, message: info.message || confirmation?.strategyMessage || "", confirmation } : null;
   })();
+  // 確定したときの中身が、世代の一覧のどれとも一致しない場合（版の記録が始まる前に確定したサイトなど）。
+  // そのままだと樹形図に「確定中」が出ないので、確定時の内容を1つの版として並べる（2026-09-24 権さん報告）
+  const confirmedNodeMissing = !!liveConfirmedNode && !(patternTree[liveConfirmedNode.pid] || []).some((n) => n.h === liveConfirmedNode.h);
   // 「P1 v3」のような表示名（パターンの無い旧形式は「v3」）
   const patternVersionLabel = (pid, node) => node ? (pid !== "main" ? `P${pid} ` : "") + `v${node.pv}` : "";
   const viewedVersionLabel = viewedTreeNode ? patternVersionLabel(viewedPatternId, viewedTreeNode) : versionLabel(analysisVersions, viewedVersionIdx);
@@ -4803,7 +4807,10 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                     <>
                       <div style={{ padding: "8px 14px 6px", fontSize: 16, fontWeight: 700, color: "#2a2a26", wordBreak: "break-all" }}>{siteLabel}</div>
                       {pids.map((pid) => {
-                        const nodes = patternTree[pid] || [];
+                        let nodes = patternTree[pid] || [];
+                        if (confirmedNodeMissing && liveConfirmedNode.pid === pid) {
+                          nodes = [{ pv: null, label: liveConfirmedNode.label, message: liveConfirmedNode.message, h: liveConfirmedNode.h, fromConfirmation: true }].concat(nodes);
+                        }
                         if (nodes.length === 0) return null;
                         const isOpen = treeOpen[pid] ?? (pid === viewedPatternId);
                         const patternLabel = nodes[0]?.label || "";
@@ -4816,11 +4823,12 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                               <span>{pid !== "main" ? `P${pid} ${patternLabel}` : "戦略"}{!isOpen && <span style={{ color: "#888", fontWeight: 400 }}>（{nodes.length}版）</span>}</span>
                             </div>
                             {isOpen && nodes.map((node) => {
-                              const isViewed = isViewedPattern && viewedTreeNode && node.h === viewedTreeNode.h;
+                              // 表示中の判定は中身の指紋で行う（記録に無い確定の版も光るように）
+                              const isViewed = isViewedPattern && node.h === viewedPatternH;
                               const isLive = !!liveConfirmedNode && liveConfirmedNode.pid === pid && liveConfirmedNode.h === node.h;
                               return (
                                 <div key={node.h}>
-                                  <div onClick={() => openPatternVersion(pid, node)}
+                                  <div onClick={() => (node.fromConfirmation ? openConfirmationVersion(liveConfirmedNode.confirmation) : openPatternVersion(pid, node))}
                                     title={isViewed ? "表示中の版" : "この版を表示する"}
                                     style={{
                                       margin: "2px 8px 2px 28px", padding: "6px 8px", borderRadius: 6, cursor: "pointer",
@@ -4828,7 +4836,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
                                       color: isViewed ? "#fff" : "#2a2a26",
                                     }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 16, fontWeight: 700 }}>
-                                      <span>v{node.pv}</span>
+                                      <span>{node.pv ? "v" + node.pv : "確定時の版"}</span>
                                       {isLive && <span style={{ background: C.B, color: "#fff", borderRadius: 999, padding: "0 8px", fontSize: 14, fontWeight: 700 }}>確定中</span>}
                                     </div>
                                     {node.message && (
