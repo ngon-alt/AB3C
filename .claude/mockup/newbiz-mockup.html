@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新規事業版 戦略指南 — 画面モックアップ v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-b:#FF0000;      /* Benefit */
+  --c-a:#1a6fd4;      /* Advantage */
+  --c-c:#1a1a14;      /* 3C */
+  --phase:#0d9488;
+  --phase-bg:#e6f4f2;
+  --line:#c9c9c9;
+  --line-soft:#e2e2e2;
+  --card:#ffffff;
+  --page:#f4f4f2;
+  --ink:#000000;
+  --sub:#4a4a4a;
+  --surface:#f8f8f6;
+  --highlight:#fef3c7;
+  --font-body:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --font-heading:"Noto Serif JP",serif;
+  --font-mono:"Space Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.75}
+h1,h2,h3,h4{font-family:var(--font-heading);margin:0;line-height:1.4}
+p{margin:0 0 12px}
+
+/* ===== モック外枠 ===== */
+#chrome{position:sticky;top:0;z-index:60;background:#1a1a14;color:#fff;padding:10px 16px}
+#chrome .ttl{font-size:16px;color:#c9c9c9;margin-bottom:8px}
+#chrome .ttl b{color:#fff}
+#nav{display:flex;flex-wrap:wrap;gap:6px}
+#nav button{font-family:var(--font-body);font-size:16px;padding:6px 12px;border:1px solid #555;background:#2a2a24;color:#e8e8e8;cursor:pointer;border-radius:3px}
+#nav button:hover{background:#3a3a32}
+#nav button.on{background:#fff;color:#1a1a14;border-color:#fff;font-weight:700}
+.note{max-width:1240px;margin:14px auto 0;padding:10px 16px;border-left:5px solid var(--phase);background:#fff;font-size:16px;color:var(--sub)}
+
+.screen{display:none}
+.screen.on{display:block}
+.frame{max-width:1240px;margin:14px auto 40px;background:var(--card);border:1px solid var(--line);position:relative;overflow:hidden}
+
+/* ===== 製品ヘッダー ===== */
+.hd{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.logo{font-family:var(--font-heading);font-size:22px;font-weight:700;letter-spacing:.04em}
+.logo small{display:block;font-family:var(--font-body);font-size:16px;font-weight:400;color:var(--sub);letter-spacing:0}
+.hd-r{display:flex;align-items:center;gap:12px;font-size:16px;flex-wrap:wrap}
+.bal{border:1px solid var(--line);padding:5px 12px;background:#fff;white-space:nowrap}
+.bal b{font-size:18px}
+.btn{font-family:var(--font-body);font-size:18px;padding:11px 22px;border:none;background:var(--phase);color:#fff;cursor:pointer;border-radius:3px}
+.btn:hover{background:#0b7f75}
+.btn.g{background:#555}.btn.g:hover{background:#3f3f3f}
+.btn.o{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.o:hover{background:#f2f2f2}
+.btn.sm{font-size:16px;padding:8px 16px}
+.btn:disabled{background:#c9c9c9;color:#6b6b6b;cursor:not-allowed}
+.pt{font-size:16px;opacity:.9}
+.muted{color:var(--sub);font-size:16px}
+
+/* ===== トップ ===== */
+.hero{padding:54px 58px 42px}
+.hero h1{font-size:40px;margin-bottom:18px}
+.hero p.lead{font-size:20px;max-width:820px;margin:0 0 26px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);margin:32px 0 14px}
+.steps div{padding:20px;border-right:1px solid var(--line)}
+.steps div:last-child{border-right:none}
+.steps .n{font-family:var(--font-heading);font-size:16px;color:var(--phase);letter-spacing:.1em;margin-bottom:6px}
+.steps h3{font-size:20px;margin-bottom:8px}
+.steps p{margin:0;font-size:18px;color:var(--sub)}
+
+/* ===== オーバーレイ ===== */
+.ovl{position:absolute;inset:0;background:rgba(26,26,20,.55);display:flex;align-items:center;justify-content:center;padding:24px;z-index:20}
+.ovl-box{background:#fff;max-width:660px;width:100%;padding:34px 38px;border:1px solid var(--line);max-height:88%;overflow:auto}
+.ovl-box h2{font-size:28px;margin-bottom:12px}
+.ovl-box ul{margin:14px 0 24px;padding-left:1.3em}
+.ovl-box li{margin-bottom:6px}
+
+/* ===== 汎用 ===== */
+.body{padding:32px 58px 44px}
+.body h2{font-size:28px;margin-bottom:10px}
+.body h3{font-size:22px;margin:26px 0 10px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:24px}
+.readbox{border:1px solid var(--line);padding:18px 22px;margin:16px 0;background:#fff}
+.lbl{font-size:16px;color:var(--phase);font-weight:700;margin-bottom:8px}
+
+/* ===== チャット ===== */
+.flexcol{display:flex;flex-direction:column;height:100%}
+.chat-hd{background:var(--phase);color:#fff;padding:12px 22px;font-size:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.chat-hd .prog{font-size:16px;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:3px}
+.chat-body{background:var(--phase-bg);padding:22px;overflow:auto;flex:1}
+.msg{max-width:78%;margin-bottom:16px;padding:14px 18px;border:1px solid var(--line-soft);background:#fff}
+.msg.me{margin-left:auto;background:#1a1a14;color:#fff;border-color:#1a1a14}
+.msg .who{font-size:16px;color:var(--sub);margin-bottom:4px}
+.msg.me .who{color:#c9c9c9}
+.msg p:last-child{margin-bottom:0}
+.chat-in{border-top:1px solid var(--line);padding:12px 20px;display:flex;gap:10px;align-items:center;background:#fff;flex-wrap:wrap}
+.chat-in input{flex:1;min-width:180px;font-family:var(--font-body);font-size:18px;padding:12px 14px;border:1px solid var(--line);background:var(--highlight)}
+.mic{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:20px;cursor:pointer;line-height:1}
+.mic.rec{background:var(--c-b);border-color:var(--c-b);color:#fff}
+
+/* ===== 自己分析（任意の枠） ===== */
+.opt{border:1px solid var(--line);background:#fff;margin:0 0 16px}
+.opt .oh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;background:var(--surface);flex-wrap:wrap}
+.opt .oh b{font-size:18px;font-weight:700}
+.opt .oh .tag{font-size:16px;color:var(--sub)}
+.opt .ob{padding:18px 22px;border-top:1px solid var(--line-soft)}
+.opt.closed .ob{display:none}
+.drop{border:2px dashed var(--line);padding:26px;text-align:center;background:#fafafa;margin:12px 0}
+.drop .big{font-size:18px;margin-bottom:4px}
+.rec-line{border-left:4px solid var(--phase);background:var(--phase-bg);padding:12px 16px;margin:12px 0;font-size:18px}
+
+/* ===== まとめ（開閉式） ===== */
+.sum{border:2px solid var(--c-c);background:#fff;margin-bottom:16px}
+.sum > .sh{background:var(--c-c);color:#fff;padding:14px 22px;font-family:var(--font-heading);font-size:22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sum > .sh span{font-family:var(--font-body);font-size:16px;color:#bdbdb6}
+.acc{border-bottom:1px solid var(--line-soft)}
+.acc:last-of-type{border-bottom:none}
+.acc .ah{display:flex;gap:14px;align-items:flex-start;padding:16px 22px;cursor:pointer}
+.acc .ah:hover{background:var(--surface)}
+.acc .num{font-family:var(--font-mono);font-size:16px;color:var(--phase);padding-top:4px;white-space:nowrap}
+.acc .ttl2{flex:1}
+.acc .ttl2 b{font-family:var(--font-heading);font-size:20px;display:block;margin-bottom:2px}
+.acc .ttl2 .ex{color:var(--sub);font-size:18px}
+.acc .mark{font-size:20px;color:var(--sub);padding-top:2px}
+.acc .ab{padding:4px 22px 22px 22px;display:none}
+.acc.open .ab{display:block}
+.acc.open .ah{background:var(--surface)}
+.acc .full{background:var(--surface);border:1px solid var(--line-soft);padding:18px 20px;font-size:18px;line-height:2}
+.acc .full p:last-child{margin-bottom:0}
+.acc .tools{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.cta{padding:20px 22px;border-top:2px solid var(--line-soft);display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--surface)}
+
+/* ===== 分析中 ===== */
+.wait{padding:64px 58px;text-align:center}
+.wait h2{font-size:28px;margin-bottom:8px}
+.prog-list{max-width:560px;margin:30px auto 0;text-align:left}
+.prog-list div{padding:11px 0;border-bottom:1px solid var(--line-soft);font-size:18px}
+.prog-list .done{color:var(--sub)}
+.prog-list .now{font-weight:700;color:var(--phase)}
+.prog-list .yet{color:#9a9a9a}
+.bar{height:8px;background:var(--line-soft);max-width:560px;margin:26px auto 0}
+.bar i{display:block;height:8px;width:55%;background:var(--phase)}
+
+/* ===== レポート ===== */
+.rpt{display:grid;grid-template-columns:1fr 400px;min-height:900px}
+.rpt-main{padding:22px 30px 40px;overflow:auto;border-right:1px solid var(--line)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.vtab{font-size:16px;padding:6px 14px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.vtab.show{border-color:var(--c-c);background:var(--c-c);color:#fff;font-weight:700}
+.vtab.fixed{border-color:var(--phase);color:var(--phase);font-weight:700}
+.ptabs{display:flex;gap:0;margin-bottom:18px;border-bottom:2px solid var(--c-c)}
+.ptab{font-size:18px;padding:11px 20px;border:1px solid var(--line);border-bottom:none;background:#d0d0d0;cursor:pointer;margin-right:4px}
+.ptab.on{background:var(--c-c);color:#fff;border-color:var(--c-c);font-weight:700}
+.ptab .rec{font-size:16px;color:var(--phase);font-weight:700}
+.ptab.on .rec{color:#7fd6cc}
+
+.msgblk{background:var(--c-c);color:#fff;padding:28px 32px;margin-bottom:22px}
+.msgblk .eyebrow{font-size:16px;color:#bdbdb6;letter-spacing:.14em;margin-bottom:10px}
+.msgblk h2{font-size:32px;color:#fff;line-height:1.5}
+.msgblk .parts{display:flex;gap:26px;margin-top:18px;flex-wrap:wrap;font-size:16px}
+.msgblk .parts b{display:block;font-size:16px;margin-bottom:2px}
+.pb{color:#ff6b6b}.pa{color:#7db4f5}
+
+.narr{border:1px solid var(--line);padding:26px 30px;margin-bottom:24px;background:#fff}
+.narr h3{font-size:22px;margin-bottom:12px}
+.narr p{font-size:18px;line-height:2.05}
+
+.seclb{font-family:var(--font-heading);font-size:24px;padding-left:14px;margin:28px 0 12px;border-left:8px solid var(--line)}
+.seclb small{display:block;font-family:var(--font-body);font-size:16px;font-weight:400;color:var(--sub)}
+.seclb.b{border-color:var(--c-b);color:var(--c-b)}
+.seclb.a{border-color:var(--c-a);color:var(--c-a)}
+.seclb.c{border-color:var(--c-c);color:var(--c-c)}
+
+.card{background:#e8e8e8;padding:18px 22px;margin-bottom:12px;position:relative}
+.card > h4{font-family:var(--font-body);font-size:18px;font-weight:700;margin-bottom:6px}
+.card ul{margin:6px 0 0;padding-left:1.3em}
+.card li{margin-bottom:5px}
+.card .chat-ico{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--phase);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.c2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.c3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mk{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.mk div{background:#fff;border:1px solid var(--line);padding:12px 14px}
+.mk .k{font-size:16px;color:var(--sub)}
+.mk .v{font-size:20px;font-weight:700}
+
+/* チェックポイント */
+.cp{background:var(--surface);border:1px solid var(--line);padding:20px 24px;margin:24px 0}
+.cp h4{font-family:var(--font-heading);font-size:20px;margin-bottom:14px}
+.cp .r{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.bdg{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex:0 0 28px}
+.bdg.ok{background:var(--phase)}
+.bdg.warn{background:#b8860b}
+.bdg.ng{background:var(--c-b)}
+.cp .sc{text-align:right;border-top:1px solid var(--line);padding-top:14px;font-family:var(--font-mono);font-size:18px;font-weight:700}
+
+/* ウェブサイトのイメージ */
+.mock{border:2px solid var(--c-c);background:#fff;margin-top:10px}
+.mock .mb{background:#eceff1;padding:8px 14px;font-size:16px;color:var(--sub);border-bottom:1px solid var(--line)}
+.mockpage{padding:0}
+.mp-nav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line-soft);font-size:16px}
+.mp-nav .mlogo{font-family:var(--font-heading);font-weight:700;font-size:18px}
+.mp-hero{padding:34px 26px;background:#1f3a4d;color:#fff}
+.mp-hero h5{font-family:var(--font-heading);font-size:26px;margin:0 0 10px;line-height:1.5}
+.mp-hero p{font-size:16px;margin:0 0 14px;color:#cfe0ea}
+.mp-btn{display:inline-block;background:#f0a500;color:#1a1a14;padding:9px 20px;font-size:16px;font-weight:700}
+.mp-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:20px 26px}
+.mp-3 div{border:1px solid var(--line-soft);padding:14px}
+.mp-3 b{display:block;font-size:16px;margin-bottom:4px}
+.mp-3 span{font-size:16px;color:var(--sub)}
+.mp-cta{background:var(--surface);padding:18px 26px;text-align:center;font-size:16px;border-top:1px solid var(--line-soft)}
+.cap{margin-top:10px;padding:14px 18px;background:var(--highlight);border-left:4px solid var(--c-a);font-size:18px}
+.cap b{color:var(--c-a)}
+
+/* 右チャット */
+.rpt-chat{display:flex;flex-direction:column;background:var(--phase-bg)}
+.deepbtn{border-top:1px solid var(--line);background:#fff;padding:12px 16px}
+.deepbtn button{width:100%}
+
+/* ===== 徹底分析パネル ===== */
+.deep{background:#fff;max-width:760px;width:100%;border:1px solid var(--line);max-height:88%;overflow:auto}
+.deep .dh{background:#1a1a14;color:#fff;padding:16px 24px;font-family:var(--font-heading);font-size:24px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.deep .dh span{font-family:var(--font-body);font-size:16px;color:#bdbdb6}
+.deep .dh button{background:transparent;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1}
+.di{display:grid;grid-template-columns:130px 1fr 170px;gap:16px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line-soft)}
+.di:last-child{border-bottom:none}
+.di.off{background:#fafafa;color:#7a7a7a}
+.dk{font-family:var(--font-heading);font-size:20px;color:var(--c-c)}
+.dk small{display:block;font-family:var(--font-body);font-size:16px;font-weight:400;color:var(--sub)}
+.di.off .dk{color:#7a7a7a}
+.dc{font-size:18px}
+.dc .cost{font-size:16px;color:var(--sub);margin-top:4px}
+.dr{text-align:right}
+
+/* ===== 成果物 ===== */
+.grp{margin-bottom:30px}
+.grp > h3{font-size:22px;border-left:8px solid var(--phase);padding-left:12px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.dcard{border:1px solid var(--line);background:#fff;padding:20px 22px;display:flex;flex-direction:column}
+.dcard h4{font-family:var(--font-heading);font-size:21px;margin-bottom:6px}
+.dcard .peek{background:var(--surface);border-left:4px solid var(--line);padding:11px 15px;margin:9px 0 12px;font-size:18px}
+.dcard .peek em{font-style:normal;color:var(--sub);font-size:16px;display:block;margin-bottom:3px}
+.dcard .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:6px}
+
+/* ===== ダッシュボード ===== */
+table.list{width:100%;border-collapse:collapse;margin-top:10px}
+table.list th,table.list td{text-align:left;padding:15px 12px;border-bottom:1px solid var(--line-soft);font-size:18px}
+table.list th{font-size:16px;color:var(--sub);font-weight:700;border-bottom:1px solid var(--line)}
+.state{font-size:16px;padding:4px 12px;border:1px solid var(--line);display:inline-block;white-space:nowrap}
+.state.fix{border-color:var(--phase);color:var(--phase);font-weight:700}
+.state.mid{border-color:#b8860b;color:#8a6508}
+</style>
+</head>
+<body>
+
+<div id="chrome">
+  <div class="ttl"><b>新規事業版 戦略指南 — 画面モックアップ v2</b>　2026-09-25　／　流れと中身の確認用。見た目は Claude Design で作り直す前提の素案です</div>
+  <div id="nav"></div>
+</div>
+<div class="note" id="noteBox"></div>
+
+<!-- ============ ① トップ ============ -->
+<section class="screen" data-k="① トップ" data-note="約束を4段で示す：話を聞く → 調べる → 戦略とウェブサイトを生成 → マーケティングのアクションを支援。ログインなしで見られる。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="muted">戦略指南AI（既存サービス）</span><button class="btn o sm">ログイン</button></div>
+    </div>
+    <div class="hero">
+      <h1>AIと一緒に、<br>新規事業をつくる。</h1>
+      <p class="lead">インタビューと市場調査から、新規事業の戦略を立てます。そのままマーケティングのウェブサイトを生成し、その後のマーケティングのアクションまで支援します。一般論を並べるのではありません。まずあなたの話を聞くところから始めます。</p>
+      <button class="btn" style="font-size:20px;padding:15px 34px">無料ではじめる</button>
+      <div class="muted" style="margin-top:8px">お試しで 12,700ポイント（12,700円相当）。登録は、お話を伺う直前で結構です。</div>
+      <div class="steps">
+        <div><div class="n">01</div><h3>話を聞く</h3><p>AIが5つのことを順に伺います。まとまっていなくて構いません。</p></div>
+        <div><div class="n">02</div><h3>調べる</h3><p>競合と市場を調べます。あなたの構想が通用するかを確かめます。</p></div>
+        <div><div class="n">03</div><h3>戦略とサイトを生成</h3><p>戦略が文章になり、ウェブサイトのイメージまで出ます。</p></div>
+        <div><div class="n">04</div><h3>集客を支援</h3><p>社名・営業資料・検索対策・プレスリリースまで。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ①-2 お知らせ ============ -->
+<section class="screen" data-k="①-2 はじめてのお知らせ" data-note="お試し未使用の人が初めて来たときに一度だけ。円に換算した額を併記して、価値が分かるようにする。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="muted">戦略指南AI（既存サービス）</span><button class="btn o sm">ログイン</button></div>
+    </div>
+    <div class="hero">
+      <h1>AIと一緒に、<br>新規事業をつくる。</h1>
+      <p class="lead">インタビューと市場調査から、新規事業の戦略を立てます。</p>
+      <div class="steps">
+        <div><div class="n">01</div><h3>話を聞く</h3><p>AIが5つのことを順に伺います。</p></div>
+        <div><div class="n">02</div><h3>調べる</h3><p>競合と市場を調べます。</p></div>
+        <div><div class="n">03</div><h3>戦略とサイトを生成</h3><p>ウェブサイトのイメージまで。</p></div>
+        <div><div class="n">04</div><h3>集客を支援</h3><p>営業資料・検索対策まで。</p></div>
+      </div>
+    </div>
+    <div class="ovl">
+      <div class="ovl-box">
+        <h2>お試しで 12,700ポイント（12,700円相当）</h2>
+        <p style="margin:0">はじめての方に、無料でお渡ししています。これだけのことができます。</p>
+        <ul>
+          <li>戦略の分析 1回（10,000ポイント）— ウェブサイトのイメージまで含みます</li>
+          <li>成果物 2本（各1,000ポイント）— 社名の案、営業資料など</li>
+          <li>チャットで相談 7往復（各100ポイント）</li>
+        </ul>
+        <div class="row" style="margin-top:0">
+          <button class="btn">はじめる</button>
+          <button class="btn o">あとで</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ② ヒアリングのはじまり ============ -->
+<section class="screen" data-k="② はじまり（自己分析は任意）" data-note="自己分析だけで1画面を取ると必須に見えるため、ヒアリングの冒頭に「任意の枠」として畳んで置いた。『ない』が通常の前提。村上さんの自己分析AIを推奨として案内し、心理学系の診断結果も受け取る。分析後でも登録できることを明記。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="bal">残り <b>12,700</b> ポイント</span><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="flexcol" style="height:700px">
+      <div class="chat-hd"><span>お話を伺います</span><span class="prog">① きっかけ・原体験　1／5</span></div>
+      <div class="chat-body">
+        <div class="msg" style="max-width:100%"><div class="who">AI</div>
+          <p>はじめまして。これからお話を伺って、あなたの経験から事業の戦略を組み立てていきます。</p>
+          <p>伺うのは5つです。きっかけ、解決したい課題、お客様、商品の構想、お客様が得られるもの。文章としてまとまっていなくて結構です。思い出した順に、話し言葉で結構です。マイクのボタンを押せば、声でも入力できます。</p>
+        </div>
+
+        <div class="opt">
+          <div class="oh" onclick="this.parentNode.classList.toggle('closed');this.querySelector('.mk2').textContent=this.parentNode.classList.contains('closed')?'＋':'−'">
+            <b>自分を分析した資料をお持ちでしたら、先に読ませてください<span class="tag">（任意・実際は畳んだ状態で始まります）</span></b>
+            <span class="mk2" style="font-size:22px;color:var(--sub)">−</span>
+          </div>
+          <div class="ob">
+            <p style="font-size:18px">お持ちでない方がほとんどです。無くてもこのまま進められますので、そのまま下からお話しください。</p>
+            <div class="rec-line">
+              <b>おすすめ：自己分析AI</b>　価値観と原体験を言葉にするツールです。<a href="#" style="color:var(--c-a)">別サイトで提供しております（デジタル経営革新協会）→</a><br>
+              <span class="muted">こちらの書き出しは、戦略の土台として使います。</span>
+            </div>
+            <p style="font-size:18px;margin-bottom:4px">性格診断や心理学的な分析の結果（MBTI・ストレングスファインダー・エニアグラムなど）をお持ちでしたら、それも置いてください。お話を伺うときの参考にします。</p>
+            <div class="drop">
+              <div class="big">ここにPDFやテキストを置いてください</div>
+              <div class="muted">またはクリックしてファイルを選ぶ／文章を貼り付ける</div>
+            </div>
+            <p class="muted" style="margin:0">ファイルそのものは送信されません。読み取った文章だけを、このサービスの中で使います。いつでも削除できます。<b>分析が終わった後からでも登録できます。</b></p>
+          </div>
+        </div>
+
+        <div class="msg"><div class="who">AI</div>では、一つめです。この事業をやろうと思われたきっかけは、何かありましたか。</div>
+      </div>
+      <div class="chat-in">
+        <button class="btn o sm">📎</button>
+        <button class="mic" title="声で入力する">🎙</button>
+        <input placeholder="話し言葉のままで結構です">
+        <button class="btn">送る</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ③ ヒアリング ============ -->
+<section class="screen" data-k="③ ヒアリング" data-note="順に聞くのが基本。抽象的なら具体を、具体的すぎるなら抽象を求める。回数は決めず、思考が深まるならやる。音声入力を活かす（録音中は赤）。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="bal">残り <b>12,700</b> ポイント</span><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="flexcol" style="height:700px">
+      <div class="chat-hd"><span>お話を伺っています</span><span class="prog">② 解決したい課題　2／5</span></div>
+      <div class="chat-body">
+        <div class="msg"><div class="who">AI</div>では、一つめです。この事業をやろうと思われたきっかけは、何かありましたか。</div>
+        <div class="msg me"><div class="who">あなた</div>30年メーカーで営業をやってきて、町工場をずっと回ってたんです。技術はあるのに、売り方を知らないまま廃業していく工場を何社も見てきました。</div>
+        <div class="msg"><div class="who">AI</div>「売り方を知らない」というのは、具体的にはどういう場面でお感じになりましたか。断られてしまう場面なのか、そもそも声がかからないのか。</div>
+        <div class="msg me"><div class="who">あなた</div>声がかからないですね。営業が一人もいない工場が多いので。腕はこっちが驚くくらいなんですが。</div>
+        <div class="msg"><div class="who">AI</div>いちばん記憶に残っている工場はありますか。差し支えなければ、その時のことを聞かせてください。</div>
+        <div class="msg me"><div class="who">あなた</div>40代の初めですね。10年以上付き合いのあった工場が、ある日「今月で閉める」と。社長は70過ぎでしたけど腕は落ちてなかったし、息子さんもいたんですよ。それでも仕事が減って続けられないと。帰りの車でずっと考えてました。</div>
+        <div class="msg"><div class="who">AI</div>ありがとうございます。いま伺ったお話が、この事業の原点だと思います。技術ではなく「取引先がうち一社しかなかったこと」が原因だった、ということですね。<br><br>では二つめに移ります。その中で、あなたが解決したいと思っている課題は何でしょうか。</div>
+        <div class="msg me"><div class="who">あなた</div>町工場と、ものをつくりたい個人をつなぎたい。</div>
+        <div class="msg"><div class="who">AI</div>それは「つなぐ仕組みがない」ということでしょうか。それとも「つなごうとしても、うまくいかない理由がある」ということでしょうか。先ほどのお話からすると、後者のように聞こえます。</div>
+      </div>
+      <div class="chat-in">
+        <button class="btn o sm">📎</button>
+        <button class="mic rec" title="録音中。もう一度押すと止まります">🎙</button>
+        <input value="そうですね。紹介しても、言葉が通じないんですよ。図面が読めない人と、営業をやったことがない工場なので…">
+        <button class="btn">送る</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ④ まとめの確認 ============ -->
+<section class="screen" data-k="④ まとめの確認" data-note="対話で引き出すので1項目1,000字ほどになる。見出し（キャッチ）＋出だしだけを並べ、開くと全文が読める。「編集」でその場で直せる。ここで分析の深さは選ばせない。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="bal">残り <b>12,700</b> ポイント</span><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="flexcol" style="height:800px">
+      <div class="chat-hd"><span>お話を伺いました</span><span class="prog">5／5　伺い終えました</span></div>
+      <div class="chat-body">
+        <div class="msg" style="max-width:100%"><div class="who">AI</div>一通り伺えました。お聞きした内容を5つに整理しました。見出しだけ並べています。中身を確かめたいところは開いてください。直したいところは「編集」から直せますし、私に言っていただいても直します。</div>
+
+        <div class="sum">
+          <div class="sh">お聞きした内容<span>全部で約4,800字</span></div>
+
+          <div class="acc open">
+            <div class="ah" onclick="this.parentNode.classList.toggle('open');this.querySelector('.mark').textContent=this.parentNode.classList.contains('open')?'−':'＋'">
+              <div class="num">01</div>
+              <div class="ttl2"><b>閉まっていく工場を、10社見送った</b><div class="ex">きっかけ・原体験　約1,100字</div></div>
+              <div class="mark">−</div>
+            </div>
+            <div class="ab">
+              <div class="full">
+                <p>メーカーで30年、営業をやってきました。担当は主に金属加工の外注先で、東京の城南地区から埼玉、栃木あたりまで、町工場を回るのが仕事でした。</p>
+                <p>最初に「これはおかしい」と思ったのは、40代の初めです。10年以上付き合いのあった工場が、ある日「今月で閉める」と言ってきました。社長は70を過ぎていましたが、腕は落ちていなかった。息子さんもいた。それでも仕事が減って、続けられなくなったと。</p>
+                <p>帰りの車で考えました。あの工場の何が悪かったのか。技術ではありません。こちらが出す難しい図面を、いつも何とかしてくれた工場です。悪かったのは、うち以外に取引先がなかったこと。そしてそれは、新しい取引先を取りに行く方法を、誰も知らなかったからです。</p>
+                <p>同じことが、その後も何度もありました。数えてはいませんが、10社は見送ったと思います。毎回、同じことを思いました。つくる力はあるのに、つながる力がない。</p>
+                <p>一方でこの5年ほど、まったく違う人たちに会うようになりました。個人で家具をつくっている人、自分のブランドで金物を出している人。その人たちは、頼める工場を探しています。探しても見つからない、と言うんです。</p>
+                <p>つながっていないだけなんです。両方いるのに。</p>
+              </div>
+              <div class="tools"><button class="btn o sm">編集する</button><button class="btn o sm">この項目についてAIと話す</button></div>
+            </div>
+          </div>
+
+          <div class="acc">
+            <div class="ah" onclick="this.parentNode.classList.toggle('open');this.querySelector('.mark').textContent=this.parentNode.classList.contains('open')?'−':'＋'">
+              <div class="num">02</div>
+              <div class="ttl2"><b>つなぐ仕組みがない、のではない。言葉が通じない</b><div class="ex">解決したい課題　約900字　／　紹介しても、図面の読めない作り手と、営業をしたことのない工場の間で会話が…</div></div>
+              <div class="mark">＋</div>
+            </div>
+            <div class="ab"><div class="full"><p>（全文がここに入ります）</p></div>
+              <div class="tools"><button class="btn o sm">編集する</button><button class="btn o sm">この項目についてAIと話す</button></div></div>
+          </div>
+
+          <div class="acc">
+            <div class="ah" onclick="this.parentNode.classList.toggle('open');this.querySelector('.mark').textContent=this.parentNode.classList.contains('open')?'−':'＋'">
+              <div class="num">03</div>
+              <div class="ttl2"><b>一個からつくりたい、小さな作り手</b><div class="ex">想定しているお客様　約950字　／　小さなブランドを立ち上げた人、工房を持つ作家。数を出せないから相手に…</div></div>
+              <div class="mark">＋</div>
+            </div>
+            <div class="ab"><div class="full"><p>（全文がここに入ります）</p></div>
+              <div class="tools"><button class="btn o sm">編集する</button><button class="btn o sm">この項目についてAIと話す</button></div></div>
+          </div>
+
+          <div class="acc">
+            <div class="ah" onclick="this.parentNode.classList.toggle('open');this.querySelector('.mark').textContent=this.parentNode.classList.contains('open')?'−':'＋'">
+              <div class="num">04</div>
+              <div class="ttl2"><b>紹介ではなく、翻訳</b><div class="ex">商品・サービスの構想　約1,000字　／　作り手の要望を工場に伝わる形に直し、工場の「できない」が本当に…</div></div>
+              <div class="mark">＋</div>
+            </div>
+            <div class="ab"><div class="full"><p>（全文がここに入ります）</p></div>
+              <div class="tools"><button class="btn o sm">編集する</button><button class="btn o sm">この項目についてAIと話す</button></div></div>
+          </div>
+
+          <div class="acc">
+            <div class="ah" onclick="this.parentNode.classList.toggle('open');this.querySelector('.mark').textContent=this.parentNode.classList.contains('open')?'−':'＋'">
+              <div class="num">05</div>
+              <div class="ttl2"><b>一個でも、断られない</b><div class="ex">お客様が得られるもの　約850字　／　一個からでも町工場の加工技術が使える。工場側は営業をせずに新しい…</div></div>
+              <div class="mark">＋</div>
+            </div>
+            <div class="ab"><div class="full"><p>（全文がここに入ります）</p></div>
+              <div class="tools"><button class="btn o sm">編集する</button><button class="btn o sm">この項目についてAIと話す</button></div></div>
+          </div>
+
+          <div class="cta">
+            <button class="btn" style="font-size:20px;padding:15px 30px">この内容で分析する<span class="pt">（10,000ポイント）</span></button>
+            <span class="muted">分析後の残り 2,700ポイント　／　3〜4分かかります。画面を閉じても進みます。</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-in">
+        <button class="btn o sm">📎</button>
+        <button class="mic">🎙</button>
+        <input placeholder="直したいところを、ここに書いても直せます">
+        <button class="btn">送る</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ⑤ 分析中 ============ -->
+<section class="screen" data-k="⑤ 分析中" data-note="3〜4分の待ち。何をしているかを段階で見せる。ウェブサイトのイメージまでここで作る。ポイントは始める時に引き、失敗したら元の束に戻す。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="bal">残り <b>2,700</b> ポイント</span><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="wait">
+      <h2>戦略を組み立てています</h2>
+      <p class="muted" style="font-size:18px">3〜4分ほどかかります。画面を閉じても進みます。</p>
+      <div class="bar"><i></i></div>
+      <div class="prog-list">
+        <div class="done">✓　伺った内容を読み込みました</div>
+        <div class="done">✓　競合を調べました（12社）</div>
+        <div class="now">…　市場の大きさを調べています</div>
+        <div class="yet">　　戦略を3つのパターンで組み立てる</div>
+        <div class="yet">　　あなたの言葉で文章にする</div>
+        <div class="yet">　　ウェブサイトのイメージを描く</div>
+      </div>
+      <div class="row" style="justify-content:center">
+        <button class="btn o">伺った内容を読み返す</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ⑥ レポート ============ -->
+<section class="screen" data-k="⑥ レポート（全体）" data-note="現行版のレポートを全部入れた：3つのパターンのタブ／戦略メッセージ／ナラティブ／ベネフィット／アドバンテージ／3C（市場規模まで）／5つのチェックポイントとスコア／ウェブサイトのイメージ。各項目の💬からチャットに送れる。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>町工場の技術をつなぐ事業</small></div>
+      <div class="hd-r">
+        <span class="bal">残り <b>2,700</b> ポイント</span>
+        <button class="btn o sm">印刷・PDF</button>
+        <button class="btn o sm">提案書（PowerPoint）</button>
+        <button class="btn o sm">提案書（PDF）</button>
+        <button class="btn o sm">共有</button>
+        <span class="muted">権 成俊 さん</span>
+      </div>
+    </div>
+    <div class="rpt">
+      <div class="rpt-main">
+        <div class="toolbar">
+          <span class="muted">版</span>
+          <button class="vtab">1</button>
+          <button class="vtab show">2　表示中</button>
+          <button class="vtab fixed">3　確定中</button>
+          <span style="margin-left:auto"><button class="btn sm">この戦略で進める</button></span>
+        </div>
+
+        <div class="ptabs">
+          <div class="ptab on">パターン1　翻訳して間に立つ　<span class="rec">◎お勧め</span></div>
+          <div class="ptab">パターン2　工場の営業を代行</div>
+          <div class="ptab">パターン3　小ロット試作のブランド</div>
+        </div>
+
+        <div class="msgblk">
+          <div class="eyebrow">戦略メッセージ</div>
+          <h2>町工場の技術を、<br>あなたのものづくりに。</h2>
+          <div class="parts">
+            <div><b class="pb">ベネフィット部分</b>一個からでも、プロの加工技術が使える</div>
+            <div><b class="pa">アドバンテージ部分</b>両方の言葉が分かる人間が、間に立つ</div>
+          </div>
+        </div>
+
+        <div class="narr">
+          <h3>戦略ナラティブ</h3>
+          <p>30年、町工場を回ってきました。技術はあるのに、売り方を知らないまま看板を下ろす工場を、10社は見送ってきました。</p>
+          <p>図面を渡せば、こちらが思いつかない加工方法を提案してくれる。試作の相談に、翌日には現物で答えてくれる。そういう工場が、営業の一人もいないというだけで仕事を失っていく。もったいない、では済まない話だと思っています。</p>
+          <p>一方で、自分でものをつくりたい人は増えました。小さなブランドを立ち上げた人、工房を持った作家。その人たちは、頼める工場を知りません。知っていても、一個からでは相手にされないと思い込んでいます。</p>
+          <p>つなげば済む話です。ただ、つなぐには両方の言葉が分かる人間が要る。図面の読めない作り手の言葉を、工場に伝わる形に直す。工場の「それはうちの仕事じゃない」を、本当にできないのか、やったことがないだけなのかを聞き分ける。30年やってきたのは、結局その翻訳でした。</p>
+          <p>私がやるのは、紹介ではありません。翻訳です。</p>
+        </div>
+
+        <!-- Benefit -->
+        <div class="seclb b">B　ベネフィット<small>お客様が求める価値　ニーズ → ウォンツ</small></div>
+        <div class="card"><div class="chat-ico">💬</div><h4>核心</h4>一個からでも、まともな品質でつくってもらえること。そして「こんな少量で申し訳ない」と思わずに済むこと。</div>
+        <div class="c2">
+          <div class="card"><div class="chat-ico">💬</div><h4>ニーズ（欠乏感・曖昧な欲求）</h4>
+            <ul><li>試作や小ロットを頼める先が見つからない</li><li>頼んでも断られるのではないかと気後れする</li><li>図面が描けないので、相談の仕方が分からない</li><li>見積もりが妥当かどうか判断できない</li></ul></div>
+          <div class="card"><div class="chat-ico">💬</div><h4>ウォンツ（具体的欲求）</h4>
+            <ul><li>1個から受けてくれる金属加工の工場を知りたい</li><li>スケッチや現物から話を始めたい</li><li>間に入って翻訳してくれる人が欲しい</li><li>試作を2週間以内に受け取りたい</li></ul></div>
+        </div>
+
+        <!-- Advantage -->
+        <div class="seclb a">A　アドバンテージ<small>差別的優位点・好ましい違い　競合より選ばれる理由</small></div>
+        <div class="card"><div class="chat-ico">💬</div><h4>アドバンテージ</h4>
+          <div style="font-size:18px;font-weight:700">30年かけて築いた町工場との関係と、図面と作り手の言葉の両方が分かること。</div></div>
+        <div class="c2">
+          <div class="card"><div class="chat-ico">💬</div><h4>なぜ好ましいのか</h4>工場の「それはうちの仕事じゃない」が、本当にできないのか、やったことがないだけなのかを聞き分けられる。結果として、他では断られた案件が通る。</div>
+          <div class="card"><div class="chat-ico">💬</div><h4>なぜ真似されにくいか</h4>関係は年数でしか積めない。両方の言葉は、片方の業界にいただけでは身につかない。30年の営業と、作り手側との5年の付き合いの両方を持つ人は少ない。</div>
+        </div>
+        <div class="card" style="background:var(--highlight);border-left:4px solid var(--c-a)"><div class="chat-ico">💬</div><h4>根拠の確認をおすすめします</h4>「10社を見送った」「他では断られた案件が通った」は、実例を3つ書き出しておくと、説得力が一段上がります。相手に話すときの持ち球になります。</div>
+
+        <!-- 3C -->
+        <div class="seclb c">3C　顧客・競合・自社<small>Customer · Competitor · Company</small></div>
+        <div class="card"><div class="chat-ico">💬</div><h4>ターゲット</h4>自分のブランドで製品を出している個人・小規模の作り手。すでに販売はしているが、製造先の選択肢が限られている段階の人。
+          <ul><li>家具・照明・金物などを扱う個人ブランドの主宰者</li><li>工房を持ち、月に数点から数十点を製造する作家</li><li>クラウドファンディングで製品化を目指している人</li></ul></div>
+        <div class="c2">
+          <div class="card"><div class="chat-ico">💬</div><h4>アプローチ段階・切り捨て</h4>
+            <b>段階：</b>ウォンツ段階（すでに「工場を探している」と自覚している）<br>
+            <b>切り捨て：</b>量産のみを求める企業、価格だけで選ぶ発注者。単価が合わず、翻訳の価値も伝わらない。</div>
+          <div class="card"><div class="chat-ico">💬</div><h4>市場規模</h4>
+            <div class="mk">
+              <div><div class="k">SAM（最大市場）</div><div class="v">約 120億円</div></div>
+              <div><div class="k">SOM（狙える市場）</div><div class="v">約 3.4億円</div></div>
+              <div><div class="k">成長率</div><div class="v">年 6〜8%</div></div>
+            </div>
+            <div style="margin-top:8px;font-size:16px;color:var(--sub)"><b>根拠：</b>個人事業の製造・工芸分野の事業者数と、1者あたりの外注額の推計から算出。個人のものづくり市場は拡大傾向。</div></div>
+        </div>
+        <div class="c2">
+          <div class="card"><div class="chat-ico">💬</div><h4>直接競合 / 異業種競合</h4>
+            <b>直接：</b>製造マッチングのサイト（3社）、地域の産業支援センター、加工専門の商社<br>
+            <b>異業種：</b>3Dプリントの受託、海外の小ロット製造サイト、作り手が自分で機械を買うこと</div>
+          <div class="card"><div class="chat-ico">💬</div><h4>強み ← 仕組み ← 価値観</h4>
+            <b>強み：</b>工場との30年の関係／図面が読める／作り手の言葉が分かる<br>
+            <b>仕組み：</b>現場に行って決める。資料ではなく現物を見る<br>
+            <span class="muted">価値観：いいものをつくっている人が、売り方を知らないだけで報われないのが許せない</span></div>
+        </div>
+
+        <!-- チェックポイント -->
+        <div class="cp">
+          <h4>AB3C 5つのチェックポイント</h4>
+          <div class="r"><div class="bdg ok">○</div><div><b>ベネフィットは顧客の欲求と合っているか</b><br><span style="font-size:18px">「一個から頼める」は、作り手が実際に困っている点と合っています。</span></div></div>
+          <div class="r"><div class="bdg ok">○</div><div><b>アドバンテージは競合との違いになっているか</b><br><span style="font-size:18px">マッチングサイトは場を提供するだけで、間に立つ人がいません。違いは明確です。</span></div></div>
+          <div class="r"><div class="bdg warn">△</div><div><b>アドバンテージは真似されにくいか</b><br><span style="font-size:18px">「関係」だけなら、他の退職した営業にも当てはまります。翻訳する力のほうを前に出すと強くなります。</span></div></div>
+          <div class="r"><div class="bdg ok">○</div><div><b>市場は十分な大きさか</b><br><span style="font-size:18px">狙える市場が3.4億円。お一人で始める規模なら十分です。</span></div></div>
+          <div class="r"><div class="bdg warn">△</div><div><b>一気通貫になっているか</b><br><span style="font-size:18px">戦略は立っていますが、それを伝える手段（サイト・資料）がまだありません。</span></div></div>
+          <div class="sc">AB3Cスコア：8 / 10</div>
+        </div>
+
+        <!-- 自己分析への講評 -->
+        <div class="seclb">自己分析の案への講評<small>取り込んだ資料にあった案A・案Bについて</small></div>
+        <div class="card"><div class="chat-ico">💬</div><h4>案A「町工場の紹介サイト」について</h4>すでに同種のサイトが3社あり、いずれも掲載数を競う形になっています。後発で数では勝てません。あなたの価値は数ではなく間に立つことなので、この形はお勧めしません。</div>
+        <div class="card"><div class="chat-ico">💬</div><h4>案B「製造コンサルタント」について</h4>方向は合っていますが、相手が法人になり単価も上がるぶん、営業の手間が増えます。まずは個人の作り手から始めて、実績ができてから広げるほうが着手が早いです。</div>
+
+        <!-- ウェブサイトのイメージ -->
+        <div class="seclb">ウェブサイトのイメージ<small>この戦略をそのまま形にすると、こうなります</small></div>
+        <div class="mock">
+          <div class="mb">生成されたイメージ（実物大の見え方の縮小版）</div>
+          <div class="mockpage">
+            <div class="mp-nav"><span class="mlogo">町工場翻訳所</span><span style="color:var(--sub)">できること　／　事例　／　料金　／　相談する</span></div>
+            <div class="mp-hero">
+              <h5>図面が描けなくても、<br>相談から始められます。</h5>
+              <p>一個からでも受けてくれる町工場を、30年回ってきた人間が間に立って探します。</p>
+              <span class="mp-btn">まず話を聞いてもらう（無料）</span>
+            </div>
+            <div class="mp-3">
+              <div><b>スケッチでいい</b><span>現物でも写真でも。図面はこちらで起こします。</span></div>
+              <div><b>一個から</b><span>試作1点から受けられる工場だけを当たります。</span></div>
+              <div><b>断られた案件も</b><span>「できない」の中身を聞き分けます。</span></div>
+            </div>
+            <div class="mp-cta">30年で見送った工場は10社。その悔しさが、この仕事の始まりです。 → 私について</div>
+          </div>
+        </div>
+        <div class="cap"><b>💡 このイメージの意図：</b>最初の一文で「図面が描けない人でもいい」と言い切り、いちばん大きな気後れを外しています。押しボタンを「見積もりを依頼」ではなく「まず話を聞いてもらう」にしたのは、アドバンテージが翻訳＝会話そのものだからです。色は工場の設備と鉄の色から引いています。</div>
+
+        <div class="seclb">次の一歩</div>
+        <div class="card"><div class="chat-ico">💬</div>まず「翻訳」が成立するかを、3件の実案件で確かめる。付き合いの長い工場2社に話を通し、作り手を1人見つける。ここで通れば、戦略は現実に耐えます。</div>
+      </div>
+
+      <div class="rpt-chat">
+        <div class="chat-hd"><span>戦略を磨く</span><span class="prog">1往復 100ポイント</span></div>
+        <div class="chat-body" style="flex:1">
+          <div class="msg" style="max-width:100%"><div class="who">AI</div>戦略ができました。読んでみて、違うと感じるところはありませんか。各項目の 💬 からも質問を送れます。</div>
+          <div class="msg me" style="max-width:92%"><div class="who">あなた</div>アドバンテージなんだけど、「30年の関係」だけだと、定年した営業なら誰でも当てはまらない？</div>
+          <div class="msg" style="max-width:100%"><div class="who">AI</div>チェックポイントでも同じ点に△を付けています。効いているのは、関係と「両方の言葉が分かる」ことの組み合わせのほうです。いまの文章は関係が前に出すぎているので、翻訳を前に出す形に組み替えましょうか。</div>
+        </div>
+        <div class="chat-in" style="flex-direction:column;align-items:stretch;gap:10px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn o sm">📎</button>
+            <button class="mic" style="width:40px;height:40px;font-size:18px">🎙</button>
+            <input placeholder="気になったところを書いてください">
+            <button class="btn sm">送る</button>
+          </div>
+          <button class="btn g">会話の内容を分析に反映する<span class="pt">（1,000ポイント）</span></button>
+        </div>
+        <div class="deepbtn">
+          <button class="btn o">＋　徹底分析を追加する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ⑥-2 徹底分析 ============ -->
+<section class="screen" data-k="⑥-2 徹底分析を追加する" data-note="別画面をやめ、レポート右のチャット下の「＋徹底分析を追加する」から重ねて出す形にした。AB3Cの3つのCそれぞれの深掘り。足すと新しい版が積まれる。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>町工場の技術をつなぐ事業</small></div>
+      <div class="hd-r"><span class="bal">残り <b>2,700</b> ポイント</span><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="rpt" style="min-height:700px">
+      <div class="rpt-main">
+        <div class="msgblk"><div class="eyebrow">戦略メッセージ</div><h2>町工場の技術を、<br>あなたのものづくりに。</h2></div>
+        <div class="narr"><h3>戦略ナラティブ</h3><p>30年、町工場を回ってきました。技術はあるのに、売り方を知らないまま看板を下ろす工場を、10社は見送ってきました。……</p></div>
+        <div class="seclb b">B　ベネフィット</div><div class="card">…</div>
+      </div>
+      <div class="rpt-chat">
+        <div class="chat-hd"><span>戦略を磨く</span><span class="prog">1往復 100ポイント</span></div>
+        <div class="chat-body" style="flex:1"><div class="msg" style="max-width:100%"><div class="who">AI</div>各項目の 💬 からも質問を送れます。</div></div>
+        <div class="deepbtn"><button class="btn">＋　徹底分析を追加する</button></div>
+      </div>
+    </div>
+    <div class="ovl">
+      <div class="deep">
+        <div class="dh">徹底分析を追加する<span style="margin-left:auto">AB3Cの3つのCを、それぞれ深く調べます</span><button>×</button></div>
+        <div class="di">
+          <div class="dk">競合<small>Competitor</small></div>
+          <div class="dc">競合7社を1社ずつ調べ、同じ物差しに並べた比較表をつくります。商品の中身と、出している情報の両方を比べます。
+            <div class="cost">15分ほどかかります。できあがったらお知らせします。</div></div>
+          <div class="dr"><button class="btn">足す<span class="pt">（10,000）</span></button></div>
+        </div>
+        <div class="di">
+          <div class="dk">自社<small>Company</small></div>
+          <div class="dc">自己分析の書き出しや、性格診断の結果を読み込み、あなたの価値観と原体験を戦略に反映し直します。
+            <div class="cost">おすすめは自己分析AI（別サイト）。お持ちでない方にはご案内します。</div></div>
+          <div class="dr"><button class="btn">足す<span class="pt">（1,000）</span></button></div>
+        </div>
+        <div class="di off">
+          <div class="dk">顧客・市場<small>Customer</small></div>
+          <div class="dc">検索されている言葉から、市場の大きさと求められ方を調べます。
+            <div class="cost">準備中です。</div></div>
+          <div class="dr"><button class="btn" disabled>準備中</button></div>
+        </div>
+        <div style="padding:16px 24px;background:var(--surface);font-size:16px;color:var(--sub);border-top:1px solid var(--line-soft)">
+          足すと、その内容を織り込んだ新しい版ができます。前の版はそのまま残り、いつでも戻れます。<br>
+          競合の徹底分析には 10,000ポイント必要です。いまお持ちなのは 2,700ポイントです。
+          <button class="btn g sm" style="margin-left:10px">ポイントを買う</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ⑨ 成果物 ============ -->
+<section class="screen" data-k="⑨ 成果物" data-note="確定した版にぶら下がる。集客系（検索・地図・プレスリリース・SNS）と、事業を前に進めるもの（最初の一歩・補助金・仲間集め）を足した。どれも初回1,000ポイント → チャット100/往復で磨く。ウェブサイトはレポートの中に出るのでここには置いていない。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>町工場の技術をつなぐ事業</small></div>
+      <div class="hd-r"><span class="bal">残り <b>12,700</b> ポイント</span><button class="btn o sm">レポートに戻る</button><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="body">
+      <div style="border:2px solid var(--phase);padding:16px 22px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+        <div><b>版3 を確定しました。</b><span class="muted">　この戦略にもとづいて、次のものがつくれます。</span></div>
+        <button class="btn o sm">戦略を見直す</button>
+      </div>
+
+      <h2>つくれるもの</h2>
+      <p class="muted">どれも最初の1本は1,000ポイント。出したあとは、チャット（1往復100ポイント）で直していけます。</p>
+
+      <div class="grp">
+        <h3>事業の顔をつくる</h3>
+        <div class="grid2">
+          <div class="dcard">
+            <h4>社名・サービス名の案</h4>
+            <div class="peek"><em>たとえば、こんな案が出ます</em>「町工場翻訳所」「ハシワタシ製作」「まちこう」…（10案）</div>
+            <p class="muted" style="margin:0">戦略メッセージを数文字に圧縮した案を10個。気に入らなければ方向を伝えれば出し直せます。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>営業資料の叩き台</h4>
+            <div class="peek"><em>冒頭の見出し</em>「一個からでも、断られない製造先を。」</div>
+            <p class="muted" style="margin:0">工場側・作り手側のどちらに出すかを選べます。そのまま印刷して持っていける形に。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>お客様に見つけてもらう</h3>
+        <div class="grid2">
+          <div class="dcard">
+            <h4>検索で見つけてもらう計画</h4>
+            <div class="peek"><em>探されている言葉の例</em>「小ロット 金属加工 個人」「試作 1個 依頼」</div>
+            <p class="muted" style="margin:0">どんな言葉で探されているかを調べ、何のページを何本書くかまで決めます。AIに引用される書き方も含みます。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>プレスリリースの原稿</h4>
+            <div class="peek"><em>見出しの案</em>「30年で10社を見送った元営業が、町工場と個人の作り手をつなぐ事業を開始」</div>
+            <p class="muted" style="margin:0">記者が書きたくなる切り口を、戦略から取り出します。配信先の候補も出します。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>地図への登録と育て方</h4>
+            <div class="peek"><em>最初の一行</em>「業種は『製造業者』ではなく『製造コンサルタント』で登録します」</div>
+            <p class="muted" style="margin:0">Googleマップへの登録内容、写真の撮り方、口コミの集め方。地域で商売する事業向けです。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>発信する内容の型</h4>
+            <div class="peek"><em>続けやすい型の例</em>「今日通した無理な相談」を週1本</div>
+            <p class="muted" style="margin:0">どこで何を発信し続けるか。ネタが尽きない型を、あなたの仕事の中から見つけます。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grp">
+        <h3>事業を前に進める</h3>
+        <div class="grid2">
+          <div class="dcard">
+            <h4>最初の一歩の計画</h4>
+            <div class="peek"><em>一つめ</em>「付き合いの長い工場2社に、翻訳役として話を通す」</div>
+            <p class="muted" style="margin:0">戦略が本当に成り立つかを、小さく確かめる手順。何が起きたら先に進むかの目印つき。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>補助金の申請書の下書き</h4>
+            <div class="peek"><em>経営計画の書き出し</em>「当事業は、技術を持ちながら販路を持たない小規模事業者の…」</div>
+            <p class="muted" style="margin:0">小規模事業者持続化補助金の項目に沿って、戦略から本文を起こします。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard">
+            <h4>一緒にやる人を探す</h4>
+            <div class="peek"><em>訴求の一行</em>「町工場の言葉と、作り手の言葉。両方を覚えられる仕事です。」</div>
+            <p class="muted" style="margin:0">この事業だからこそ積める経験を言葉にします。求人や業務委託の募集文に。</p>
+            <div class="foot"><span class="muted">1,000ポイント</span><button class="btn">つくる</button></div>
+          </div>
+          <div class="dcard" style="border-style:dashed;background:var(--surface)">
+            <h4 style="color:var(--sub)">ほかにも相談できます</h4>
+            <p class="muted" style="margin:0">値段の決め方、契約書のひな型、取引先への説明の仕方。チャットで相談すれば、必要なものを一緒に考えます。</p>
+            <div class="foot"><span class="muted">チャット 100ポイント／往復</span><button class="btn o">相談する</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ⑩ ダッシュボード ============ -->
+<section class="screen" data-k="⑩ 事業のダッシュボード" data-note="複数の事業案を並行して持てる。取り込んだ資料の削除もここから。">
+  <div class="frame">
+    <div class="hd">
+      <div class="logo">（サービス名）<small>AIと一緒に、新規事業をつくる</small></div>
+      <div class="hd-r"><span class="bal">残り <b>12,700</b> ポイント</span><button class="btn o sm">ポイントを買う</button><span class="muted">権 成俊 さん</span></div>
+    </div>
+    <div class="body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+        <h2 style="margin:0">考えている事業</h2>
+        <button class="btn">新しい事業を考える</button>
+      </div>
+      <table class="list">
+        <tr><th>事業</th><th>状態</th><th>最終更新</th><th></th></tr>
+        <tr>
+          <td><b>町工場の技術をつなぐ事業</b><br><span class="muted">町工場の技術を、あなたのものづくりに。</span></td>
+          <td><span class="state fix">版3 で確定</span></td><td>今日 14:20</td>
+          <td style="text-align:right"><button class="btn o sm">開く</button> <button class="btn o sm">削除</button></td>
+        </tr>
+        <tr>
+          <td><b>定年後の営業顧問サービス</b><br><span class="muted">分析まで終わっています</span></td>
+          <td><span class="state mid">磨いている途中</span></td><td>9月21日</td>
+          <td style="text-align:right"><button class="btn o sm">開く</button> <button class="btn o sm">削除</button></td>
+        </tr>
+        <tr>
+          <td><b>（名称未設定）</b><br><span class="muted">2つめまで伺ったところです</span></td>
+          <td><span class="state">お話を伺っている途中</span></td><td>9月19日</td>
+          <td style="text-align:right"><button class="btn o sm">続きから</button> <button class="btn o sm">削除</button></td>
+        </tr>
+      </table>
+
+      <h3 style="font-family:var(--font-heading);font-size:22px;margin-top:34px">取り込んだ資料</h3>
+      <div class="readbox" style="display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap">
+        <div>自己分析AI の書き出し（2026年9月18日）<br><span class="muted">強み・特徴／価値観／仕事の仕方／事業の案</span></div>
+        <div><button class="btn o sm">中身を見る</button> <button class="btn o sm">削除する</button></div>
+      </div>
+      <div class="readbox" style="display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap">
+        <div>ストレングスファインダーの結果（2026年9月18日）<br><span class="muted">お話を伺うときの参考として使います</span></div>
+        <div><button class="btn o sm">中身を見る</button> <button class="btn o sm">削除する</button></div>
+      </div>
+      <div class="row"><button class="btn o">資料を追加する</button></div>
+    </div>
+  </div>
+</section>
+
+<script>
+const screens=[...document.querySelectorAll('.screen')];
+const nav=document.getElementById('nav');
+const noteBox=document.getElementById('noteBox');
+screens.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.dataset.k;b.onclick=()=>show(i);nav.appendChild(b);});
+function show(i){
+  screens.forEach((s,j)=>s.classList.toggle('on',i===j));
+  [...nav.children].forEach((b,j)=>b.classList.toggle('on',i===j));
+  noteBox.textContent='この画面について：'+screens[i].dataset.note;
+  window.scrollTo(0,0);
+}
+show(0);
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  const cur=screens.findIndex(s=>s.classList.contains('on'));
+  if(e.key==='ArrowRight'&&cur<screens.length-1)show(cur+1);
+  if(e.key==='ArrowLeft'&&cur>0)show(cur-1);
+});
+</script>
+</body>
+</html>

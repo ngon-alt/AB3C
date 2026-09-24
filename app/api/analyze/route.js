@@ -31,16 +31,23 @@ export async function POST(req) {
   const host = req.headers.get("host");
   const protocol = req.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
   const baseUrl = host ? `${protocol}://${host}` : process.env.NEXTAUTH_URL;
-  const usageRes = await fetch(`${baseUrl}/api/usage`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Cookie": req.headers.get("cookie") || "",
-    },
-  });
-  const usageData = await usageRes.json();
-  if (usageRes.status === 429) {
-    return NextResponse.json({ error: usageData.error }, { status: 429 });
+
+  // 新規事業版はポイント制のため、チケット・サブスクの回数判定（/api/usage）を通さない。
+  // 消費は呼び出し前に /api/newbiz/points で済ませている（失敗時は呼び出し側が戻す）。
+  // 判定は **環境変数だけ** で行う。ブラウザから指定させると現行版の回数制限を素通りできてしまう。
+  // （docs/新規事業版-画面遷移設計-20260924.md 0-2章）
+  if (process.env.EDITION !== "newbiz") {
+    const usageRes = await fetch(`${baseUrl}/api/usage`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Cookie": req.headers.get("cookie") || "",
+      },
+    });
+    const usageData = await usageRes.json();
+    if (usageRes.status === 429) {
+      return NextResponse.json({ error: usageData.error }, { status: 429 });
+    }
   }
 
   const body = await req.json();

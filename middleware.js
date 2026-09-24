@@ -29,8 +29,13 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
-  // 現行版のドメイン: 新規事業版の画面は存在しない扱いにする
-  if (isNewbizPath) return new NextResponse(null, { status: 404 });
+  // 現行版のドメイン: 新規事業版の画面は存在しない扱いにする。
+  // ただし **本番以外（preview・ローカル）では通す**。新規事業版のドメインができるまで、
+  // preview.senryaku.ai/newbiz で動作確認できないと開発が進められないため（2026-09-25）。
+  // 本番 senryaku.ai は VERCEL_ENV=production なので、これまで通り 404 のまま。
+  if (isNewbizPath && process.env.VERCEL_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
   return NextResponse.next();
 }
 
