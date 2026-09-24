@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
+import ShadowMock from "../components/ShadowMock";
 
 /* ===== 色（AB3C の意味を持つ色は他の用途に使わない） ===== */
 const C = {
@@ -102,6 +103,7 @@ export default function NewbizPage() {
   const [progress, setProgress] = useState(0);
   const [analysis, setAnalysis] = useState(null);
   const [narrative, setNarrative] = useState("");
+  const [siteMock, setSiteMock] = useState(null);
   const [comboId, setComboId] = useState(null);
   const [error, setError] = useState("");
 
@@ -283,12 +285,23 @@ export default function NewbizPage() {
       setComboId(Array.isArray(ad.combinations) && ad.combinations.length ? (ad.recommended_combination_id ?? ad.combinations[0].id) : null);
       setProgress(5);
       setStage("report");
+      await loadBalance();
+
+      // ⑤ ウェブサイトのイメージ（レポートを先に出してから、あとから差し込む）
+      let mock = null;
+      try {
+        const mr = await fetch("/api/newbiz/sitemock", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ analysis: ad, businessId, siteName }),
+        });
+        const md = await mr.json();
+        if (mr.ok && md.html) { mock = md; setSiteMock(md); }
+      } catch (e) { /* イメージが出なくてもレポートは成立する */ }
 
       await fetch("/api/newbiz/business", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save", id: businessId, analysis: withNar }),
+        body: JSON.stringify({ action: "save", id: businessId, analysis: { ...withNar, site_mock: mock } }),
       });
-      await loadBalance();
     } catch (e) {
       // ④ 失敗したら元の束に戻す
       if (ref) {
@@ -609,6 +622,27 @@ export default function NewbizPage() {
               <div style={{ textAlign: "right", borderTop: `1px solid ${C.line}`, paddingTop: 14, fontFamily: "'Space Mono', monospace", fontSize: 18, fontWeight: 700 }}>
                 AB3Cスコア：{score} / 10
               </div>
+            </div>
+          )}
+
+          <SecLabel color={C.line} jp="ウェブサイトのイメージ" en="この戦略をそのまま形にすると、こうなります" />
+          {siteMock ? (
+            <>
+              <div style={{ border: `2px solid ${C.C3}`, background: "#fff" }}>
+                <div style={{ background: "#eceff1", padding: "8px 14px", fontSize: 16, color: C.sub, borderBottom: `1px solid ${C.line}` }}>
+                  生成されたイメージ
+                </div>
+                <ShadowMock html={siteMock.html} style={{ display: "block", width: "100%" }} />
+              </div>
+              {siteMock.caption && (
+                <div style={{ marginTop: 10, padding: "14px 18px", background: C.highlight, borderLeft: `4px solid ${C.A}`, fontSize: 18, lineHeight: 1.8 }}>
+                  <b style={{ color: C.A }}>このイメージの意図：</b>{siteMock.caption}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ border: `1px dashed ${C.line}`, padding: "28px 20px", textAlign: "center", color: C.sub, fontSize: 18, background: C.surface }}>
+              ウェブサイトのイメージを描いています…（1分ほど）
             </div>
           )}
 
