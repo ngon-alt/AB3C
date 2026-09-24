@@ -1621,7 +1621,7 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
         {isViewingOldVersion && onConfirmOldVersion && (
           <button onClick={onConfirmOldVersion}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
-            この版（{viewedVersionLabel}）で確定して ② へ →
+            この版で戦略を確定して ② へ →
           </button>
         )}
         {/* 会話量警告バナー */}
@@ -1652,7 +1652,7 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
         {!isViewingOldVersion && onConfirmStrategy && (
           <button onClick={onConfirmStrategy}
             style={{ width: "100%", marginTop: 12, background: C.phase2, border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", fontFamily: "'Noto Serif JP', serif", fontSize: 20, fontWeight: 700, padding: "16px 20px", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
-            戦略を確定して ② 戦略アクションへ →
+            この版で戦略を確定して ② へ →
           </button>
         )}
       </div>
@@ -3880,7 +3880,10 @@ useEffect(() => {
           id: Date.now(),
           date: new Date().toLocaleString("ja-JP"),
           result: snapshotResult,
-          chatMessages: chatMsgs,
+          // 会話は丸ごと入れず、「このサイトの会話のどこまでを見て確定したか」だけを残す。
+          // 以前は確定のたびにチャット全文（貼り付けた画像を含む）を複製していて、
+          // 確定履歴が4MBを超えるサイトが出ていた（2026-09-22 実測・権さん指摘）
+          chatUpto: chatMsgs.length,
           chatSummaries: chatSummaries,
           strategyMessage: confirmedStrategyMessageText,
           url: siteUrl || currentInput || "",
@@ -5266,7 +5269,7 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
               opacity: !canConfirm ? 0.7 : 1,
             }}
           >
-            この版（{viewedVersionLabel}）で確定する →
+            この版で戦略を確定して ② へ →
           </button>
           {strategyConfirmed && (
             <button
@@ -5293,9 +5296,8 @@ const reset = () => { setResult(null); setSelectedHistory(null); setInput(""); s
       : null;
     const isViewingHistory = activeConfirmId != null && activeConfirmId !== liveConfirmedSnapId;
     const confirmDisabled = !canConfirm || (strategyConfirmed && !isViewingHistory);
-    const confirmLabel = isViewingHistory
-      ? "この履歴の戦略で再確定する →"
-      : strategyConfirmed ? "✅ 戦略確定済み" : "戦略を確定して ② へ →";
+    // 文言は最新の版でも過去の版でも同じにする（違うボタンに見えてしまうため・2026-09-22 権さん指摘）
+    const confirmLabel = strategyConfirmed ? "✅ 戦略確定済み" : "この版で戦略を確定して ② へ →";
     const confirmTitle = isDiagnosisActive
       ? "戦略診断チケットでは戦略確定はご利用いただけません"
       : !canConfirm ? "戦略指南サブスクで戦略確定・戦略アクションが利用可"
