@@ -97,7 +97,8 @@ export function buildPatternTree(indexNewestFirst) {
       node.lastSeen = order;
     }
   });
-  // 最近使われた中身が上（過去の版に戻して確定した場合、その版が一番上に来る）
-  for (const pid of Object.keys(tree)) tree[pid].sort((a, b) => b.lastSeen - a.lastSeen);
+  // 並びは版番号の新しい順で固定する。確定や表示で順番が入れ替わると、
+  // 時系列が分からなくなるため動かさない（2026-09-24 権さん指摘）
+  for (const pid of Object.keys(tree)) tree[pid].sort((a, b) => b.pv - a.pv);
   return tree;
 }
