@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
 import { sendPlanDowngradeEmail } from '@/app/lib/email';
+import { EDITION } from '@/app/lib/edition';
 
 export async function POST(req) {
   try {
@@ -43,7 +44,7 @@ export async function POST(req) {
 
     // 現サイト一覧（自分のもののみ）
     const sites = await sql`
-      SELECT id, site_name, site_url FROM sites WHERE user_email = ${email}
+      SELECT id, site_name, site_url FROM sites WHERE user_email = ${email} AND kind = ${EDITION}
     `;
     if (sites.length <= cap) {
       // すでに上限内 → 削除なし
@@ -62,7 +63,7 @@ export async function POST(req) {
     }
 
     const idsToDelete = sitesToDelete.map(s => s.id);
-    await sql`DELETE FROM sites WHERE id = ANY(${idsToDelete}) AND user_email = ${email}`;
+    await sql`DELETE FROM sites WHERE id = ANY(${idsToDelete}) AND user_email = ${email} AND kind = ${EDITION}`;
 
     // 通知メール
     try {

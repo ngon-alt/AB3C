@@ -6,6 +6,7 @@
 import { neon } from '@neondatabase/serverless';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
+import { EDITION } from '@/app/lib/edition';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -34,7 +35,7 @@ export async function GET() {
     const sitesAll = await sql`
       SELECT id, site_name, site_url, strategy_confirmed, analyzed_at, updated_at, created_at
       FROM sites
-      WHERE user_email = ${email}
+      WHERE user_email = ${email} AND kind = ${EDITION}
       ORDER BY created_at DESC
     `;
     const currentCount = sitesAll.length;

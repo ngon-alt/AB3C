@@ -528,6 +528,26 @@ FROM api_usage GROUP BY 1 ORDER BY 平均ドル DESC;
 - `page.js`にインライン記述されたFooterコードはFooter.jsとは別物（ページ固有のインラインコードを先に確認する習慣）
 - `page.js` は巨大ファイル（1400行超）。読み込み時はoffset/limitを使用
 
+## 現行版と新規事業版の分け方（2026-09-25・厳守）
+
+同じリポジトリに、現行版（senryaku.ai）と新規事業版が並ぶ。Vercel のプロジェクトを2つに分け、同じリポジトリを見せる構成。
+設計の正典は `docs/新規事業版-画面遷移設計-20260924.md`「0-2. 現行版と混ざらないようにする」。
+
+| | 現行版 | 新規事業版 |
+|---|---|---|
+| 環境変数 | `EDITION` 未設定（= `site`） | `EDITION=newbiz` |
+| 画面 | `app/` 直下の既存ページ | **`app/newbiz/`** 以下に新規で作る |
+| 専用API | 既存の `app/api/**` | **`app/api/newbiz/**`** |
+| データ | `sites.kind = 'site'` | `sites.kind = 'newbiz'` |
+
+- **どちらの版かは環境変数だけが決める**（`app/lib/edition.js` の `EDITION`）。ブラウザから `kind` を送らせない
+- **`sites` を読み書きする問い合わせには必ず `AND kind = ${EDITION}` を付ける**。付け忘れると相手側のデータに触れてしまう
+- **画面の歯止めは `middleware.js`**。現行版では `/newbiz` を404にし、新規事業版ではトップを `/newbiz` にして現行版の画面へ行かせない
+- **共有するもの**: 分析エンジン（`/api/analyze`）・版の仕組み（`app/lib/strategy-versions.js`・`app/lib/pattern-version.js`）・ポイント帳簿（`app/lib/points.js`）・ログイン・法務ページ
+- **共有しない**: 画面と表示部品。新規事業版は自前に持つ（現行版の `app/page.js` から切り出さない）
+- **共有側を変更するときは「これは両方に効きます」と明示して確認を取る**。黙って直さない
+- **コミットを混ぜない**。新規事業版の作業はコミット題名に「新規事業版：」を付ける
+
 ## 注意事項
 - localStorageキー: `ab3c_history`, `ab3c_threads_${siteId}`, `ab3c_thread_${threadId}`, `ab3c_actions_${siteId}`, `ab3c_chat_summaries`
 - Header.js, PricingModal.js は変更対象外（指示がない限り）

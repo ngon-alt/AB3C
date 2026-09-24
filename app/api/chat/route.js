@@ -5,6 +5,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { SENRYAKU_VOICE } from "../../lib/voice";
 import { logUsage } from "../../lib/usage-log";
+import { EDITION } from "@/app/lib/edition";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -398,7 +399,7 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
         try {
           const v1Rows = await sql`
             SELECT analysis_versions FROM sites
-            WHERE id = ${siteId} AND user_email = ${session.user.email}
+            WHERE id = ${siteId} AND user_email = ${session.user.email} AND kind = ${EDITION}
           `;
           const versions = v1Rows[0]?.analysis_versions;
           if (Array.isArray(versions) && versions.length > 0) {

@@ -3,6 +3,7 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { EDITION } from "@/app/lib/edition";
 
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
@@ -103,7 +104,7 @@ export async function GET() {
     // 登録サイト数
     let siteCount = 0;
     try {
-      const r = await sql`SELECT COUNT(*) as count FROM sites WHERE user_email = ${email}`;
+      const r = await sql`SELECT COUNT(*) as count FROM sites WHERE user_email = ${email} AND kind = ${EDITION}`;
       siteCount = parseInt(r[0]?.count || 0);
     } catch (e) {}
 

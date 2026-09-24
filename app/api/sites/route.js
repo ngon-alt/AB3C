@@ -8,6 +8,7 @@ import {
   stableStringify,
 } from "@/app/lib/strategy-versions";
 import { versionIndexEntry } from "@/app/lib/pattern-version";
+import { EDITION } from "@/app/lib/edition";
 
 // 確定時に画面が付け足す項目（確定パターンを表の階層に写したもの・確定パターン ID）を除けば、
 // 比較先の結果と全く同じか。＝最新の世代をそのまま確定しただけか。
@@ -70,7 +71,10 @@ async function ensureTable(sql) {
     sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS visual_mocks_by_combination JSONB`,
     // テキスト分析時の入力テキストを保存（シェアURLで分析対象を常に表示できるように）
     sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS input_text TEXT`,
+    // 現行版と新規事業版を分ける印（環境変数 EDITION が決める。既存の行はすべて 'site'）
+    sql`ALTER TABLE sites ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'site'`,
     sql`CREATE INDEX IF NOT EXISTS idx_sites_user_email ON sites(user_email)`,
+    sql`CREATE INDEX IF NOT EXISTS idx_sites_user_kind ON sites(user_email, kind)`,
     sql`
       CREATE TABLE IF NOT EXISTS user_plans (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -227,7 +231,7 @@ export async function GET(req) {
 
     const id = new URL(req.url).searchParams.get("id");
     if (id) {
-      const rows = await sql`SELECT * FROM sites WHERE id::text = ${id} AND user_email = ${session.user.email}`;
+      const rows = await sql`SELECT * FROM sites WHERE id::text = ${id} AND user_email = ${session.user.email} AND kind = ${EDITION}`;
       timer.lap("db");
       if (rows.length === 0) return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404, headers: timer.headers() });
       const site = rows[0];
@@ -246,7 +250,7 @@ export async function GET(req) {
                analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
                (latest_analysis IS NOT NULL) AS has_analysis
         FROM sites
-        WHERE user_email = ${session.user.email}
+        WHERE user_email = ${session.user.email} AND kind = ${EDITION}
         ORDER BY updated_at DESC
       `,
       getSiteLimit(sql, session.user.email),
@@ -285,7 +289,7 @@ export async function POST(req) {
 
     // サイト数制限チェック
     const planLimit = await getSiteLimit(sql, session.user.email);
-    const countResult = await sql`SELECT COUNT(*) as count FROM sites WHERE user_email = ${session.user.email}`;
+    const countResult = await sql`SELECT COUNT(*) as count FROM sites WHERE user_email = ${session.user.email} AND kind = ${EDITION}`;
     const currentCount = parseInt(countResult[0].count);
     if (currentCount >= planLimit) {
       return NextResponse.json({ error: `サイト数の上限（${planLimit}サイト）に達しています。プランのアップグレードが必要です。`, planLimit, currentCount }, { status: 403 });
@@ -303,7 +307,7 @@ export async function POST(req) {
 
     // URL重複チェック（末尾スラッシュ・プロトコルの違いを吸収）
     if (site_url) {
-      const allSites = await sql`SELECT id, site_name, site_url FROM sites WHERE user_email = ${session.user.email}`;
+      const allSites = await sql`SELECT id, site_name, site_url FROM sites WHERE user_email = ${session.user.email} AND kind = ${EDITION}`;
       const normalize = u => u?.replace(/^https?:\/\//, "").replace(/\/+$/, "").toLowerCase();
       const existing = allSites.find(s => normalize(s.site_url) === normalize(site_url));
       if (existing) {
@@ -312,8 +316,8 @@ export async function POST(req) {
     }
 
     const rows = await sql`
-      INSERT INTO sites (user_email, site_url, site_name, company_name, industry, target_customer)
-      VALUES (${session.user.email}, ${site_url || null}, ${site_name}, ${company_name || null}, ${industry || null}, ${target_customer || null})
+      INSERT INTO sites (user_email, site_url, site_name, company_name, industry, target_customer, kind)
+      VALUES (${session.user.email}, ${site_url || null}, ${site_name}, ${company_name || null}, ${industry || null}, ${target_customer || null}, ${EDITION})
       RETURNING *
     `;
 
@@ -353,7 +357,7 @@ export async function PUT(req) {
     const existing = await sql`
       SELECT id, latest_analysis, analysis_versions, analyzed_at, strategy_confirmed, current_strategy_version_id,
              CASE WHEN jsonb_typeof(analysis_chat) = 'array' THEN jsonb_array_length(analysis_chat) ELSE 0 END AS analysis_chat_len
-      FROM sites WHERE id = ${id} AND user_email = ${session.user.email}
+      FROM sites WHERE id = ${id} AND user_email = ${session.user.email} AND kind = ${EDITION}
     `;
     if (existing.length === 0) {
       return NextResponse.json({ error: "サイトが見つかりません。" }, { status: 404 });
@@ -546,7 +550,7 @@ export async function PUT(req) {
           THEN (CASE WHEN jsonb_typeof(reflect_marks) = 'object' THEN reflect_marks ELSE '{}'::jsonb END) || (${reflectMarksJson}::jsonb)
           ELSE reflect_marks END,
         updated_at = NOW()
-      WHERE id = ${id} AND user_email = ${session.user.email}
+      WHERE id = ${id} AND user_email = ${session.user.email} AND kind = ${EDITION}
       RETURNING id, user_email, site_url, site_name, company_name, industry, target_customer,
                 analyzed_at, strategy_confirmed, strategy_confirmed_at, created_at, updated_at,
                 (latest_analysis IS NOT NULL) AS has_analysis
@@ -602,7 +606,7 @@ export async function DELETE(req) {
     await ensureTable(sql);
 
     const rows = await sql`
-      DELETE FROM sites WHERE id = ${id} AND user_email = ${session.user.email} RETURNING id
+      DELETE FROM sites WHERE id = ${id} AND user_email = ${session.user.email} AND kind = ${EDITION} RETURNING id
     `;
 
     if (rows.length === 0) {
