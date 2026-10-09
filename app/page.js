@@ -12,6 +12,7 @@ import UpdateHistoryModal from "./components/UpdateHistoryModal";
 // SiteCapResolveModal は layout.js の SiteCapGuard 経由で全ページ共通表示に移行
 import { latestUpdateId } from "./data/updates";
 import { buildSlides } from "./lib/exporters/build-slides";
+import { CONV_WARN_MILD, CONV_WARN_STRONG } from "./lib/chat-limits";
 import { versionIndexEntry, buildPatternTree, patternInfo, confirmedPatternId } from "./lib/pattern-version";
 
 const C = {
@@ -1490,6 +1491,10 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
               onReanalyze(parsed.result, summary);
               if (onReflectMark) onReflectMark(patternKey, uptoAtSend);
               setMessages(prev => [...prev, { role: "assistant", content: `✓ 会話内容を${patternName}に反映して分析を更新しました！` }]);
+              // 上限を超えて古い発言が渡らなかった場合は、その事実を隠さず伝える
+              if (parsed.droppedChars > 0) {
+                setMessages(prev => [...prev, { role: "assistant", content: `※ 会話が長いため、古い方の約${Math.round(parsed.droppedChars / 1000)}千字は今回の反映に含めていません。反映済みの内容は分析結果に残っています。` }]);
+              }
             } catch (applyErr) {
               console.error("再分析結果の反映に失敗:", applyErr);
               setMessages(prev => [...prev, { role: "assistant", content: "再分析は完了しましたが、画面への反映中にエラーが発生しました。画面をリロードしてご確認ください。" }]);
@@ -1525,7 +1530,9 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
   const convTotalChars = messages
     .filter(m => typeof m.content === "string")
     .reduce((sum, m) => sum + m.content.length, 0);
-  const convWarnLevel = convTotalChars >= 22000 ? "strong" : convTotalChars >= 18000 ? "mild" : null;
+  // しきい値は再分析に渡せる上限（app/lib/chat-limits.js）から決める。ここに数値を直接書くと、
+  // 上限を変えたときに「まだ全文を渡せているのに警告が出続ける」状態になる。
+  const convWarnLevel = convTotalChars >= CONV_WARN_STRONG ? "strong" : convTotalChars >= CONV_WARN_MILD ? "mild" : null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -1637,7 +1644,7 @@ function AnalysisChatPanel({ isPro, analysisResult, reanalyzeBase, selectedPatte
             lineHeight: 1.6,
           }}>
             {convWarnLevel === "strong"
-              ? "⚠️ 会話が長くなっています。古い内容が反映されない場合があります。一度「戦略に反映」することをおすすめします。"
+              ? "⚠️ 会話が反映できる分量の上限に近づいています。上限を超えると古い発言から反映されなくなります。一度「戦略に反映」しておくことをおすすめします。"
               : "💬 会話が増えてきました。重要な内容が出たら「戦略に反映」を押しておくと確実です。"}
           </div>
         )}
