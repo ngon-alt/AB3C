@@ -6,6 +6,7 @@ import { neon } from "@neondatabase/serverless";
 import { SENRYAKU_VOICE } from "../../lib/voice";
 import { logUsage } from "../../lib/usage-log";
 import { EDITION } from "@/app/lib/edition";
+import { MAX_CONV_CHARS } from "../../lib/chat-limits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -172,7 +173,6 @@ ${conversationText}
     // 会話全文を渡す（インタビュー議事録のような全体に関わる長文も取りこぼさない）。
     // 入力過大を防ぐため合計文字数に上限を設け、超える場合は新しい発言を優先して古い方から落とす。
     // 会話は全文を渡すのが原則。上限は暴走防止のみ（/api/chat/reanalyze と同じ値に揃える）
-    const MAX_CONV_CHARS = 150000;
     const convPieces = messages
       .filter(m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
       .map(m => `【${m.role === 'user' ? 'ユーザー' : 'AI'}】${m.content}`);

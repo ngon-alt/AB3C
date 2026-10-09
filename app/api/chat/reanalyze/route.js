@@ -4,6 +4,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 import { neon } from "@neondatabase/serverless";
 import { logUsage } from "../../../lib/usage-log";
 import { EDITION } from "@/app/lib/edition";
+import { MAX_CONV_CHARS } from "../../../lib/chat-limits";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -85,16 +86,20 @@ export async function POST(req) {
         // Build conversation summary (same logic as /api/chat)
         // 戦略の土台はご本人との対話そのものなので、会話は全文を渡すのが原則（2026-09-14 権さん判断）。
         // 上限は暴走防止のみ。15万字＋分析結果でも長文割増の閾値（20万トークン）を超えない水準。
-        const MAX_CONV_CHARS = 150000;
         const convPieces = messages
           .filter(m => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
           .map(m => `【${m.role === "user" ? "ユーザー" : "AI"}】${m.content}`);
         let conversationSummary = "";
+        let includedFrom = convPieces.length; // 渡せた最も古い発言の位置
         for (let i = convPieces.length - 1; i >= 0; i--) {
           if (conversationSummary.length + convPieces[i].length + 1 > MAX_CONV_CHARS) break;
           conversationSummary = convPieces[i] + "\n" + conversationSummary;
+          includedFrom = i;
         }
         conversationSummary = conversationSummary.trim();
+        // 上限を超えて古い発言を落とした場合は、黙って削らず画面に知らせる（2026-09-14 権さん合意）。
+        // 字数は「渡せなかった発言そのもの」から数える（全文渡せたときは必ず 0 になる）。
+        const droppedChars = convPieces.slice(0, includedFrom).reduce((sum, t) => sum + t.length, 0);
 
         // 複数の戦略パターンがある場合、作り直すのは「ユーザーが選んでいるパターン」だけ（2026-09-22）。
         // 表の階層（benefit〜checkpoints）は画面側で選択中パターンの内容にそろえて送られてくる。
@@ -392,7 +397,7 @@ three_c.customer.market.adequacy を以下のルールで出力してくださ�
           console.warn("chatSummary 生成失敗:", sumErr?.message);
         }
 
-        send({ reanalyzed: true, result: newResult, chatSummary });
+        send({ reanalyzed: true, result: newResult, chatSummary, droppedChars });
 
       } catch (e) {
         console.error("再分析ストリームエラー:", e?.message);
